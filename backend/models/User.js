@@ -12,8 +12,8 @@ const userSchema = new mongoose.Schema(
     profilePicture: String,
     type: {
       type: String,
-      enum: ["buyer", "seller"],
-      default: "buyer",
+      enum: ["customer", "seller"],
+      default: "customer",
     },
   },
   { timestamps: true }
