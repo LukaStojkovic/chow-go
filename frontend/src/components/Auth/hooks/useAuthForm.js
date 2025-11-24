@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -14,20 +15,16 @@ const registerSchema = z
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email"),
     password: z.string().min(6, "Min 6 characters"),
-    role: z.enum(["customer", "owner"]),
-    restaurantName: z.string().optional(),
+    role: z.enum(["customer", "seller"]),
     profileImage: z.any().optional(),
   })
-  .refine((d) => d.role !== "owner" || d.restaurantName?.trim(), {
-    message: "Restaurant name is required",
-    path: ["restaurantName"],
-  })
-  .refine((d) => d.role !== "owner" || d.profileImage instanceof File, {
+  .refine((d) => d.role !== "seller" || d.profileImage instanceof File, {
     message: "Profile image is required",
     path: ["profileImage"],
   });
 
 export function useAuthForm(isLogin, initialRole = "customer") {
+  const { register: registerUser, login: loginUser } = useAuthStore();
   const [role, setRole] = useState(initialRole);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -48,7 +45,6 @@ export function useAuthForm(isLogin, initialRole = "customer") {
       email: "",
       password: "",
       role: initialRole,
-      restaurantName: "",
       profileImage: null,
     },
   });
@@ -66,7 +62,6 @@ export function useAuthForm(isLogin, initialRole = "customer") {
         email: "",
         password: "",
         role,
-        restaurantName: "",
         profileImage: null,
       });
       setImagePreview(null);
@@ -93,7 +88,7 @@ export function useAuthForm(isLogin, initialRole = "customer") {
 
   const onSubmit = async (data) => {
     if (isLogin) {
-      console.log("Login:", { email: data.email, password: data.password });
+      await loginUser(data);
       return;
     }
 
@@ -106,7 +101,7 @@ export function useAuthForm(isLogin, initialRole = "customer") {
       }
     });
 
-    console.log("Register:", Object.fromEntries(formData));
+    await registerUser(formData);
   };
 
   return {

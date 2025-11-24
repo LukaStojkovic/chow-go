@@ -4,10 +4,13 @@ import { LoginForm } from "./forms/LoginForm";
 import { RegisterForm } from "./forms/RegisterForm";
 import { useAuthForm } from "./hooks/useAuthForm";
 import { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function AuthModal({ isOpen, setIsOpen, isLoginModal = false }) {
   const [isLogin, setIsLogin] = useState(isLoginModal);
+
   const auth = useAuthForm(isLogin);
+  const { isLoggingIn, isRegistering } = useAuthStore();
 
   useEffect(() => {
     setIsLogin(isLoginModal);
@@ -71,6 +74,7 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = false }) {
             type="button"
             onClick={toggleForm}
             className="text-green-600 font-medium hover:underline focus:outline-none"
+            disabled={isRegistering || isLoggingIn}
           >
             {isLogin ? "Sign up" : "Log in"}
           </button>

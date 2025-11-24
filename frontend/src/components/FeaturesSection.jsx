@@ -11,14 +11,14 @@ export default function FeaturesSection() {
       title: "Lightning Delivery",
       desc: "Average 18 mins from order to doorstep",
       badge: "NEW",
-      img: "https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      img: "https://plus.unsplash.com/premium_photo-1673108852141-e8c3c22a4a22?q=80&w=1170&auto=format&fit=crop",
     },
     {
       icon: <UtensilsCrossed className="w-8 h-8" />,
       title: "10,000+ Restaurants",
       desc: "From local gems to national chains",
       badge: "LIVE",
-      img: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?cs=srgb&dl=pexels-pixabay-262978.jpg&fm=jpg",
+      img: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg",
     },
     {
       icon: <Smartphone className="w-8 h-8" />,
@@ -30,17 +30,22 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
+    <section
+      id="features"
+      className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-black/30"
+    >
       <div className="max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 dark:text-white">
             The Future of Food Delivery
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Powered by AI, built for speed, designed for delight.
           </p>
         </motion.div>
@@ -49,30 +54,36 @@ export default function FeaturesSection() {
           {features.map((feature, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.15, duration: 0.6 }}
             >
-              <Card className="group hover:shadow-2xl transition-all duration-300 border-0 overflow-hidden h-full">
-                <div className="relative h-48 overflow-hidden">
+              <Card className="group h-full overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white dark:bg-gray-900/90 backdrop-blur-xl">
+                <div className="relative h-56 overflow-hidden">
                   <img
                     src={feature.img}
                     alt={feature.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-                  <Badge className="absolute top-4 right-4 bg-emerald-600 text-white">
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                  <Badge className="absolute top-4 right-4 bg-emerald-600 dark:bg-emerald-500 text-white font-medium shadow-lg">
                     {feature.badge}
                   </Badge>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-linear-to-br from-emerald-500 to-teal-600 rounded-xl text-white">
+
+                <div className="p-7">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="p-3.5 bg-linear-to-br from-emerald-500 to-teal-600 rounded-2xl text-white shadow-lg">
                       {feature.icon}
                     </div>
-                    <h3 className="text-xl font-bold">{feature.title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {feature.title}
+                    </h3>
                   </div>
-                  <p className="text-gray-600">{feature.desc}</p>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {feature.desc}
+                  </p>
                 </div>
               </Card>
             </motion.div>

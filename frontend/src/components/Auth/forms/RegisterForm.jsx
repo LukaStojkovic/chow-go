@@ -47,14 +47,6 @@ export function RegisterForm({
         placeholder="Password (min 6 characters)"
         error={errors.password}
       />
-
-      {watchedRole === "owner" && (
-        <InputField
-          register={register("restaurantName")}
-          placeholder="Restaurant Name"
-          error={errors.restaurantName}
-        />
-      )}
     </motion.div>
   );
 }

@@ -12,7 +12,7 @@ import { protectedRoute } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/login", login);
-router.post("/register", upload.single("profilePicture"), register);
+router.post("/register", upload.single("profileImage"), register);
 router.post("/logout", logout);
 
 router.put("/update-profile", protectedRoute, updateProfile);

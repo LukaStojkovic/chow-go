@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bike, MapPin, Navigation, Star, Zap } from "lucide-react";
+import { Bike, LocateFixed, MapPin, Star, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -63,12 +63,12 @@ export default function HeroSection() {
         <motion.div
           animate={{ y: [0, 60, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-20 -left-32 w-96 h-96 bg-linear-to-br from-green-400 to-emerald-500 rounded-full blur-3xl opacity-20"
+          className="absolute top-20 -left-32 w-96 h-96 bg-linear-to-br from-green-400 to-emerald-500 dark:from-green-500/30 dark:to-emerald-600/20 rounded-full blur-3xl opacity-20"
         />
         <motion.div
           animate={{ y: [0, -50, 0] }}
           transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-20 -right-32 w-80 h-80 bg-linear-to-br from-orange-400 to-amber-500 rounded-full blur-3xl opacity-15"
+          className="absolute bottom-20 -right-32 w-80 h-80 bg-linear-to-br from-orange-400 to-amber-500 dark:from-orange-500/20 dark:to-amber-600/10 rounded-full blur-3xl opacity-15"
         />
       </div>
 
@@ -80,17 +80,17 @@ export default function HeroSection() {
             transition={{ duration: 0.6 }}
             className="space-y-4"
           >
-            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 text-sm px-4 py-1">
+            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70 text-sm px-4 py-1">
               <Zap className="w-3 h-3 mr-1" />
               18 min average delivery
             </Badge>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
               Food Delivered
-              <span className="block bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <span className="block bg-linear-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
                 Faster Than Ever
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Over 10,000 restaurants. AI-powered recommendations. Doorstep
               delivery in minutes.
             </p>
@@ -105,14 +105,14 @@ export default function HeroSection() {
           >
             <div className="relative flex flex-col sm:flex-row gap-3 items-center justify-center">
               <div className="relative flex-1 w-full max-w-xl">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-600 z-10" />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-600 dark:text-green-400 z-10" />
 
                 <Input
                   type="text"
                   placeholder="Enter delivery address (e.g. 123 Main St, New York)"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="pl-12 pr-16 py-7 text-lg bg-white/90 backdrop-blur-xl border-white/30 shadow-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 rounded-2xl w-full"
+                  className="pl-12 pr-16 py-7 text-lg bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-white/30 dark:border-gray-700/50 shadow-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:focus:ring-green-500/30 rounded-2xl w-full"
                   required
                 />
 
@@ -120,7 +120,7 @@ export default function HeroSection() {
                   type="button"
                   onClick={detectLocation}
                   disabled={isDetecting}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-green-50 transition-colors disabled:opacity-50"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/50 transition-colors disabled:opacity-50"
                   aria-label="Auto-detect location"
                 >
                   {isDetecting ? (
@@ -132,10 +132,10 @@ export default function HeroSection() {
                         ease: "linear",
                       }}
                     >
-                      <Navigation className="w-5 h-5 text-green-600" />
+                      <LocateFixed className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </motion.div>
                   ) : (
-                    <Navigation className="w-5 h-5 text-green-600" />
+                    <LocateFixed className="w-5 h-5 text-green-600 dark:text-green-400" />
                   )}
                 </button>
               </div>
@@ -164,12 +164,13 @@ export default function HeroSection() {
                     key={i}
                     src={`https://randomuser.me/api/portraits/men/${i}.jpg`}
                     alt="User"
-                    className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                    className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 object-cover"
                   />
                 ))}
               </div>
-              <p className="text-sm text-gray-600">
-                <strong className="text-gray-900">2M+</strong> happy customers
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong className="text-gray-900 dark:text-white">2M+</strong>{" "}
+                happy customers
               </p>
             </div>
 
@@ -180,13 +181,18 @@ export default function HeroSection() {
                   className="w-5 h-5 fill-yellow-400 text-yellow-400"
                 />
               ))}
-              <span className="ml-1 text-sm font-medium">4.9/5</span>
+              <span className="ml-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                4.9/5
+              </span>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Bike className="w-5 h-5 text-green-600" />
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Bike className="w-5 h-5 text-green-600 dark:text-green-400" />
               <span>
-                <strong className="text-gray-900">18 min</strong> avg. delivery
+                <strong className="text-gray-900 dark:text-white">
+                  18 min
+                </strong>{" "}
+                avg. delivery
               </span>
             </div>
           </motion.div>

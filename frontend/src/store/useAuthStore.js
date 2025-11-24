@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { checkAuth } from "@/services/apiAuth";
-import { toast } from "sonner";
+import { checkAuth, loginUser, registerUser } from "@/services/apiAuth";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -27,11 +26,21 @@ export const useAuthStore = create((set) => ({
     try {
       const response = await registerUser(data);
       set({ authUser: response?.user || null });
-      toast.success("Registration successful!");
     } catch (err) {
-      console.error("Error registering user: ", err);
+      console.log("Error in register", err);
     } finally {
       set({ isRegistering: false });
+    }
+  },
+
+  login: async (data) => {
+    set({ isLoggingIn: true });
+    try {
+      const response = await loginUser(data);
+      set({ authUser: response?.user || null });
+    } catch (err) {
+    } finally {
+      set({ isLoggingIn: false });
     }
   },
 }));

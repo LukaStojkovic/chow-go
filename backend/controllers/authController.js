@@ -12,9 +12,12 @@ export async function login(req, res) {
         .json({ status: "failed", message: "All fields are required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user)
+      return res
+        .status(400)
+        .json({ status: "failed", message: "Invalid credentials" });
 
-    const isCorrectPassword = bcrypt.compare(password, user.password);
+    const isCorrectPassword = await bcrypt.compare(password, user.password);
 
     if (!isCorrectPassword) {
       return res
@@ -29,7 +32,7 @@ export async function login(req, res) {
       email: user.email,
       name: user.name,
       profilePicture: user.profilePicture,
-      type: user.type,
+      role: user.role,
       createdAt: user.createdAt,
     });
   } catch (err) {
@@ -39,10 +42,10 @@ export async function login(req, res) {
 }
 
 export async function register(req, res) {
-  const { email, name, password, type } = req.body;
+  const { email, name, password, role } = req.body;
 
   try {
-    if (!email || !name || !password || !type) {
+    if (!email || !name || !password || !role) {
       return res
         .status(400)
         .json({ status: "failed", message: "All fields are required" });
@@ -72,7 +75,7 @@ export async function register(req, res) {
       email,
       password: hashedPassword,
       name,
-      type,
+      role,
       profilePicture,
     });
 
@@ -85,11 +88,11 @@ export async function register(req, res) {
         email: newUser.email,
         name: newUser.name,
         profilePicture: newUser.profilePicture,
-        type: newUser.type,
+        role: newUser.role,
         createdAt: newUser.createdAt,
       });
     } else {
-      res.status(400).json({ message: "Invalid user data" });
+      res.status(400).json({ status: "failed", message: "Invalid user data" });
     }
   } catch (err) {
     console.log(`Error in Register Controller ${err}`);

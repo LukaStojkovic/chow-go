@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { UtensilsCrossed, Menu } from "lucide-react";
+import { UtensilsCrossed, Menu, Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import AuthModal from "./Auth/AuthModal";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useDarkMode } from "@/hooks/useDarkMode";
 
 export default function HomeNavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isLoginModal, setIsLoginModal] = useState(true);
+  const { isDark, toggle } = useDarkMode();
+
+  const { authUser } = useAuthStore();
 
   const openAuth = (login) => {
     setIsLoginModal(login);
@@ -18,7 +23,7 @@ export default function HomeNavBar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 border-b border-white/20">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/90 border-b border-gray-200/50 dark:border-gray-800/50 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <motion.div
@@ -35,7 +40,27 @@ export default function HomeNavBar() {
               </div>
             </motion.div>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggle}
+                className="rounded-full"
+              >
+                <motion.div
+                  key={isDark ? "moon" : "sun"}
+                  initial={{ rotate: -180, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isDark ? (
+                    <Moon className="w-5 h-5" />
+                  ) : (
+                    <Sun className="w-5 h-5" />
+                  )}
+                </motion.div>
+              </Button>
+
               <Button
                 onClick={() => openAuth(true)}
                 variant="ghost"
@@ -51,30 +76,48 @@ export default function HomeNavBar() {
               </Button>
             </div>
 
-            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
-                  <Menu className="w-6 h-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <div className="flex flex-col gap-6 mt-8">
-                  <Button
-                    onClick={() => openAuth(true)}
-                    variant="ghost"
-                    className="justify-start font-medium"
-                  >
-                    Log In
+            <div className="flex items-center gap-2 md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggle}
+                className="rounded-full"
+              >
+                {isDark ? (
+                  <Moon className="w-5 h-5" />
+                ) : (
+                  <Sun className="w-5 h-5" />
+                )}
+              </Button>
+
+              <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="w-6 h-6" />
                   </Button>
-                  <Button
-                    onClick={() => openAuth(false)}
-                    className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold"
-                  >
-                    Sign Up Free
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  className="w-80 bg-white dark:bg-gray-900"
+                >
+                  <div className="flex flex-col gap-6 mt-8">
+                    <Button
+                      onClick={() => openAuth(true)}
+                      variant="ghost"
+                      className="justify-start font-medium"
+                    >
+                      Log In
+                    </Button>
+                    <Button
+                      onClick={() => openAuth(false)}
+                      className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold"
+                    >
+                      Sign Up Free
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>

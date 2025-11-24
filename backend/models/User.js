@@ -10,10 +10,12 @@ const userSchema = new mongoose.Schema(
     },
     password: String,
     profilePicture: String,
-    type: {
+
+    role: {
       type: String,
       enum: ["customer", "seller"],
       default: "customer",
+      required: true,
     },
   },
   { timestamps: true }
