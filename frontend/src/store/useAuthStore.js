@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { checkAuth, loginUser, registerUser } from "@/services/apiAuth";
+import {
+  checkAuth,
+  loginUser,
+  logoutUser,
+  registerUser,
+} from "@/services/apiAuth";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -12,7 +17,7 @@ export const useAuthStore = create((set) => ({
     try {
       const response = await checkAuth();
 
-      set({ authUser: response?.user || null });
+      set({ authUser: response || null });
     } catch (err) {
       console.error("Error checking auth: ", err);
       set({ authUser: null });
@@ -25,7 +30,7 @@ export const useAuthStore = create((set) => ({
     set({ isRegistering: true });
     try {
       const response = await registerUser(data);
-      set({ authUser: response?.user || null });
+      set({ authUser: response || null });
     } catch (err) {
       console.log("Error in register", err);
     } finally {
@@ -37,10 +42,19 @@ export const useAuthStore = create((set) => ({
     set({ isLoggingIn: true });
     try {
       const response = await loginUser(data);
-      set({ authUser: response?.user || null });
+      set({ authUser: response || null });
     } catch (err) {
     } finally {
       set({ isLoggingIn: false });
+    }
+  },
+
+  logout: async () => {
+    try {
+      const response = await logoutUser();
+      set({ authUser: null });
+    } catch (err) {
+      console.error("Error during logout: ", err);
     }
   },
 }));

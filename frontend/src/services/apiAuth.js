@@ -36,3 +36,14 @@ export async function loginUser(data) {
     toast.error(err.response?.data?.message);
   }
 }
+
+export async function logoutUser() {
+  try {
+    const response = await axiosInstance.post("/auth/logout");
+    toast.success(response.data.message);
+    return response.data;
+  } catch (err) {
+    console.error("Error logoutUser:", err);
+    toast.error("Logout failed");
+  }
+}

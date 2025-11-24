@@ -5,6 +5,7 @@ import { RegisterForm } from "./forms/RegisterForm";
 import { useAuthForm } from "./hooks/useAuthForm";
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import Spinner from "@/components/Spinner"; // ← tvoj spinner
 
 export default function AuthModal({ isOpen, setIsOpen, isLoginModal = false }) {
   const [isLogin, setIsLogin] = useState(isLoginModal);
@@ -17,6 +18,8 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = false }) {
   }, [isLoginModal]);
 
   const toggleForm = () => setIsLogin(!isLogin);
+
+  const isLoading = auth.isSubmitting || isLoggingIn || isRegistering;
 
   if (!isOpen) return null;
 
@@ -32,23 +35,31 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = false }) {
       }
       size="md"
       footer={
-        <>
+        <div className="flex gap-3 justify-end">
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
-            disabled={auth.isSubmitting}
+            disabled={isLoading}
           >
             Cancel
           </Button>
+
           <Button
             type="submit"
             form="auth-form"
-            disabled={auth.isSubmitting}
-            className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+            disabled={isLoading}
+            className="min-w-32 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium flex items-center justify-center gap-3 px-8"
           >
-            {auth.isSubmitting ? "Loading..." : isLogin ? "Log In" : "Sign Up"}
+            {isLoading ? (
+              <>
+                <Spinner size="sm" />
+                {isLogin ? "Logging in..." : "Creating account..."}
+              </>
+            ) : (
+              <>{isLogin ? "Log In" : "Sign Up"}</>
+            )}
           </Button>
-        </>
+        </div>
       }
     >
       <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
@@ -68,13 +79,13 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = false }) {
           />
         )}
 
-        <div className="text-center text-sm text-gray-600 pt-4">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400 pt-4">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             type="button"
             onClick={toggleForm}
-            className="text-green-600 font-medium hover:underline focus:outline-none"
-            disabled={isRegistering || isLoggingIn}
+            disabled={isLoading}
+            className="text-green-600 dark:text-green-400 font-medium hover:underline focus:outline-none disabled:opacity-50"
           >
             {isLogin ? "Sign up" : "Log in"}
           </button>

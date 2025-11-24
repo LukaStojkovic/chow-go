@@ -1,6 +1,6 @@
 import React from "react";
 
-import HomeNavBar from "@/components/HomeNavBar";
+import HomeNavBar from "@/components/Navbar/HomeNavBar";
 import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
 import Footer from "@/components/Footer";
