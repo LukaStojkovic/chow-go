@@ -10,6 +10,12 @@ const userSchema = new mongoose.Schema(
     },
     password: String,
     profilePicture: String,
+    otp: String,
+    isVerifiedOtp: {
+      type: Boolean,
+      default: false,
+    },
+    otpExpiry: Date,
 
     role: {
       type: String,

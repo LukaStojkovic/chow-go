@@ -1,5 +1,8 @@
 import { create } from "zustand";
 import {
+  apiForgotPassword,
+  apiResetPassword,
+  apiVerifyOtp,
   checkAuth,
   loginUser,
   logoutUser,
@@ -44,6 +47,7 @@ export const useAuthStore = create((set) => ({
       const response = await loginUser(data);
       set({ authUser: response || null });
     } catch (err) {
+      console.log("Error in login", err);
     } finally {
       set({ isLoggingIn: false });
     }
@@ -51,10 +55,28 @@ export const useAuthStore = create((set) => ({
 
   logout: async () => {
     try {
-      const response = await logoutUser();
+      await logoutUser();
       set({ authUser: null });
     } catch (err) {
       console.error("Error during logout: ", err);
     }
+  },
+
+  forgotPassword: async (email) => {
+    const data = await apiForgotPassword(email);
+
+    return data;
+  },
+
+  verifyOtp: async (email, code) => {
+    const data = await apiVerifyOtp(email, code);
+
+    return data;
+  },
+
+  resetPassword: async (email, password) => {
+    const data = await apiResetPassword(email, password);
+
+    return data;
   },
 }));

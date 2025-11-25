@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { InputField } from "../fields/InputField";
 
-export function LoginForm({ register, errors }) {
+export function LoginForm({ register, errors, onForgotPassword }) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -25,9 +25,13 @@ export function LoginForm({ register, errors }) {
           <input type="checkbox" className="rounded" />
           <span>Remember me</span>
         </label>
-        <a href="#" className="text-green-600 hover:underline">
+        <button
+          type="button"
+          onClick={onForgotPassword}
+          className="text-green-600 hover:underline cursor-pointer"
+        >
           Forgot password?
-        </a>
+        </button>
       </div>
     </motion.div>
   );

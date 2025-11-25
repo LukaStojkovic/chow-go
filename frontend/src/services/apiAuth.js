@@ -47,3 +47,21 @@ export async function logoutUser() {
     toast.error("Logout failed");
   }
 }
+
+export async function apiForgotPassword(email) {
+  const res = await axiosInstance.post("/auth/forgot-password", { email });
+  return res.data;
+}
+
+export async function apiVerifyOtp(email, code) {
+  const res = await axiosInstance.post("/auth/verify-otp", { email, code });
+  return res.data;
+}
+
+export async function apiResetPassword(email, password) {
+  const res = await axiosInstance.post("/auth/reset-password", {
+    email,
+    newPassword: password,
+  });
+  return res.data;
+}
