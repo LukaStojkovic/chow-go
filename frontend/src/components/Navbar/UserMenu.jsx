@@ -33,7 +33,7 @@ export default function UserMenu({ name, profilePicture, onLogout }) {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={onLogout}
-            className="cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20"
+            className="cursor-pointer text-red-600! hover:text-red-700! focus:text-red-700! dark:text-red-400! dark:hover:text-red-300! focus:bg-red-50 dark:focus:bg-red-900/20"
           >
             <LogOut className="w-4 h-4 mr-3" />
             Logout

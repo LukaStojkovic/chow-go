@@ -2,7 +2,10 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: String,
+    name: {
+      type: String,
+      required: true,
+    },
     email: {
       unique: true,
       type: String,
@@ -17,6 +20,20 @@ const userSchema = new mongoose.Schema(
     },
     otpExpiry: Date,
 
+    deliveryAddresses: [
+      {
+        label: String,
+        fullAddress: String,
+        coordinates: {
+          lat: Number,
+          lng: Number,
+        },
+        isDefault: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now },
+        lastUsedAt: { type: Date },
+      },
+    ],
+
     role: {
       type: String,
       enum: ["customer", "seller"],
@@ -26,6 +43,13 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", function (next) {
+  if (this.role === "seller") {
+    this.deliveryAddresses = [];
+  }
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 

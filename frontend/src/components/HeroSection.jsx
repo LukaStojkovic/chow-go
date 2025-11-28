@@ -1,58 +1,28 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bike, LocateFixed, MapPin, Star, Zap } from "lucide-react";
+import { Bike, ChefHat, LocateFixed, MapPin, Star, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import useDetectLocation from "@/hooks/Location/useDetectLocation";
 
 export default function HeroSection() {
   const [location, setLocation] = useState("");
-  const [isDetecting, setIsDetecting] = useState(false);
+  const { detect, address, isDetecting } = useDetectLocation();
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported on this device.");
-      return;
+  useEffect(() => {
+    if (address) {
+      setLocation(address);
     }
-
-    setIsDetecting(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const res = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-          );
-          const data = await res.json();
-          const address = `${
-            data.city || data.locality || "Unknown location"
-          }, ${data.countryName}`;
-          setLocation(address);
-          toast.success("Location detected!", {
-            description: address,
-            icon: <MapPin className="w-5 h-5" />,
-          });
-        } catch (err) {
-          toast.error("Failed to fetch address.");
-        } finally {
-          setIsDetecting(false);
-        }
-      },
-      () => {
-        toast.error("Please allow location access to auto-detect.");
-        setIsDetecting(false);
-      },
-      { timeout: 10000 }
-    );
-  };
+  }, [address]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (location.trim()) {
       toast.success("Searching restaurants!", {
-        description: `Finding food near: ${location}`,
-        icon: <Bike className="w-5 h-5" />,
+        description: `Near: ${location}`,
+        icon: <ChefHat className="w-5 h-5" />,
       });
     }
   };
@@ -118,7 +88,7 @@ export default function HeroSection() {
 
                 <button
                   type="button"
-                  onClick={detectLocation}
+                  onClick={detect}
                   disabled={isDetecting}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/50 transition-colors disabled:opacity-50"
                   aria-label="Auto-detect location"

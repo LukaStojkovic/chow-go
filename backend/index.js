@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "./routes/authRoutes.js";
+import locationRoutes from "./routes/locationRouter.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -19,6 +20,7 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
+app.use("/api/location", locationRoutes);
 
 app.get("/", (_, res) => {
   res.send("Backend is Running");
