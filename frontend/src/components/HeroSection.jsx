@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "./ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Bike, ChefHat, LocateFixed, MapPin, Star, Zap } from "lucide-react";
+import { Bike, LocateFixed, MapPin, Sparkles, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
 import useDetectLocation from "@/hooks/Location/useDetectLocation";
+import GlowButton from "./GlowButton";
+import { useNavigate } from "react-router-dom";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 
 export default function HeroSection() {
   const [location, setLocation] = useState("");
   const { detect, address, isDetecting } = useDetectLocation();
+  const { setAddress } = useDeliveryStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (address) {
@@ -20,10 +22,8 @@ export default function HeroSection() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (location.trim()) {
-      toast.success("Searching restaurants!", {
-        description: `Near: ${location}`,
-        icon: <ChefHat className="w-5 h-5" />,
-      });
+      navigate("/discovery");
+      setAddress(location.trim());
     }
   };
 
@@ -50,10 +50,19 @@ export default function HeroSection() {
             transition={{ duration: 0.6 }}
             className="space-y-4"
           >
-            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70 text-sm px-4 py-1">
-              <Zap className="w-3 h-3 mr-1" />
-              18 min average delivery
-            </Badge>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-6 flex justify-center"
+            >
+              <div className="inline-flex items-center gap-2 rounded-full border bg-linear-to-r from-primary/10 to-primary/5 px-4 py-2 text-sm backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                <span className="font-medium">
+                  Fast, Fresh, Delivered to Your Door
+                </span>
+              </div>
+            </motion.div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
               Food Delivered
               <span className="block bg-linear-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
@@ -110,14 +119,14 @@ export default function HeroSection() {
                 </button>
               </div>
 
-              <Button
+              <GlowButton
                 type="submit"
                 size="lg"
                 className="h-14 px-8 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-xl rounded-2xl"
               >
                 Find Food
                 <Bike className="ml-2 w-5 h-5" />
-              </Button>
+              </GlowButton>
             </div>
           </motion.form>
 

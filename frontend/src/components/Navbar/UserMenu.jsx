@@ -23,19 +23,19 @@ export default function UserMenu({ name, profilePicture, onLogout }) {
 
       <DropdownMenuPortal>
         <DropdownMenuContent align="end" className="w-56 mt-2">
-          <DropdownMenuItem className="cursor-pointer">
-            <User className="w-4 h-4 mr-3" />
+          <DropdownMenuItem className="cursor-pointer group text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
+            <User className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white" />
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer">
-            <Settings className="w-4 h-4 mr-3" />
+          <DropdownMenuItem className="cursor-pointer group text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white">
+            <Settings className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white" />
             Settings
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={onLogout}
-            className="cursor-pointer text-red-600! hover:text-red-700! focus:text-red-700! dark:text-red-400! dark:hover:text-red-300! focus:bg-red-50 dark:focus:bg-red-900/20"
+            className="cursor-pointer group text-red-600! group-hover:text-red-700! dark:text-red-400! dark:group-hover:text-red-300! focus:bg-red-50 dark:focus:bg-red-900/20"
           >
-            <LogOut className="w-4 h-4 mr-3" />
+            <LogOut className="w-4 h-4 mr-3 text-red-600 dark:text-red-400 group-hover:text-red-700! dark:group-hover:text-red-300!" />
             Logout
           </DropdownMenuItem>
         </DropdownMenuContent>

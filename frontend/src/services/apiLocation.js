@@ -5,8 +5,8 @@ export async function getUserLocation(lat, lon) {
     params: { lat, lon },
   });
 
-  const props = res.data.features[0].properties;
-  const address = `${props.street || ""} ${props.housenumber || ""}, ${
+  const props = res.data.address;
+  const address = `${props.road || ""} ${props.house_number || ""}, ${
     props.city
   }, ${props.country}`
     .trim()
