@@ -123,10 +123,10 @@
     color-scheme: dark;
   }
 
-  body,
+  /* body,
   body * {
-    @apply transition-colors duration-300;
-  }
+    @apply transition-colors duration;
+  } */
 
   .dark ::-webkit-scrollbar {
     @apply w-2;

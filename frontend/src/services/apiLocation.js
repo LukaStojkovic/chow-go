@@ -15,3 +15,17 @@ export async function getUserLocation(lat, lon) {
 
   return { address };
 }
+
+export const getLocationPredction = async (input) => {
+  if (!input.trim()) return [];
+  try {
+    const res = await axiosInstance.get("/location/location-prediction", {
+      params: { query: input.trim() },
+    });
+
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching location predictions from API:", err);
+    return [];
+  }
+};

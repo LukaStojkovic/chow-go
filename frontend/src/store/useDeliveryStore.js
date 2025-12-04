@@ -5,10 +5,15 @@ export const useDeliveryStore = create()(
   persist(
     (set) => ({
       address: "",
+      coordinates: null,
+
       setAddress: (address) => set({ address }),
+      setCoordinates: (coordinates) => set({ coordinates }),
+      setLocation: (address, coordinates) => set({ address, coordinates }),
+      clearLocation: () => set({ address: "", coordinates: null }),
     }),
     {
-      name: "address",
+      name: "delivery-location",
     }
   )
 );

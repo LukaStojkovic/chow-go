@@ -14,10 +14,8 @@ export function FoodCard({ image, title, delay = 0 }) {
         <img
           src={image}
           alt={title}
-          fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-110"
-          unoptimized
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4">

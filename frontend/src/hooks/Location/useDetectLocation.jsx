@@ -14,6 +14,10 @@ export default function useDetectLocation() {
 
   const isDetecting = isGettingGeo || isLoading;
 
+  const clearDetectedLocation = () => {
+    setCoords(null);
+  };
+
   useEffect(() => {
     if (data?.address && coords) {
       toast.success("Location detected!", {
@@ -51,7 +55,9 @@ export default function useDetectLocation() {
   return {
     detect,
     address: data?.address || "",
+    coordinates: coords ? { lat: coords.lat, lon: coords.lon } : null,
     isDetecting,
     isError,
+    clearDetectedLocation,
   };
 }

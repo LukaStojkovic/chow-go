@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
-  Clock,
   Star,
   Filter,
   Bike,
@@ -161,10 +160,10 @@ const RESTAURANTS = [
 ];
 
 export default function DiscoverPage() {
-  const { address } = useDeliveryStore();
+  const { address, coordinates } = useDeliveryStore();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
-
+  console.log(coordinates);
   if (!address) {
     navigate("/");
     return null;
