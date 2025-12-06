@@ -1,88 +1,80 @@
-import { UtensilsCrossed } from "lucide-react";
 import React from "react";
+import {
+  UtensilsCrossed,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+} from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-950 text-gray-400 py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-900">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-10 mb-12">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-linear-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                <UtensilsCrossed className="w-6 h-6 text-white" />
+    <footer className="bg-white border-t border-gray-100 pt-16 pb-8 dark:bg-zinc-950 dark:border-zinc-800">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
+          {/* Brand Column */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                <UtensilsCrossed className="h-6 w-6" />
               </div>
-              <span className="text-2xl font-bold text-white">Chow & Go</span>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                Chow & Go
+              </span>
             </div>
-            <p className="text-gray-500 text-sm leading-relaxed">
-              The future of food delivery, today.
+            <p className="mb-6 max-w-sm text-gray-500 dark:text-gray-400">
+              The smartest way to order food. Real-time tracking, AI
+              recommendations, and fast delivery from your favorite local spots.
             </p>
+            <div className="flex gap-4">
+              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="rounded-full bg-gray-100 p-2 text-gray-600 hover:bg-emerald-100 hover:text-emerald-600 transition-colors dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700"
+                >
+                  <Icon className="h-5 w-5" />
+                </a>
+              ))}
+            </div>
           </div>
 
-          {["Product", "Company", "Legal"].map((category) => (
+          {/* Links Columns */}
+          {["Company", "Product", "Legal"].map((category) => (
             <div key={category}>
-              <h4 className="font-semibold text-white mb-5 text-lg">
+              <h4 className="mb-6 font-bold text-gray-900 dark:text-white">
                 {category}
               </h4>
-              <ul className="space-y-3">
-                {category === "Product" &&
-                  ["Features", "Pricing", "Restaurants", "Riders"].map(
-                    (item) => (
-                      <li key={item}>
-                        <a
-                          href="#"
-                          className="text-gray-400 hover:text-emerald-400 transition-colors duration-200"
-                        >
-                          {item}
-                        </a>
-                      </li>
-                    )
-                  )}
-                {category === "Company" &&
-                  ["About", "Careers", "Blog", "Press"].map((item) => (
-                    <li key={item}>
-                      <a
-                        href="#"
-                        className="text-gray-400 hover:text-emerald-400 transition-colors duration-200"
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
-                {category === "Legal" &&
-                  [
-                    "Privacy Policy",
-                    "Terms of Service",
-                    "Cookies",
-                    "Licenses",
-                  ].map((item) => (
-                    <li key={item}>
-                      <a
-                        href="#"
-                        className="text-gray-400 hover:text-emerald-400 transition-colors duration-200"
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
+              <ul className="space-y-4 text-sm text-gray-500 dark:text-gray-400">
+                {[1, 2, 3, 4].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="hover:text-emerald-600 transition-colors"
+                    >
+                      {category} Link {item}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
           ))}
         </div>
 
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-          <p className="text-gray-500">
-            © {new Date().getFullYear()} Chow & Go. All rights reserved.
-          </p>
-          <div className="flex gap-8">
-            {["Privacy", "Terms", "Contact"].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="text-gray-400 hover:text-emerald-400 transition-colors duration-200"
-              >
-                {item}
+        <div className="mt-16 border-t border-gray-100 pt-8 dark:border-zinc-800">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row text-sm text-gray-500">
+            <p>© {new Date().getFullYear()} Chow & Go. All rights reserved.</p>
+            <div className="flex gap-8">
+              <a href="#" className="hover:text-gray-900 dark:hover:text-white">
+                Privacy Policy
               </a>
-            ))}
+              <a href="#" className="hover:text-gray-900 dark:hover:text-white">
+                Terms of Service
+              </a>
+              <a href="#" className="hover:text-gray-900 dark:hover:text-white">
+                Cookie Settings
+              </a>
+            </div>
           </div>
         </div>
       </div>

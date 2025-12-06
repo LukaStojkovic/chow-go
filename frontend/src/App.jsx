@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "./store/useAuthStore";
 import { useDarkMode } from "./hooks/useDarkMode";
 import Spinner from "./components/Spinner";
+import CheckoutPage from "./pages/CheckoutPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="discovery" element={<DiscoverPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
 

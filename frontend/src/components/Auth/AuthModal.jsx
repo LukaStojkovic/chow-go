@@ -2,190 +2,82 @@ import { Button } from "../ui/button";
 import Modal from "../Modal";
 import { LoginForm } from "./forms/LoginForm";
 import { RegisterForm } from "./forms/RegisterForm";
+import { RestaurantInfoForm } from "./forms/RestaurantInfoForm";
 import { useAuthForm } from "./hooks/useAuthForm";
-import { useState, useEffect } from "react";
+import { usePasswordReset } from "./hooks/usePasswordReset";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";
-
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
 import { InputField } from "./fields/InputField";
-
-const forgotEmailSchema = z.object({
-  email: z.string().email("Invalid email"),
-});
-const otpSchema = z.object({
-  code: z.string().length(6, "Code must be 6 digits"),
-});
-const resetSchema = z
-  .object({
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.password === d.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
 
 export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
   const [step, setStep] = useState(isLoginModal ? "login" : "register");
-  const [resetEmail, setResetEmail] = useState("");
-
-  const {
-    isLoggingIn,
-    isRegistering,
-    forgotPassword,
-    verifyOtp,
-    resetPassword,
-  } = useAuthStore();
+  const { isLoggingIn, isRegistering } = useAuthStore();
 
   const auth = useAuthForm(
-    step === "login" || step === "register" ? step === "login" : false
+    step === "login" || step === "register" || step === "restaurant-info"
+      ? step === "login"
+      : false,
+    "customer",
+    useCallback((isRestaurantStep) => {
+      if (isRestaurantStep) setStep("restaurant-info");
+    }, [])
   );
 
-  const emailForm = useForm({
-    resolver: zodResolver(forgotEmailSchema),
-    defaultValues: { email: "" },
-  });
-  const otpForm = useForm({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { code: "" },
-  });
-  const resetForm = useForm({
-    resolver: zodResolver(resetSchema),
-    defaultValues: { password: "", confirmPassword: "" },
-  });
+  const passwordReset = usePasswordReset(
+    useCallback(() => setStep("login"), [])
+  );
 
   useEffect(() => {
     if (isOpen) setStep(isLoginModal ? "login" : "register");
   }, [isOpen, isLoginModal]);
 
   const isLoading = auth.isSubmitting || isLoggingIn || isRegistering;
+  const isForgotFlow = step === "forgot" || step === "otp" || step === "reset";
 
-  const sendCode = async (data) => {
-    try {
-      const res = await forgotPassword(data.email);
-      toast.success(res.message);
-      setResetEmail(data.email);
-      setStep("otp");
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    }
-  };
-
-  const verifyCode = async (data) => {
-    try {
-      const res = await verifyOtp(resetEmail, data.code);
-      toast.success(res.message);
-      setStep("reset");
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    }
-  };
-
-  const changePassword = async (data) => {
-    try {
-      const res = await resetPassword(resetEmail, data.password);
-      toast.success(res.message);
-      setStep("login");
-      emailForm.reset();
-      otpForm.reset();
-      resetForm.reset();
-      setResetEmail("");
-    } catch (err) {
-      toast.error(err.response?.data?.message);
-    }
-  };
+  const footer = useMemo(
+    () =>
+      renderFooter(step, isLoading, auth, passwordReset, setStep, setIsOpen),
+    [step, isLoading, auth, passwordReset]
+  );
 
   if (!isOpen) return null;
-
-  const isForgotFlow = step === "forgot" || step === "otp" || step === "reset";
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={() => setIsOpen(false)}
-      title={
-        isForgotFlow
-          ? "Reset Password"
-          : step === "login"
-          ? "Welcome Back!"
-          : "Join Chow & Go"
-      }
-      description={
-        step === "forgot"
-          ? "Enter your email to get a verification code"
-          : step === "otp"
-          ? `Check ${resetEmail} for the 6-digit code`
-          : step === "reset"
-          ? "Choose a new password"
-          : step === "login"
-          ? "Log in to track your orders and save favorites."
-          : "Create an account to start ordering in seconds."
-      }
+      title={getTitle(step, isForgotFlow)}
+      description={getDescription(step, passwordReset.resetEmail, isForgotFlow)}
       size="md"
-      footer={
-        isForgotFlow ? (
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
-              Cancel
-            </Button>
-            {step === "forgot" && (
-              <Button
-                onClick={emailForm.handleSubmit(sendCode)}
-                disabled={isLoading}
-                className="min-w-32 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium flex items-center justify-center gap-3 px-8"
-              >
-                {isLoading ? (
-                  <>
-                    <Spinner size="sm" />
-                    Sending...
-                  </>
-                ) : (
-                  "Send Code"
-                )}
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="flex gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              form="auth-form"
-              disabled={isLoading}
-              className="min-w-32 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium flex items-center justify-center gap-3 px-8"
-            >
-              {isLoading ? (
-                <>
-                  <Spinner size="sm" />
-                  {step === "login" ? "Logging in..." : "Creating account..."}
-                </>
-              ) : (
-                <>{step === "login" ? "Log In" : "Sign Up"}</>
-              )}
-            </Button>
-          </div>
-        )
-      }
+      footer={footer}
     >
-      {(step === "login" || step === "register") && (
-        <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
-          {step === "login" ? (
+      {step === "login" && (
+        <>
+          <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
             <LoginForm
               register={auth.register}
               errors={auth.errors}
               onForgotPassword={() => setStep("forgot")}
             />
-          ) : (
+          </form>
+          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 pt-4">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={() => setStep("register")}
+              disabled={isLoading}
+              className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline transition-colors"
+            >
+              Sign up
+            </button>
+          </div>
+        </>
+      )}
+
+      {step === "register" && (
+        <>
+          <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
             <RegisterForm
               register={auth.register}
               control={auth.control}
@@ -197,37 +89,46 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
               removeImage={auth.removeImage}
               watchedRole={auth.watchedRole}
             />
-          )}
-
-          <div className="text-center text-sm text-gray-600 dark:text-gray-400 pt-4">
-            {step === "login"
-              ? "Don't have an account? "
-              : "Already have an account? "}
+          </form>
+          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 pt-4">
+            Already have an account?{" "}
             <button
               type="button"
-              onClick={() => setStep(step === "login" ? "register" : "login")}
+              onClick={() => setStep("login")}
               disabled={isLoading}
-              className="text-green-600 dark:text-green-400 font-medium hover:underline"
+              className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline transition-colors"
             >
-              {step === "login" ? "Sign up" : "Log in"}
+              Log in
             </button>
           </div>
+        </>
+      )}
+
+      {step === "restaurant-info" && (
+        <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
+          <RestaurantInfoForm register={auth.register} errors={auth.errors} />
         </form>
       )}
 
       {step === "forgot" && (
-        <form onSubmit={emailForm.handleSubmit(sendCode)} className="space-y-6">
+        <form
+          onSubmit={passwordReset.emailForm.handleSubmit(async (data) => {
+            const nextStep = await passwordReset.sendCode(data);
+            if (nextStep) setStep(nextStep);
+          })}
+          className="space-y-6"
+        >
           <InputField
-            register={emailForm.register("email")}
+            register={passwordReset.emailForm.register("email")}
             type="email"
             placeholder="your@email.com"
-            error={emailForm.formState.errors.email}
+            error={passwordReset.emailForm.formState.errors.email}
           />
           <div className="text-center">
             <button
               type="button"
               onClick={() => setStep("login")}
-              className="text-sm text-green-600 hover:underline cursor-pointer"
+              className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer transition-colors"
             >
               Back to login
             </button>
@@ -236,26 +137,35 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
       )}
 
       {step === "otp" && (
-        <form onSubmit={otpForm.handleSubmit(verifyCode)} className="space-y-6">
+        <form
+          onSubmit={passwordReset.otpForm.handleSubmit(async (data) => {
+            const nextStep = await passwordReset.verifyCode(data);
+            if (nextStep) setStep(nextStep);
+          })}
+          className="space-y-6"
+        >
           <InputField
-            register={otpForm.register("code")}
+            register={passwordReset.otpForm.register("code")}
             type="text"
             placeholder="000000"
             maxLength={6}
-            error={otpForm.formState.errors.code}
+            error={passwordReset.otpForm.formState.errors.code}
           />
           <div className="text-center space-y-3">
             <button
               type="button"
-              onClick={emailForm.handleSubmit(sendCode)}
-              className="text-sm text-green-600 hover:underline cursor-pointer"
+              onClick={passwordReset.emailForm.handleSubmit(async (data) => {
+                const nextStep = await passwordReset.sendCode(data);
+                if (nextStep) setStep(nextStep);
+              })}
+              className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer transition-colors"
             >
               Resend code
             </button>
           </div>
           <Button
             type="submit"
-            className="w-full bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium"
+            className="w-full h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-sm sm:text-base"
           >
             Verify Code
           </Button>
@@ -264,29 +174,156 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
 
       {step === "reset" && (
         <form
-          onSubmit={resetForm.handleSubmit(changePassword)}
+          onSubmit={passwordReset.resetForm.handleSubmit(async (data) => {
+            const nextStep = await passwordReset.changePassword(data);
+            if (nextStep) setStep(nextStep);
+          })}
           className="space-y-5"
         >
           <InputField
-            register={resetForm.register("password")}
+            register={passwordReset.resetForm.register("password")}
             type="password"
             placeholder="New password"
-            error={resetForm.formState.errors.password}
+            error={passwordReset.resetForm.formState.errors.password}
           />
           <InputField
-            register={resetForm.register("confirmPassword")}
+            register={passwordReset.resetForm.register("confirmPassword")}
             type="password"
             placeholder="Confirm password"
-            error={resetForm.formState.errors.confirmPassword}
+            error={passwordReset.resetForm.formState.errors.confirmPassword}
           />
           <Button
             type="submit"
-            className="w-full bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium"
+            className="w-full h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-sm sm:text-base"
           >
             Set New Password
           </Button>
         </form>
       )}
     </Modal>
+  );
+}
+
+function getTitle(step, isForgotFlow) {
+  if (isForgotFlow) return "Reset Password";
+  if (step === "restaurant-info") return "Restaurant Information";
+  if (step === "login") return "Welcome Back!";
+  return "Join Chow & Go";
+}
+
+function getDescription(step, resetEmail, isForgotFlow) {
+  if (step === "restaurant-info") return "Tell us about your restaurant";
+  if (step === "forgot") return "Enter your email to get a verification code";
+  if (step === "otp") return `Check ${resetEmail} for the 6-digit code`;
+  if (step === "reset") return "Choose a new password";
+  if (step === "login")
+    return "Log in to track your orders and save favorites.";
+  return "Create an account to start ordering in seconds.";
+}
+
+function renderFooter(
+  step,
+  isLoading,
+  auth,
+  passwordReset,
+  setStep,
+  setIsOpen
+) {
+  const isForgotFlow = step === "forgot" || step === "otp" || step === "reset";
+
+  if (isForgotFlow) {
+    return (
+      <div className="flex gap-2 sm:gap-3 justify-end">
+        <Button
+          variant="outline"
+          onClick={() => setIsOpen(false)}
+          className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+        >
+          Cancel
+        </Button>
+        {step === "forgot" && (
+          <Button
+            onClick={passwordReset.emailForm.handleSubmit(async (data) => {
+              const nextStep = await passwordReset.sendCode(data);
+              if (nextStep) setStep(nextStep);
+            })}
+            disabled={isLoading}
+            className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/20"
+          >
+            {isLoading ? (
+              <>
+                <Spinner size="sm" />
+                <span className="hidden sm:inline">Sending...</span>
+              </>
+            ) : (
+              "Send Code"
+            )}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  if (step === "restaurant-info") {
+    return (
+      <div className="flex gap-2 sm:gap-3 justify-end">
+        <Button
+          variant="outline"
+          onClick={() => {
+            setStep("register");
+            auth.setShowRestaurantStep(false);
+          }}
+          disabled={isLoading}
+          className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+        >
+          Back
+        </Button>
+        <Button
+          type="submit"
+          form="auth-form"
+          disabled={isLoading}
+          className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/20"
+        >
+          {isLoading ? (
+            <>
+              <Spinner size="sm" />
+              <span className="hidden sm:inline">Creating...</span>
+            </>
+          ) : (
+            <>Complete Registration</>
+          )}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-2 sm:gap-3 justify-end">
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(false)}
+        disabled={isLoading}
+        className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+      >
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="auth-form"
+        disabled={isLoading}
+        className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/20"
+      >
+        {isLoading ? (
+          <>
+            <Spinner size="sm" />
+            <span className="hidden sm:inline">
+              {step === "login" ? "Logging in..." : "Creating..."}
+            </span>
+          </>
+        ) : (
+          <>{step === "login" ? "Log In" : "Sign Up"}</>
+        )}
+      </Button>
+    </div>
   );
 }

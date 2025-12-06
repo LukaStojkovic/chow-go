@@ -1,7 +1,11 @@
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Button } from "../ui/button";
-import { Menu, Moon, Sun, User, Settings, LogOut } from "lucide-react";
-import Logo from "./Logo";
+import { Menu, Moon, Sun } from "lucide-react";
 import MobileSidebarContent from "./MobileSidebarContent";
 
 export default function MobileNav({
@@ -15,7 +19,7 @@ export default function MobileNav({
   onLogout,
 }) {
   return (
-    <div className="flex items-center gap-3 md:hidden">
+    <div className="flex items-center gap-2 md:hidden">
       <Button
         variant="ghost"
         size="icon"
@@ -27,21 +31,24 @@ export default function MobileNav({
 
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="relative z-50">
             <Menu className="w-6 h-6" />
           </Button>
         </SheetTrigger>
 
         <SheetContent
           side="right"
-          className="w-full max-w-sm bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 p-0"
+          className="w-full max-w-sm bg-white/95 dark:bg-zinc-900/95 border-l border-gray-200/50 dark:border-zinc-800/50 p-0 backdrop-blur-xl"
         >
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-              <Logo />
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200/50 dark:border-zinc-800/50">
+              <h2 className="text-lg sm:text-xl font-bold">Menu</h2>
             </div>
 
-            <div className="flex-1 px-6 py-10 space-y-8 overflow-y-auto">
+            {/* Content */}
+            <div className="flex-1 px-4 sm:px-6 py-6 sm:py-8 space-y-6 overflow-y-auto">
               <MobileSidebarContent
                 authUser={authUser}
                 onLogin={onLogin}
@@ -50,8 +57,9 @@ export default function MobileNav({
               />
             </div>
 
-            <div className="px-6 py-6 border-t border-gray-200 dark:border-gray-800">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            {/* Footer */}
+            <div className="px-4 sm:px-6 py-4 sm:py-6 border-t border-gray-200/50 dark:border-zinc-800/50">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 © {new Date().getFullYear()} Chow & Go
               </p>
             </div>

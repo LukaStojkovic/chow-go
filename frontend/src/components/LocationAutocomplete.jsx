@@ -1,15 +1,14 @@
-import { MapPin, LocateFixed } from "lucide-react";
+import { MapPin, LocateFixed, Loader2 } from "lucide-react";
 import useLocationAutocomplete from "@/hooks/Location/useLocationAutocomplete";
-import { useState, useRef, useEffect } from "react";
-import Spinner from "./Spinner";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import useOutsideClick from "@/hooks/useOutsideClick";
 
 export default function LocationAutocomplete({
   value,
   onChange,
   onSelect,
-  placeholder = "Enter delivery address...",
+  placeholder = "Enter your delivery address...",
   onDetectClick,
   isDetecting = false,
 }) {
@@ -20,12 +19,7 @@ export default function LocationAutocomplete({
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     onChange(newValue);
-
-    if (newValue.length > 0) {
-      setShowDropdown(true);
-    } else {
-      setShowDropdown(false);
-    }
+    setShowDropdown(newValue.length > 0);
   };
 
   const handleItemSelect = (loc) => {
@@ -35,116 +29,91 @@ export default function LocationAutocomplete({
       lat: parseFloat(loc.lat),
       lon: parseFloat(loc.lon),
     });
-
     setShowDropdown(false);
-
-    ref.current?.querySelector("input")?.focus();
   };
 
-  const shouldShowResults = showDropdown && value.length > 0;
-
   return (
-    <div className="relative flex-1 w-full max-w-xl" ref={ref}>
-      <div className="relative">
-        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-600 dark:text-green-400 z-10 pointer-events-none" />
+    <div className="relative w-full" ref={ref}>
+      <div className="relative group">
+        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-emerald-600">
+          <MapPin className="h-6 w-6" />
+        </div>
 
         <input
           type="text"
           value={value}
           onChange={handleInputChange}
           onFocus={() => value.length > 0 && setShowDropdown(true)}
-          onBlur={(e) => {
-            if (
-              !e.relatedTarget ||
-              !e.relatedTarget.closest(".autocomplete-dropdown")
-            ) {
-              setTimeout(() => setShowDropdown(false), 100);
-            }
-          }}
           placeholder={placeholder}
-          className="w-full pl-12 pr-16 py-7 text-lg bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-white/30 dark:border-gray-700/50 shadow-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:focus:ring-green-500/30 rounded-2xl outline-none transition-all"
+          className="h-16 w-full rounded-full border-2 border-gray-100 bg-white pl-14 pr-36 text-lg font-medium text-gray-900 placeholder:text-gray-400 shadow-xl shadow-emerald-900/5 outline-none transition-all hover:border-gray-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:shadow-none dark:hover:border-zinc-700"
         />
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDetectClick?.();
-            setShowDropdown(false);
-          }}
-          disabled={isDetecting}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/50 transition-colors z-10 disabled:opacity-60"
-        >
-          {isDetecting ? (
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <LocateFixed className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </motion.div>
-          ) : (
-            <LocateFixed className="w-5 h-5 text-green-600 dark:text-green-400" />
-          )}
-        </button>
+        <div className="absolute right-2 top-2 bottom-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDetectClick?.();
+              setShowDropdown(false);
+            }}
+            disabled={isDetecting}
+            className="flex h-full items-center gap-2 rounded-full bg-emerald-600 px-6 font-bold text-white transition-all hover:bg-emerald-700 disabled:opacity-70 disabled:hover:bg-emerald-600"
+          >
+            {isDetecting ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <div className="flex items-center gap-2">
+                <LocateFixed className="h-5 w-5" />
+                <span className="hidden sm:inline">Locate Me</span>
+              </div>
+            )}
+          </button>
+        </div>
       </div>
 
-      {shouldShowResults && (
-        <div
-          className="autocomplete-dropdown absolute top-full mt-2 w-full max-w-xl z-9999 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden"
-          tabIndex={-1}
-        >
-          {isLoading ? (
-            <div className="py-6 text-center">
-              <Spinner />
-              <p className="text-sm text-muted-foreground mt-2">
-                Searching location...
-              </p>
-            </div>
-          ) : predictions.length === 0 ? (
-            <div className="py-6 text-center text-muted-foreground">
-              No results for "{value}"
-            </div>
-          ) : (
-            <ul className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700/70">
-              {predictions.map((loc) => (
-                <li
-                  key={loc.place_id}
-                  onClick={() => handleItemSelect(loc)}
-                  className="flex items-center gap-4 p-3 cursor-pointer hover:bg-green-50/50 dark:hover:bg-gray-700/50 transition-colors duration-150 active:bg-green-100 dark:active:bg-gray-700"
-                >
-                  <MapPin className="h-5 w-5 text-green-700 dark:text-green-500 shrink-0" />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-gray-900 dark:text-gray-50 truncate">
-                      {loc.display_place ||
-                        loc.display_name.split(",")[0].trim()}
-                    </div>
-
-                    <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {loc.display_name.split(", ").slice(1).join(", ")}
-                    </div>
-                  </div>
-
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-4 h-4 text-gray-400 dark:text-gray-500 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+      <AnimatePresence>
+        {showDropdown && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            className="absolute top-full left-0 right-0 z-50 mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white p-2 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8 text-gray-400">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : predictions.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                No results found for "{value}"
+              </div>
+            ) : (
+              <ul className="max-h-64 overflow-y-auto">
+                {predictions.map((loc) => (
+                  <li
+                    key={loc.place_id}
+                    onClick={() => handleItemSelect(loc)}
+                    className="flex cursor-pointer items-start gap-3 rounded-xl p-3 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+                    <div className="mt-1 rounded-full bg-gray-100 p-2 dark:bg-zinc-800">
+                      <MapPin className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="truncate font-semibold text-gray-900 dark:text-gray-100">
+                        {loc.display_place ||
+                          loc.display_name.split(",")[0].trim()}
+                      </div>
+                      <div className="truncate text-sm text-gray-500 dark:text-gray-400">
+                        {loc.display_name}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
