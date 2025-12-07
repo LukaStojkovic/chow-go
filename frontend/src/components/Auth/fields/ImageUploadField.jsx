@@ -36,7 +36,7 @@ export function ImageUploadField({
         )}
         <Controller
           control={control}
-          name="profileImage"
+          name="profilePicture"
           render={({ field }) => (
             <label className="cursor-pointer">
               <input

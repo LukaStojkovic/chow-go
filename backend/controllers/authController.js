@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { sendOtpEmail } from "../utils/mail.js";
+import Restaurant from "../models/Restaurant.js";
 
 export async function login(req, res) {
   const { email, password } = req.body;
@@ -28,78 +29,146 @@ export async function login(req, res) {
 
     generateToken(user._id, res);
 
-    res.status(200).json({
+    if (user.role === "seller") {
+      await user.populate("restaurant");
+    }
+
+    const response = {
       _id: user._id,
       email: user.email,
       name: user.name,
       profilePicture: user.profilePicture,
       role: user.role,
       createdAt: user.createdAt,
-    });
+    };
+
+    if (user.role === "seller" && user.restaurant) {
+      response.restaurant = user.restaurant;
+    }
+
+    res.status(200).json(response);
   } catch (err) {
     console.log(`Error in Login Controller ${err}`);
     res.status(500).json({ status: "failed", message: err.message });
   }
 }
 
-export async function register(req, res) {
-  const { email, name, password, role } = req.body;
-
+export const register = async (req, res) => {
   try {
+    const { email, name, password, role } = req.body;
+
     if (!email || !name || !password || !role) {
       return res
         .status(400)
-        .json({ status: "failed", message: "All fields are required" });
+        .json({ status: "failed", message: "Missing required fields" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Password must be at least 6 characters long",
-      });
+      return res
+        .status(400)
+        .json({ status: "failed", message: "Password too short" });
     }
 
-    const user = await User.findOne({ email });
+    if (await User.exists({ email })) {
+      return res
+        .status(400)
+        .json({ status: "failed", message: "Email already in use" });
+    }
 
-    if (user)
-      return res.status(400).json({
-        status: "failed",
-        message: "That email is already in use",
-      });
-
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    const hashedPassword = await bcrypt.hash(password, 12);
     const profilePicture = req.file?.path || "";
 
-    const newUser = new User({
+    const user = await User.create({
       email,
-      password: hashedPassword,
       name,
+      password: hashedPassword,
       role,
       profilePicture,
     });
 
-    if (newUser) {
-      generateToken(newUser._id, res);
-      await newUser.save();
+    if (role === "seller") {
+      const sellerData = req.body;
 
-      res.status(201).json({
-        _id: newUser._id,
-        email: newUser.email,
-        name: newUser.name,
-        profilePicture: newUser.profilePicture,
-        role: newUser.role,
-        createdAt: newUser.createdAt,
+      const requiredFields = [
+        "restaurantName",
+        "cuisineType",
+        "restaurantPhone",
+        "restaurantAddress",
+        "restaurantCity",
+        "restaurantZipCode",
+        "openingTime",
+        "closingTime",
+        "restaurantLat",
+        "restaurantLng",
+      ];
+
+      const missing = requiredFields.find((field) => !sellerData[field]);
+      if (missing) {
+        await User.findByIdAndDelete(user._id);
+        return res
+          .status(400)
+          .json({ status: "failed", message: `${missing} is required` });
+      }
+
+      const lng = parseFloat(sellerData.restaurantLng);
+      const lat = parseFloat(sellerData.restaurantLat);
+
+      if (
+        isNaN(lng) ||
+        isNaN(lat) ||
+        Math.abs(lng) > 180 ||
+        Math.abs(lat) > 90
+      ) {
+        await User.findByIdAndDelete(user._id);
+        return res
+          .status(400)
+          .json({ status: "failed", message: "Invalid coordinates" });
+      }
+
+      const restaurant = await Restaurant.create({
+        ownerId: user._id,
+        name: sellerData.restaurantName,
+        cuisineType: sellerData.cuisineType,
+        profileImage: profilePicture || "https://via.placeholder.com/300",
+        phone: sellerData.restaurantPhone,
+        email: email.toLowerCase(),
+        openingTime: sellerData.openingTime,
+        closingTime: sellerData.closingTime,
+        isActive: true,
+        address: {
+          street: sellerData.restaurantAddress,
+          city: sellerData.restaurantCity,
+          state: sellerData.restaurantState || "",
+          zipCode: sellerData.restaurantZipCode,
+          country: "Serbia",
+        },
+        coordinates: { type: "Point", coordinates: [lng, lat] },
       });
-    } else {
-      res.status(400).json({ status: "failed", message: "Invalid user data" });
+
+      user.restaurant = restaurant;
     }
-  } catch (err) {
-    console.log(`Error in Register Controller ${err}`);
-    res.status(500).json({ status: "failed", message: err.message });
+
+    generateToken(user._id, res);
+
+    const response = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture,
+      createdAt: user.createdAt,
+    };
+
+    if (user.role === "seller") {
+      response.restaurant = user.restaurant;
+    }
+
+    return res.status(201).json(response);
+  } catch (error) {
+    console.error("Register error:", error);
+    return res.status(500).json({ status: "failed", message: "Server error" });
   }
-}
+};
 
 export function logout(req, res) {
   try {

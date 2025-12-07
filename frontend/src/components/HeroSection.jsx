@@ -5,7 +5,7 @@ import useDetectLocation from "@/hooks/Location/useDetectLocation";
 import { useNavigate } from "react-router-dom";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import LocationAutocomplete from "./LocationAutocomplete";
-import ReputationStats from "./ReputationStats"; // Assuming this is a row of avatars or stars you have
+import ReputationStats from "./ReputationStats";
 
 export default function HeroSection() {
   const {

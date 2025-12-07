@@ -51,6 +51,16 @@ userSchema.pre("save", function (next) {
   next();
 });
 
+userSchema.virtual("restaurant", {
+  ref: "Restaurant",
+  localField: "_id",
+  foreignField: "ownerId",
+  justOne: true,
+});
+
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
+
 const User = mongoose.model("User", userSchema);
 
 export default User;

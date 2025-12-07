@@ -16,11 +16,11 @@ const REGISTER_SCHEMA = z
     email: z.string().email("Invalid email"),
     password: z.string().min(6, "Min 6 characters"),
     role: z.enum(["customer", "seller"]),
-    profileImage: z.any().optional(),
+    profilePicture: z.any().optional(),
   })
-  .refine((d) => d.role !== "seller" || d.profileImage instanceof File, {
+  .refine((d) => d.role !== "seller" || d.profilePicture instanceof File, {
     message: "Profile image is required",
-    path: ["profileImage"],
+    path: ["profilePicture"],
   });
 
 const RESTAURANT_INFO_SCHEMA = z.object({
@@ -36,6 +36,32 @@ const RESTAURANT_INFO_SCHEMA = z.object({
   cuisineType: z.string().min(1, "Cuisine type is required"),
 });
 
+const RESTAURANT_LOCATION_SCHEMA = z
+  .object({
+    restaurantLat: z
+      .number()
+      .refine((val) => val !== 0, "Please select a location on the map"),
+    restaurantLng: z
+      .number()
+      .refine((val) => val !== 0, "Please select a location on the map"),
+    openingTime: z.string().min(1, "Opening time is required"),
+    closingTime: z.string().min(1, "Closing time is required"),
+  })
+  .refine(
+    (data) => {
+      if (!data.openingTime || !data.closingTime) return true;
+      const [openHour, openMin] = data.openingTime.split(":").map(Number);
+      const [closeHour, closeMin] = data.closingTime.split(":").map(Number);
+      const openTime = openHour * 60 + openMin;
+      const closeTime = closeHour * 60 + closeMin;
+      return closeTime > openTime;
+    },
+    {
+      message: "Closing time must be after opening time",
+      path: ["closingTime"],
+    }
+  );
+
 export function useAuthForm(
   isLogin,
   initialRole = "customer",
@@ -45,14 +71,26 @@ export function useAuthForm(
   const [role, setRole] = useState(initialRole);
   const [imagePreview, setImagePreview] = useState(null);
   const [showRestaurantStep, setShowRestaurantStep] = useState(false);
+  const [showRestaurantLocationStep, setShowRestaurantLocationStep] =
+    useState(false);
   const [userRegistrationData, setUserRegistrationData] = useState(null);
+  const [restaurantInfoData, setRestaurantInfoData] = useState(null);
 
   const schema = useMemo(() => {
     if (isLogin) return LOGIN_SCHEMA;
+    if (showRestaurantLocationStep) return RESTAURANT_LOCATION_SCHEMA;
     return showRestaurantStep ? RESTAURANT_INFO_SCHEMA : REGISTER_SCHEMA;
-  }, [isLogin, showRestaurantStep]);
+  }, [isLogin, showRestaurantStep, showRestaurantLocationStep]);
 
   const defaultValues = useMemo(() => {
+    if (showRestaurantLocationStep) {
+      return {
+        restaurantLat: 0,
+        restaurantLng: 0,
+        openingTime: "",
+        closingTime: "",
+      };
+    }
     if (showRestaurantStep) {
       return {
         restaurantName: "",
@@ -69,9 +107,9 @@ export function useAuthForm(
       email: "",
       password: "",
       role: initialRole,
-      profileImage: null,
+      profilePicture: null,
     };
-  }, [showRestaurantStep, initialRole]);
+  }, [showRestaurantStep, showRestaurantLocationStep, initialRole]);
 
   const {
     register,
@@ -93,13 +131,34 @@ export function useAuthForm(
   }, [role, setValue]);
 
   useEffect(() => {
+    if (showRestaurantLocationStep) {
+      reset({
+        restaurantLat: 0,
+        restaurantLng: 0,
+        openingTime: "",
+        closingTime: "",
+      });
+    } else if (showRestaurantStep) {
+      reset({
+        restaurantName: "",
+        restaurantPhone: "",
+        restaurantAddress: "",
+        restaurantCity: "",
+        restaurantState: "",
+        restaurantZipCode: "",
+        cuisineType: "",
+      });
+    }
+  }, [showRestaurantStep, showRestaurantLocationStep, reset]);
+
+  useEffect(() => {
     if (!isLogin) {
       reset({
         name: "",
         email: "",
         password: "",
         role,
-        profileImage: null,
+        profilePicture: null,
       });
       setImagePreview(null);
     }
@@ -117,7 +176,7 @@ export function useAuthForm(
         return;
       }
 
-      setValue("profileImage", file);
+      setValue("profilePicture", file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
@@ -126,7 +185,7 @@ export function useAuthForm(
   );
 
   const removeImage = useCallback(() => {
-    setValue("profileImage", null);
+    setValue("profilePicture", null);
     setImagePreview(null);
   }, [setValue]);
 
@@ -144,15 +203,31 @@ export function useAuthForm(
         return;
       }
 
-      if (showRestaurantStep && userRegistrationData) {
-        const combinedData = new FormData();
+      if (
+        showRestaurantStep &&
+        !showRestaurantLocationStep &&
+        userRegistrationData
+      ) {
+        setRestaurantInfoData(data);
+        setShowRestaurantLocationStep(true);
+        return;
+      }
+
+      if (
+        showRestaurantLocationStep &&
+        userRegistrationData &&
+        restaurantInfoData
+      ) {
         const mergedData = {
           ...userRegistrationData,
+          ...restaurantInfoData,
           ...data,
         };
 
+        const combinedData = new FormData();
+
         Object.keys(mergedData).forEach((key) => {
-          if (key === "profileImage" && mergedData[key] instanceof File) {
+          if (key === "profilePicture" && mergedData[key] instanceof File) {
             combinedData.append(key, mergedData[key]);
           } else if (mergedData[key] != null) {
             combinedData.append(key, mergedData[key]);
@@ -161,13 +236,15 @@ export function useAuthForm(
 
         await registerUser(combinedData);
         setShowRestaurantStep(false);
+        setShowRestaurantLocationStep(false);
         setUserRegistrationData(null);
+        setRestaurantInfoData(null);
         return;
       }
 
       const formData = new FormData();
       Object.keys(data).forEach((key) => {
-        if (key === "profileImage" && data[key] instanceof File) {
+        if (key === "profilePicture" && data[key] instanceof File) {
           formData.append(key, data[key]);
         } else if (data[key] != null) {
           formData.append(key, data[key]);
@@ -179,7 +256,9 @@ export function useAuthForm(
     [
       isLogin,
       showRestaurantStep,
+      showRestaurantLocationStep,
       userRegistrationData,
+      restaurantInfoData,
       loginUser,
       registerUser,
       onRestaurantInfoStep,
@@ -202,5 +281,9 @@ export function useAuthForm(
     reset,
     showRestaurantStep,
     setShowRestaurantStep,
+    showRestaurantLocationStep,
+    setShowRestaurantLocationStep,
+    watch,
+    setValue,
   };
 }

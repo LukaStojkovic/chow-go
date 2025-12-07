@@ -3,6 +3,7 @@ import Modal from "../Modal";
 import { LoginForm } from "./forms/LoginForm";
 import { RegisterForm } from "./forms/RegisterForm";
 import { RestaurantInfoForm } from "./forms/RestaurantInfoForm";
+import { RestaurantLocationForm } from "./forms/RestaurantLocationForm";
 import { useAuthForm } from "./hooks/useAuthForm";
 import { usePasswordReset } from "./hooks/usePasswordReset";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -12,10 +13,13 @@ import { InputField } from "./fields/InputField";
 
 export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
   const [step, setStep] = useState(isLoginModal ? "login" : "register");
-  const { isLoggingIn, isRegistering } = useAuthStore();
+  const { isLoggingIn, isRegistering, authUser } = useAuthStore();
 
   const auth = useAuthForm(
-    step === "login" || step === "register" || step === "restaurant-info"
+    step === "login" ||
+      step === "register" ||
+      step === "restaurant-info" ||
+      step === "restaurant-location"
       ? step === "login"
       : false,
     "customer",
@@ -31,6 +35,18 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
   useEffect(() => {
     if (isOpen) setStep(isLoginModal ? "login" : "register");
   }, [isOpen, isLoginModal]);
+
+  useEffect(() => {
+    if (auth.showRestaurantLocationStep && step !== "restaurant-location") {
+      setStep("restaurant-location");
+    }
+  }, [auth.showRestaurantLocationStep, step]);
+
+  useEffect(() => {
+    if (authUser && isOpen) {
+      setIsOpen(false);
+    }
+  }, [authUser, isOpen, setIsOpen]);
 
   const isLoading = auth.isSubmitting || isLoggingIn || isRegistering;
   const isForgotFlow = step === "forgot" || step === "otp" || step === "reset";
@@ -107,6 +123,17 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
       {step === "restaurant-info" && (
         <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
           <RestaurantInfoForm register={auth.register} errors={auth.errors} />
+        </form>
+      )}
+
+      {step === "restaurant-location" && (
+        <form id="auth-form" onSubmit={auth.onSubmit} className="space-y-5">
+          <RestaurantLocationForm
+            register={auth.register}
+            errors={auth.errors}
+            watch={auth.watch}
+            setValue={auth.setValue}
+          />
         </form>
       )}
 
@@ -207,12 +234,15 @@ export default function AuthModal({ isOpen, setIsOpen, isLoginModal = true }) {
 function getTitle(step, isForgotFlow) {
   if (isForgotFlow) return "Reset Password";
   if (step === "restaurant-info") return "Restaurant Information";
+  if (step === "restaurant-location") return "Restaurant Location & Hours";
   if (step === "login") return "Welcome Back!";
   return "Join Chow & Go";
 }
 
 function getDescription(step, resetEmail, isForgotFlow) {
   if (step === "restaurant-info") return "Tell us about your restaurant";
+  if (step === "restaurant-location")
+    return "Select your location and operating hours";
   if (step === "forgot") return "Enter your email to get a verification code";
   if (step === "otp") return `Check ${resetEmail} for the 6-digit code`;
   if (step === "reset") return "Choose a new password";
@@ -272,6 +302,39 @@ function renderFooter(
           onClick={() => {
             setStep("register");
             auth.setShowRestaurantStep(false);
+          }}
+          disabled={isLoading}
+          className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+        >
+          Back
+        </Button>
+        <Button
+          type="submit"
+          form="auth-form"
+          disabled={isLoading}
+          className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/20"
+        >
+          {isLoading ? (
+            <>
+              <Spinner size="sm" />
+              <span className="hidden sm:inline">Next...</span>
+            </>
+          ) : (
+            <>Next</>
+          )}
+        </Button>
+      </div>
+    );
+  }
+
+  if (step === "restaurant-location") {
+    return (
+      <div className="flex gap-2 sm:gap-3 justify-end">
+        <Button
+          variant="outline"
+          onClick={() => {
+            setStep("restaurant-info");
+            auth.setShowRestaurantLocationStep(false);
           }}
           disabled={isLoading}
           className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"

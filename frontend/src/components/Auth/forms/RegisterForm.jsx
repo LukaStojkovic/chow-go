@@ -27,7 +27,7 @@ export function RegisterForm({
         imagePreview={imagePreview}
         onImageChange={handleImageChange}
         onRemove={removeImage}
-        error={errors.profileImage}
+        error={errors.profilePicture}
       />
 
       <InputField

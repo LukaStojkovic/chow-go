@@ -23,6 +23,10 @@ export async function protectedRoute(req, res, next) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.role === "seller") {
+      await user.populate("restaurant");
+    }
+
     req.user = user;
     next();
   } catch (err) {

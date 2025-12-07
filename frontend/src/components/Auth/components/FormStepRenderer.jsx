@@ -8,6 +8,8 @@ export const FormStepRenderer = ({
   register,
   errors,
   onAction,
+  watch,
+  setValue,
 }) => {
   if (step === "login") {
     return (
@@ -54,6 +56,21 @@ export const FormStepRenderer = ({
     return (
       <form id="auth-form" onSubmit={onAction} className="space-y-5">
         <RestaurantInfoForm register={register} errors={errors} />
+      </form>
+    );
+  }
+
+  if (step === "restaurant-location") {
+    const {
+      RestaurantLocationForm,
+    } = require("../forms/RestaurantLocationForm");
+    return (
+      <form id="auth-form" onSubmit={onAction} className="space-y-5">
+        <RestaurantLocationForm
+          register={register}
+          errors={errors}
+          watch={watch}
+        />
       </form>
     );
   }

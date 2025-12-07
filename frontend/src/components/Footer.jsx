@@ -1,10 +1,10 @@
 import React from "react";
 import {
-  UtensilsCrossed,
   Facebook,
   Twitter,
   Instagram,
   Linkedin,
+  ShoppingBag,
 } from "lucide-react";
 
 export default function Footer() {
@@ -12,11 +12,10 @@ export default function Footer() {
     <footer className="bg-white border-t border-gray-100 pt-16 pb-8 dark:bg-zinc-950 dark:border-zinc-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
-          {/* Brand Column */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                <UtensilsCrossed className="h-6 w-6" />
+                <ShoppingBag className="h-6 w-6" />
               </div>
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
                 Chow & Go
@@ -39,7 +38,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Links Columns */}
           {["Company", "Product", "Legal"].map((category) => (
             <div key={category}>
               <h4 className="mb-6 font-bold text-gray-900 dark:text-white">

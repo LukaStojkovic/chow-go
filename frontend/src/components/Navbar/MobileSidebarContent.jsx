@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { LogOut, Settings, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function MobileSidebarContent({
   authUser,
@@ -8,7 +9,9 @@ export default function MobileSidebarContent({
   onLogin,
   onSignup,
 }) {
-  const profileImage = authUser?.profilePicture || "defaultProfilePicture.png";
+  const profilePicture =
+    authUser?.profilePicture || "defaultProfilePicture.png";
+  const navigate = useNavigate();
 
   return (
     <>
@@ -16,7 +19,7 @@ export default function MobileSidebarContent({
         <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/50 dark:bg-zinc-800/50 rounded-lg sm:rounded-xl border border-gray-200/50 dark:border-zinc-800/50">
             <img
-              src={profileImage}
+              src={profilePicture}
               alt={authUser.name}
               className="w-12 sm:w-14 h-12 sm:h-14 rounded-full object-cover ring-2 ring-emerald-500/40"
             />
@@ -32,6 +35,7 @@ export default function MobileSidebarContent({
 
           <div className="space-y-2">
             <Button
+              onClick={() => navigate("/profile")}
               variant="ghost"
               className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-emerald-50/50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200"
             >

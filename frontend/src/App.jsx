@@ -9,6 +9,12 @@ import { useAuthStore } from "./store/useAuthStore";
 import { useDarkMode } from "./hooks/useDarkMode";
 import Spinner from "./components/Spinner";
 import CheckoutPage from "./pages/CheckoutPage";
+import SellerRoute from "./components/Auth/components/SellerRoute";
+import CustomerRoute from "./components/Auth/components/CustomerRoute";
+import PublicRoute from "./components/Auth/components/PublicRoute";
+import ProfilePage from "./pages/ProfilePage";
+import SellerAdmin from "./pages/SellerAdmin";
+import MyOrders from "./pages/MyOrders";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,8 +39,21 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="discovery" element={<DiscoverPage />} />
-          <Route path="checkout" element={<CheckoutPage />} />
+
+          <Route element={<PublicRoute />}>
+            <Route path="/discovery" element={<DiscoverPage />} />
+          </Route>
+
+          <Route element={<CustomerRoute />}>
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/orders" element={<MyOrders />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+          </Route>
+
+          <Route element={<SellerRoute />}>
+            <Route path="/seller/*" element={<SellerAdmin />} />
+          </Route>
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
