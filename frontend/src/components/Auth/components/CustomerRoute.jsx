@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
+import Spinner from "@/components/Spinner";
 
 const CustomerRoute = () => {
   const { authUser, isCheckingAuth } = useAuthStore();

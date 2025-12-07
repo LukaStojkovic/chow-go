@@ -1,4 +1,3 @@
-// UserMenu.tsx
 import {
   DropdownMenu,
   DropdownMenuContent,

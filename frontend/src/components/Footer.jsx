@@ -6,6 +6,7 @@ import {
   Linkedin,
   ShoppingBag,
 } from "lucide-react";
+import Logo from "./Navbar/Logo";
 
 export default function Footer() {
   return (
@@ -13,13 +14,8 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white">
-                <ShoppingBag className="h-6 w-6" />
-              </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                Chow & Go
-              </span>
+            <div className="mb-6">
+              <Logo />
             </div>
             <p className="mb-6 max-w-sm text-gray-500 dark:text-gray-400">
               The smartest way to order food. Real-time tracking, AI

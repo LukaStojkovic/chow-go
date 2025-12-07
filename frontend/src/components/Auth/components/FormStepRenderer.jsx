@@ -9,7 +9,6 @@ export const FormStepRenderer = ({
   errors,
   onAction,
   watch,
-  setValue,
 }) => {
   if (step === "login") {
     return (

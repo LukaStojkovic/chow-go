@@ -11,6 +11,7 @@ import { useState } from "react";
 import AuthModal from "@/components/Auth/AuthModal";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import Logo from "@/components/Navbar/Logo";
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,14 +33,7 @@ export default function LandingPage() {
 
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-transparent bg-white/80 px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md transition-all duration-300 dark:bg-zinc-950/80">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
-              <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
-            </div>
-            <span className="text-base sm:text-xl font-bold tracking-tight hidden sm:inline">
-              Chow & Go
-            </span>
-          </div>
+          <Logo />
 
           <DesktopNav
             isDark={isDark}
