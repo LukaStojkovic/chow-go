@@ -7,8 +7,6 @@ export function RestaurantLocationForm({ register, errors, watch, setValue }) {
   const restaurantLng = watch("restaurantLng");
 
   const handleMapClick = () => {
-    // Set default coordinates (you can customize this)
-    // For now, setting to a default location (e.g., India center)
     setValue("restaurantLat", 20.5937);
     setValue("restaurantLng", 78.9629);
   };

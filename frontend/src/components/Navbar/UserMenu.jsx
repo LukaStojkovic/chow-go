@@ -13,7 +13,7 @@ import {
 import { useDarkMode } from "@/hooks/useDarkMode";
 import {
   User,
-  Store, // ← nova ikonica za restoran
+  Store,
   Settings,
   LogOut,
   ChevronDown,

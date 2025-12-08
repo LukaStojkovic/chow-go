@@ -65,3 +65,14 @@ export async function apiResetPassword(email, password) {
   });
   return res.data;
 }
+
+export async function updateProfile(data) {
+  try {
+    const res = await axiosInstance.put("/auth/update-profile", data);
+    toast.success("Profile updated successfully!");
+    return res.data;
+  } catch (err) {
+    console.error("Error updateProfile:", err);
+    toast.error(err.response?.data?.message);
+  }
+}

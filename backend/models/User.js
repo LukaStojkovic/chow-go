@@ -19,6 +19,12 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     otpExpiry: Date,
+    phoneNumber: {
+      type: String,
+      required: function () {
+        return this.role === "customer";
+      },
+    },
 
     deliveryAddresses: [
       {

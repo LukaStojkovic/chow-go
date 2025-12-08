@@ -7,7 +7,9 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  updateProfile,
 } from "@/services/apiAuth";
+import { toast } from "sonner";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -78,5 +80,21 @@ export const useAuthStore = create((set) => ({
     const data = await apiResetPassword(email, password);
 
     return data;
+  },
+
+  apiUpdateProfile: async (data) => {
+    set({ isUpdatingProfile: true });
+    try {
+      const response = await updateProfile(data);
+      if (response.data) {
+        set({ authUser: response.data });
+      }
+
+      return response;
+    } catch (err) {
+      console.log(`Error in updatingProfile: ${err}`);
+    } finally {
+      set({ isUpdatingProfile: false });
+    }
   },
 }));

@@ -17,11 +17,24 @@ const REGISTER_SCHEMA = z
     password: z.string().min(6, "Min 6 characters"),
     role: z.enum(["customer", "seller"]),
     profilePicture: z.any().optional(),
+    phoneNumber: z
+      .string()
+      .min(10, "Phone number must be at least 10 digits")
+      .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number")
+      .optional(),
   })
   .refine((d) => d.role !== "seller" || d.profilePicture instanceof File, {
     message: "Profile image is required",
     path: ["profilePicture"],
-  });
+  })
+  .refine(
+    (d) =>
+      d.role !== "customer" || (d.phoneNumber && d.phoneNumber.length >= 10),
+    {
+      message: "Phone number is required for customers",
+      path: ["phoneNumber"],
+    }
+  );
 
 const RESTAURANT_INFO_SCHEMA = z.object({
   restaurantName: z.string().min(1, "Restaurant name is required"),
@@ -107,6 +120,7 @@ export function useAuthForm(
       email: "",
       password: "",
       role: initialRole,
+      phoneNumber: "",
       profilePicture: null,
     };
   }, [showRestaurantStep, showRestaurantLocationStep, initialRole]);

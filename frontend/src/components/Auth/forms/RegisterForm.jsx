@@ -41,6 +41,14 @@ export function RegisterForm({
         placeholder="Email"
         error={errors.email}
       />
+      {watchedRole === "customer" && (
+        <InputField
+          register={register("phoneNumber")}
+          type="tel"
+          placeholder="Phone number"
+          error={errors.phoneNumber}
+        />
+      )}
       <InputField
         register={register("password")}
         type="password"

@@ -21,7 +21,12 @@ router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);
 router.post("/logout", logout);
 
-router.put("/update-profile", protectedRoute, updateProfile);
+router.put(
+  "/update-profile",
+  protectedRoute,
+  upload.single("profilePicture"),
+  updateProfile
+);
 
 router.get("/check", protectedRoute, checkAuth);
 

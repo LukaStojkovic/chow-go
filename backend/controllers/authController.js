@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export async function login(req, res) {
   const { email, password } = req.body;
@@ -38,6 +39,7 @@ export async function login(req, res) {
       email: user.email,
       name: user.name,
       profilePicture: user.profilePicture,
+      phoneNumber: user.phoneNumber,
       role: user.role,
       createdAt: user.createdAt,
     };
@@ -55,12 +57,19 @@ export async function login(req, res) {
 
 export const register = async (req, res) => {
   try {
-    const { email, name, password, role } = req.body;
+    const { email, name, password, role, phoneNumber } = req.body;
 
     if (!email || !name || !password || !role) {
       return res
         .status(400)
         .json({ status: "failed", message: "Missing required fields" });
+    }
+
+    if (role === "customer" && !phoneNumber) {
+      return res.status(400).json({
+        status: "failed",
+        message: "Phone number is required for customers",
+      });
     }
 
     if (password.length < 6) {
@@ -83,6 +92,7 @@ export const register = async (req, res) => {
       name,
       password: hashedPassword,
       role,
+      phoneNumber,
       profilePicture,
     });
 
@@ -129,7 +139,7 @@ export const register = async (req, res) => {
         ownerId: user._id,
         name: sellerData.restaurantName,
         cuisineType: sellerData.cuisineType,
-        profileImage: profilePicture || "https://via.placeholder.com/300",
+        profilePicture: profilePicture || "/defaultProfilePicture.png",
         phone: sellerData.restaurantPhone,
         email: email.toLowerCase(),
         openingTime: sellerData.openingTime,
@@ -155,6 +165,7 @@ export const register = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      phoneNumber: user.phoneNumber,
       profilePicture: user.profilePicture,
       createdAt: user.createdAt,
     };
@@ -187,25 +198,100 @@ export function logout(req, res) {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePicture } = req.body;
+    const { name, phone, currentPassword, newPassword, confirmPassword } =
+      req.body;
     const userId = req.user._id;
 
-    if (!profilePicture)
-      return res.status(400).json({ message: "Profile pic is required" });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      });
+    }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePicture);
+    const updateData = {};
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        profilePicture: uploadResponse.secure_url,
-      },
-      { new: true }
-    );
-    res.status(200).json(updatedUser);
+    if (req.file && req.file.path) {
+      updateData.profilePicture = req.file.path;
+    }
+
+    if (name && name.trim()) {
+      updateData.name = name.trim();
+    }
+
+    if (phone && user.role === "customer") {
+      const phoneRegex = /^[+]?[0-9]{7,15}$/;
+
+      if (!phoneRegex.test(phone.replace(/[\s-]/g, ""))) {
+        return res.status(400).json({
+          status: "failed",
+          message: "Invalid phone number",
+        });
+      }
+
+      updateData.phoneNumber = phone;
+    }
+
+    if (currentPassword || newPassword || confirmPassword) {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+          status: "failed",
+          message: "All password fields are required",
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+          status: "failed",
+          message: "Passwords do not match",
+        });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          status: "failed",
+          message: "Password must be at least 6 characters",
+        });
+      }
+
+      const isCorrectPassword = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+
+      if (!isCorrectPassword) {
+        return res.status(400).json({
+          status: "failed",
+          message: "Current password is incorrect",
+        });
+      }
+
+      updateData.password = await bcrypt.hash(newPassword, 12);
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        status: "failed",
+        message: "No updates provided",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    }).select("-password");
+
+    return res.status(200).json({
+      status: "success",
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
   } catch (err) {
     console.log(`Error in Update Profile Controller ${err}`);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({
+      status: "failed",
+      message: "Internal Server Error",
+    });
   }
 };
 
