@@ -2,7 +2,7 @@ import Spinner from "@/components/Spinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Navigate, Outlet } from "react-router-dom";
 
-const SellerRoute = () => {
+const SellerRoute = ({ children }) => {
   const { authUser, isCheckingAuth } = useAuthStore();
 
   if (isCheckingAuth) return <Spinner fullScreen />;
@@ -15,7 +15,7 @@ const SellerRoute = () => {
     return <Navigate to="/discovery" replace />;
   }
 
-  return <Outlet />;
+  return children;
 };
 
 export default SellerRoute;

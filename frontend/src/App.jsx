@@ -3,7 +3,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import DiscoverPage from "./pages/DiscoverPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuthStore } from "./store/useAuthStore";
 import { useDarkMode } from "./hooks/useDarkMode";
@@ -13,8 +13,14 @@ import SellerRoute from "./components/Auth/components/SellerRoute";
 import CustomerRoute from "./components/Auth/components/CustomerRoute";
 import PublicRoute from "./components/Auth/components/PublicRoute";
 import ProfilePage from "./pages/ProfilePage";
-import SellerAdmin from "./pages/SellerAdmin";
 import MyOrders from "./pages/MyOrders";
+import RestaurantPage from "./pages/RestaurantPage";
+import SellerLayout from "./components/Auth/components/SellerLayout";
+import { SellerDashboard } from "./pages/seller/SellerDashboard";
+import { SellerOrders } from "./pages/seller/SellerOrders";
+import { SellerMenu } from "./pages/seller/SellerMenu";
+import { SellerAnalytics } from "./pages/seller/SellerAnalytics";
+import { SellerSettings } from "./pages/seller/SellerSettings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,10 +54,24 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<MyOrders />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/restaurant" element={<RestaurantPage />} />
           </Route>
 
-          <Route element={<SellerRoute />}>
-            <Route path="/seller/*" element={<SellerAdmin />} />
+          <Route
+            path="/seller"
+            element={
+              <SellerRoute>
+                <SellerLayout />
+              </SellerRoute>
+            }
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+
+            <Route path="dashboard" element={<SellerDashboard />} />
+            <Route path="orders" element={<SellerOrders />} />
+            <Route path="menu" element={<SellerMenu />} />
+            <Route path="analytics" element={<SellerAnalytics />} />
+            <Route path="settings" element={<SellerSettings />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
