@@ -1,15 +1,25 @@
 import express from "express";
 import authRoutes from "./routes/authRoutes.js";
 import locationRoutes from "./routes/locationRouter.js";
+import restaurantsRoutes from "./routes/restaurantsRoutes.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import { rateLimit } from "express-rate-limit";
+import { handleError } from "./controllers/errorController.js";
 
 const app = express();
 dotenv.config();
 
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many requests from this IP, please try again in an hour!",
+});
+
 // MIDDLEWARES
+app.use("/api", limiter);
 app.use(express.json());
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
@@ -22,6 +32,7 @@ app.use(
 
 app.use("/api/auth", authRoutes);
 app.use("/api/location", locationRoutes);
+app.use("/api/restaurants", restaurantsRoutes);
 
 app.get("/", (_, res) => {
   res.send("Backend is Running");
@@ -32,3 +43,5 @@ mongoose.connect(process.env.MONGODB_URL).then(() => {
     console.log(`Server is running on port ${process.env.PORT}`);
   });
 });
+
+app.use(handleError);

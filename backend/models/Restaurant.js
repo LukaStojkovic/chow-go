@@ -1,5 +1,20 @@
 import mongoose from "mongoose";
 
+const menuItemSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: {
+    type: String,
+    required: true,
+  },
+  price: { type: Number, required: true },
+  category: {
+    type: String,
+    required: true,
+  },
+  imageUrls: [{ type: String }],
+  available: { type: Boolean, default: true },
+});
+
 const restaurantSchema = new mongoose.Schema(
   {
     ownerId: {
@@ -14,6 +29,7 @@ const restaurantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     cuisineType: {
       type: String,
       required: true,
@@ -55,6 +71,7 @@ const restaurantSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
     email: {
       type: String,
       required: true,
@@ -88,7 +105,7 @@ const restaurantSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-
+    menuItems: [menuItemSchema],
     estimatedDeliveryTime: {
       type: String,
       default: "30-45 min",

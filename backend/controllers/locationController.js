@@ -1,36 +1,68 @@
 import dotenv from "dotenv";
+import { AppError } from "../utils/AppError.js";
 
 dotenv.config();
 
-export async function getLocation(req, res) {
-  const { lat, lon } = req.query;
+async function fetchJson(url) {
+  const response = await fetch(url);
 
-  const data = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`
-  );
+  if (!response.ok) {
+    throw new AppError(
+      `External API error: ${response.status} ${response.statusText}`,
+      502
+    );
+  }
 
-  return res.status(200).json(await data.json());
+  return await response.json();
 }
 
-export async function locationPrediction(req, res) {
+export async function getLocation(req, res, next) {
+  const { lat, lon } = req.query;
+
+  if (!lat || !lon) {
+    return next(new AppError("Latitude and longitude are required", 400));
+  }
+
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+
+  if (
+    isNaN(latNum) ||
+    isNaN(lonNum) ||
+    latNum < -90 ||
+    latNum > 90 ||
+    lonNum < -180 ||
+    lonNum > 180
+  ) {
+    return next(new AppError("Invalid latitude or longitude values", 400));
+  }
+
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${latNum}&lon=${lonNum}&format=json&addressdetails=1&user-agent=ChowGo/1.0`;
+
+  const data = await fetchJson(url);
+
+  res.status(200).json(data);
+}
+
+export async function locationPrediction(req, res, next) {
   const { query } = req.query;
 
-  try {
-    const data = await fetch(
-      `https://api.locationiq.com/v1/autocomplete?key=${
-        process.env.LOCATION_IQ_ACCESS_KEY
-      }&q=${encodeURIComponent(query)}&limit=5&dedupe=1`
-    );
+  let searchQuery = query?.trim();
 
-    if (!query || query.trim() === "") {
-      return res
-        .status(400)
-        .json({ status: "fail", message: "Location is required" });
-    }
-
-    return res.status(200).json(await data.json());
-  } catch (error) {
-    console.error("Error fetching location predictions:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+  if (!searchQuery) {
+    return next(new AppError("Search query is required", 400));
   }
+
+  const accessKey = process.env.LOCATION_IQ_ACCESS_KEY;
+  if (!accessKey) {
+    return next(new AppError("Location service not configured", 500));
+  }
+
+  const url = `https://api.locationiq.com/v1/autocomplete?key=${accessKey}&q=${encodeURIComponent(
+    searchQuery
+  )}&limit=5&dedupe=1`;
+
+  const data = await fetchJson(url);
+
+  res.status(200).json(data);
 }
