@@ -1,9 +1,14 @@
+import Modal from "@/components/Modal";
+import { AddMenuItemForm } from "@/components/Seller/forms/AddMenuItemForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Edit2, CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
 
 export const SellerMenu = () => {
+  const [openAddItemModal, setOpenAddItemModal] = useState(false);
+
   const menuItems = [
     {
       name: "Margherita Pizza",
@@ -50,9 +55,9 @@ export const SellerMenu = () => {
           <Button variant="outline">Out of Stock</Button>
           <Button variant="outline">Categories</Button>
         </div>
-        <Button>
+        <Button onClick={() => setOpenAddItemModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Add Item
+          Add Menu Item
         </Button>
       </div>
 
@@ -96,6 +101,16 @@ export const SellerMenu = () => {
           </Card>
         ))}
       </div>
+
+      <Modal
+        isOpen={openAddItemModal}
+        onClose={() => setOpenAddItemModal(false)}
+        title="Add New Menu Item"
+        description="Fill in the details to add a new dish to your menu"
+        size="xl"
+      >
+        <AddMenuItemForm onClose={() => setOpenAddItemModal(false)} />
+      </Modal>
     </div>
   );
 };
