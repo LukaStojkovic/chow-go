@@ -27,6 +27,13 @@ import { useNavigate } from "react-router-dom";
 export default function UserMenu({ user, onLogout }) {
   const { theme, setTheme } = useDarkMode();
   const navigate = useNavigate();
+  const iconBase = "w-4 h-4 mr-3 shrink-0 text-gray-600 dark:text-emerald-400";
+
+  const itemBase =
+    "cursor-pointer flex items-center px-4 py-3 rounded-lg transition-colors my-1 text-gray-700 dark:text-gray-200 hover:bg-emerald-100 dark:hover:bg-emerald-950/40";
+
+  const dangerItemBase =
+    "cursor-pointer flex items-center px-4 py-3 rounded-lg transition-colors my-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40";
 
   const isSeller = user?.role === "seller";
 
@@ -99,11 +106,6 @@ export default function UserMenu({ user, onLogout }) {
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem className="cursor-pointer flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 rounded-lg transition-colors my-1">
-            <Settings className="w-4 h-4 mr-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span className="font-medium text-sm">Settings</span>
-          </DropdownMenuItem>
-
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 rounded-lg transition-colors w-full my-1">
               <div className="flex items-center flex-1">
@@ -144,7 +146,15 @@ export default function UserMenu({ user, onLogout }) {
 
           <DropdownMenuItem
             onClick={onLogout}
-            className="cursor-pointer flex items-center px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-950/40 rounded-lg transition-colors focus:outline-none my-1"
+            className="
+        cursor-pointer flex items-center px-4 py-3 rounded-lg my-1
+        text-red-600 dark:text-red-400
+        data-highlighted:bg-red-50
+        dark:data-highlighted:bg-red-950/40
+        data-highlighted:text-red-700
+        focus:bg-red-50
+        dark:focus:bg-red-950/40
+      "
           >
             <LogOut className="w-4 h-4 mr-3 text-red-600 dark:text-red-400 shrink-0" />
             <span className="font-medium text-sm">Logout</span>
