@@ -9,13 +9,14 @@ import {
   updateProfile,
   verifyOtp,
 } from "../controllers/authController.js";
-import upload from "../middlewares/upload.js";
+import { createUpload } from "../middlewares/upload.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+const uploadUser = createUpload("users");
 
 router.post("/login", login);
-router.post("/register", upload.single("profilePicture"), register);
+router.post("/register", uploadUser.single("profilePicture"), register);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);
@@ -24,7 +25,7 @@ router.post("/logout", logout);
 router.put(
   "/update-profile",
   protectedRoute,
-  upload.single("profilePicture"),
+  uploadUser.single("profilePicture"),
   updateProfile
 );
 

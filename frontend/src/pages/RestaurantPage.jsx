@@ -16,9 +16,8 @@ import {
   Percent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CartSidebar from "@/components/Discover/CartSidebar"; // Assuming you have this from previous code
+import CartSidebar from "@/components/Discover/CartSidebar";
 
-// --- MOCK DATA FOR DEMO ---
 const RESTAURANT_INFO = {
   id: 1,
   name: "Burger & Co.",
@@ -91,7 +90,7 @@ const MENU_ITEMS = [
       "https://images.unsplash.com/photo-1572490122747-3968b75cc699?q=80&w=500&auto=format&fit=crop",
     category: "Drinks",
   },
-  // Add more items to fill the list for scrolling effect
+
   {
     id: 106,
     name: "Spicy Deluxe",
@@ -108,7 +107,7 @@ const MENU_ITEMS = [
     price: 5.5,
     category: "Sides",
     image: null,
-  }, // No image test
+  },
 ];
 
 export default function RestaurantPage() {
@@ -119,7 +118,6 @@ export default function RestaurantPage() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Handle scroll for sticky header styling
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 200);
@@ -145,7 +143,6 @@ export default function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-white pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100">
-      {/* --- Top Navigation (Absolute/Fixed) --- */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 transition-all duration-300 ${
           isScrolled
@@ -197,9 +194,8 @@ export default function RestaurantPage() {
         </div>
       </nav>
 
-      {/* --- Hero Image & Basic Info --- */}
       <div className="relative h-[250px] w-full md:h-[350px]">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10" />
         <img
           src={RESTAURANT_INFO.coverImage}
           alt="Cover"
@@ -208,7 +204,6 @@ export default function RestaurantPage() {
       </div>
 
       <main className="container mx-auto max-w-4xl px-4 -mt-10 relative z-20">
-        {/* Restaurant Title Card */}
         <div className="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100 dark:bg-zinc-900 dark:ring-zinc-800">
           <div className="flex justify-between items-start mb-2">
             <div>
@@ -256,9 +251,8 @@ export default function RestaurantPage() {
           </div>
         </div>
 
-        {/* --- Sticky Menu Categories --- */}
         <div className="sticky top-[60px] z-30 -mx-4 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-sm dark:bg-zinc-950/95 md:mx-0 md:rounded-b-lg">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 overflow-x-auto s">
             <div className="relative">
               <Search className="absolute left-2.5 top-2 h-4 w-4 text-gray-400" />
               <input
@@ -286,16 +280,14 @@ export default function RestaurantPage() {
           </div>
         </div>
 
-        {/* --- Menu Sections --- */}
         <div className="mt-6 space-y-10">
-          {/* 1. Best Offers Horizontal Scroll */}
           {!searchQuery && (
             <div id="Offers" className="scroll-mt-32">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                 <Percent className="h-5 w-5 text-red-500" />
                 Best Offers
               </h3>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+              <div className="flex gap-4 overflow-x-auto pb-4  -mx-4 px-4 md:mx-0 md:px-0">
                 {MENU_ITEMS.filter((i) => i.category === "Offers").map(
                   (item) => (
                     <div
@@ -338,7 +330,6 @@ export default function RestaurantPage() {
             </div>
           )}
 
-          {/* 2. Vertical Lists for other categories */}
           {MENU_CATEGORIES.filter((cat) => cat !== "Offers").map((category) => {
             const items = filteredItems.filter(
               (item) => item.category === category
@@ -400,12 +391,10 @@ export default function RestaurantPage() {
         </div>
       </main>
 
-      {/* --- Restaurant Info Modal --- */}
       {showInfoModal && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 p-4 sm:items-center backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-60 flex items-end justify-center bg-black/50 p-4 sm:items-center backdrop-blur-sm animate-in fade-in">
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 animate-in slide-in-from-bottom-10">
             <div className="relative h-32 bg-gray-100">
-              {/* Mini Map Placeholder */}
               <div className="absolute inset-0 flex items-center justify-center bg-blue-50 text-blue-200">
                 <MapPin className="h-12 w-12 opacity-50" />
               </div>

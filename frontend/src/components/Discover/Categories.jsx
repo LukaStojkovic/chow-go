@@ -6,7 +6,7 @@ export default function Categories({
   setActiveCategory,
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+    <div className="flex gap-4 overflow-x-auto pb-2">
       {categories.map((cat) => (
         <motion.button
           key={cat.id}

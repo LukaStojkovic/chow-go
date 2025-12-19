@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function PromoCarousel({ promos }) {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+    <div className="flex gap-4 overflow-x-auto pb-4">
       {promos.map((promo) => (
         <motion.div
           key={promo.id}

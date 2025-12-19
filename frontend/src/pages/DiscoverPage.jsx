@@ -87,7 +87,7 @@ export default function DiscoverPage() {
             </h2>
           </div>
 
-          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
+          <div className="flex gap-6 overflow-x-auto pb-6 ">
             {[...RESTAURANTS].reverse().map((restaurant, idx) => (
               <div key={restaurant.id} className="w-72 shrink-0">
                 <RestaurantCard data={restaurant} index={idx} />

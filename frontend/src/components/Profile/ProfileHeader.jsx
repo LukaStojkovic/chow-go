@@ -30,7 +30,7 @@ export default function ProfileHeader({
 
     const formData = new FormData();
     formData.append("profilePicture", file);
-    console.log(formData);
+
     apiUpdateProfile(formData);
   };
 
