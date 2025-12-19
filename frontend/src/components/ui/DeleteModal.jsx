@@ -12,17 +12,10 @@ export const DeleteModal = ({
   description = "This action cannot be undone.",
   confirmText = "Delete",
   cancelText = "Cancel",
+  isLoading = false,
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-
   const handleConfirm = async () => {
-    setIsLoading(true);
-    try {
-      await onConfirm();
-      onClose();
-    } finally {
-      setIsLoading(false);
-    }
+    await onConfirm();
   };
 
   return (

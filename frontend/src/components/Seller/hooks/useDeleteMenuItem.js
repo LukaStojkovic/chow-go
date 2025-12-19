@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteMenuItems as deleteMenuItemApi } from "@/services/apiRestaurant";
+import { deleteMenuItem as deleteMenuItemApi } from "@/services/apiRestaurant";
 import { toast } from "sonner";
 
 export default function useDeleteMenuItem() {

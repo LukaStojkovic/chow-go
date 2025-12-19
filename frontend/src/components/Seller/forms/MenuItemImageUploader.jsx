@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Upload, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const MenuItemImageUploader = ({
   images,
@@ -11,6 +11,14 @@ export const MenuItemImageUploader = ({
   errors,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [previews]);
 
   const handleUpload = (files) => {
     const validFiles = Array.from(files).filter((f) =>
@@ -109,6 +117,7 @@ export const MenuItemImageUploader = ({
               <button
                 type="button"
                 onClick={() => removeImage(index)}
+                aria-label={`Remove image ${index + 1}`}
                 className="absolute top-2 right-2 p-2 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-5 h-5" />

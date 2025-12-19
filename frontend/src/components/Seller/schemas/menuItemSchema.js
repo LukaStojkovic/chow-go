@@ -15,6 +15,5 @@ export const menuItemSchema = z.object({
     .array(z.instanceof(File))
     .min(1, "At least one image is required")
     .max(6, "Maximum 6 images allowed")
-    .optional()
     .default([]),
 });

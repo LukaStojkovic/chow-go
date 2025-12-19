@@ -42,7 +42,7 @@ export async function getMenuItems(restaurantId) {
   }
 }
 
-export async function deleteMenuItems(restaurantId, menuItemId) {
+export async function deleteMenuItem(restaurantId, menuItemId) {
   try {
     const res = await axiosInstance.delete(
       `/restaurants/${restaurantId}/menu/${menuItemId}`

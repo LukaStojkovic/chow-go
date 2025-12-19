@@ -33,7 +33,7 @@ export const AddMenuItemForm = ({ onClose }) => {
   const [previews, setPreviews] = useState([]);
   const { createMenuItem, isCreating } = useCreateMenuItem();
   const { authUser } = useAuthStore();
-  const restaurantId = authUser.restaurant._id;
+  const restaurantId = authUser?.restaurant?._id;
 
   const {
     register,

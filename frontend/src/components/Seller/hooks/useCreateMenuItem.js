@@ -14,7 +14,6 @@ export function useCreateMenuItem() {
       toast.success("New menu item created successfully");
     },
     onError: (error) => {
-      console.log("error iz query-a", error);
       toast.error(
         error?.response?.data?.message || "Failed to create menu item"
       );

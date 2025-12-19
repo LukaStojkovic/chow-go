@@ -252,7 +252,7 @@ export default function RestaurantPage() {
         </div>
 
         <div className="sticky top-[60px] z-30 -mx-4 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-sm dark:bg-zinc-950/95 md:mx-0 md:rounded-b-lg">
-          <div className="flex items-center gap-2 overflow-x-auto s">
+          <div className="flex items-center gap-2 overflow-x-auto">
             <div className="relative">
               <Search className="absolute left-2.5 top-2 h-4 w-4 text-gray-400" />
               <input

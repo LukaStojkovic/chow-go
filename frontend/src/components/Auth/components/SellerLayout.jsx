@@ -15,10 +15,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import Logo from "@/components/Navbar/Logo";
 import { SidebarLink } from "@/components/ui/SidebarLink";
+import UserMenu from "@/components/Navbar/UserMenu";
 
 export default function SellerLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { logout } = useAuthStore();
+  const { logout, authUser } = useAuthStore();
   const location = useLocation();
 
   const handleLogout = async () => {
@@ -73,13 +74,7 @@ export default function SellerLayout() {
           </nav>
 
           <div className="pt-6 mt-6 border-t border-gray-100 dark:border-zinc-800">
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors font-medium"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Log Out</span>
-            </button>
+            <UserMenu user={authUser} onLogout={logout} />
           </div>
         </div>
       </aside>

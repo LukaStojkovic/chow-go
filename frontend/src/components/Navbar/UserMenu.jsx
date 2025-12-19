@@ -14,7 +14,6 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import {
   User,
   Store,
-  Settings,
   LogOut,
   ChevronDown,
   Monitor,

@@ -3,7 +3,7 @@ import { protectedRoute } from "../middlewares/authMiddleware.js";
 import {
   createMenuItem,
   deleteMenuItem,
-  getResturantMenuItems,
+  getRestaurantMenuItems,
 } from "../controllers/restaurantController.js";
 import { createUpload } from "../middlewares/upload.js";
 
@@ -17,7 +17,7 @@ router.post(
   createMenuItem
 );
 
-router.get("/:restaurantId/menu", protectedRoute, getResturantMenuItems);
+router.get("/:restaurantId/menu", protectedRoute, getRestaurantMenuItems);
 router.delete(
   "/:restaurantId/menu/:menuItemId",
   protectedRoute,

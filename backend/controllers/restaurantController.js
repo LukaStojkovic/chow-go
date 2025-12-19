@@ -11,7 +11,8 @@ export async function createMenuItem(req, res, next) {
     return next(new AppError("Missing required fields", 400));
   }
 
-  if (Number(price) <= 0) {
+  const numericPrice = Number(price);
+  if (isNaN(numericPrice) || numericPrice <= 0) {
     return next(new AppError("Price must be positive", 400));
   }
 
@@ -44,7 +45,7 @@ export async function createMenuItem(req, res, next) {
   });
 }
 
-export async function getResturantMenuItems(req, res, next) {
+export async function getRestaurantMenuItems(req, res, next) {
   const { restaurantId } = req.params;
 
   const restaurant = await Restaurant.findById(restaurantId);
@@ -67,8 +68,6 @@ export async function deleteMenuItem(req, res, next) {
   if (!restaurant) {
     return next(new AppError("Restaurant not found", 404));
   }
-
-  console.log(restaurant);
 
   if (restaurant.ownerId.toString() !== req.user._id.toString()) {
     return next(
