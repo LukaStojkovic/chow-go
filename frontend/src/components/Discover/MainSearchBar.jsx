@@ -1,7 +1,7 @@
 import { Filter, Search } from "lucide-react";
 import React from "react";
 
-export default function SearchBar() {
+export default function MainSearchBar() {
   return (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />

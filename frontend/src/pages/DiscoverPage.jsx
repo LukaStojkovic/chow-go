@@ -8,7 +8,7 @@ import UserMenu from "@/components/Navbar/UserMenu";
 import Categories from "../components/Discover/Categories";
 import RestaurantCard from "../components/Discover/RestaurantCard";
 import PromoCarousel from "@/components/Discover/PromoCarousel";
-import SearchBar from "@/components/Discover/SearchBar";
+import MainSearchBar from "@/components/Discover/MainSearchBar";
 import { CATEGORIES, PROMOS, RESTAURANTS } from "@/lib/constants";
 import NearYouSection from "@/components/Discover/NearYouSection";
 import CartSidebar from "@/components/Discover/CartSidebar";
@@ -54,7 +54,7 @@ export default function DiscoverPage() {
             </div>
           </div>
 
-          <SearchBar />
+          <MainSearchBar />
         </div>
       </header>
 

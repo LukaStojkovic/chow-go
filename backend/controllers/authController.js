@@ -128,6 +128,7 @@ export const register = async (req, res, next) => {
 
     user.restaurant = restaurant._id;
     await user.save();
+    await user.populate("restaurant");
   }
 
   generateToken(user._id, res);
@@ -142,7 +143,7 @@ export const register = async (req, res, next) => {
     createdAt: user.createdAt,
   };
 
-  if (user.role === "seller") {
+  if (user.role === "seller" && user.restaurant) {
     response.restaurant = user.restaurant;
   }
 

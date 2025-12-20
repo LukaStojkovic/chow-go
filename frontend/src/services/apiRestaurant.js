@@ -31,14 +31,43 @@ export async function createMenuItem(restaurantId, menuItemData) {
   }
 }
 
-export async function getMenuItems(restaurantId) {
-  try {
-    const res = await axiosInstance.get(`/restaurants/${restaurantId}/menu`);
+export async function getMenuItems(
+  restaurantId,
+  {
+    page = 1,
+    limit = 12,
+    search = "",
+    category = "",
+    minPrice = "",
+    maxPrice = "",
+    available = "",
+  } = {}
+) {
+  if (!restaurantId) return { menuItems: [], pagination: {} };
 
-    return res.data.menuItems;
-  } catch (err) {
-    console.error("Error fetching menu items:", err);
-    throw err;
+  try {
+    const { data } = await axiosInstance.get(
+      `/restaurants/${restaurantId}/menu`,
+      {
+        params: {
+          page,
+          limit,
+          search,
+          category,
+          minPrice,
+          maxPrice,
+          available,
+        },
+      }
+    );
+
+    return {
+      menuItems: data?.data?.menuItems || [],
+      pagination: data?.data?.pagination || {},
+    };
+  } catch (error) {
+    console.error("Failed to fetch menu items:", error);
+    return { menuItems: [], pagination: {} };
   }
 }
 

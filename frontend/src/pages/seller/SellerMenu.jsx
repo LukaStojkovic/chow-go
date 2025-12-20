@@ -2,161 +2,173 @@ import Modal from "@/components/Modal";
 import { AddMenuItemForm } from "@/components/Seller/forms/AddMenuItemForm";
 import useDeleteMenuItem from "@/components/Seller/hooks/useDeleteMenuItem";
 import useGetMenuItems from "@/components/Seller/hooks/useGetMenuItems";
+import MenuItemCard from "@/components/Seller/MenuItemCard";
+import MenuItemFilters from "@/components/Seller/MenuItemFilters";
+import { CardSkeleton } from "@/components/skeletons/CardSkeleton";
 import Spinner from "@/components/Spinner";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { DeleteModal } from "@/components/ui/DeleteModal";
+import PaginationSelector from "@/components/ui/PaginationSelector";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Plus, Edit2, CheckCircle2, XCircle, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { useDebounce } from "use-debounce";
 
 export const SellerMenu = () => {
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openDeleteMenuItem, setOpenDeleteMenuItem] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [category, setCategory] = useState("all");
+  const [tempPriceRange, setTempPriceRange] = useState([0, 200]);
+  const [priceRange, setPriceRange] = useState([0, 200]);
+  const [availableOnly, setAvailableOnly] = useState(false);
+
+  const [debouncedSearch] = useDebounce(searchInput, 500);
+  const [debouncedPriceRange] = useDebounce(tempPriceRange, 300);
+
   const { authUser } = useAuthStore();
   const restaurantId = authUser?.restaurant?._id;
-  const { data: menuItems, isLoading } = useGetMenuItems(restaurantId);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, category, debouncedPriceRange, availableOnly]);
+
+  const filters = useMemo(
+    () => ({
+      page,
+      limit: 6,
+      search: debouncedSearch.trim() || undefined,
+      category: category === "all" ? undefined : category,
+      minPrice: debouncedPriceRange[0] > 0 ? debouncedPriceRange[0] : undefined,
+      maxPrice:
+        debouncedPriceRange[1] < 3000 ? debouncedPriceRange[1] : undefined,
+      available: availableOnly ? "true" : undefined,
+    }),
+    [page, debouncedSearch, category, debouncedPriceRange, availableOnly]
+  );
+
+  const {
+    menuItems,
+    pagination,
+    isLoading: isInitialLoading,
+    isFetching,
+    refetchMenu,
+  } = useGetMenuItems(restaurantId, filters);
+
   const { deleteMenuItem, isDeleting } = useDeleteMenuItem();
 
-  if (isLoading) return <Spinner fullScreen />;
+  if (!restaurantId)
+    return <div className="p-8 text-center">Restaurant not found.</div>;
 
-  if (!restaurantId) return <div>No restaurant found.</div>;
-
-  function handleOpenDeleteModal(menuItem) {
+  const handleOpenDeleteModal = (menuItem) => {
     setSelectedMenuItem(menuItem);
     setOpenDeleteMenuItem(true);
-  }
+  };
 
-  function handleDeleteMenuItem() {
+  const handleDeleteSuccess = () => {
+    setSelectedMenuItem(null);
+    setOpenDeleteMenuItem(false);
+    refetchMenu();
+  };
+
+  const handleDeleteMenuItem = () => {
     deleteMenuItem(
       { restaurantId, menuItemId: selectedMenuItem._id },
-      {
-        onSuccess: () => {
-          setSelectedMenuItem(null);
-          setOpenDeleteMenuItem(false);
-        },
-      }
+      { onSuccess: handleDeleteSuccess }
     );
-  }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex flex-wrap gap-2">
-          <Button variant="default">All Items</Button>
-          <Button variant="outline">Out of Stock</Button>
-          <Button variant="outline">Category</Button>
-        </div>
-        <Button onClick={() => setOpenAddItemModal(true)}>
-          <Plus className="w-4 h-4 mr-2" />
+    <div className="space-y-8 pb-10">
+      <MenuItemFilters
+        searchInput={searchInput}
+        setSearchInput={setSearchInput}
+        category={category}
+        setCategory={setCategory}
+        setAvailableOnly={setAvailableOnly}
+        availableOnly={availableOnly}
+        tempPriceRange={tempPriceRange}
+        setTempPriceRange={setTempPriceRange}
+        setPriceRange={setPriceRange}
+      />
+
+      <div className="flex justify-end mb-6">
+        <Button
+          onClick={() => setOpenAddItemModal(true)}
+          variant="outline"
+          size="lg"
+          className="rounded-xl hover:text-emerald-600 border-emerald-600 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-700 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950/30 font-medium shadow-sm"
+        >
+          <Plus className="w-5 h-5 mr-2" />
           Add Menu Item
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {!menuItems || menuItems.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
-            No menu items found. Add your first item to get started!
+      <div className="min-h-96 relative">
+        {isInitialLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
           </div>
         ) : (
-          menuItems.map((item) => (
-            <Card
-              key={item._id}
-              className="group overflow-hidden border-border/60 bg-card hover:shadow-xl transition-all duration-300"
-            >
-              <div className="relative aspect-video overflow-hidden">
-                <img
-                  src={item.imageUrls?.[0]}
-                  alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {menuItems.length === 0 ? (
+                <div className="col-span-full text-center py-16 text-muted-foreground">
+                  No menu items found.
+                </div>
+              ) : (
+                menuItems.map((item) => (
+                  <MenuItemCard
+                    key={item._id}
+                    menuItem={item}
+                    onDelete={() => handleOpenDeleteModal(item)}
+                  />
+                ))
+              )}
+            </div>
 
-                <Badge
-                  variant="secondary"
-                  className="absolute top-3 left-3 uppercase text-xs tracking-wide"
-                >
-                  {item.category}
-                </Badge>
-
-                <Badge
-                  className={`absolute top-3 right-3 ${
-                    item.available ? "bg-emerald-600" : "bg-destructive"
-                  }`}
-                >
-                  {item.available ? "Available" : "Sold Out"}
-                </Badge>
+            {isFetching && !isInitialLoading && (
+              <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg">
+                <Spinner size="lg" />
               </div>
-
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-lg leading-tight line-clamp-1">
-                    {item.name}
-                  </h3>
-                  <span className="font-bold text-emerald-600 whitespace-nowrap">
-                    ${item.price}
-                  </span>
-                </div>
-
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {item.description || "No description provided."}
-                </p>
-
-                <div className="flex items-center justify-between pt-4">
-                  <div
-                    className={`flex items-center gap-2 text-sm font-medium ${
-                      item.available ? "text-emerald-600" : "text-destructive"
-                    }`}
-                  >
-                    {item.available ? (
-                      <CheckCircle2 className="w-4 h-4" />
-                    ) : (
-                      <XCircle className="w-4 h-4" />
-                    )}
-                    {item.available ? "In stock" : "Out of stock"}
-                  </div>
-
-                  <div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:bg-muted hover:text-black dark:hover:text-white"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      className="hover:bg-red-700 bg-transparent hover:text-white text-red-500"
-                      onClick={() => handleOpenDeleteModal(item)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+            )}
+          </>
         )}
       </div>
+
+      <PaginationSelector
+        pagination={pagination}
+        page={page}
+        setPage={setPage}
+        isFetching={isFetching}
+      />
 
       <Modal
         isOpen={openAddItemModal}
         onClose={() => setOpenAddItemModal(false)}
-        title="Add New Menu Item"
-        description="Fill in the details to add a new dish to your menu"
+        title="Add Menu Item"
+        description="Fill out the form below to add a new item to your menu."
         size="xl"
       >
-        <AddMenuItemForm onClose={() => setOpenAddItemModal(false)} />
+        <AddMenuItemForm
+          onClose={() => setOpenAddItemModal(false)}
+          onSuccess={refetchMenu}
+        />
       </Modal>
 
       <DeleteModal
         isOpen={openDeleteMenuItem}
         onClose={() => setOpenDeleteMenuItem(false)}
         title="Delete Menu Item"
-        description={`Are you sure you want to delete "${selectedMenuItem?.name}"? This action cannot be undone.`}
-        onConfirm={() => handleDeleteMenuItem(selectedMenuItem)}
+        description={`Are you sure you want to delete "${selectedMenuItem?.name}"?`}
+        onConfirm={handleDeleteMenuItem}
         isLoading={isDeleting}
       />
     </div>
