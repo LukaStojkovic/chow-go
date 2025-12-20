@@ -124,10 +124,11 @@ export const SellerMenu = () => {
                   No menu items found.
                 </div>
               ) : (
-                menuItems.map((item) => (
+                menuItems.map((item, index) => (
                   <MenuItemCard
                     key={item._id}
                     menuItem={item}
+                    index={index}
                     onDelete={() => handleOpenDeleteModal(item)}
                   />
                 ))
