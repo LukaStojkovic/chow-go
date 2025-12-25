@@ -1,22 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ChevronRight, Sparkles, ShoppingBag } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
-import { useAuthStore } from "@/store/useAuthStore";
-import UserMenu from "@/components/Navbar/UserMenu";
-
 import Categories from "../components/Discover/Categories";
 import RestaurantCard from "../components/Discover/RestaurantCard";
 import PromoCarousel from "@/components/Discover/PromoCarousel";
-import MainSearchBar from "@/components/Discover/MainSearchBar";
 import { CATEGORIES, PROMOS, RESTAURANTS } from "@/lib/constants";
 import NearYouSection from "@/components/Discover/NearYouSection";
 import CartSidebar from "@/components/Discover/CartSidebar";
 import { Button } from "@/components/ui/button";
+import NearbyRestaurantsSection from "@/components/Discover/NearbyRestaurantsSection";
+import MainHeader from "@/components/Discover/MainHeader";
 
 export default function DiscoverPage() {
-  const { address, coordinates } = useDeliveryStore();
-  const { authUser, logout } = useAuthStore();
+  const { address } = useDeliveryStore();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -27,46 +24,20 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100">
-      <header className="sticky top-0 z-40 border-b border-gray-200/50 bg-white/80 px-4 py-3 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-950/80">
-        <div className="container mx-auto max-w-5xl">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-muted-foreground">
-                Delivering to
-              </span>
-              <div className="group flex cursor-pointer items-center gap-1 text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400">
-                <span className="max-w-[200px] truncate font-bold sm:max-w-md">
-                  {address}
-                </span>
-                <ChevronRight className="h-4 w-4 transition-transform group-hover:rotate-90" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => setIsCartOpen(true)}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300"
-              >
-                <ShoppingBag className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-900 animate-pulse" />
-              </Button>
-              {authUser && <UserMenu user={authUser} onLogout={logout} />}
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100 transition-colors duration-300">
+      <MainHeader />
 
-          <MainSearchBar />
-        </div>
-      </header>
-
-      <main className="container mx-auto max-w-5xl space-y-8 px-4 py-6">
-        <section className="overflow-hidden">
+      <main className="container mx-auto max-w-5xl space-y-10 px-4 py-6">
+        <section className="overflow-hidden rounded-2xl">
           <PromoCarousel promos={PROMOS} />
         </section>
 
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Categories</h2>
-            <button className="text-sm font-medium text-blue-600 dark:text-blue-400">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Categories
+            </h2>
+            <button className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
               See all
             </button>
           </div>
@@ -77,26 +48,42 @@ export default function DiscoverPage() {
           />
         </section>
 
+        <NearbyRestaurantsSection />
+
         <NearYouSection />
 
-        <section className="pt-4">
+        <section className="pt-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold">
-              <Sparkles className="h-5 w-5 text-yellow-500" />
+            <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+              <Sparkles className="h-5 w-5 text-yellow-500 fill-yellow-500" />
               Popular Right Now
             </h2>
           </div>
 
-          <div className="flex gap-6 overflow-x-auto pb-6 ">
+          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
             {[...RESTAURANTS].reverse().map((restaurant, idx) => (
-              <div key={restaurant.id} className="w-72 shrink-0">
+              <div
+                key={`pop-${restaurant.id}-${idx}`}
+                className="w-72 shrink-0"
+              >
                 <RestaurantCard data={restaurant} index={idx} />
               </div>
             ))}
           </div>
         </section>
       </main>
+
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      <div className="mt-12 flex justify-center">
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-12 rounded-full px-8 text-base font-semibold shadow-sm hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
+        >
+          Load more
+        </Button>
+      </div>
     </div>
   );
 }

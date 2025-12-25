@@ -1,4 +1,4 @@
-import { getLocationPredction } from "@/services/apiLocation";
+import { getLocationPrediction } from "@/services/apiLocation";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 
@@ -11,7 +11,7 @@ export default function useLocationAutocomplete(input) {
     error,
   } = useQuery({
     queryKey: ["location-prediction", debouncedInput],
-    queryFn: () => getLocationPredction(debouncedInput),
+    queryFn: () => getLocationPrediction(debouncedInput),
     enabled: debouncedInput.trim().length >= 2,
     retry: false,
   });

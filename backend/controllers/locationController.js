@@ -41,7 +41,7 @@ export async function getLocation(req, res, next) {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${latNum}&lon=${lonNum}&format=json&addressdetails=1&user-agent=ChowGo/1.0`;
 
   const data = await fetchJson(url);
-
+  console.log(data);
   res.status(200).json(data);
 }
 

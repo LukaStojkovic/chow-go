@@ -7,8 +7,6 @@ export const useDeliveryStore = create()(
       address: "",
       coordinates: null,
 
-      setAddress: (address) => set({ address }),
-      setCoordinates: (coordinates) => set({ coordinates }),
       setLocation: (address, coordinates) => set({ address, coordinates }),
       clearLocation: () => set({ address: "", coordinates: null }),
     }),

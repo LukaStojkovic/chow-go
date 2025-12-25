@@ -26,114 +26,103 @@ import { useNavigate } from "react-router-dom";
 export default function UserMenu({ user, onLogout }) {
   const { theme, setTheme } = useDarkMode();
   const navigate = useNavigate();
-  const iconBase = "w-4 h-4 mr-3 shrink-0 text-gray-600 dark:text-emerald-400";
-
-  const itemBase =
-    "cursor-pointer flex items-center px-4 py-3 rounded-lg transition-colors my-1 text-gray-700 dark:text-gray-200 hover:bg-emerald-100 dark:hover:bg-emerald-950/40";
-
-  const dangerItemBase =
-    "cursor-pointer flex items-center px-4 py-3 rounded-lg transition-colors my-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40";
 
   const isSeller = user?.role === "seller";
 
   const ThemeIcon = ({ currentTheme }) => {
     switch (currentTheme) {
       case "light":
-        return <Sun className="w-4 h-4 mr-3 text-emerald-600" />;
+        return <Sun className="mr-3 h-4 w-4 text-emerald-600" />;
       case "dark":
-        return <Moon className="w-4 h-4 mr-3 text-emerald-600" />;
+        return <Moon className="mr-3 h-4 w-4 text-emerald-600" />;
       default:
-        return <Monitor className="w-4 h-4 mr-3 text-emerald-600" />;
+        return <Monitor className="mr-3 h-4 w-4 text-emerald-600" />;
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          className="flex items-center gap-3 px-4 py-2 rounded-full transition-all duration-200 
-                           bg-white/60 dark:bg-zinc-900/60 hover:bg-white dark:hover:bg-zinc-800
-                           ring-2 ring-transparent hover:ring-emerald-500/30 dark:hover:ring-emerald-500/20
-                           backdrop-blur-md outline-none border border-white/20 dark:border-zinc-800/50"
-        >
+        <button className="flex items-center gap-2 rounded-full border border-white/20 bg-white/60 px-2 py-1.5 outline-none ring-2 ring-transparent backdrop-blur-md transition-all duration-200 hover:bg-white hover:ring-emerald-500/30 dark:border-zinc-800/50 dark:bg-zinc-900/60 dark:hover:bg-zinc-800 dark:hover:ring-emerald-500/20 sm:px-4 sm:py-2">
           <img
-            src={user.profilePicture || "defaultProfilePicture.png"}
+            src={user.profilePicture || "https://github.com/shadcn.png"}
             alt={user.name}
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/40"
+            className="h-8 w-8 rounded-full object-cover ring-2 ring-emerald-500/40"
           />
-          <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+          {/* Hidden on mobile, visible on sm and up */}
+          <span className="hidden text-sm font-medium text-gray-900 dark:text-gray-100 sm:block">
             {user.name || "User"}
           </span>
-          <ChevronDown className="w-4 h-4 text-gray-500 transition-transform duration-200" />
+          <ChevronDown className="hidden h-4 w-4 text-gray-500 transition-transform duration-200 sm:block" />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuPortal>
         <DropdownMenuContent
           align="end"
-          className="w-72 mt-3 bg-white/95 dark:bg-zinc-900/95 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-zinc-800/50 p-2 backdrop-blur-xl"
-          style={{ zIndex: 999 }}
+          className="mt-2 w-64 rounded-2xl border border-gray-200/50 bg-white/95 p-2 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/95"
+          style={{ zIndex: 9999 }}
         >
-          <DropdownMenuLabel className="flex flex-col items-start px-4 py-3 rounded-lg bg-white/50 dark:bg-zinc-800/50">
-            <span className="font-bold text-base text-gray-900 dark:text-white truncate max-w-full">
+          <DropdownMenuLabel className="flex flex-col items-start rounded-lg bg-gray-50 px-4 py-3 dark:bg-zinc-800/50">
+            <span className="max-w-full truncate text-base font-bold text-gray-900 dark:text-white">
               {user.name || "Current User"}
             </span>
             {user.email && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-full mt-1">
+              <span className="mt-1 max-w-full truncate text-xs text-gray-500 dark:text-gray-400">
                 {user.email}
               </span>
             )}
           </DropdownMenuLabel>
 
-          <DropdownMenuSeparator className="h-px bg-gray-200 dark:bg-zinc-700 my-2" />
+          <DropdownMenuSeparator className="my-2 h-px bg-gray-200 dark:bg-zinc-700" />
 
           {isSeller ? (
             <DropdownMenuItem
               onClick={() => navigate("/seller/dashboard")}
-              className="cursor-pointer flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 rounded-lg transition-colors my-1"
+              className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
             >
-              <Store className="w-4 h-4 mr-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="font-medium text-sm">Manage Restaurant</span>
+              <Store className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-sm font-medium">Manage Restaurant</span>
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
               onClick={() => navigate("/profile")}
-              className="cursor-pointer flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 rounded-lg transition-colors my-1"
+              className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
             >
-              <User className="w-4 h-4 mr-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span className="font-medium text-sm">Profile</span>
+              <User className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-sm font-medium">Profile</span>
             </DropdownMenuItem>
           )}
 
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 rounded-lg transition-colors w-full my-1">
-              <div className="flex items-center flex-1">
+            <DropdownMenuSubTrigger className="my-1 flex w-full cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30">
+              <div className="flex flex-1 items-center">
                 <ThemeIcon currentTheme={theme} />
-                <span className="font-medium text-sm">Theme</span>
+                <span className="text-sm font-medium">Theme</span>
               </div>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent className="bg-white/95 dark:bg-zinc-900/95 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-zinc-800/50 p-2 ml-2 backdrop-blur-xl">
+              <DropdownMenuSubContent className="ml-2 rounded-2xl border border-gray-200/50 bg-white/95 p-2 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/95">
                 {["light", "dark", "system"].map((t) => (
                   <DropdownMenuItem
                     key={t}
                     onClick={() => setTheme(t)}
-                    className="cursor-pointer flex items-center px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 rounded-lg transition-colors"
+                    className="flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
                   >
                     {t === "light" && (
-                      <Sun className="w-4 h-4 mr-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <Sun className="mr-3 h-4 w-4 shrink-0 text-emerald-600" />
                     )}
                     {t === "dark" && (
-                      <Moon className="w-4 h-4 mr-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <Moon className="mr-3 h-4 w-4 shrink-0 text-emerald-600" />
                     )}
                     {t === "system" && (
-                      <Monitor className="w-4 h-4 mr-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <Monitor className="mr-3 h-4 w-4 shrink-0 text-emerald-600" />
                     )}
-                    <span className="flex-1 font-medium text-sm capitalize">
+                    <span className="flex-1 text-sm font-medium capitalize">
                       {t}
                     </span>
                     {theme === t && (
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <Check className="h-4 w-4 shrink-0 text-emerald-600" />
                     )}
                   </DropdownMenuItem>
                 ))}
@@ -141,22 +130,14 @@ export default function UserMenu({ user, onLogout }) {
             </DropdownMenuPortal>
           </DropdownMenuSub>
 
-          <DropdownMenuSeparator className="h-px bg-gray-200 dark:bg-zinc-700 my-2" />
+          <DropdownMenuSeparator className="my-2 h-px bg-gray-200 dark:bg-zinc-700" />
 
           <DropdownMenuItem
             onClick={onLogout}
-            className="
-        cursor-pointer flex items-center px-4 py-3 rounded-lg my-1
-        text-red-600 dark:text-red-400
-        data-highlighted:bg-red-50
-        dark:data-highlighted:bg-red-950/40
-        data-highlighted:text-red-700
-        focus:bg-red-50
-        dark:focus:bg-red-950/40
-      "
+            className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-red-600 hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 dark:focus:bg-red-950/30"
           >
-            <LogOut className="w-4 h-4 mr-3 text-red-600 dark:text-red-400 shrink-0" />
-            <span className="font-medium text-sm">Logout</span>
+            <LogOut className="mr-3 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+            <span className="text-sm font-medium">Logout</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenuPortal>

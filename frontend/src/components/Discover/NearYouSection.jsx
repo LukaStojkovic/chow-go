@@ -6,7 +6,7 @@ export default function NearYouSection() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-xl font-bold">
+        <h2 className="flex items-center gap-2 sm:text-xl text-sm font-bold">
           <MapPin className="h-5 w-5 text-blue-500" />
           Near You
         </h2>

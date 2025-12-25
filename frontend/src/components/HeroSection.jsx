@@ -36,7 +36,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden pt-20 px-4 sm:px-6 lg:px-8">
+    <section className="relative flex min-h-[90vh] items-center justify-center pt-20 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-5xl">
         <div className="flex flex-col items-center text-center">
           <motion.div

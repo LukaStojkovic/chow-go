@@ -1,7 +1,6 @@
-import { Bike, LocateFixed, MapPin } from "lucide-react";
+import { LocateFixed, MapPin } from "lucide-react";
 import React from "react";
 import { Input } from "./ui/input";
-import GlowButton from "./GlowButton";
 import { motion } from "framer-motion";
 
 export default function AddressInput({

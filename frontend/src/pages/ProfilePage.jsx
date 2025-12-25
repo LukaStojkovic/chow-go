@@ -56,7 +56,6 @@ export default function ProfilePage() {
   const [name, setName] = useState(authUser?.name || "Unknown Name");
   const [phone, setPhone] = useState(authUser?.phoneNumber || "Unkown Number");
   const [addresses, setAddresses] = useState(MOCK_ADDRESSES);
-  const [profilePicture, setProfilePicture] = useState(null);
 
   const handleSetDefaultAddress = (id) => {
     setAddresses(
