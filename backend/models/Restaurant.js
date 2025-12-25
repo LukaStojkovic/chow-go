@@ -47,7 +47,7 @@ const restaurantSchema = new mongoose.Schema(
       zipCode: { type: String, required: true },
       country: { type: String, default: "Serbia" },
     },
-    coordinates: {
+    location: {
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number], required: true },
     },
@@ -100,7 +100,7 @@ const restaurantSchema = new mongoose.Schema(
   }
 );
 
-restaurantSchema.index({ coordinates: "2dsphere" });
+restaurantSchema.index({ location: "2dsphere" });
 
 restaurantSchema.index({ ownerId: 1 });
 
