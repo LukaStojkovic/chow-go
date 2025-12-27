@@ -1,25 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 import useReverseGeocoding from "./useReverseGeocoding";
 import { MapPin } from "lucide-react";
 
 export default function useDetectLocation() {
-  const [coords, setCoords] = useState(null);
+  const [lat, setLat] = useState(null);
+  const [lon, setLon] = useState(null);
   const [isGettingGeo, setIsGettingGeo] = useState(false);
 
-  const { data, isLoading, isError } = useReverseGeocoding(
-    coords?.lat,
-    coords?.lon
+  const coordinates = useMemo(
+    () => (lat !== null && lon !== null ? { lat, lon } : null),
+    [lat, lon]
   );
+
+  const { data, isLoading, isError } = useReverseGeocoding(lat, lon);
 
   const isDetecting = isGettingGeo || isLoading;
 
   const clearDetectedLocation = () => {
-    setCoords(null);
+    setLat(null);
+    setLon(null);
   };
 
   useEffect(() => {
-    if (data?.address && coords) {
+    if (data?.address && coordinates) {
       toast.success("Location detected!", {
         description: data.address,
         icon: <MapPin className="w-5 h-5" />,
@@ -27,7 +31,7 @@ export default function useDetectLocation() {
 
       setIsGettingGeo(false);
     }
-  }, [data, coords]);
+  }, [data, coordinates]);
 
   const detect = () => {
     if (!navigator.geolocation) {
@@ -39,10 +43,8 @@ export default function useDetectLocation() {
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-        });
+        setLat(pos.coords.latitude);
+        setLon(pos.coords.longitude);
       },
       () => {
         toast.error("Location access denied");
@@ -55,7 +57,7 @@ export default function useDetectLocation() {
   return {
     detect,
     address: data?.address || "",
-    coordinates: coords ? { lat: coords.lat, lon: coords.lon } : null,
+    coordinates,
     isDetecting,
     isError,
     clearDetectedLocation,

@@ -25,7 +25,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100 transition-colors duration-300">
-      <MainHeader />
+      <MainHeader setIsCartOpen={setIsCartOpen} />
 
       <main className="container mx-auto max-w-5xl space-y-10 px-4 py-6">
         <section className="overflow-hidden rounded-2xl">

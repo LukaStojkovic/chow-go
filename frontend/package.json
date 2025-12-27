@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -26,11 +26,13 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.553.0",
     "motion": "^12.23.24",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.66.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.9.6",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",

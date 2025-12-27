@@ -123,7 +123,7 @@ export const register = async (req, res, next) => {
         zipCode: sellerData.restaurantZipCode,
         country: "Serbia",
       },
-      coordinates: { type: "Point", coordinates: [lng, lat] },
+      location: { type: "Point", coordinates: [lng, lat] },
     });
 
     user.restaurant = restaurant._id;

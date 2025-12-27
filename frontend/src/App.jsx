@@ -21,6 +21,7 @@ import { SellerOrders } from "./pages/seller/SellerOrders";
 import { SellerMenu } from "./pages/seller/SellerMenu";
 import { SellerAnalytics } from "./pages/seller/SellerAnalytics";
 import { SellerSettings } from "./pages/seller/SellerSettings";
+import ScrollToTop from "./hooks/ScrollToTop";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,7 @@ function App() {
   return (
     <div>
       <QueryClientProvider client={queryClient}>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<LandingPage />} />
 

@@ -12,7 +12,7 @@ export default function AuthButtons({ onLogin, onSignup }) {
       </Button>
       <button
         onClick={onSignup}
-        className="rounded-full bg-black px-6 py-2.5 font-bold text-white transition-transform hover:scale-105 active:scale-95 cursor-pointer dark:bg-white dark:text-black text-sm"
+        className="rounded-full bg-emerald-600 px-6 py-2.5 font-bold text-white transition-transform hover:scale-105 active:scale-95 cursor-pointer dark:bg-white dark:text-black text-sm"
       >
         Sign up
       </button>

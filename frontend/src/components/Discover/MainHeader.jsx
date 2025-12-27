@@ -7,7 +7,7 @@ import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import UserMenu from "../Navbar/UserMenu";
 
-export default function MainHeader() {
+export default function MainHeader({ setIsCartOpen }) {
   const { address } = useDeliveryStore();
   const { authUser, logout } = useAuthStore();
 
