@@ -50,7 +50,7 @@ export function LocationMapSelector({
     isDetecting,
     coordinates: detectedCoords,
   } = useDetectLocation();
-  const { theme } = useDarkMode();
+  const { isDark } = useDarkMode();
 
   const [markerPosition, setMarkerPosition] = useState(
     initialPosition ? [initialPosition.lat, initialPosition.lng] : null
@@ -115,7 +115,7 @@ export function LocationMapSelector({
       >
         <TileLayer
           url={
-            theme === "dark"
+            isDark
               ? "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.jpg"
               : "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.jpg"
           }

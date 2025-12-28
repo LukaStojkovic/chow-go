@@ -1,5 +1,4 @@
 import React from "react";
-import { ShoppingBag } from "lucide-react";
 import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
 import FeaturesSection from "@/components/FeaturesSection";
@@ -8,22 +7,18 @@ import BrushEffect from "@/components/BrushEffect";
 import DesktopNav from "@/components/Navbar/DesktopNav";
 import MobileNav from "@/components/Navbar/MobileNav";
 import { useState } from "react";
-import AuthModal from "@/components/Auth/AuthModal";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import Logo from "@/components/Navbar/Logo";
 
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isLoginModal, setIsLoginModal] = useState(true);
 
   const { isDark, toggle } = useDarkMode();
-  const { authUser, logout } = useAuthStore();
+  const { authUser, logout, openAuthModal } = useAuthStore();
 
   const openAuth = (login) => {
-    setIsLoginModal(login);
-    setIsAuthOpen(true);
+    openAuthModal(login);
     setIsMenuOpen(false);
   };
 
@@ -64,12 +59,6 @@ export default function LandingPage() {
       </main>
 
       <Footer />
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        setIsOpen={setIsAuthOpen}
-        isLoginModal={isLoginModal}
-      />
     </div>
   );
 }

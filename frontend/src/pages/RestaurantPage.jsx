@@ -1,22 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   Search,
   Star,
   Clock,
   Bike,
-  Info,
   MapPin,
   Phone,
   Plus,
-  ShoppingBag,
-  Heart,
   ChevronRight,
   Percent,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CartSidebar from "@/components/Discover/CartSidebar";
 
 const RESTAURANT_INFO = {
   id: 1,
@@ -111,26 +107,17 @@ const MENU_ITEMS = [
 ];
 
 export default function RestaurantPage() {
-  const navigate = useNavigate();
+  const { restaurantId } = useParams();
+
   const [activeCategory, setActiveCategory] = useState("Popular");
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 200);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const scrollToCategory = (category) => {
     setActiveCategory(category);
     const element = document.getElementById(category);
     if (element) {
-      const offset = 120; // Height of sticky headers
+      const offset = 120;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({ top: offsetPosition, behavior: "smooth" });
@@ -143,57 +130,6 @@ export default function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-white pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100">
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 transition-all duration-300 ${
-          isScrolled
-            ? "bg-white/90 shadow-sm backdrop-blur-md dark:bg-zinc-950/90"
-            : "bg-transparent"
-        }`}
-      >
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`rounded-full ${
-            isScrolled
-              ? "bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800"
-              : "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm"
-          }`}
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-
-        {isScrolled && (
-          <span className="font-bold text-lg animate-in fade-in slide-in-from-top-4">
-            {RESTAURANT_INFO.name}
-          </span>
-        )}
-
-        <div className="flex gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${
-              isScrolled
-                ? "bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800"
-                : "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm"
-            }`}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-          <Button
-            onClick={() => setIsCartOpen(true)}
-            className={`rounded-full ${
-              isScrolled
-                ? "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-100"
-                : "bg-white text-gray-900 hover:bg-gray-100"
-            }`}
-          >
-            <ShoppingBag className="h-5 w-5" />
-          </Button>
-        </div>
-      </nav>
-
       <div className="relative h-[250px] w-full md:h-[350px]">
         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10" />
         <img
@@ -203,7 +139,7 @@ export default function RestaurantPage() {
         />
       </div>
 
-      <main className="container mx-auto max-w-4xl px-4 -mt-10 relative z-20">
+      <main className="container mx-auto max-w-4xl px-4">
         <div className="rounded-2xl bg-white p-5 shadow-lg ring-1 ring-gray-100 dark:bg-zinc-900 dark:ring-zinc-800">
           <div className="flex justify-between items-start mb-2">
             <div>
@@ -456,8 +392,6 @@ export default function RestaurantPage() {
           </div>
         </div>
       )}
-
-      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>
   );
 }

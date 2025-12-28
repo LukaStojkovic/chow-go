@@ -15,13 +15,15 @@ import PublicRoute from "./components/Auth/components/PublicRoute";
 import ProfilePage from "./pages/ProfilePage";
 import MyOrders from "./pages/MyOrders";
 import RestaurantPage from "./pages/RestaurantPage";
+import CustomerLayout from "./components/Auth/components/CustomerLayout";
+import ScrollToTop from "./hooks/ScrollToTop";
 import SellerLayout from "./components/Auth/components/SellerLayout";
 import { SellerDashboard } from "./pages/seller/SellerDashboard";
 import { SellerOrders } from "./pages/seller/SellerOrders";
 import { SellerMenu } from "./pages/seller/SellerMenu";
 import { SellerAnalytics } from "./pages/seller/SellerAnalytics";
 import { SellerSettings } from "./pages/seller/SellerSettings";
-import ScrollToTop from "./hooks/ScrollToTop";
+import AuthModal from "./components/Auth/AuthModal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +34,13 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const { checkAuth, isCheckingAuth } = useAuthStore();
+  const {
+    checkAuth,
+    isCheckingAuth,
+    isAuthOpen,
+    isLoginModal,
+    closeAuthModal,
+  } = useAuthStore();
   const { isDark } = useDarkMode();
 
   useEffect(() => {
@@ -56,7 +64,12 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<MyOrders />} />
             <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/restaurant" element={<RestaurantPage />} />
+            <Route element={<CustomerLayout />}>
+              <Route
+                path="/restaurant/:restaurantId"
+                element={<RestaurantPage />}
+              />
+            </Route>
           </Route>
 
           <Route
@@ -104,6 +117,12 @@ function App() {
           richColors
           duration={4000}
           expand
+        />
+
+        <AuthModal
+          isOpen={isAuthOpen}
+          setIsOpen={closeAuthModal}
+          isLoginModal={isLoginModal}
         />
       </QueryClientProvider>
     </div>

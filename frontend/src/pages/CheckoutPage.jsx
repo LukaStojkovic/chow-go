@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
+import BackNavbar from "@/components/Navbar/BackNavbar";
 
 const MOCK_CART = {
   restaurant: "Burger King",
@@ -53,17 +54,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white px-4 py-3 sm:py-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="container mx-auto flex max-w-5xl items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="rounded-full bg-gray-100 p-2 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
-          >
-            <ArrowLeft className="h-4 sm:h-5 w-4 sm:w-5" />
-          </button>
-          <h1 className="text-lg sm:text-xl font-bold">Checkout</h1>
-        </div>
-      </header>
+      <BackNavbar title="Checkout" />
 
       <main className="container mx-auto grid max-w-5xl gap-4 sm:gap-6 lg:gap-8 px-3 sm:px-4 py-4 sm:py-8 lg:grid-cols-3">
         <div className="space-y-4 sm:space-y-6 lg:col-span-2">

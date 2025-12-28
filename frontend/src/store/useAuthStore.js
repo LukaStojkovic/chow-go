@@ -17,6 +17,8 @@ export const useAuthStore = create((set) => ({
   isRegistering: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
+  isAuthOpen: false,
+  isLoginModal: true,
 
   checkAuth: async () => {
     try {
@@ -96,5 +98,13 @@ export const useAuthStore = create((set) => ({
     } finally {
       set({ isUpdatingProfile: false });
     }
+  },
+
+  openAuthModal: (isLogin = true) => {
+    set({ isAuthOpen: true, isLoginModal: isLogin });
+  },
+
+  closeAuthModal: () => {
+    set({ isAuthOpen: false });
   },
 }));

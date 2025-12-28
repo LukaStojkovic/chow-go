@@ -29,3 +29,16 @@ export const getLocationPrediction = async (input) => {
     return [];
   }
 };
+
+export async function getNearbyRestaurants(lat, lon, radius) {
+  try {
+    const res = await axiosInstance.get("/location/get-near-restaurants", {
+      params: { lat, lon, radius },
+    });
+
+    return res.data.data;
+  } catch (err) {
+    console.error("Error fetching nearby restaurants:", err);
+    return [];
+  }
+}

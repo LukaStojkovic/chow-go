@@ -1,9 +1,16 @@
 import Spinner from "@/components/Spinner";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const SellerRoute = ({ children }) => {
-  const { authUser, isCheckingAuth } = useAuthStore();
+  const { authUser, isCheckingAuth, openAuthModal } = useAuthStore();
+
+  useEffect(() => {
+    if (!authUser && !isCheckingAuth) {
+      openAuthModal();
+    }
+  }, [authUser, isCheckingAuth, openAuthModal]);
 
   if (isCheckingAuth) return <Spinner fullScreen />;
 
