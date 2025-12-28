@@ -10,42 +10,28 @@ const LOGIN_SCHEMA = z.object({
   password: z.string().min(6, "Min 6 characters"),
 });
 
-const REGISTER_SCHEMA = z
-  .object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email"),
-    password: z.string().min(6, "Min 6 characters"),
-    role: z.enum(["customer", "seller"]),
-    profilePicture: z.any().optional(),
-    phoneNumber: z
-      .string()
-      .min(10, "Phone number must be at least 10 digits")
-      .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number")
-      .optional(),
-  })
-  .refine((d) => d.role !== "seller" || d.profilePicture instanceof File, {
-    message: "Profile image is required",
-    path: ["profilePicture"],
-  })
-  .refine(
-    (d) =>
-      d.role !== "customer" || (d.phoneNumber && d.phoneNumber.length >= 10),
-    {
-      message: "Phone number is required for customers",
-      path: ["phoneNumber"],
-    }
-  );
+const REGISTER_CUSTOMER_SCHEMA = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Min 6 characters"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  profilePicture: z.instanceof(File).optional(),
+});
+
+const REGISTER_SELLER_SCHEMA = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Min 6 characters"),
+  profilePicture: z.instanceof(File, "Profile image is required"),
+});
 
 const RESTAURANT_INFO_SCHEMA = z.object({
   restaurantName: z.string().min(1, "Restaurant name is required"),
-  restaurantPhone: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number"),
-  restaurantAddress: z.string().min(5, "Address is required"),
+  restaurantPhone: z.string().min(1, "Phone number is required"),
+  restaurantAddress: z.string().min(1, "Address is required"),
   restaurantCity: z.string().min(1, "City is required"),
-  restaurantState: z.string().min(1, "State/Province is required"),
-  restaurantZipCode: z.string().min(3, "Zip code is required"),
+  restaurantState: z.string().optional(),
+  restaurantZipCode: z.string().min(1, "Zip code is required"),
   cuisineType: z.string().min(1, "Cuisine type is required"),
 });
 
@@ -75,55 +61,95 @@ const RESTAURANT_LOCATION_SCHEMA = z
     }
   );
 
-export function useAuthForm(
-  isLogin,
-  initialRole = "customer",
-  onRestaurantInfoStep = null
-) {
+const RESTAURANT_IMAGES_SCHEMA = z.object({
+  restaurantDescription: z
+    .string()
+    .min(10, "Description must be at least 10 characters"),
+  restaurantImages: z
+    .array(z.instanceof(File))
+    .min(1, "At least one image is required")
+    .max(10, "Maximum 10 images"),
+});
+
+const STEPS = {
+  LOGIN: "login",
+  REGISTER: "register",
+  RESTAURANT_INFO: "restaurant-info",
+  RESTAURANT_LOCATION: "restaurant-location",
+  RESTAURANT_IMAGES: "restaurant-images",
+};
+
+export function useAuthForm(currentStep, onStepSuccess) {
   const { register: registerUser, login: loginUser } = useAuthStore();
-  const [role, setRole] = useState(initialRole);
+  const [role, setRole] = useState("customer");
   const [imagePreview, setImagePreview] = useState(null);
-  const [showRestaurantStep, setShowRestaurantStep] = useState(false);
-  const [showRestaurantLocationStep, setShowRestaurantLocationStep] =
-    useState(false);
-  const [userRegistrationData, setUserRegistrationData] = useState(null);
-  const [restaurantInfoData, setRestaurantInfoData] = useState(null);
+  const [registrationData, setRegistrationData] = useState({});
 
   const schema = useMemo(() => {
-    if (isLogin) return LOGIN_SCHEMA;
-    if (showRestaurantLocationStep) return RESTAURANT_LOCATION_SCHEMA;
-    return showRestaurantStep ? RESTAURANT_INFO_SCHEMA : REGISTER_SCHEMA;
-  }, [isLogin, showRestaurantStep, showRestaurantLocationStep]);
+    switch (currentStep) {
+      case STEPS.LOGIN:
+        return LOGIN_SCHEMA;
+      case STEPS.RESTAURANT_INFO:
+        return RESTAURANT_INFO_SCHEMA;
+      case STEPS.RESTAURANT_LOCATION:
+        return RESTAURANT_LOCATION_SCHEMA;
+      case STEPS.RESTAURANT_IMAGES:
+        return RESTAURANT_IMAGES_SCHEMA;
+      case STEPS.REGISTER:
+        return role === "seller"
+          ? REGISTER_SELLER_SCHEMA
+          : REGISTER_CUSTOMER_SCHEMA;
+      default:
+        return LOGIN_SCHEMA;
+    }
+  }, [currentStep, role]);
 
   const defaultValues = useMemo(() => {
-    if (showRestaurantLocationStep) {
-      return {
-        restaurantLat: 0,
-        restaurantLng: 0,
-        openingTime: "",
-        closingTime: "",
-      };
+    switch (currentStep) {
+      case STEPS.RESTAURANT_LOCATION:
+        return {
+          restaurantLat: 0,
+          restaurantLng: 0,
+          openingTime: "",
+          closingTime: "",
+        };
+      case STEPS.RESTAURANT_IMAGES:
+        return {
+          restaurantDescription: "",
+          restaurantImages: [],
+        };
+      case STEPS.RESTAURANT_INFO:
+        return {
+          restaurantName: "",
+          restaurantPhone: "",
+          restaurantAddress: "",
+          restaurantCity: "",
+          restaurantState: "",
+          restaurantZipCode: "",
+          cuisineType: "",
+        };
+      case STEPS.REGISTER:
+        return role === "seller"
+          ? {
+              name: "",
+              email: "",
+              password: "",
+              profilePicture: null,
+            }
+          : {
+              name: "",
+              email: "",
+              password: "",
+              phoneNumber: "",
+              profilePicture: null,
+            };
+      default:
+        return {
+          email: "",
+          password: "",
+        };
     }
-    if (showRestaurantStep) {
-      return {
-        restaurantName: "",
-        restaurantPhone: "",
-        restaurantAddress: "",
-        restaurantCity: "",
-        restaurantState: "",
-        restaurantZipCode: "",
-        cuisineType: "",
-      };
-    }
-    return {
-      name: "",
-      email: "",
-      password: "",
-      role: initialRole,
-      phoneNumber: "",
-      profilePicture: null,
-    };
-  }, [showRestaurantStep, showRestaurantLocationStep, initialRole]);
+  }, [currentStep, role]);
 
   const {
     register,
@@ -138,45 +164,17 @@ export function useAuthForm(
     defaultValues,
   });
 
-  const watchedRole = watch("role");
+  const watchedRole = role;
 
   useEffect(() => {
-    setValue("role", role);
-  }, [role, setValue]);
+    reset(defaultValues);
+  }, [currentStep, reset, defaultValues]);
 
   useEffect(() => {
-    if (showRestaurantLocationStep) {
-      reset({
-        restaurantLat: 0,
-        restaurantLng: 0,
-        openingTime: "",
-        closingTime: "",
-      });
-    } else if (showRestaurantStep) {
-      reset({
-        restaurantName: "",
-        restaurantPhone: "",
-        restaurantAddress: "",
-        restaurantCity: "",
-        restaurantState: "",
-        restaurantZipCode: "",
-        cuisineType: "",
-      });
+    if (currentStep === STEPS.REGISTER) {
+      reset(defaultValues);
     }
-  }, [showRestaurantStep, showRestaurantLocationStep, reset]);
-
-  useEffect(() => {
-    if (!isLogin) {
-      reset({
-        name: "",
-        email: "",
-        password: "",
-        role,
-        profilePicture: null,
-      });
-      setImagePreview(null);
-    }
-  }, [isLogin, role, reset]);
+  }, [role, currentStep, reset, defaultValues]);
 
   const handleImageChange = useCallback(
     (file) => {
@@ -198,6 +196,13 @@ export function useAuthForm(
     [setValue]
   );
 
+  const resetForm = useCallback(() => {
+    reset();
+    setRole("customer");
+    setImagePreview(null);
+    setRegistrationData({});
+  }, [reset]);
+
   const removeImage = useCallback(() => {
     setValue("profilePicture", null);
     setImagePreview(null);
@@ -205,77 +210,65 @@ export function useAuthForm(
 
   const onSubmit = useCallback(
     async (data) => {
-      if (isLogin) {
+      setRegistrationData((prev) => ({ ...prev, ...data }));
+
+      if (currentStep === STEPS.LOGIN) {
         await loginUser(data);
         return;
       }
 
-      if (!showRestaurantStep && data.role === "seller") {
-        setUserRegistrationData(data);
-        setShowRestaurantStep(true);
-        onRestaurantInfoStep?.(true);
+      if (currentStep === STEPS.REGISTER) {
+        if (role === "customer") {
+          const formData = new FormData();
+          Object.keys(data).forEach((key) => {
+            if (data[key] != null) {
+              formData.append(key, data[key]);
+            }
+          });
+          formData.append("role", role);
+          await registerUser(formData);
+        } else {
+          onStepSuccess && onStepSuccess();
+        }
         return;
       }
 
       if (
-        showRestaurantStep &&
-        !showRestaurantLocationStep &&
-        userRegistrationData
+        currentStep === STEPS.RESTAURANT_INFO ||
+        currentStep === STEPS.RESTAURANT_LOCATION
       ) {
-        setRestaurantInfoData(data);
-        setShowRestaurantLocationStep(true);
+        onStepSuccess && onStepSuccess();
         return;
       }
 
-      if (
-        showRestaurantLocationStep &&
-        userRegistrationData &&
-        restaurantInfoData
-      ) {
-        const mergedData = {
-          ...userRegistrationData,
-          ...restaurantInfoData,
-          ...data,
-        };
+      if (currentStep === STEPS.RESTAURANT_IMAGES) {
+        const allData = { ...registrationData, ...data, role: "seller" };
+        const formData = new FormData();
 
-        const combinedData = new FormData();
-
-        Object.keys(mergedData).forEach((key) => {
-          if (key === "profilePicture" && mergedData[key] instanceof File) {
-            combinedData.append(key, mergedData[key]);
-          } else if (mergedData[key] != null) {
-            combinedData.append(key, mergedData[key]);
+        Object.keys(allData).forEach((key) => {
+          if (key === "restaurantImages" && Array.isArray(allData[key])) {
+            allData[key].forEach((file) =>
+              formData.append("restaurantImages", file)
+            );
+          } else if (key === "profilePicture" && allData[key] instanceof File) {
+            formData.append(key, allData[key]);
+          } else if (allData[key] != null) {
+            formData.append(key, allData[key]);
           }
         });
 
-        await registerUser(combinedData);
-        setShowRestaurantStep(false);
-        setShowRestaurantLocationStep(false);
-        setUserRegistrationData(null);
-        setRestaurantInfoData(null);
+        await registerUser(formData);
+        setRegistrationData({});
         return;
       }
-
-      const formData = new FormData();
-      Object.keys(data).forEach((key) => {
-        if (key === "profilePicture" && data[key] instanceof File) {
-          formData.append(key, data[key]);
-        } else if (data[key] != null) {
-          formData.append(key, data[key]);
-        }
-      });
-
-      await registerUser(formData);
     },
     [
-      isLogin,
-      showRestaurantStep,
-      showRestaurantLocationStep,
-      userRegistrationData,
-      restaurantInfoData,
+      currentStep,
+      role,
+      registrationData,
       loginUser,
       registerUser,
-      onRestaurantInfoStep,
+      onStepSuccess,
     ]
   );
 
@@ -293,10 +286,7 @@ export function useAuthForm(
     onSubmit: handleSubmit(onSubmit),
     watchedRole,
     reset,
-    showRestaurantStep,
-    setShowRestaurantStep,
-    showRestaurantLocationStep,
-    setShowRestaurantLocationStep,
+    resetForm,
     watch,
     setValue,
   };

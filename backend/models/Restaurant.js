@@ -40,6 +40,19 @@ const restaurantSchema = new mongoose.Schema(
       required: true,
     },
 
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    images: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+
     address: {
       street: { type: String, required: true },
       city: { type: String, required: true },

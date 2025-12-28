@@ -28,6 +28,7 @@ export function RegisterForm({
         onImageChange={handleImageChange}
         onRemove={removeImage}
         error={errors.profilePicture}
+        required={watchedRole === "seller"}
       />
 
       <InputField

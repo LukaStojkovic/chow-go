@@ -16,7 +16,14 @@ const router = express.Router();
 const uploadUser = createUpload("users");
 
 router.post("/login", login);
-router.post("/register", uploadUser.single("profilePicture"), register);
+router.post(
+  "/register",
+  uploadUser.fields([
+    { name: "profilePicture", maxCount: 1 },
+    { name: "restaurantImages", maxCount: 5 },
+  ]),
+  register
+);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);

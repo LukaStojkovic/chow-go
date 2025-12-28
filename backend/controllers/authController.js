@@ -65,7 +65,7 @@ export const register = async (req, res, next) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
-  const profilePicture = req.file?.path || "";
+  const profilePicture = req.files?.profilePicture?.[0]?.path || "";
 
   const user = await User.create({
     email,
@@ -90,12 +90,24 @@ export const register = async (req, res, next) => {
       "closingTime",
       "restaurantLat",
       "restaurantLng",
+      "restaurantDescription",
     ];
 
     const missing = requiredFields.find((field) => !sellerData[field]);
     if (missing) {
       await User.findByIdAndDelete(user._id);
       return next(new AppError(`${missing} is required`, 400));
+    }
+
+    if (
+      !req.files ||
+      !req.files.restaurantImages ||
+      req.files.restaurantImages.length === 0
+    ) {
+      await User.findByIdAndDelete(user._id);
+      return next(
+        new AppError("At least one restaurant image is required", 400)
+      );
     }
 
     const lng = parseFloat(sellerData.restaurantLng);
@@ -111,6 +123,8 @@ export const register = async (req, res, next) => {
       name: sellerData.restaurantName,
       cuisineType: sellerData.cuisineType,
       profilePicture: profilePicture || "/defaultProfilePicture.png",
+      description: sellerData.restaurantDescription,
+      images: req.files.restaurantImages.map((file) => file.path),
       phone: sellerData.restaurantPhone,
       email: email.toLowerCase(),
       openingTime: sellerData.openingTime,

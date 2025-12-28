@@ -19,7 +19,7 @@ router.post(
 );
 
 router.get("/:restaurantId", protectedRoute, getRestaurantInformations);
-router.get("/:restaurantId/details", protectedRoute, getRestaurantMenuItems);
+router.get("/:restaurantId/menu", protectedRoute, getRestaurantMenuItems);
 router.delete(
   "/:restaurantId/menu/:menuItemId",
   protectedRoute,

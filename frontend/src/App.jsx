@@ -122,7 +122,7 @@ function App() {
         <AuthModal
           isOpen={isAuthOpen}
           setIsOpen={closeAuthModal}
-          isLoginModal={isLoginModal}
+          initialStep={isLoginModal ? "login" : "register"}
         />
       </QueryClientProvider>
     </div>

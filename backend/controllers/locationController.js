@@ -132,6 +132,7 @@ export async function getNearRestaurants(req, res, next) {
           cuisineType: 1,
           profilePicture: 1,
           phone: 1,
+          images: 1,
           address: 1,
           distance: 1,
           _id: 1,

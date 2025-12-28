@@ -65,6 +65,19 @@ export const FORM_FIELDS = {
     placeholder: "Cuisine Type (e.g., Italian, Chinese)",
     validation: "cuisineType",
   },
+  restaurantDescription: {
+    name: "restaurantDescription",
+    type: "textarea",
+    placeholder: "Describe your restaurant (at least 10 characters)",
+    validation: "restaurantDescription",
+  },
+  restaurantImages: {
+    name: "restaurantImages",
+    type: "file",
+    placeholder: "Upload restaurant photos (1-5 images)",
+    validation: "restaurantImages",
+    multiple: true,
+  },
   code: {
     name: "code",
     type: "text",
@@ -123,12 +136,12 @@ export const FORM_CONFIGS = {
     submitingText: "Verifying...",
     customForm: true,
   },
-  reset: {
-    fields: ["password", "confirmPassword"],
-    title: "Reset Password",
-    description: "Choose a new password",
-    submitText: "Set New Password",
-    submitingText: "Resetting...",
-    customForm: true,
+  "restaurant-images": {
+    fields: ["restaurantDescription", "restaurantImages"],
+    title: "Restaurant Photos & Description",
+    description: "Add photos and describe your restaurant",
+    submitText: "Complete Registration",
+    submitingText: "Creating account...",
+    showBackButton: true,
   },
 };

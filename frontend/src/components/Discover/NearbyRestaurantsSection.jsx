@@ -6,6 +6,7 @@ import {
   Star,
   Clock,
   Bike,
+  ForkKnife,
 } from "lucide-react";
 import React, { useRef } from "react";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
@@ -89,7 +90,7 @@ export default function NearbyRestaurantsSection() {
             >
               <div className="h-full w-full overflow-hidden rounded-xl">
                 <img
-                  src={restaurant.profilePicture || "/fallback-image.jpg"}
+                  src={restaurant.images[0] || <ForkKnife />}
                   alt={restaurant.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"

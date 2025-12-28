@@ -116,8 +116,8 @@ export default function RestaurantPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
 
-  if (isLoading) return <Spinner />;
-  console.log(restaurantData);
+  if (isLoading) return <Spinner fullScreen />;
+
   const scrollToCategory = (category) => {
     setActiveCategory(category);
     const element = document.getElementById(category);
@@ -138,7 +138,7 @@ export default function RestaurantPage() {
       <div className="relative h-[250px] w-full md:h-[350px]">
         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10" />
         <img
-          src={RESTAURANT_INFO.coverImage}
+          src={restaurantData.images[0]}
           alt="Cover"
           className="h-full w-full object-cover"
         />
@@ -158,7 +158,7 @@ export default function RestaurantPage() {
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-50 dark:bg-zinc-800 shrink-0">
               <img
-                src={restaurantData.profilePicture}
+                src={restaurantData.images[0]}
                 alt="Logo"
                 className="h-full w-full object-cover rounded-xl"
               />
@@ -349,10 +349,10 @@ export default function RestaurantPage() {
             <div className="p-6 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2">
-                  {RESTAURANT_INFO.name}
+                  {restaurantData.name}
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400">
-                  {RESTAURANT_INFO.description}
+                  {restaurantData.description}
                 </p>
               </div>
 
