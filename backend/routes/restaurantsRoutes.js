@@ -4,6 +4,7 @@ import {
   createMenuItem,
   deleteMenuItem,
   getRestaurantMenuItems,
+  getRestaurantInformations,
 } from "../controllers/restaurantController.js";
 import { createUpload } from "../middlewares/upload.js";
 
@@ -17,7 +18,8 @@ router.post(
   createMenuItem
 );
 
-router.get("/:restaurantId/menu", protectedRoute, getRestaurantMenuItems);
+router.get("/:restaurantId", protectedRoute, getRestaurantInformations);
+router.get("/:restaurantId/details", protectedRoute, getRestaurantMenuItems);
 router.delete(
   "/:restaurantId/menu/:menuItemId",
   protectedRoute,

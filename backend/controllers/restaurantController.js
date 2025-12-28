@@ -147,3 +147,18 @@ export async function deleteMenuItem(req, res, next) {
     message: "Menu item deleted successfully",
   });
 }
+
+export async function getRestaurantInformations(req, res, next) {
+  const { restaurantId } = req.params;
+
+  const restaurant = await Restaurant.findById(restaurantId).lean();
+
+  if (!restaurant) {
+    return next(new AppError("Restaurant not found", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: restaurant,
+  });
+}

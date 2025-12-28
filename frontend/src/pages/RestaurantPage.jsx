@@ -11,8 +11,11 @@ import {
   ChevronRight,
   Percent,
   ShoppingBag,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import useGetRestaurantsInfo from "@/hooks/Restaurants/useGetRestaurantsInfo";
+import Spinner from "@/components/Spinner";
 
 const RESTAURANT_INFO = {
   id: 1,
@@ -108,11 +111,13 @@ const MENU_ITEMS = [
 
 export default function RestaurantPage() {
   const { restaurantId } = useParams();
-
+  const { restaurantData, isLoading } = useGetRestaurantsInfo(restaurantId);
   const [activeCategory, setActiveCategory] = useState("Popular");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
 
+  if (isLoading) return <Spinner />;
+  console.log(restaurantData);
   const scrollToCategory = (category) => {
     setActiveCategory(category);
     const element = document.getElementById(category);
@@ -144,16 +149,16 @@ export default function RestaurantPage() {
           <div className="flex justify-between items-start mb-2">
             <div>
               <h1 className="text-2xl font-extrabold sm:text-3xl">
-                {RESTAURANT_INFO.name}
+                {restaurantData.name}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {RESTAURANT_INFO.tags.join(" • ")} • {RESTAURANT_INFO.minOrder}{" "}
-                Min order
+                {restaurantData.cuisineType} • {RESTAURANT_INFO.minOrder} Min
+                order
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-50 dark:bg-zinc-800 shrink-0">
               <img
-                src={RESTAURANT_INFO.logo}
+                src={restaurantData.profilePicture}
                 alt="Logo"
                 className="h-full w-full object-cover rounded-xl"
               />
@@ -164,15 +169,15 @@ export default function RestaurantPage() {
             <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
               <Star className="h-3.5 w-3.5 fill-current" />
               <span>
-                {RESTAURANT_INFO.rating}{" "}
+                {restaurantData.averageRating}{" "}
                 <span className="text-blue-600/70 dark:text-blue-400/70 font-normal">
-                  ({RESTAURANT_INFO.ratingCount})
+                  ({restaurantData.totalReviews})
                 </span>
               </span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
               <Clock className="h-4 w-4" />
-              <span>{RESTAURANT_INFO.deliveryTime}</span>
+              <span>{restaurantData.estimatedDeliveryTime}</span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
               <Bike className="h-4 w-4" />
@@ -357,7 +362,7 @@ export default function RestaurantPage() {
                   <div>
                     <p className="font-medium">Location</p>
                     <p className="text-sm text-gray-500">
-                      {RESTAURANT_INFO.address}
+                      {`${restaurantData.address.street}, ${restaurantData.address.city}, ${restaurantData.address.state} ${restaurantData.address.zipCode}`}
                     </p>
                   </div>
                 </div>
@@ -366,7 +371,7 @@ export default function RestaurantPage() {
                   <div>
                     <p className="font-medium">Opening Times</p>
                     <p className="text-sm text-gray-500">
-                      {RESTAURANT_INFO.hours}
+                      {restaurantData.openingTime}
                     </p>
                   </div>
                 </div>
@@ -375,7 +380,7 @@ export default function RestaurantPage() {
                   <div>
                     <p className="font-medium">Contact</p>
                     <p className="text-sm text-blue-600">
-                      {RESTAURANT_INFO.phone}
+                      {restaurantData.phone}
                     </p>
                   </div>
                 </div>

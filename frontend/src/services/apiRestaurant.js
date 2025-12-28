@@ -83,3 +83,13 @@ export async function deleteMenuItem(restaurantId, menuItemId) {
     throw err;
   }
 }
+
+export async function getRestaurantInformations(restaurantId) {
+  try {
+    const res = await axiosInstance.get(`/restaurants/${restaurantId}`);
+    return res.data.data;
+  } catch (err) {
+    console.error("Error fetching restaurant informations:", err);
+    throw err;
+  }
+}
