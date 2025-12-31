@@ -47,7 +47,7 @@ export async function getMenuItems(
 
   try {
     const { data } = await axiosInstance.get(
-      `/restaurants/${restaurantId}/menu`,
+      `/restaurants/${restaurantId}/menu-items`,
       {
         params: {
           page,
@@ -68,6 +68,18 @@ export async function getMenuItems(
   } catch (error) {
     console.error("Failed to fetch menu items:", error);
     return { menuItems: [], pagination: {} };
+  }
+}
+
+export async function getRestaurantMenuByCategories(restaurantId) {
+  if (!restaurantId) return { menu: [] };
+  try {
+    const res = await axiosInstance.get(`/restaurants/${restaurantId}/menu`);
+
+    return res.data.menu;
+  } catch (error) {
+    console.error("Failed to fetch restaurant menu by categories:", error);
+    return { menu: [] };
   }
 }
 

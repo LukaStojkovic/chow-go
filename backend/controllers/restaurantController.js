@@ -3,6 +3,7 @@ import MenuItem from "../models/MenuItem.js";
 import { AppError } from "../utils/AppError.js";
 import cloudinary from "../utils/cloudinary.js";
 import { extractCloudinaryPublicId } from "../utils/formatData.js";
+import mongoose from "mongoose";
 
 export async function createMenuItem(req, res, next) {
   const { restaurantId } = req.params;
@@ -46,6 +47,53 @@ export async function createMenuItem(req, res, next) {
     data: {
       menuItem: newMenuItem,
     },
+  });
+}
+
+export async function getRestaurantMenuByCategories(req, res, next) {
+  const { restaurantId } = req.params;
+
+  const restaurant = await Restaurant.findById(restaurantId);
+
+  if (!restaurant) {
+    return next(new AppError("Restaurant not found", 404));
+  }
+
+  const menuByCategories = await MenuItem.aggregate([
+    {
+      $match: {
+        restaurant: new mongoose.Types.ObjectId(restaurantId),
+        available: true,
+      },
+    },
+    {
+      $group: {
+        _id: "$category",
+        items: {
+          $push: {
+            _id: "$_id",
+            name: "$name",
+            description: "$description",
+            price: "$price",
+            available: "$available",
+            imageUrls: "$imageUrls",
+          },
+        },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+
+  const menu = menuByCategories.map((group) => ({
+    category: group._id || "Uncategorized",
+    items: group.items,
+  }));
+
+  res.status(200).json({
+    status: "success",
+    menu,
   });
 }
 

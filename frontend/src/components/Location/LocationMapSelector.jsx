@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Navigation } from "lucide-react";
 import Spinner from "@/components/Spinner";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { greenDotIcon } from "@/utils/leafletIcons";
 
 function MapClickHandler({ onMapClick }) {
   useMapEvents({
@@ -91,17 +92,6 @@ export function LocationMapSelector({
     [markerPosition]
   );
 
-  const customIcon = useMemo(
-    () =>
-      L.divIcon({
-        html: '<div style="background-color: #10b981; border: 2px solid white; border-radius: 50%; width: 20px; height: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-        className: "custom-marker",
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-      }),
-    []
-  );
-
   return (
     <div
       className={`relative w-full h-80 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden bg-gray-100 dark:bg-zinc-900 ${className}`}
@@ -123,7 +113,7 @@ export function LocationMapSelector({
         />
 
         {markerPosition && (
-          <Marker position={markerPosition} icon={customIcon} />
+          <Marker position={markerPosition} icon={greenDotIcon} />
         )}
 
         {mapClickHandler}
