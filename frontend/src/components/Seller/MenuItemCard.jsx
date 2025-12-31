@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 
-export default function MenuItemCard({ menuItem, onDelete, index }) {
+export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,7 +71,12 @@ export default function MenuItemCard({ menuItem, onDelete, index }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onEdit}
+            >
               <Edit2 className="h-4 w-4" />
             </Button>
             <Button

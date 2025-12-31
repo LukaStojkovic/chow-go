@@ -14,9 +14,7 @@ export const MenuItemImageUploader = ({
 
   useEffect(() => {
     return () => {
-      previews.forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
+      previews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [previews]);
 
@@ -106,21 +104,24 @@ export const MenuItemImageUploader = ({
       )}
 
       {previews.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-3">
           {previews.map((src, index) => (
-            <div key={index} className="relative group aspect-square">
+            <div
+              key={index}
+              className="relative group aspect-square rounded-lg overflow-hidden border shadow-sm"
+            >
               <img
                 src={src}
                 alt={`Preview ${index + 1}`}
-                className="w-full h-full object-cover rounded-lg border shadow-md"
+                className="w-full h-full object-cover"
               />
               <button
                 type="button"
                 onClick={() => removeImage(index)}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-label={`Remove image ${index + 1}`}
-                className="absolute top-2 right-2 p-2 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <X className="w-5 h-5" />
+                <X className="w-8 h-8 text-white" strokeWidth={3} />
               </button>
             </div>
           ))}

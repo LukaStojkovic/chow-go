@@ -32,14 +32,13 @@ const RestaurantHeader = ({ restaurantData, onShowInfoModal }) => {
             />
           </div>
         </div>
-
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-medium">
           <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
             <Star className="h-3.5 w-3.5 fill-current" />
             <span>
-              {restaurantData?.averageRating || "4.5"}{" "}
+              {restaurantData?.averageRating ?? "4.5"}{" "}
               <span className="text-blue-600/70 dark:text-blue-400/70 font-normal">
-                ({restaurantData?.totalReviews || "100+"})
+                ({restaurantData?.totalReviews ?? "?"})
               </span>
             </span>
           </div>

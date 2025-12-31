@@ -1,5 +1,6 @@
 import Modal from "@/components/Modal";
 import { AddMenuItemForm } from "@/components/Seller/forms/AddMenuItemForm";
+import { EditMenuItemForm } from "@/components/Seller/forms/EditMenuItemForm";
 import useDeleteMenuItem from "@/components/Seller/hooks/useDeleteMenuItem";
 import useGetMenuItems from "@/components/Seller/hooks/useGetMenuItems";
 import MenuItemCard from "@/components/Seller/MenuItemCard";
@@ -19,7 +20,9 @@ import { useDebounce } from "use-debounce";
 export const SellerMenu = () => {
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openDeleteMenuItem, setOpenDeleteMenuItem] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+  const [selectedEditItem, setSelectedEditItem] = useState(null);
 
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
@@ -68,6 +71,11 @@ export const SellerMenu = () => {
   const handleOpenDeleteModal = (menuItem) => {
     setSelectedMenuItem(menuItem);
     setOpenDeleteMenuItem(true);
+  };
+
+  const handleOpenEditModal = (menuItem) => {
+    setSelectedEditItem(menuItem);
+    setOpenEditModal(true);
   };
 
   const handleDeleteSuccess = () => {
@@ -130,6 +138,7 @@ export const SellerMenu = () => {
                     menuItem={item}
                     index={index}
                     onDelete={() => handleOpenDeleteModal(item)}
+                    onEdit={() => handleOpenEditModal(item)}
                   />
                 ))
               )}
@@ -160,6 +169,20 @@ export const SellerMenu = () => {
       >
         <AddMenuItemForm
           onClose={() => setOpenAddItemModal(false)}
+          onSuccess={refetchMenu}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={openEditModal}
+        onClose={() => setOpenEditModal(false)}
+        title="Edit Menu Item"
+        description="Update the details of your menu item."
+        size="xl"
+      >
+        <EditMenuItemForm
+          menuItem={selectedEditItem}
+          onClose={() => setOpenEditModal(false)}
           onSuccess={refetchMenu}
         />
       </Modal>

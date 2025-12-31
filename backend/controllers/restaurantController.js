@@ -210,3 +210,101 @@ export async function getRestaurantInformations(req, res, next) {
     data: restaurant,
   });
 }
+
+export async function editMenuItem(req, res, next) {
+  const { restaurantId, menuItemId } = req.params;
+  const { name, description, price, category, available, existingImages } =
+    req.body;
+
+  if (!name || !price || !category) {
+    return next(new AppError("Name, price, and category are required", 400));
+  }
+
+  const numericPrice = Number(price);
+  if (isNaN(numericPrice) || numericPrice <= 0) {
+    return next(new AppError("Price must be a positive number", 400));
+  }
+
+  const restaurant = await Restaurant.findById(restaurantId);
+  if (!restaurant) {
+    return next(new AppError("Restaurant not found", 404));
+  }
+
+  if (restaurant.ownerId.toString() !== req.user._id.toString()) {
+    return next(
+      new AppError("Not authorized to edit items in this restaurant", 403)
+    );
+  }
+
+  const menuItem = await MenuItem.findOne({
+    _id: menuItemId,
+    restaurant: restaurantId,
+  });
+
+  if (!menuItem) {
+    return next(new AppError("Menu item not found", 404));
+  }
+
+  let imageUrls = [...menuItem.imageUrls];
+
+  if (existingImages !== undefined) {
+    let incoming = [];
+
+    if (Array.isArray(existingImages)) {
+      incoming = existingImages.filter(
+        (url) => typeof url === "string" && url.includes("res.cloudinary.com")
+      );
+    } else if (
+      typeof existingImages === "string" &&
+      existingImages.includes("res.cloudinary.com")
+    ) {
+      incoming = [existingImages];
+    }
+
+    imageUrls = incoming;
+  }
+
+  if (req.files && req.files.length > 0) {
+    const newFileUrls = req.files.map((file) => file.path);
+    imageUrls.push(...newFileUrls);
+  }
+
+  if (imageUrls.length === 0) {
+    return next(new AppError("At least one image is required", 400));
+  }
+
+  const imagesToRemove = menuItem.imageUrls.filter(
+    (url) => !imageUrls.includes(url)
+  );
+  for (const url of imagesToRemove) {
+    const publicId = extractCloudinaryPublicId(url);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId).catch((err) => {
+        console.error("Failed to delete image from Cloudinary:", publicId, err);
+      });
+    }
+  }
+
+  const hasImageChanges =
+    imageUrls.length !== menuItem.imageUrls.length ||
+    !imageUrls.every((url, i) => url === menuItem.imageUrls[i]);
+
+  if (hasImageChanges) {
+    menuItem.imageUrls = imageUrls;
+  }
+
+  menuItem.name = name.trim();
+  menuItem.description = description?.trim() || "";
+  menuItem.price = numericPrice;
+  menuItem.category = category.trim();
+  menuItem.available = available !== "false";
+
+  await menuItem.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      menuItem,
+    },
+  });
+}

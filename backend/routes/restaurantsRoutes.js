@@ -3,6 +3,7 @@ import { protectedRoute } from "../middlewares/authMiddleware.js";
 import {
   createMenuItem,
   deleteMenuItem,
+  editMenuItem,
   getRestaurantMenuItems,
   getRestaurantInformations,
   getRestaurantMenuByCategories,
@@ -11,25 +12,22 @@ import { createUpload } from "../middlewares/upload.js";
 
 const router = Router();
 const uploadMenuItemImage = createUpload("menuItems");
+router.use(protectedRoute);
 
 router.post(
   "/:restaurantId/menu",
-  protectedRoute,
   uploadMenuItemImage.array("images", 6),
   createMenuItem
 );
-
-router.get("/:restaurantId", protectedRoute, getRestaurantInformations);
-router.get("/:restaurantId/menu-items", protectedRoute, getRestaurantMenuItems);
-router.get(
-  "/:restaurantId/menu",
-  protectedRoute,
-  getRestaurantMenuByCategories
-);
-router.delete(
+router.put(
   "/:restaurantId/menu/:menuItemId",
-  protectedRoute,
-  deleteMenuItem
+  uploadMenuItemImage.array("images", 6),
+  editMenuItem
 );
+
+router.get("/:restaurantId", getRestaurantInformations);
+router.get("/:restaurantId/menu-items", getRestaurantMenuItems);
+router.get("/:restaurantId/menu", getRestaurantMenuByCategories);
+router.delete("/:restaurantId/menu/:menuItemId", deleteMenuItem);
 
 export default router;

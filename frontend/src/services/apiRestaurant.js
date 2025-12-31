@@ -83,6 +83,43 @@ export async function getRestaurantMenuByCategories(restaurantId) {
   }
 }
 
+export async function updateMenuItem(restaurantId, menuItemId, menuItemData) {
+  try {
+    const formData = new FormData();
+
+    formData.append("name", menuItemData.name);
+    formData.append("category", menuItemData.category);
+    formData.append("price", menuItemData.price);
+    formData.append("available", menuItemData.available);
+    if (menuItemData.description) {
+      formData.append("description", menuItemData.description);
+    }
+
+    if (menuItemData.existingImages && menuItemData.existingImages.length > 0) {
+      menuItemData.existingImages.forEach((url) => {
+        formData.append("existingImages", url);
+      });
+    }
+
+    const images = Array.isArray(menuItemData.images)
+      ? menuItemData.images
+      : [];
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
+
+    const res = await axiosInstance.put(
+      `/restaurants/${restaurantId}/menu/${menuItemId}`,
+      formData
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error("Error updating menu item:", err);
+    throw err;
+  }
+}
+
 export async function deleteMenuItem(restaurantId, menuItemId) {
   try {
     const res = await axiosInstance.delete(
@@ -91,7 +128,7 @@ export async function deleteMenuItem(restaurantId, menuItemId) {
 
     return res.data;
   } catch (err) {
-    console.error("Error deleting menu items:", err);
+    console.error("Error deleting menu item:", err);
     throw err;
   }
 }
