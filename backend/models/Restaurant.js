@@ -115,8 +115,6 @@ const restaurantSchema = new mongoose.Schema(
 
 restaurantSchema.index({ location: "2dsphere" });
 
-restaurantSchema.index({ ownerId: 1 });
-
 restaurantSchema.index({ isActive: 1, isOpenNow: 1 });
 
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);

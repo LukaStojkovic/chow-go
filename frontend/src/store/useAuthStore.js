@@ -9,7 +9,7 @@ import {
   registerUser,
   updateProfile,
 } from "@/services/apiAuth";
-import { toast } from "sonner";
+import useCartStore from "./useCartStore";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -23,7 +23,6 @@ export const useAuthStore = create((set) => ({
   checkAuth: async () => {
     try {
       const response = await checkAuth();
-
       set({ authUser: response || null });
     } catch (err) {
       console.error("Error checking auth: ", err);
@@ -61,6 +60,7 @@ export const useAuthStore = create((set) => ({
     try {
       await logoutUser();
       set({ authUser: null });
+      useCartStore.getState().clearCart();
     } catch (err) {
       console.error("Error during logout: ", err);
     }

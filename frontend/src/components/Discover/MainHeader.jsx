@@ -6,10 +6,12 @@ import Logo from "../Navbar/Logo";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import UserMenu from "../Navbar/UserMenu";
+import useCartStore from "@/store/useCartStore";
 
 export default function MainHeader({ setIsCartOpen }) {
   const { address } = useDeliveryStore();
   const { authUser, logout } = useAuthStore();
+  const { items } = useCartStore();
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200/50 bg-white/80 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-950/80">
@@ -39,7 +41,9 @@ export default function MainHeader({ setIsCartOpen }) {
                 className="relative h-10 w-10 rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700"
               >
                 <ShoppingBag className="h-5 w-5" />
-                <span className="absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-950" />
+                {items.length > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 h-3 w-3 animate-pulse rounded-full bg-red-500 ring-2 ring-white dark:ring-zinc-950" />
+                )}
               </Button>
               {authUser && <UserMenu user={authUser} onLogout={logout} />}
             </div>

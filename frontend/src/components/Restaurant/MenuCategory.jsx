@@ -1,7 +1,10 @@
 import React from "react";
 import { Plus, ShoppingBag } from "lucide-react";
+import useCartStore from "@/store/useCartStore";
 
 const MenuCategory = ({ categoryGroup }) => {
+  const { addItem } = useCartStore();
+
   const categoryName =
     categoryGroup.category.charAt(0).toUpperCase() +
     categoryGroup.category.slice(1);
@@ -48,7 +51,11 @@ const MenuCategory = ({ categoryGroup }) => {
                   <ShoppingBag className="h-10 w-10 opacity-20" />
                 </div>
               )}
-              <button className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lg transition-transform active:scale-95 hover:shadow-xl dark:bg-zinc-800">
+
+              <button
+                onClick={() => addItem(item._id, 1)}
+                className="absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lg transition-transform active:scale-95 hover:shadow-xl dark:bg-zinc-800"
+              >
                 <Plus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </button>
             </div>

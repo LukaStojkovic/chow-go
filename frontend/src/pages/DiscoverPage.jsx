@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
@@ -11,12 +11,22 @@ import CartSidebar from "@/components/Discover/CartSidebar";
 import { Button } from "@/components/ui/button";
 import NearbyRestaurantsSection from "@/components/Discover/NearbyRestaurantsSection";
 import MainHeader from "@/components/Discover/MainHeader";
+import useCartStore from "@/store/useCartStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function DiscoverPage() {
   const { address } = useDeliveryStore();
+  const { authUser } = useAuthStore();
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("All");
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const fetchCart = useCartStore((state) => state.fetchCart);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchCart();
+    }
+  }, [authUser, fetchCart]);
 
   if (!address) {
     navigate("/");
