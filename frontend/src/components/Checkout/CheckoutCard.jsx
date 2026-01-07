@@ -38,7 +38,7 @@ export default function CheckoutCard({
             {items.map((item) => {
               const menuItem = item.menuItem;
               const imageUrl = menuItem?.imageUrls?.[0];
-              const itemName = item.name || menuItem?.name || "Item";
+              const itemName = menuItem?.name || "Unknown Item";
 
               return (
                 <div

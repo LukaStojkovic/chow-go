@@ -7,6 +7,7 @@ import AccountSettings from "@/components/Profile/AccountSettings";
 import SavedAddresses from "@/components/Profile/SavedAddresses";
 import RecentOrders from "@/components/Profile/RecentOrders";
 import Favorites from "@/components/Profile/Favorites";
+import AddAddressModal from "@/components/Profile/AddAddressModal";
 
 const MOCK_ADDRESSES = [
   {
@@ -56,6 +57,7 @@ export default function ProfilePage() {
   const [name, setName] = useState(authUser?.name || "Unknown Name");
   const [phone, setPhone] = useState(authUser?.phoneNumber || "Unkown Number");
   const [addresses, setAddresses] = useState(MOCK_ADDRESSES);
+  const [openAddAddressModal, setOpenAddAddressModal] = useState(false);
 
   const handleSetDefaultAddress = (id) => {
     setAddresses(
@@ -67,8 +69,8 @@ export default function ProfilePage() {
     setAddresses(addresses.filter((addr) => addr.id !== id));
   };
 
-  const handleAddNewAddress = () => {
-    console.log("Add new address");
+  const handleAddNewAddress = (data) => {
+    console.log(data);
   };
 
   const handleReorder = (orderId) => {
@@ -106,8 +108,14 @@ export default function ProfilePage() {
             <SavedAddresses
               addresses={addresses}
               onSetDefaultAddress={handleSetDefaultAddress}
-              onAddNew={handleAddNewAddress}
+              onAddNew={() => setOpenAddAddressModal(true)}
               onDelete={handleDeleteAddress}
+            />
+
+            <AddAddressModal
+              isOpen={openAddAddressModal}
+              onClose={() => setOpenAddAddressModal(false)}
+              onSave={handleAddNewAddress}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

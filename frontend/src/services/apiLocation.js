@@ -6,12 +6,14 @@ export async function getUserLocation(lat, lon) {
   });
 
   const props = res.data.address;
-  const address = `${props.road || ""} ${props.house_number || ""}, ${
-    props.city
-  }, ${props.country}`
-    .trim()
-    .replace(/^,/, "")
-    .trim();
+
+  const addressParts = [
+    [props.road, props.house_number].filter(Boolean).join(" "),
+    props.city,
+    props.country,
+  ].filter(Boolean);
+
+  const address = addressParts.join(", ");
 
   return { address };
 }
