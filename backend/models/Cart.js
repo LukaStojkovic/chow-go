@@ -37,8 +37,7 @@ const cartSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true },
-  { versionKey: false }
+  { timestamps: true, versionKey: false }
 );
 
 cartSchema.virtual("totalPrice").get(function () {

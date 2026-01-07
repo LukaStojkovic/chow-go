@@ -24,7 +24,7 @@ export default function CartSidebar({ isOpen, onClose }) {
     if (isOpen && authUser) {
       fetchCart();
     }
-  }, [isOpen, fetchCart]);
+  }, [isOpen, fetchCart, authUser]);
 
   const handleQuantityChange = (menuItemId, newQuantity) => {
     useCartStore.setState((state) => {
@@ -116,7 +116,7 @@ export default function CartSidebar({ isOpen, onClose }) {
                   <h3 className="font-semibold text-lg">
                     {restaurant?.name || "Unknown Restaurant"}
                   </h3>
-                  <Link to={`/restaurant/${restaurant._id}`}>
+                  <Link to={`/restaurant/${restaurant?._id}`}>
                     <span className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
                       View menu
                     </span>
@@ -229,7 +229,7 @@ export default function CartSidebar({ isOpen, onClose }) {
 
             <button
               onClick={() => clearCart()}
-              className="w-full mb-3 flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white py-3 text-sm font-medium text-red-600 hover:bg-red-50 active:scale-98 transition dark:border-red-900/30 dark:bg-zinc-800 dark:text-red-400 dark:hover:bg-zinc-700"
+              className="w-full cursor-pointer mb-3 flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white py-3 text-sm font-medium text-red-600 hover:bg-red-50 active:scale-98 transition dark:border-red-900/30 dark:bg-zinc-800 dark:text-red-400 dark:hover:bg-zinc-700"
             >
               <Trash2 className="h-4 w-4" />
               Clear Cart
