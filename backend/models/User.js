@@ -26,20 +26,6 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    deliveryAddresses: [
-      {
-        label: String,
-        fullAddress: String,
-        coordinates: {
-          lat: Number,
-          lng: Number,
-        },
-        isDefault: { type: Boolean, default: false },
-        createdAt: { type: Date, default: Date.now },
-        lastUsedAt: { type: Date },
-      },
-    ],
-
     role: {
       type: String,
       enum: ["customer", "seller"],
@@ -61,7 +47,12 @@ userSchema.virtual("restaurant", {
   ref: "Restaurant",
   localField: "_id",
   foreignField: "ownerId",
-  justOne: true,
+});
+
+userSchema.virtual("addresses", {
+  ref: "Addresses",
+  localField: "_id",
+  foreignField: "userId",
 });
 
 userSchema.set("toJSON", { virtuals: true });

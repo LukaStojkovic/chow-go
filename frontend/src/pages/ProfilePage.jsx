@@ -8,6 +8,10 @@ import SavedAddresses from "@/components/Profile/SavedAddresses";
 import RecentOrders from "@/components/Profile/RecentOrders";
 import Favorites from "@/components/Profile/Favorites";
 import AddAddressModal from "@/components/Profile/AddAddressModal";
+import Modal from "@/components/Modal";
+import useAddDeliveryAddress from "@/hooks/DeliveryAddress/useAddDeliveryAddress";
+import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
+import Spinner from "@/components/Spinner";
 
 const MOCK_ADDRESSES = [
   {
@@ -53,7 +57,11 @@ const MOCK_FAVORITES = [
 export default function ProfilePage() {
   const { authUser, logout } = useAuthStore();
   const { isDark, toggle } = useDarkMode();
+  const { addDeliveryAddress, isAddingDeliveryAddress } =
+    useAddDeliveryAddress();
+  const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
 
+  const [view, setView] = useState("map");
   const [name, setName] = useState(authUser?.name || "Unknown Name");
   const [phone, setPhone] = useState(authUser?.phoneNumber || "Unkown Number");
   const [addresses, setAddresses] = useState(MOCK_ADDRESSES);
@@ -70,7 +78,7 @@ export default function ProfilePage() {
   };
 
   const handleAddNewAddress = (data) => {
-    console.log(data);
+    addDeliveryAddress({ data });
   };
 
   const handleReorder = (orderId) => {
@@ -80,6 +88,10 @@ export default function ProfilePage() {
   const handleViewAllOrders = () => {
     console.log("View all orders");
   };
+
+  if (isLoadingAddresses) return <Spinner fullScreen />;
+
+  console.log(deliveryAddresses.data);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 pb-20 transition-colors duration-300">
@@ -106,17 +118,24 @@ export default function ProfilePage() {
 
           <div className="w-full lg:col-span-8 space-y-6">
             <SavedAddresses
-              addresses={addresses}
+              addresses={deliveryAddresses.data}
               onSetDefaultAddress={handleSetDefaultAddress}
               onAddNew={() => setOpenAddAddressModal(true)}
               onDelete={handleDeleteAddress}
             />
 
-            <AddAddressModal
+            <Modal
               isOpen={openAddAddressModal}
               onClose={() => setOpenAddAddressModal(false)}
-              onSave={handleAddNewAddress}
-            />
+              size="lg"
+              title={"Add new address"}
+            >
+              <AddAddressModal
+                isOpen={openAddAddressModal}
+                onSave={handleAddNewAddress}
+                onClose={() => setOpenAddAddressModal(false)}
+              />
+            </Modal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <RecentOrders
