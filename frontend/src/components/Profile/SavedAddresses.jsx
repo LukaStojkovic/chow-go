@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Trash2,
   Heart,
+  Loader2,
 } from "lucide-react";
 
 export default function SavedAddresses({
@@ -14,6 +15,8 @@ export default function SavedAddresses({
   onSetDefaultAddress,
   onAddNew,
   onDelete,
+  isSettingDefaultAddress,
+  isDeletingAddress,
 }) {
   const getAddressIcon = (label) => {
     const iconMap = {
@@ -35,7 +38,7 @@ export default function SavedAddresses({
         </h2>
         <button
           onClick={onAddNew}
-          className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm font-medium shrink-0"
+          className="text-sm cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm font-medium shrink-0"
         >
           <Plus size={16} /> <span className="hidden sm:inline">Add New</span>
         </button>
@@ -80,17 +83,27 @@ export default function SavedAddresses({
                   {!addr.isDefault && (
                     <button
                       onClick={() => onSetDefaultAddress(addr._id)}
+                      disabled={isSettingDefaultAddress || isDeletingAddress}
                       title="Set Default"
-                      className="p-1.5 text-gray-400 hover:text-blue-500 transition"
+                      className="p-1.5 text-gray-400 hover:text-blue-500 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <CheckCircle2 size={16} />
+                      {isSettingDefaultAddress ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
                     </button>
                   )}
                   <button
                     onClick={() => onDelete(addr._id)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 transition"
+                    disabled={isSettingDefaultAddress || isDeletingAddress}
+                    className="p-1.5 text-gray-400 hover:text-red-500 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Trash2 size={16} />
+                    {isDeletingAddress ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
                   </button>
                 </div>
               </div>

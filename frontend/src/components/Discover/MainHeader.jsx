@@ -1,15 +1,14 @@
-import { ChevronRight, MapPin, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import React from "react";
 import MainSearchBar from "./MainSearchBar";
+import DeliveryAddressDropdown from "./DeliveryAddressDropdown";
 import { Button } from "../ui/button";
 import Logo from "../Navbar/Logo";
-import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import UserMenu from "../Navbar/UserMenu";
 import useCartStore from "@/store/useCartStore";
 
 export default function MainHeader({ setIsCartOpen }) {
-  const { address } = useDeliveryStore();
   const { authUser, logout } = useAuthStore();
   const { items } = useCartStore();
 
@@ -21,17 +20,7 @@ export default function MainHeader({ setIsCartOpen }) {
             <div className="flex items-center gap-4 sm:gap-8">
               <Logo showTitle={false} />
 
-              <div className="hidden md:flex flex-col border-l border-gray-200 dark:border-zinc-800 pl-6">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/70">
-                  Delivering to
-                </span>
-                <div className="group flex cursor-pointer items-center gap-1 text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400">
-                  <span className="max-w-[180px] truncate text-sm font-bold">
-                    {address}
-                  </span>
-                  <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:rotate-90" />
-                </div>
-              </div>
+              <DeliveryAddressDropdown isMobile={false} />
             </div>
 
             <div className="flex items-center gap-2">
@@ -50,13 +39,7 @@ export default function MainHeader({ setIsCartOpen }) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 items-center">
-            <div className="md:hidden flex items-center gap-2 w-full px-1 mb-1">
-              <MapPin className="h-4 w-4 text-blue-500 shrink-0" />
-              <span className="text-sm font-bold truncate flex-1">
-                {address}
-              </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
+            <DeliveryAddressDropdown isMobile={true} />
             <div className="w-full">
               <MainSearchBar />
             </div>

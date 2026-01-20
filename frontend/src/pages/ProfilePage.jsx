@@ -12,6 +12,8 @@ import Modal from "@/components/Modal";
 import useAddDeliveryAddress from "@/hooks/DeliveryAddress/useAddDeliveryAddress";
 import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
 import Spinner from "@/components/Spinner";
+import useSetDefaultDeliveryAdress from "@/hooks/DeliveryAddress/useSetDefaultDeliveryAdress";
+import useDeleteDeliveryAddress from "@/hooks/DeliveryAddress/useDeleteDeliveryAddress";
 
 const MOCK_ADDRESSES = [
   {
@@ -60,21 +62,21 @@ export default function ProfilePage() {
   const { addDeliveryAddress, isAddingDeliveryAddress } =
     useAddDeliveryAddress();
   const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
+  const { setDefaultAddress, isSettingDefaultAddress } =
+    useSetDefaultDeliveryAdress();
+  const { deleteAddress, isDeletingAddress } = useDeleteDeliveryAddress();
 
-  const [view, setView] = useState("map");
   const [name, setName] = useState(authUser?.name || "Unknown Name");
   const [phone, setPhone] = useState(authUser?.phoneNumber || "Unkown Number");
   const [addresses, setAddresses] = useState(MOCK_ADDRESSES);
   const [openAddAddressModal, setOpenAddAddressModal] = useState(false);
 
   const handleSetDefaultAddress = (id) => {
-    setAddresses(
-      addresses.map((addr) => ({ ...addr, isDefault: addr.id === id }))
-    );
+    setDefaultAddress({ addressId: id });
   };
 
   const handleDeleteAddress = (id) => {
-    setAddresses(addresses.filter((addr) => addr.id !== id));
+    deleteAddress({ addressId: id });
   };
 
   const handleAddNewAddress = (data) => {
@@ -90,8 +92,6 @@ export default function ProfilePage() {
   };
 
   if (isLoadingAddresses) return <Spinner fullScreen />;
-
-  console.log(deliveryAddresses.data);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 pb-20 transition-colors duration-300">
@@ -122,6 +122,8 @@ export default function ProfilePage() {
               onSetDefaultAddress={handleSetDefaultAddress}
               onAddNew={() => setOpenAddAddressModal(true)}
               onDelete={handleDeleteAddress}
+              isSettingDefaultAddress={isSettingDefaultAddress}
+              isDeletingAddress={isDeletingAddress}
             />
 
             <Modal
@@ -134,6 +136,7 @@ export default function ProfilePage() {
                 isOpen={openAddAddressModal}
                 onSave={handleAddNewAddress}
                 onClose={() => setOpenAddAddressModal(false)}
+                isLoading={isAddingDeliveryAddress}
               />
             </Modal>
 

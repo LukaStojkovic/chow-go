@@ -1,35 +1,33 @@
 import { Home, MapPin } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LocationMapSelector } from "../Location/LocationMapSelector";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { useNavigate } from "react-router-dom";
+import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
+import Spinner from "../Spinner";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 
-const savedAddresses = [
-  {
-    id: 1,
-    label: "Home",
-    address: "123 Main Street, Apt 4B",
-    city: "New York, NY",
-    lat: 40.7128,
-    lon: -74.006,
-  },
-  {
-    id: 2,
-    label: "Work",
-    address: "456 Office Plaza",
-    city: "New York, NY",
-    lat: 40.758,
-    lon: -73.9855,
-  },
-];
-
-export default function DeliveryAddressSectionPicker({ address }) {
+export default function DeliveryAddressSectionPicker() {
   const navigate = useNavigate();
+  const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
+  const { selectedDeliveryAddress, setSelectedDeliveryAddress } =
+    useDeliveryStore();
 
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
   const addressDropdownRef = useOutsideClick(() =>
-    setShowAddressDropdown(false)
+    setShowAddressDropdown(false),
   );
+
+  useEffect(() => {
+    if (deliveryAddresses?.data && deliveryAddresses.data.length > 0) {
+      if (!selectedDeliveryAddress) {
+        const defaultAddr = deliveryAddresses.data.find(
+          (addr) => addr.isDefault,
+        );
+        setSelectedDeliveryAddress(defaultAddr || deliveryAddresses.data[0]);
+      }
+    }
+  }, [deliveryAddresses, selectedDeliveryAddress, setSelectedDeliveryAddress]);
 
   return (
     <section className="rounded-lg sm:rounded-xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -39,17 +37,23 @@ export default function DeliveryAddressSectionPicker({ address }) {
           <span>Delivery Address</span>
         </h2>
         <button
-          onClick={() => navigate("/address")}
-          className="text-xs sm:text-sm font-semibold text-blue-600 hover:underline"
+          onClick={() => navigate("/profile")}
+          className="text-xs sm:text-sm cursor-pointer font-semibold text-blue-600 hover:underline"
         >
           Edit
         </button>
       </div>
 
       <div className="mb-4 h-24 sm:h-32 w-full overflow-hidden rounded-lg bg-gray-200 dark:bg-zinc-800">
-        <LocationMapSelector
-          onLocationChange={(lat, lng) => console.log(lat, lng)}
-        />
+        {isLoadingAddresses ? (
+          <div className="h-full flex items-center justify-center">
+            <Spinner size={24} />
+          </div>
+        ) : (
+          <LocationMapSelector
+            onLocationChange={(lat, lng) => console.log(lat, lng)}
+          />
+        )}
       </div>
 
       <div className="relative" ref={addressDropdownRef}>
@@ -63,14 +67,19 @@ export default function DeliveryAddressSectionPicker({ address }) {
 
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-sm sm:text-base">
-              {address || "123 Main Street, Apt 4B"}
+              {selectedDeliveryAddress
+                ? selectedDeliveryAddress.label?.charAt(0).toUpperCase() +
+                  selectedDeliveryAddress.label?.slice(1)
+                : "Select Address"}
             </p>
             <p className="text-xs sm:text-sm text-gray-500">
-              New York, NY 10001
+              {selectedDeliveryAddress?.fullAddress || "No address selected"}
             </p>
-            <p className="mt-1 text-xs text-gray-400">
-              Note to driver: Gate code is 1234
-            </p>
+            {selectedDeliveryAddress?.notes && (
+              <p className="mt-1 text-xs text-gray-400">
+                Note to driver: {selectedDeliveryAddress.notes}
+              </p>
+            )}
           </div>
 
           <svg
@@ -90,28 +99,60 @@ export default function DeliveryAddressSectionPicker({ address }) {
 
         {showAddressDropdown && (
           <div className="absolute left-0 top-full mt-2 z-50 w-full rounded-xl border border-gray-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
-            {savedAddresses.map((addr) => (
-              <button
-                key={addr.id}
-                onClick={() => {
-                  setShowAddressDropdown(false);
-                }}
-                className="flex w-full flex-col gap-0.5 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-zinc-800"
-              >
-                <span className="text-sm font-semibold">{addr.label}</span>
-                <span className="text-xs text-gray-500">{addr.address}</span>
-                <span className="text-xs text-gray-400">{addr.city}</span>
-              </button>
-            ))}
+            {isLoadingAddresses ? (
+              <div className="p-4 flex items-center justify-center">
+                <Spinner size={20} />
+              </div>
+            ) : deliveryAddresses?.data && deliveryAddresses.data.length > 0 ? (
+              <>
+                {deliveryAddresses.data.map((addr) => (
+                  <button
+                    key={addr._id}
+                    onClick={() => {
+                      setSelectedDeliveryAddress(addr);
+                      setShowAddressDropdown(false);
+                    }}
+                    className={`flex w-full flex-col gap-0.5 cursor-pointer px-4 py-3 text-left transition ${
+                      selectedDeliveryAddress?._id === addr._id
+                        ? "bg-blue-50 dark:bg-blue-900/20"
+                        : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <span className="text-sm font-semibold">
+                      {addr.label?.charAt(0).toUpperCase() +
+                        addr.label?.slice(1)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {addr.fullAddress}
+                    </span>
+                    {addr.isDefault && (
+                      <span className="text-xs text-blue-600 font-medium">
+                        Default
+                      </span>
+                    )}
+                  </button>
+                ))}
 
-            <div className="border-t border-gray-100 dark:border-zinc-800">
-              <button
-                onClick={() => navigate("/profile")}
-                className="w-full px-4 py-3 text-left text-sm font-semibold text-blue-600 hover:bg-gray-50 dark:hover:bg-zinc-800"
-              >
-                + Add new address
-              </button>
-            </div>
+                <div className="border-t border-gray-100 dark:border-zinc-800">
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="w-full px-4 py-3 text-left text-sm font-semibold text-blue-600 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                  >
+                    + Add new address
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="px-4 py-3 text-center">
+                <p className="text-sm text-gray-500 mb-2">No saved addresses</p>
+                <button
+                  onClick={() => navigate("/profile")}
+                  className="w-full px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded"
+                >
+                  + Add address
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

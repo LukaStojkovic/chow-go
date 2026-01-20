@@ -43,7 +43,12 @@ const ADDRESS_TYPES = [
   { value: "other", label: "Other", icon: MapPinIcon },
 ];
 
-export default function AddAddressModal({ isOpen, onSave, onClose }) {
+export default function AddAddressModal({
+  isOpen,
+  onSave,
+  onClose,
+  isLoading,
+}) {
   const [view, setView] = useState("map");
   const [selectedLocation, setSelectedLocation] = useState(null);
 
@@ -289,7 +294,7 @@ export default function AddAddressModal({ isOpen, onSave, onClose }) {
                         "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all",
                         form.label === opt.id
                           ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                          : "border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          : "border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800",
                       )}
                     >
                       <opt.icon className="w-4 h-4" />
@@ -315,9 +320,17 @@ export default function AddAddressModal({ isOpen, onSave, onClose }) {
             <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-800  p-5 sm:p-6">
               <Button
                 onClick={handleSave}
-                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-600/20 transition-all active:scale-95"
+                disabled={isLoading}
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Save address
+                {isLoading ? (
+                  <>
+                    <Spinner size={16} />
+                    Saving...
+                  </>
+                ) : (
+                  "Save address"
+                )}
               </Button>
             </div>
           </motion.div>

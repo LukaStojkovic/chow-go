@@ -79,7 +79,7 @@ export default function ProfileHeader({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUpdatingProfile}
-          className="absolute bottom-1 right-1 bg-blue-600 text-white p-2.5 rounded-full"
+          className="absolute bottom-1 cursor-pointer right-1 bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-full"
         >
           <Camera size={18} />
         </button>
@@ -139,7 +139,7 @@ export default function ProfileHeader({
           <p className="text-gray-400">{phone}</p>
           <button
             onClick={() => setIsEditing(true)}
-            className="text-blue-500 text-sm flex items-center gap-1"
+            className="text-blue-500 cursor-pointer hover:underline text-sm flex items-center gap-1"
           >
             <Edit2 size={14} /> Edit details
           </button>

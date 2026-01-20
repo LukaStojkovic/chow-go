@@ -6,12 +6,15 @@ export const useDeliveryStore = create()(
     (set) => ({
       address: "",
       coordinates: null,
+      selectedDeliveryAddress: null,
 
       setLocation: (address, coordinates) => set({ address, coordinates }),
       clearLocation: () => set({ address: "", coordinates: null }),
+      setSelectedDeliveryAddress: (selectedDeliveryAddress) =>
+        set({ selectedDeliveryAddress }),
     }),
     {
       name: "delivery-location",
-    }
-  )
+    },
+  ),
 );

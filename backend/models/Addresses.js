@@ -35,10 +35,30 @@ const addressSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     lastUsedAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 addressSchema.index({ location: "2dsphere" });
+
+addressSchema.pre("save", async function (next) {
+  if (this.isDeleted) return next();
+
+  const count = await this.constructor.countDocuments({
+    userId: this.userId,
+    isDeleted: false,
+    _id: { $ne: this._id },
+  });
+
+  if (count >= 5) {
+    return next(
+      new Error(
+        "Maximum 5 delivery addresses allowed per user. Delete one to add new.",
+      ),
+    );
+  }
+
+  next();
+});
 
 const Addresses = mongoose.model("Addresses", addressSchema);
 
