@@ -10,10 +10,6 @@ export async function getDeliveryAddresses(req, res, next) {
     )
     .lean();
 
-  if (!userAddresses?.length) {
-    return next(new AppError("No saved delivery addresses found", 404));
-  }
-
   return res.status(200).json({
     status: "success",
     data: userAddresses,
@@ -40,49 +36,72 @@ export async function addNewDeliveryAddress(req, res, next) {
     return next(new AppError("Address and location required", 400));
   }
 
-  const existingCount = await Addresses.countDocuments({
-    userId,
-    isDeleted: false,
-  });
+  try {
+    const session = await Addresses.startSession();
+    session.startTransaction();
 
-  const isFirst = existingCount === 0;
+    const existingCount = await Addresses.countDocuments(
+      {
+        userId,
+        isDeleted: false,
+      },
+      { session },
+    );
 
-  if (isFirst) {
-    await Addresses.updateMany({ userId }, { $set: { isDefault: false } });
+    const isFirst = existingCount === 0;
+
+    if (isFirst) {
+      await Addresses.updateMany(
+        { userId },
+        { $set: { isDefault: false } },
+        { session },
+      );
+    }
+
+    const newAddress = await Addresses.create(
+      [
+        {
+          userId,
+          label,
+          addressType: type,
+          fullAddress: address,
+          buildingName,
+          apartment,
+          floor,
+          entrance,
+          doorCode,
+          notes,
+          location: {
+            type: "Point",
+            coordinates: [location.lng, location.lat],
+          },
+          isDefault: isFirst,
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(201).json({
+      success: true,
+      address: newAddress[0],
+    });
+  } catch (error) {
+    return next(error);
   }
-
-  const newAddress = await Addresses.create({
-    userId,
-    label,
-    addressType: type,
-    fullAddress: address,
-
-    buildingName,
-    apartment,
-    floor,
-    entrance,
-    doorCode,
-    notes,
-
-    location: {
-      type: "Point",
-      coordinates: [location.lng, location.lat],
-    },
-
-    isDefault: isFirst,
-  });
-
-  return res.status(201).json({
-    success: true,
-    address: newAddress,
-  });
 }
 
 export async function setDefaultAddress(req, res, next) {
   const { addressId } = req.params;
   const userId = req.user._id;
 
-  const address = await Addresses.findOne({ _id: addressId, userId });
+  const address = await Addresses.findOne({
+    _id: addressId,
+    userId,
+    isDeleted: false,
+  });
 
   if (!address) {
     return next(new AppError("Address not found", 404));
@@ -103,49 +122,70 @@ export async function deleteDeliveryAddress(req, res, next) {
   const { addressId } = req.params;
   const userId = req.user._id;
 
-  const address = await Addresses.findOne({ _id: addressId, userId });
+  try {
+    const session = await Addresses.startSession();
+    session.startTransaction();
 
-  if (!address) {
-    return next(new AppError("Address not found", 404));
-  }
-
-  if (address.isDeleted) {
-    return next(new AppError("Address already deleted", 404));
-  }
-
-  const remainingAddresses = await Addresses.countDocuments({
-    userId,
-    isDeleted: false,
-    _id: { $ne: addressId },
-  });
-
-  if (remainingAddresses === 0) {
-    return next(
-      new AppError(
-        "Cannot delete the last address. Add another address first.",
-        400,
-      ),
+    const address = await Addresses.findOne(
+      { _id: addressId, userId, isDeleted: false },
+      null,
+      { session },
     );
-  }
 
-  address.isDeleted = true;
-  await address.save();
-
-  if (address.isDefault) {
-    const nextDefault = await Addresses.findOne({
-      userId,
-      isDeleted: false,
-      _id: { $ne: addressId },
-    });
-
-    if (nextDefault) {
-      nextDefault.isDefault = true;
-      await nextDefault.save();
+    if (!address) {
+      await session.abortTransaction();
+      session.endSession();
+      return next(new AppError("Address not found", 404));
     }
-  }
 
-  return res.status(200).json({
-    success: true,
-    message: "Address deleted successfully",
-  });
+    const remainingAddresses = await Addresses.countDocuments(
+      {
+        userId,
+        isDeleted: false,
+        _id: { $ne: addressId },
+      },
+      { session },
+    );
+
+    if (remainingAddresses === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return next(
+        new AppError(
+          "Cannot delete the last address. Add another address first.",
+          400,
+        ),
+      );
+    }
+
+    address.isDeleted = true;
+    await address.save({ session });
+
+    if (address.isDefault) {
+      const nextDefault = await Addresses.findOne(
+        {
+          userId,
+          isDeleted: false,
+          _id: { $ne: addressId },
+        },
+        null,
+        { session },
+      );
+
+      if (nextDefault) {
+        nextDefault.isDefault = true;
+        await nextDefault.save({ session });
+      }
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      success: true,
+      message: "Address deleted successfully",
+    });
+  } catch (error) {
+    return next(error);
+  }
 }

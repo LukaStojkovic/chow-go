@@ -12,8 +12,9 @@ import Modal from "@/components/Modal";
 import useAddDeliveryAddress from "@/hooks/DeliveryAddress/useAddDeliveryAddress";
 import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
 import Spinner from "@/components/Spinner";
-import useSetDefaultDeliveryAdress from "@/hooks/DeliveryAddress/useSetDefaultDeliveryAdress";
+
 import useDeleteDeliveryAddress from "@/hooks/DeliveryAddress/useDeleteDeliveryAddress";
+import useSetDefaultDeliveryAddress from "@/hooks/DeliveryAddress/useSetDefaultDeliveryAdress";
 
 const MOCK_ADDRESSES = [
   {
@@ -59,16 +60,16 @@ const MOCK_FAVORITES = [
 export default function ProfilePage() {
   const { authUser, logout } = useAuthStore();
   const { isDark, toggle } = useDarkMode();
-  const { addDeliveryAddress, isAddingDeliveryAddress } =
+  const { addDeliveryAddressAsync, isAddingDeliveryAddress } =
     useAddDeliveryAddress();
   const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
-  const { setDefaultAddress, isSettingDefaultAddress } =
-    useSetDefaultDeliveryAdress();
-  const { deleteAddress, isDeletingAddress } = useDeleteDeliveryAddress();
+  const { setDefaultAddress, loadingAddressId: settingDefaultAddressId } =
+    useSetDefaultDeliveryAddress();
+  const { deleteAddress, loadingAddressId: deletingAddressId } =
+    useDeleteDeliveryAddress();
 
   const [name, setName] = useState(authUser?.name || "Unknown Name");
   const [phone, setPhone] = useState(authUser?.phoneNumber || "Unkown Number");
-  const [addresses, setAddresses] = useState(MOCK_ADDRESSES);
   const [openAddAddressModal, setOpenAddAddressModal] = useState(false);
 
   const handleSetDefaultAddress = (id) => {
@@ -80,7 +81,7 @@ export default function ProfilePage() {
   };
 
   const handleAddNewAddress = (data) => {
-    addDeliveryAddress({ data });
+    addDeliveryAddressAsync({ data });
   };
 
   const handleReorder = (orderId) => {
@@ -122,8 +123,8 @@ export default function ProfilePage() {
               onSetDefaultAddress={handleSetDefaultAddress}
               onAddNew={() => setOpenAddAddressModal(true)}
               onDelete={handleDeleteAddress}
-              isSettingDefaultAddress={isSettingDefaultAddress}
-              isDeletingAddress={isDeletingAddress}
+              settingDefaultAddressId={settingDefaultAddressId}
+              deletingAddressId={deletingAddressId}
             />
 
             <Modal

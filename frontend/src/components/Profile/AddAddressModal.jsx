@@ -91,13 +91,17 @@ export default function AddAddressModal({
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    onSave?.({
-      ...form,
-      location: selectedLocation,
-      address: addressData?.address || "",
-    });
-    onClose?.();
+  const handleSave = async () => {
+    try {
+      await onSave?.({
+        ...form,
+        location: selectedLocation,
+        address: addressData?.address || "",
+      });
+      onClose?.();
+    } catch (error) {
+      console.error("Failed to save address:", error);
+    }
   };
 
   const handleLocationChange = useCallback((lat, lng) => {
@@ -161,7 +165,7 @@ export default function AddAddressModal({
                   </div>
                   <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">
                     {isAddressLoading ? (
-                      <Spinner size="sm" />
+                      <Spinner size={16} />
                     ) : (
                       addressData?.address || "Location selected"
                     )}

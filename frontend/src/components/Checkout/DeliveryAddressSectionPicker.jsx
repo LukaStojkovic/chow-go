@@ -119,8 +119,9 @@ export default function DeliveryAddressSectionPicker() {
                     }`}
                   >
                     <span className="text-sm font-semibold">
-                      {addr.label?.charAt(0).toUpperCase() +
-                        addr.label?.slice(1)}
+                      {addr.label
+                        ? addr.label.charAt(0).toUpperCase() + addr.label.slice(1)
+                        : "Address"}
                     </span>
                     <span className="text-xs text-gray-500">
                       {addr.fullAddress}

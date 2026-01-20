@@ -16,7 +16,7 @@ const buttonVariants = cva(
         outline:
           "border border-emerald-600 cursor-pointer text-emerald-600 bg-transparent hover:bg-emerald-50 dark:hover:bg-emerald-800/30 hover:text-emerald-700 dark:hover:text-emerald-400 shadow-sm",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-pointer",
         ghost: "cursor-pointer hover:bg-accent hover:text-accent-foreground",
         link: "cursor-pointer text-emerald-600 underline-offset-4 hover:underline",
       },
@@ -33,7 +33,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 function Button({ className, variant, size, asChild = false, ...props }) {

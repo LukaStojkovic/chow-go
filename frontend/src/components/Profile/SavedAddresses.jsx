@@ -15,8 +15,8 @@ export default function SavedAddresses({
   onSetDefaultAddress,
   onAddNew,
   onDelete,
-  isSettingDefaultAddress,
-  isDeletingAddress,
+  settingDefaultAddressId,
+  deletingAddressId,
 }) {
   const getAddressIcon = (label) => {
     const iconMap = {
@@ -70,8 +70,10 @@ export default function SavedAddresses({
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-sm text-gray-900 dark:text-white truncate">
-                      {addr.label?.charAt(0).toUpperCase() +
-                        addr.label?.slice(1)}
+                      {addr.label
+                        ? addr.label.charAt(0).toUpperCase() +
+                          addr.label.slice(1)
+                        : "Address"}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {addr.fullAddress}
@@ -83,11 +85,14 @@ export default function SavedAddresses({
                   {!addr.isDefault && (
                     <button
                       onClick={() => onSetDefaultAddress(addr._id)}
-                      disabled={isSettingDefaultAddress || isDeletingAddress}
+                      disabled={
+                        settingDefaultAddressId === addr._id ||
+                        deletingAddressId === addr._id
+                      }
                       title="Set Default"
                       className="p-1.5 text-gray-400 hover:text-blue-500 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isSettingDefaultAddress ? (
+                      {settingDefaultAddressId === addr._id ? (
                         <Loader2 size={16} className="animate-spin" />
                       ) : (
                         <CheckCircle2 size={16} />
@@ -96,10 +101,13 @@ export default function SavedAddresses({
                   )}
                   <button
                     onClick={() => onDelete(addr._id)}
-                    disabled={isSettingDefaultAddress || isDeletingAddress}
+                    disabled={
+                      settingDefaultAddressId === addr._id ||
+                      deletingAddressId === addr._id
+                    }
                     className="p-1.5 text-gray-400 hover:text-red-500 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isDeletingAddress ? (
+                    {deletingAddressId === addr._id ? (
                       <Loader2 size={16} className="animate-spin" />
                     ) : (
                       <Trash2 size={16} />
