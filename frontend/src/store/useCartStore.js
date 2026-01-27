@@ -1,6 +1,6 @@
 import {
   addToCart,
-  clearCart,
+  clearCart as clearCartApi,
   getCart,
   removeItemFromCart,
   updateCartItemQuantity,
@@ -56,11 +56,10 @@ const useCartStore = create((set, get) => ({
     }
 
     try {
-      await clearCart();
+      await clearCartApi();
       set({ items: [], totalPrice: 0, restaurant: null });
-      toast.success("Cart cleared");
     } catch (err) {
-      toast.error(err.message || "Failed to clear cart");
+      console.error("Failed to clear cart:", err);
     }
   },
 

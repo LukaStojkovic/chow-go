@@ -24,6 +24,7 @@ import { SellerMenu } from "./pages/seller/SellerMenu";
 import { SellerAnalytics } from "./pages/seller/SellerAnalytics";
 import { SellerSettings } from "./pages/seller/SellerSettings";
 import AuthModal from "./components/Auth/AuthModal";
+import OrderTrackingPage from "./pages/OrderTrackingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,7 @@ function App() {
           <Route element={<CustomerRoute />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<MyOrders />} />
+            <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route element={<CustomerLayout />}>
               <Route

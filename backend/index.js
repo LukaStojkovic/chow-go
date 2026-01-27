@@ -3,6 +3,8 @@ import authRoutes from "./routes/authRoutes.js";
 import locationRoutes from "./routes/locationRouter.js";
 import restaurantsRoutes from "./routes/restaurantsRoutes.js";
 import deliveryAddressRoute from "./routes/deliveryAddressRoute.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import restaurantOrderRoutes from "./routes/restaurantOrderRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -28,7 +30,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 
 app.use("/api/auth", authRoutes);
@@ -36,6 +38,8 @@ app.use("/api/location", locationRoutes);
 app.use("/api/restaurants", restaurantsRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/delivery-address", deliveryAddressRoute);
+app.use("/api/orders", orderRoutes);
+app.use("/api/restaurant/orders", restaurantOrderRoutes);
 
 app.get("/", (_, res) => {
   res.send("Backend is Running");

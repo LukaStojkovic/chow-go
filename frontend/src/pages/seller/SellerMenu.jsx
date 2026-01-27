@@ -35,7 +35,7 @@ export const SellerMenu = () => {
   const [debouncedPriceRange] = useDebounce(tempPriceRange, 300);
 
   const { authUser } = useAuthStore();
-  const restaurantId = authUser?.restaurant?._id;
+  const restaurantId = authUser?.restaurant[0]?._id;
 
   useEffect(() => {
     setPage(1);
@@ -52,7 +52,7 @@ export const SellerMenu = () => {
         debouncedPriceRange[1] < 3000 ? debouncedPriceRange[1] : undefined,
       available: availableOnly ? "true" : undefined,
     }),
-    [page, debouncedSearch, category, debouncedPriceRange, availableOnly]
+    [page, debouncedSearch, category, debouncedPriceRange, availableOnly],
   );
 
   const {
@@ -87,7 +87,7 @@ export const SellerMenu = () => {
   const handleDeleteMenuItem = () => {
     deleteMenuItem(
       { restaurantId, menuItemId: selectedMenuItem._id },
-      { onSuccess: handleDeleteSuccess }
+      { onSuccess: handleDeleteSuccess },
     );
   };
 

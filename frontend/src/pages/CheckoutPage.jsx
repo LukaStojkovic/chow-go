@@ -24,6 +24,7 @@ export default function CheckoutPage() {
   const [deliveryType, setDeliveryType] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [customTip, setCustomTip] = useState("");
+  const [customerNotes, setCustomerNotes] = useState("");
 
   useEffect(() => {
     fetchCart();
@@ -86,6 +87,24 @@ export default function CheckoutPage() {
             setCustomTip={setCustomTip}
             customTip={customTip}
           />
+
+          {/* Customer Notes Section */}
+          <section className="rounded-lg sm:rounded-xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <h3 className="font-bold text-base sm:text-lg mb-3">
+              Delivery Instructions (Optional)
+            </h3>
+            <textarea
+              value={customerNotes}
+              onChange={(e) => setCustomerNotes(e.target.value)}
+              placeholder="Add any special instructions for the restaurant or courier..."
+              className="w-full p-3 border border-gray-200 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              rows={3}
+              maxLength={500}
+            />
+            <p className="text-xs text-gray-400 mt-2">
+              {customerNotes.length}/500 characters
+            </p>
+          </section>
         </div>
 
         <CheckoutCard
@@ -97,6 +116,9 @@ export default function CheckoutPage() {
           tipAmount={tipAmount}
           priorityFee={priorityFee}
           total={total}
+          deliveryType={deliveryType}
+          paymentMethod={paymentMethod}
+          customerNotes={customerNotes}
         />
       </main>
     </div>
