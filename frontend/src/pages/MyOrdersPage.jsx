@@ -104,7 +104,7 @@ const MyOrdersPage = () => {
           </div>
         </div>
 
-        {orders.length === 0 ? (
+        {!orders?.length ? (
           <div className="bg-white dark:bg-zinc-900 rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-zinc-800">
             <Package className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
             <h3 className="text-xl font-bold mb-2">No orders found</h3>
@@ -154,12 +154,13 @@ const MyOrdersPage = () => {
                     )}`}
                   >
                     {getStatusIcon(order.status)}
-                    {order.status.replace("_", " ").toUpperCase()}
+                    {order.status?.replace(/_/g, " ").toUpperCase() ??
+                      "Unknown Status"}
                   </span>
                 </div>
 
                 <div className="space-y-2 mb-4">
-                  {order.items.slice(0, 2).map((item, idx) => (
+                  {(order.items || []).slice(0, 2).map((item, idx) => (
                     <div
                       key={idx}
                       className="flex items-center justify-between text-sm"
@@ -172,7 +173,7 @@ const MyOrdersPage = () => {
                       </span>
                     </div>
                   ))}
-                  {order.items.length > 2 && (
+                  {order.items?.length > 2 && (
                     <p className="text-sm text-gray-500">
                       +{order.items.length - 2} more items
                     </p>
@@ -184,7 +185,7 @@ const MyOrdersPage = () => {
                     Order #{order.orderNumber}
                   </span>
                   <span className="text-lg font-bold">
-                    ${order.total.toFixed(2)}
+                    ${(order.total ?? 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -192,7 +193,7 @@ const MyOrdersPage = () => {
           </div>
         )}
 
-        {pagination.totalPages > 1 && (
+        {pagination?.totalPages > 1 && (
           <div className="mt-8 flex items-center justify-center gap-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}

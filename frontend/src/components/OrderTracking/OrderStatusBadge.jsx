@@ -24,7 +24,7 @@ export function OrderStatusBadge({ status }) {
     <span
       className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(status)}`}
     >
-      {status.replace("_", " ").toUpperCase()}
+      {(status ?? "").replaceAll("_", " ").toUpperCase()}
     </span>
   );
 }

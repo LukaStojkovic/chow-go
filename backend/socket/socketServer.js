@@ -7,7 +7,7 @@ class SocketServer {
   constructor(httpServer) {
     this.io = new Server(httpServer, {
       cors: {
-        origin: "http://localhost:5173",
+        origin: process.env.FRONTEND_URL || "http://localhost:5173",
         credentials: true,
         methods: ["GET", "POST"],
       },
@@ -86,6 +86,18 @@ class SocketServer {
     try {
       const { role, restaurantId } = data;
 
+      if (role !== socket.userRole) {
+        console.error(
+          `🚨 Authorization bypass attempt: Client role "${role}" does not match authenticated role "${socket.userRole}" for user ${socket.userId}`,
+        );
+        socket.emit("registration_error", {
+          success: false,
+          message: "Role mismatch: Unauthorized role provided",
+        });
+        socket.disconnect(true);
+        return;
+      }
+
       console.log(`📝 Registering socket for ${role}:`, socket.userId);
 
       switch (role) {
@@ -96,26 +108,56 @@ class SocketServer {
           break;
 
         case "seller":
-          if (restaurantId) {
-            const restaurant = await Restaurant.findOne({
-              _id: restaurantId,
-              ownerId: socket.userId,
+          if (!restaurantId) {
+            console.error(
+              `🚨 Seller registration failed: No restaurantId provided for user ${socket.userId}`,
+            );
+            socket.emit("registration_error", {
+              success: false,
+              message: "Restaurant ID is required for seller registration",
             });
-
-            if (restaurant) {
-              this.connections.restaurants.set(restaurantId, socket.id);
-              socket.join(`restaurant:${restaurantId}`);
-              socket.restaurantId = restaurantId;
-              console.log(`🏪 Restaurant registered: ${restaurantId}`);
-            } else {
-              console.error("Restaurant not found or unauthorized");
-            }
+            socket.disconnect(true);
+            return;
           }
+
+          const restaurant = await Restaurant.findOne({
+            _id: restaurantId,
+            ownerId: socket.userId,
+          });
+
+          if (!restaurant) {
+            console.error(
+              `🚨 Authorization bypass attempt: User ${socket.userId} attempted to register unauthorized restaurant ${restaurantId}`,
+            );
+            socket.emit("registration_error", {
+              success: false,
+              message: "Restaurant not found or unauthorized for this user",
+            });
+            socket.disconnect(true);
+            return;
+          }
+
+          this.connections.restaurants.set(restaurantId, socket.id);
+          socket.join(`restaurant:${restaurantId}`);
+          socket.restaurantId = restaurantId;
+          console.log(`🏪 Restaurant registered: ${restaurantId}`);
           break;
 
         case "courier":
-          // TODO: Implement courier registration
+          // TODO: Implement courier registration with proper authorization
+          console.warn(`⚠️  Courier registration not yet implemented`);
           break;
+
+        default:
+          console.error(
+            `🚨 Invalid role provided: ${role} for user ${socket.userId}`,
+          );
+          socket.emit("registration_error", {
+            success: false,
+            message: "Invalid role provided",
+          });
+          socket.disconnect(true);
+          return;
       }
 
       socket.emit("registered", {
@@ -126,8 +168,10 @@ class SocketServer {
     } catch (error) {
       console.error("Registration error:", error);
       socket.emit("registration_error", {
+        success: false,
         message: "Failed to register socket connection",
       });
+      socket.disconnect(true);
     }
   }
 

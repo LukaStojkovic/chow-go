@@ -23,11 +23,13 @@ export const useGlobalSocketEvents = () => {
   }, [isConnected, authUser, register]);
 
   useEffect(() => {
-    if (Notification.permission === "default") {
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "default"
+    ) {
       Notification.requestPermission();
     }
   }, []);
-
   useEffect(() => {
     if (!socket || authUser?.role !== "customer") return;
 
@@ -152,13 +154,13 @@ export const useGlobalSocketEvents = () => {
       audio.play().catch((e) => console.log("Audio play failed:", e));
 
       toast.success("New Order!", {
-        description: `Order #${data.order?.orderNumber} - $${data.order?.total.toFixed(2)}`,
+        description: `Order #${data.order?.orderNumber} - $${data.order?.total?.toFixed(2) ?? "0.00"}`,
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
         new Notification("New Order! 🔔", {
-          body: `Order #${data.order?.orderNumber} - $${data.order?.total.toFixed(2)}`,
+          body: `Order #${data.order?.orderNumber} - $${data.order?.total?.toFixed(2) ?? "0.00"}`,
           icon: "/logos/chow-logo-filled.png",
         });
       }

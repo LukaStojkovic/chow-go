@@ -24,7 +24,7 @@ import { CancelOrderDialog } from "@/components/Seller/Orders/CancelOrderDialog"
 import { Badge } from "@/components/ui/badge";
 import { Wifi, WifiOff } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useSellerOrderSocket } from "@/components/Seller/hooks/useSellerOrderSocket";
+import { useSocket } from "@/contexts/SocketContext";
 
 export const SellerOrders = () => {
   const [search, setSearch] = useState("");
@@ -50,7 +50,7 @@ export const SellerOrders = () => {
     return authUser?.restaurant?.[0]?._id || null;
   }, [authUser]);
 
-  const { isConnected } = useSellerOrderSocket(restaurantId);
+  const { isConnected } = useSocket();
 
   const { orders, counts, pagination, isLoadingOrders, refetch } =
     useGetRestaurantOrders({

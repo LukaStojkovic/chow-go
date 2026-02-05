@@ -57,13 +57,18 @@ app.get("/api/socket/stats", (req, res) => {
   res.json(socketServer.getStats());
 });
 
-mongoose.connect(process.env.MONGODB_URL).then(() => {
-  httpServer.listen(process.env.PORT, () => {
-    console.log(`🚀 Server is running on port ${process.env.PORT}`);
-    console.log(`📡 Socket.IO ready for connections`);
+mongoose
+  .connect(process.env.MONGODB_URL)
+  .then(() => {
+    httpServer.listen(process.env.PORT, () => {
+      console.log(`🚀 Server is running on port ${process.env.PORT}`);
+      console.log(`📡 Socket.IO ready for connections`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection failed:", err.message);
+    process.exit(1);
   });
-});
-
 app.use(handleError);
 
 export { socketServer };
