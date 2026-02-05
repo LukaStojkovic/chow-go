@@ -59,7 +59,7 @@ const useCartStore = create((set, get) => ({
       await clearCartApi();
       set({ items: [], totalPrice: 0, restaurant: null });
     } catch (err) {
-      console.error("Failed to clear cart:", err);
+      toast.error(err.message || "Failed to clear cart");
     }
   },
 

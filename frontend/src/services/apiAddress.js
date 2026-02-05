@@ -30,7 +30,7 @@ export async function setDefaultDeliveryAddress(addressId) {
 
     return response.data;
   } catch (err) {
-    console.error("Error setting default delivery addresses:", err);
+    console.error("Error setting default delivery address:", err);
     throw err;
   }
 }

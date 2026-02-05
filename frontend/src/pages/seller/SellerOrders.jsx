@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useGetRestaurantOrders } from "@/hooks/SellerOrders/useGetRestaurantOrders";
 import { useConfirmOrder } from "@/hooks/SellerOrders/useConfirmOrder";
 import { useRejectOrder } from "@/hooks/SellerOrders/useRejectOrder";
@@ -21,6 +21,10 @@ import { OrdersPagination } from "@/components/Seller/Orders/OrdersPagination";
 import { ConfirmOrderDialog } from "@/components/Seller/Orders/ConfirmOrderDialog";
 import { RejectOrderDialog } from "@/components/Seller/Orders/RejectOrderDialog";
 import { CancelOrderDialog } from "@/components/Seller/Orders/CancelOrderDialog";
+import { Badge } from "@/components/ui/badge";
+import { Wifi, WifiOff } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useSellerOrderSocket } from "@/components/Seller/hooks/useSellerOrderSocket";
 
 export const SellerOrders = () => {
   const [search, setSearch] = useState("");
@@ -39,6 +43,14 @@ export const SellerOrders = () => {
     isOpen: false,
     orderId: null,
   });
+
+  const { authUser } = useAuthStore();
+
+  const restaurantId = useMemo(() => {
+    return authUser?.restaurant?.[0]?._id || null;
+  }, [authUser]);
+
+  const { isConnected } = useSellerOrderSocket(restaurantId);
 
   const { orders, counts, pagination, isLoadingOrders, refetch } =
     useGetRestaurantOrders({
@@ -119,9 +131,39 @@ export const SellerOrders = () => {
     setCurrentPage(newPage);
   };
 
+  if (!restaurantId) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">No Restaurant Found</h2>
+          <p className="text-muted-foreground">
+            Please create a restaurant first to manage orders.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Orders</h1>
+          <Badge variant={isConnected ? "success" : "destructive"}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-3 h-3 mr-1" />
+                Live
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 mr-1" />
+                Offline
+              </>
+            )}
+          </Badge>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-4">
           <OrderStatsCard
             label="Active Orders"

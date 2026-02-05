@@ -2,6 +2,7 @@ import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import Notification from "../models/OrderNotification.js";
 import { AppError } from "../utils/AppError.js";
+import { getSocketServer } from "../socket/socketServer.js";
 
 export async function getRestaurantOrders(req, res, next) {
   try {
@@ -141,6 +142,20 @@ export async function confirmOrder(req, res, next) {
     });
 
     // TODO: Emit socket event for real-time update
+    try {
+      const socketServer = getSocketServer();
+      const populatedOrder = await Order.findById(order._id)
+        .populate("customer", "name email phoneNumber")
+        .populate("restaurant", "name profilePicture address phone");
+
+      socketServer.emitToCustomer(order.customer, "order:confirmed", {
+        order: populatedOrder,
+        estimatedTime: order.estimatedPreparationTime,
+        message: "Your order has been confirmed!",
+      });
+    } catch (error) {
+      console.error("Socket emit error:", error);
+    }
 
     res.status(200).json({
       status: "success",
@@ -192,6 +207,20 @@ export async function rejectOrder(req, res, next) {
     });
 
     // TODO: Emit socket event
+    try {
+      const socketServer = getSocketServer();
+      const populatedOrder = await Order.findById(order._id)
+        .populate("customer", "name email phoneNumber")
+        .populate("restaurant", "name profilePicture address phone");
+
+      socketServer.emitToCustomer(order.customer, "order:rejected", {
+        order: populatedOrder,
+        reason: order.rejectionReason,
+        message: "Sorry, your order was rejected by the restaurant",
+      });
+    } catch (error) {
+      console.error("Socket emit error:", error);
+    }
 
     res.status(200).json({
       status: "success",
@@ -257,6 +286,22 @@ export async function updateOrderStatus(req, res, next) {
     });
 
     // TODO: Emit socket event
+    try {
+      const socketServer = getSocketServer();
+      const populatedOrder = await Order.findById(order._id)
+        .populate("customer", "name email phoneNumber")
+        .populate("restaurant", "name profilePicture address phone");
+
+      const eventName =
+        status === "preparing" ? "order:preparing" : "order:ready";
+
+      socketServer.emitToCustomer(order.customer, eventName, {
+        order: populatedOrder,
+        message: notificationMessages[status],
+      });
+    } catch (error) {
+      console.error("Socket emit error:", error);
+    }
 
     res.status(200).json({
       status: "success",
@@ -342,7 +387,20 @@ export async function cancelRestaurantOrder(req, res, next) {
       },
     });
 
-    // TODO: Emit socket event
+    try {
+      const socketServer = getSocketServer();
+      const populatedOrder = await Order.findById(order._id)
+        .populate("customer", "name email phoneNumber")
+        .populate("restaurant", "name profilePicture address phone");
+
+      socketServer.emitToCustomer(order.customer, "order:cancelled", {
+        order: populatedOrder,
+        reason: order.cancellationReason,
+        message: "Your order was cancelled by the restaurant",
+      });
+    } catch (error) {
+      console.error("Socket emit error:", error);
+    }
 
     res.status(200).json({
       status: "success",

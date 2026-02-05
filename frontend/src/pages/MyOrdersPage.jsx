@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useGetCustomerOrders } from "@/hooks/Orders/useGetCustomerOrders";
 
-const MyOrders = () => {
+const MyOrdersPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -220,4 +220,4 @@ const MyOrders = () => {
   );
 };
 
-export default MyOrders;
+export default MyOrdersPage;

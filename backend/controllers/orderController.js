@@ -4,6 +4,7 @@ import Addresses from "../models/Addresses.js";
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
 import Notification from "../models/OrderNotification.js";
+import { getSocketServer } from "../socket/socketServer.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -131,6 +132,17 @@ export async function createOrder(req, res, next) {
       .populate("customer", "name email phoneNumber")
       .populate("restaurant", "name profilePicture address phone")
       .populate("items.menuItem", "name imageUrls");
+
+    try {
+      const socketServer = getSocketServer();
+      socketServer.emitToRestaurant(restaurantId, "order:new", {
+        order: populatedOrder,
+        message: "New order received!",
+        sound: "new_order",
+      });
+    } catch (error) {
+      console.error("Socket emit error:", error);
+    }
 
     res.status(201).json({
       status: "success",

@@ -35,7 +35,7 @@ export const SellerMenu = () => {
   const [debouncedPriceRange] = useDebounce(tempPriceRange, 300);
 
   const { authUser } = useAuthStore();
-  const restaurantId = authUser?.restaurant[0]?._id;
+  const restaurantId = authUser?.restaurant?.[0]?._id;
 
   useEffect(() => {
     setPage(1);

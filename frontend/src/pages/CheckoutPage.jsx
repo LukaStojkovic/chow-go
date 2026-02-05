@@ -88,7 +88,6 @@ export default function CheckoutPage() {
             customTip={customTip}
           />
 
-          {/* Customer Notes Section */}
           <section className="rounded-lg sm:rounded-xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="font-bold text-base sm:text-lg mb-3">
               Delivery Instructions (Optional)

@@ -1,4 +1,5 @@
 import express from "express";
+import http from "http";
 import authRoutes from "./routes/authRoutes.js";
 import locationRoutes from "./routes/locationRouter.js";
 import restaurantsRoutes from "./routes/restaurantsRoutes.js";
@@ -12,8 +13,11 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 import { handleError } from "./controllers/errorController.js";
+import { initializeSocketServer } from "./socket/socketServer.js";
 
 const app = express();
+const httpServer = http.createServer(app);
+
 dotenv.config();
 
 const limiter = rateLimit({
@@ -33,6 +37,10 @@ app.use(
   }),
 );
 
+const socketServer = initializeSocketServer(httpServer);
+
+app.set("socketServer", socketServer);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/location", locationRoutes);
 app.use("/api/restaurants", restaurantsRoutes);
@@ -45,10 +53,17 @@ app.get("/", (_, res) => {
   res.send("Backend is Running");
 });
 
+app.get("/api/socket/stats", (req, res) => {
+  res.json(socketServer.getStats());
+});
+
 mongoose.connect(process.env.MONGODB_URL).then(() => {
-  app.listen(process.env.PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+  httpServer.listen(process.env.PORT, () => {
+    console.log(`🚀 Server is running on port ${process.env.PORT}`);
+    console.log(`📡 Socket.IO ready for connections`);
   });
 });
 
 app.use(handleError);
+
+export { socketServer };
