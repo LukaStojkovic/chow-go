@@ -7,22 +7,30 @@ import {
   getRestaurantMenuItems,
   getRestaurantInformations,
   getRestaurantMenuByCategories,
+  updateRestaurant,
 } from "../controllers/restaurantController.js";
 import { createUpload } from "../middlewares/upload.js";
 
 const router = Router();
 const uploadMenuItemImage = createUpload("menuItems");
+const uploadRestaurantImage = createUpload("restaurants");
 router.use(protectedRoute);
+
+router.put(
+  "/update",
+  uploadRestaurantImage.single("profilePicture"),
+  updateRestaurant,
+);
 
 router.post(
   "/:restaurantId/menu",
   uploadMenuItemImage.array("images", 6),
-  createMenuItem
+  createMenuItem,
 );
 router.put(
   "/:restaurantId/menu/:menuItemId",
   uploadMenuItemImage.array("images", 6),
-  editMenuItem
+  editMenuItem,
 );
 
 router.get("/:restaurantId", getRestaurantInformations);

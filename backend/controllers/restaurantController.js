@@ -25,7 +25,7 @@ export async function createMenuItem(req, res, next) {
 
   if (restaurant.ownerId.toString() !== req.user._id.toString()) {
     return next(
-      new AppError("Not authorized to add items to this restaurant", 403)
+      new AppError("Not authorized to add items to this restaurant", 403),
     );
   }
 
@@ -232,7 +232,7 @@ export async function editMenuItem(req, res, next) {
 
   if (restaurant.ownerId.toString() !== req.user._id.toString()) {
     return next(
-      new AppError("Not authorized to edit items in this restaurant", 403)
+      new AppError("Not authorized to edit items in this restaurant", 403),
     );
   }
 
@@ -252,7 +252,7 @@ export async function editMenuItem(req, res, next) {
 
     if (Array.isArray(existingImages)) {
       incoming = existingImages.filter(
-        (url) => typeof url === "string" && url.includes("res.cloudinary.com")
+        (url) => typeof url === "string" && url.includes("res.cloudinary.com"),
       );
     } else if (
       typeof existingImages === "string" &&
@@ -274,7 +274,7 @@ export async function editMenuItem(req, res, next) {
   }
 
   const imagesToRemove = menuItem.imageUrls.filter(
-    (url) => !imageUrls.includes(url)
+    (url) => !imageUrls.includes(url),
   );
   for (const url of imagesToRemove) {
     const publicId = extractCloudinaryPublicId(url);
@@ -306,5 +306,103 @@ export async function editMenuItem(req, res, next) {
     data: {
       menuItem,
     },
+  });
+}
+
+export async function updateRestaurant(req, res, next) {
+  const userId = req.user._id;
+  const {
+    name,
+    description,
+    phone,
+    email,
+    openingTime,
+    closingTime,
+    estimatedDeliveryTime,
+    address,
+  } = req.body;
+
+  const restaurant = await Restaurant.findOne({ ownerId: userId });
+
+  if (!restaurant) {
+    return next(new AppError("Restaurant not found", 404));
+  }
+
+  if (req.file) {
+    if (restaurant.profilePicture) {
+      const publicId = extractCloudinaryPublicId(restaurant.profilePicture);
+      if (publicId) {
+        await cloudinary.uploader.destroy(publicId).catch(console.error);
+      }
+    }
+
+    restaurant.profilePicture = req.file.path;
+  }
+
+  if (name !== undefined && name.trim()) {
+    restaurant.name = name.trim();
+  }
+
+  if (description !== undefined) {
+    restaurant.description = description.trim();
+  }
+
+  if (phone !== undefined) {
+    restaurant.phone = phone.trim();
+  }
+
+  if (email !== undefined && email.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return next(new AppError("Invalid email format", 400));
+    }
+    restaurant.email = email.trim();
+  }
+
+  if (openingTime !== undefined) {
+    restaurant.openingTime = openingTime;
+  }
+
+  if (closingTime !== undefined) {
+    restaurant.closingTime = closingTime;
+  }
+
+  if (estimatedDeliveryTime !== undefined) {
+    restaurant.estimatedDeliveryTime = estimatedDeliveryTime.trim();
+  }
+
+  if (address) {
+    if (!restaurant.address) {
+      restaurant.address = {};
+    }
+
+    if (address.street !== undefined) {
+      restaurant.address.street = address.street.trim();
+    }
+    if (address.city !== undefined) {
+      restaurant.address.city = address.city.trim();
+    }
+    if (address.state !== undefined) {
+      restaurant.address.state = address.state.trim();
+    }
+    if (address.zipCode !== undefined) {
+      restaurant.address.zipCode = address.zipCode.trim();
+    }
+    if (address.country !== undefined) {
+      restaurant.address.country = address.country.trim();
+    }
+  }
+
+  await restaurant.save();
+
+  const updatedUser = await req.user.populate({
+    path: "restaurant",
+    select: "-__v",
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Restaurant updated successfully",
+    user: updatedUser,
   });
 }

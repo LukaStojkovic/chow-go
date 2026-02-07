@@ -10,6 +10,8 @@ import {
   updateProfile,
 } from "@/services/apiAuth";
 import useCartStore from "./useCartStore";
+import { axiosInstance } from "@/lib/axios";
+import { toast } from "sonner";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -95,6 +97,27 @@ export const useAuthStore = create((set) => ({
       return response;
     } catch (err) {
       console.log(`Error in updatingProfile: ${err}`);
+    } finally {
+      set({ isUpdatingProfile: false });
+    }
+  },
+
+  apiUpdateRestaurant: async (formData) => {
+    try {
+      set({ isUpdatingProfile: true });
+      const res = await axiosInstance.put("/restaurants/update", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      set({ authUser: res.data.user });
+      toast.success("Restaurant updated successfully");
+    } catch (error) {
+      console.error("Error updating restaurant:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update restaurant",
+      );
     } finally {
       set({ isUpdatingProfile: false });
     }
