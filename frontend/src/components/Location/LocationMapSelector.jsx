@@ -30,6 +30,9 @@ function MapController({ position }) {
   useEffect(() => {
     if (
       position &&
+      position.length === 2 &&
+      position[0] != null &&
+      position[1] != null &&
       (!lastPosition.current ||
         lastPosition.current[0] !== position[0] ||
         lastPosition.current[1] !== position[1])
@@ -37,7 +40,7 @@ function MapController({ position }) {
       map.flyTo(position, 15, { duration: 1.5 });
       lastPosition.current = position;
     }
-  }, [position]);
+  }, [position, map]);
 }
 
 export function LocationMapSelector({
@@ -54,12 +57,15 @@ export function LocationMapSelector({
   const { isDark } = useDarkMode();
 
   const [markerPosition, setMarkerPosition] = useState(
-    initialPosition ? [initialPosition.lat, initialPosition.lng] : null
+    initialPosition ? [initialPosition.lat, initialPosition.lng] : null,
   );
 
-  const center = storeCoords
-    ? [storeCoords.lat, storeCoords.lon]
-    : [20.5937, 78.9629];
+  const center = useMemo(() => {
+    if (storeCoords && storeCoords.lat && storeCoords.lon) {
+      return [storeCoords.lat, storeCoords.lon];
+    }
+    return [20.5937, 78.9629];
+  }, [storeCoords]);
 
   const handleMapClick = useCallback(
     (latlng) => {
@@ -67,7 +73,7 @@ export function LocationMapSelector({
       setMarkerPosition(pos);
       onLocationChange(latlng.lat, latlng.lng);
     },
-    [onLocationChange]
+    [onLocationChange],
   );
 
   const handleDetectClick = useCallback(() => {
@@ -84,12 +90,12 @@ export function LocationMapSelector({
 
   const mapClickHandler = useMemo(
     () => <MapClickHandler onMapClick={handleMapClick} />,
-    [handleMapClick]
+    [handleMapClick],
   );
 
   const mapController = useMemo(
     () => <MapController position={markerPosition} />,
-    [markerPosition]
+    [markerPosition],
   );
 
   return (

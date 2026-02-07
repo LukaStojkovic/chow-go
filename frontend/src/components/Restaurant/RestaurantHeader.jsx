@@ -56,7 +56,7 @@ const RestaurantHeader = ({ restaurantData, onShowInfoModal }) => {
           </div>
           <button
             onClick={onShowInfoModal}
-            className="ml-auto text-blue-600 hover:underline text-sm font-medium flex items-center gap-1"
+            className="ml-auto cursor-pointer text-blue-600 hover:underline text-sm font-medium flex items-center gap-1"
           >
             More info <ChevronRight className="h-4 w-4" />
           </button>

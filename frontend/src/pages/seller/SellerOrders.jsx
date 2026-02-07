@@ -1,148 +1,270 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge, Filter, MoreVertical, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useGetRestaurantOrders } from "@/hooks/SellerOrders/useGetRestaurantOrders";
+import { useConfirmOrder } from "@/hooks/SellerOrders/useConfirmOrder";
+import { useRejectOrder } from "@/hooks/SellerOrders/useRejectOrder";
+import { useCancelRestaurantOrder } from "@/hooks/SellerOrders/useCancelRestaurantOrder";
+import { useUpdateOrderStatus } from "@/hooks/SellerOrders/useUpdateOrderStatus";
+import { OrderStatsCard } from "@/components/Seller/Orders/OrderStatsCard";
+import { OrdersTableHeader } from "@/components/Seller/Orders/OrdersTableHeader";
+import { OrderTableRow } from "@/components/Seller/Orders/OrderTableRow";
+import { OrdersTableSkeleton } from "@/components/skeletons/OrdersTableSkeleton";
+import { EmptyOrdersState } from "@/components/Seller/Orders/EmptyOrdersState";
+import { OrdersPagination } from "@/components/Seller/Orders/OrdersPagination";
+import { ConfirmOrderDialog } from "@/components/Seller/Orders/ConfirmOrderDialog";
+import { RejectOrderDialog } from "@/components/Seller/Orders/RejectOrderDialog";
+import { CancelOrderDialog } from "@/components/Seller/Orders/CancelOrderDialog";
+import { Badge } from "@/components/ui/badge";
+import { Wifi, WifiOff } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useSocket } from "@/contexts/SocketContext";
 
 export const SellerOrders = () => {
-  const orders = [
-    {
-      id: "#2930",
-      customer: "Alex Doe",
-      items: "2x Pizza, 1x Coke",
-      total: "$42.50",
-      status: "New",
-      time: "2 min ago",
-    },
-    {
-      id: "#2929",
-      customer: "Sarah Smith",
-      items: "1x Ramen, 1x Gyoza",
-      total: "$28.00",
-      status: "Cooking",
-      time: "12 min ago",
-    },
-    {
-      id: "#2928",
-      customer: "Mike Johnson",
-      items: "3x Burger Meal",
-      total: "$45.90",
-      status: "Ready",
-      time: "25 min ago",
-    },
-    {
-      id: "#2927",
-      customer: "Emily Davis",
-      items: "1x Salad Bowl",
-      total: "$14.50",
-      status: "Delivered",
-      time: "1h ago",
-    },
-    {
-      id: "#2926",
-      customer: "Chris Wilson",
-      items: "2x Pasta Carbonara",
-      total: "$36.00",
-      status: "Delivered",
-      time: "1h 20m ago",
-    },
-  ];
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const getStatusVariant = (status) => {
-    switch (status) {
-      case "New":
-        return "default";
-      case "Cooking":
-        return "secondary";
-      case "Ready":
-        return "outline";
-      default:
-        return "outline";
-    }
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    orderId: null,
+  });
+  const [rejectDialog, setRejectDialog] = useState({
+    isOpen: false,
+    orderId: null,
+  });
+  const [cancelDialog, setCancelDialog] = useState({
+    isOpen: false,
+    orderId: null,
+  });
+
+  const { authUser } = useAuthStore();
+
+  const restaurantId = useMemo(() => {
+    return authUser?.restaurant?.[0]?._id || null;
+  }, [authUser]);
+
+  const { isConnected } = useSocket();
+
+  const { orders, counts, pagination, isLoadingOrders, refetch } =
+    useGetRestaurantOrders({
+      status: statusFilter,
+      search,
+      page: currentPage,
+      limit: 20,
+    });
+
+  const { confirmOrder, isConfirming } = useConfirmOrder();
+  const { rejectOrder, isRejecting } = useRejectOrder();
+  const { cancelRestaurantOrder, isCancelling } = useCancelRestaurantOrder();
+  const { updateOrderStatus, isUpdating } = useUpdateOrderStatus();
+
+  const handleConfirmOrder = (orderId) => {
+    setConfirmDialog({ isOpen: true, orderId });
   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search order ID or customer..."
-              className="pl-10"
-            />
-          </div>
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
+  const handleConfirmSubmit = (estimatedPreparationTime) => {
+    confirmOrder(
+      {
+        orderId: confirmDialog.orderId,
+        estimatedPreparationTime,
+      },
+      {
+        onSuccess: () => {
+          setConfirmDialog({ isOpen: false, orderId: null });
+        },
+      },
+    );
+  };
+
+  const handleRejectOrder = (orderId) => {
+    setRejectDialog({ isOpen: true, orderId });
+  };
+
+  const handleRejectSubmit = (reason) => {
+    rejectOrder(
+      {
+        orderId: rejectDialog.orderId,
+        reason,
+      },
+      {
+        onSuccess: () => {
+          setRejectDialog({ isOpen: false, orderId: null });
+        },
+      },
+    );
+  };
+
+  const handleCancelOrder = (orderId) => {
+    setCancelDialog({ isOpen: true, orderId });
+  };
+
+  const handleCancelSubmit = (reason) => {
+    cancelRestaurantOrder(
+      {
+        orderId: cancelDialog.orderId,
+        reason,
+      },
+      {
+        onSuccess: () => {
+          setCancelDialog({ isOpen: false, orderId: null });
+        },
+      },
+    );
+  };
+
+  const handleMarkAsPreparing = (orderId) => {
+    updateOrderStatus({ orderId, status: "preparing" });
+  };
+
+  const handleMarkAsReady = (orderId) => {
+    updateOrderStatus({ orderId, status: "ready" });
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  if (!restaurantId) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">No Restaurant Found</h2>
+          <p className="text-muted-foreground">
+            Please create a restaurant first to manage orders.
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-mono text-emerald-600">
-                  {order.id}
-                </TableCell>
-                <TableCell>
-                  <div className="font-medium">{order.customer}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {order.time}
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {order.items}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(order.status)}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-bold">{order.total}</TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View details</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as ready</DropdownMenuItem>
-                      <DropdownMenuItem>Cancel order</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Orders</h1>
+          <Badge variant={isConnected ? "success" : "destructive"}>
+            {isConnected ? (
+              <>
+                <Wifi className="w-3 h-3 mr-1" />
+                Live
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 mr-1" />
+                Offline
+              </>
+            )}
+          </Badge>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          <OrderStatsCard
+            label="Active Orders"
+            value={counts.active}
+            isLoading={isLoadingOrders}
+          />
+          <OrderStatsCard
+            label="Pending"
+            value={counts.pending}
+            isLoading={isLoadingOrders}
+          />
+          <OrderStatsCard
+            label="Preparing"
+            value={counts.preparing}
+            isLoading={isLoadingOrders}
+          />
+          <OrderStatsCard
+            label="Delivered Today"
+            value={counts.delivered}
+            isLoading={isLoadingOrders}
+          />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <OrdersTableHeader
+              search={search}
+              setSearch={setSearch}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              onRefresh={refetch}
+            />
+          </CardHeader>
+          <CardContent>
+            {isLoadingOrders && currentPage === 1 ? (
+              <OrdersTableSkeleton rows={5} />
+            ) : orders.length === 0 ? (
+              <EmptyOrdersState statusFilter={statusFilter} />
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <OrderTableRow
+                        key={order._id}
+                        order={order}
+                        onConfirm={handleConfirmOrder}
+                        onReject={handleRejectOrder}
+                        onCancel={handleCancelOrder}
+                        onMarkPreparing={handleMarkAsPreparing}
+                        onMarkReady={handleMarkAsReady}
+                        isConfirming={isConfirming}
+                        isRejecting={isRejecting}
+                        isCancelling={isCancelling}
+                        isUpdating={isUpdating}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+
+                <OrdersPagination
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <ConfirmOrderDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, orderId: null })}
+        onConfirm={handleConfirmSubmit}
+        isConfirming={isConfirming}
+      />
+
+      <RejectOrderDialog
+        isOpen={rejectDialog.isOpen}
+        onClose={() => setRejectDialog({ isOpen: false, orderId: null })}
+        onReject={handleRejectSubmit}
+        isRejecting={isRejecting}
+      />
+
+      <CancelOrderDialog
+        isOpen={cancelDialog.isOpen}
+        onClose={() => setCancelDialog({ isOpen: false, orderId: null })}
+        onCancel={handleCancelSubmit}
+        isCancelling={isCancelling}
+      />
+    </>
   );
 };
