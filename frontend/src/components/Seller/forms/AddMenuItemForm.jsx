@@ -33,8 +33,9 @@ export const AddMenuItemForm = ({ onClose }) => {
   const [previews, setPreviews] = useState([]);
   const { createMenuItem, isCreating } = useCreateMenuItem();
   const { authUser } = useAuthStore();
-  const restaurantId = authUser?.restaurant?._id;
-
+  const restaurantId =
+    authUser?.restaurant?._id || authUser?.restaurant?.[0]?._id;
+  console.log(authUser);
   const {
     register,
     handleSubmit,
@@ -59,7 +60,7 @@ export const AddMenuItemForm = ({ onClose }) => {
     if (restaurantId) {
       createMenuItem(
         { restaurantId, menuItemData: data },
-        { onSuccess: onClose }
+        { onSuccess: onClose },
       );
     }
   };

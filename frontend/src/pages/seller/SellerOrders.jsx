@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useGetRestaurantOrders } from "@/hooks/SellerOrders/useGetRestaurantOrders";
 import { useConfirmOrder } from "@/hooks/SellerOrders/useConfirmOrder";
 import { useRejectOrder } from "@/hooks/SellerOrders/useRejectOrder";

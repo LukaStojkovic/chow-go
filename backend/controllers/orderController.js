@@ -259,6 +259,21 @@ export async function cancelOrder(req, res, next) {
       priority: "high",
     });
 
+    try {
+      const socketServer = getSocketServer();
+      const populatedOrder = await Order.findById(order._id)
+        .populate("customer", "name email phoneNumber")
+        .populate("restaurant", "name profilePicture address phone");
+
+      socketServer.emitToRestaurant(order.restaurant, "order:cancelled", {
+        order: populatedOrder,
+        reason: order.cancellationReason,
+        message: `Order #${order.orderNumber} was cancelled by customer`,
+      });
+    } catch (error) {
+      console.error("Socket emit error:", error);
+    }
+
     res.status(200).json({
       status: "success",
       data: {

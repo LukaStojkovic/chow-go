@@ -7,7 +7,7 @@ export function DeliveryAddressInfo({ address }) {
       <div className="flex items-start gap-3">
         <MapPin className="h-5 w-5 text-gray-400 shrink-0 mt-1" />
         <div>
-          <p className="font-semibold mb-1">{address.label}</p>
+          <p className="font-semibold mb-1">{address.label.toUpperCase()}</p>
           <p className="text-sm text-gray-500">{address.fullAddress}</p>
           {address.notes && (
             <p className="text-sm text-gray-400 mt-2">Note: {address.notes}</p>
