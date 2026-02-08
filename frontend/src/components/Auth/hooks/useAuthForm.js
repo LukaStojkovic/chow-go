@@ -35,31 +35,16 @@ const RESTAURANT_INFO_SCHEMA = z.object({
   cuisineType: z.string().min(1, "Cuisine type is required"),
 });
 
-const RESTAURANT_LOCATION_SCHEMA = z
-  .object({
-    restaurantLat: z
-      .number()
-      .refine((val) => val !== 0, "Please select a location on the map"),
-    restaurantLng: z
-      .number()
-      .refine((val) => val !== 0, "Please select a location on the map"),
-    openingTime: z.string().min(1, "Opening time is required"),
-    closingTime: z.string().min(1, "Closing time is required"),
-  })
-  .refine(
-    (data) => {
-      if (!data.openingTime || !data.closingTime) return true;
-      const [openHour, openMin] = data.openingTime.split(":").map(Number);
-      const [closeHour, closeMin] = data.closingTime.split(":").map(Number);
-      const openTime = openHour * 60 + openMin;
-      const closeTime = closeHour * 60 + closeMin;
-      return closeTime > openTime;
-    },
-    {
-      message: "Closing time must be after opening time",
-      path: ["closingTime"],
-    }
-  );
+const RESTAURANT_LOCATION_SCHEMA = z.object({
+  restaurantLat: z
+    .number()
+    .refine((val) => val !== 0, "Please select a location on the map"),
+  restaurantLng: z
+    .number()
+    .refine((val) => val !== 0, "Please select a location on the map"),
+  openingTime: z.string().min(1, "Opening time is required"),
+  closingTime: z.string().min(1, "Closing time is required"),
+});
 
 const RESTAURANT_IMAGES_SCHEMA = z.object({
   restaurantDescription: z
@@ -193,7 +178,7 @@ export function useAuthForm(currentStep, onStepSuccess) {
       reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     },
-    [setValue]
+    [setValue],
   );
 
   const resetForm = useCallback(() => {
@@ -248,7 +233,7 @@ export function useAuthForm(currentStep, onStepSuccess) {
         Object.keys(allData).forEach((key) => {
           if (key === "restaurantImages" && Array.isArray(allData[key])) {
             allData[key].forEach((file) =>
-              formData.append("restaurantImages", file)
+              formData.append("restaurantImages", file),
             );
           } else if (key === "profilePicture" && allData[key] instanceof File) {
             formData.append(key, allData[key]);
@@ -269,7 +254,7 @@ export function useAuthForm(currentStep, onStepSuccess) {
       loginUser,
       registerUser,
       onStepSuccess,
-    ]
+    ],
   );
 
   return {

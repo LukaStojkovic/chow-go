@@ -21,7 +21,7 @@ export async function createMenuItem(restaurantId, menuItemData) {
 
     const res = await axiosInstance.post(
       `/restaurants/${restaurantId}/menu`,
-      formData
+      formData,
     );
 
     return res.data;
@@ -41,7 +41,7 @@ export async function getMenuItems(
     minPrice = "",
     maxPrice = "",
     available = "",
-  } = {}
+  } = {},
 ) {
   if (!restaurantId) return { menuItems: [], pagination: {} };
 
@@ -58,7 +58,7 @@ export async function getMenuItems(
           maxPrice,
           available,
         },
-      }
+      },
     );
 
     return {
@@ -110,7 +110,7 @@ export async function updateMenuItem(restaurantId, menuItemId, menuItemData) {
 
     const res = await axiosInstance.put(
       `/restaurants/${restaurantId}/menu/${menuItemId}`,
-      formData
+      formData,
     );
 
     return res.data;
@@ -123,7 +123,7 @@ export async function updateMenuItem(restaurantId, menuItemId, menuItemData) {
 export async function deleteMenuItem(restaurantId, menuItemId) {
   try {
     const res = await axiosInstance.delete(
-      `/restaurants/${restaurantId}/menu/${menuItemId}`
+      `/restaurants/${restaurantId}/menu/${menuItemId}`,
     );
 
     return res.data;
@@ -139,6 +139,34 @@ export async function getRestaurantInformations(restaurantId) {
     return res.data.data;
   } catch (err) {
     console.error("Error fetching restaurant informations:", err);
+    throw err;
+  }
+}
+
+export async function getRestaurantStats(restaurantId) {
+  try {
+    const res = await axiosInstance.get(`/restaurants/${restaurantId}/stats`);
+    return (
+      res.data || {
+        success: false,
+        stats: {
+          totalRevenue: { value: "0.00", trend: 0, isPositive: true },
+          activeOrders: { value: 0, trend: 0, isPositive: true },
+          totalCustomers: { value: 0, trend: 0, isPositive: true },
+          avgRating: {
+            value: "0.0",
+            trend: "0",
+            isPositive: true,
+            totalReviews: 0,
+          },
+        },
+        chartData: [],
+        popularItems: [],
+        recentOrders: [],
+      }
+    );
+  } catch (err) {
+    console.error("Error fetching restaurant stats:", err);
     throw err;
   }
 }

@@ -31,7 +31,7 @@ export default function SellerLayout() {
     { to: "/seller/orders", icon: ShoppingBag, label: "Live Orders" },
     { to: "/seller/menu", icon: UtensilsCrossed, label: "Menu Management" },
     { to: "/seller/analytics", icon: BarChart3, label: "Analytics" },
-    { to: "/seller/settings", icon: Settings, label: "Settings" },
+    { to: "/seller/settings", icon: Settings, label: "Restaurant Settings" },
   ];
 
   const currentTitle =
