@@ -170,3 +170,16 @@ export async function getRestaurantStats(restaurantId) {
     throw err;
   }
 }
+
+export async function getRestaurantAnalytics(restaurantId) {
+  try {
+    const res = await axiosInstance.get(
+      `/restaurants/${restaurantId}/analytics`,
+    );
+
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching restaurant analytics:", err);
+    throw err;
+  }
+}

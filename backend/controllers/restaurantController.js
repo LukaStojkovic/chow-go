@@ -1,6 +1,7 @@
 import * as menuItemService from "../services/menuItem.service.js";
 import * as restaurantService from "../services/restaurant.service.js";
 import * as statsService from "../services/stats.service.js";
+import * as analyticsService from "../services/analytics.service.js";
 import * as imageService from "../services/image.service.js";
 
 export async function createMenuItem(req, res, next) {
@@ -188,6 +189,24 @@ export async function getRestaurantStats(req, res, next) {
     );
 
     res.json(stats);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getRestaurantAnalytics(req, res, next) {
+  try {
+    const { restaurantId } = req.params;
+
+    const analytics = await analyticsService.getRestaurantAnalytics(
+      restaurantId,
+      req.user._id,
+    );
+
+    res.status(200).json({
+      status: "success",
+      data: analytics,
+    });
   } catch (error) {
     next(error);
   }

@@ -9,6 +9,7 @@ import {
   getRestaurantMenuByCategories,
   updateRestaurant,
   getRestaurantStats,
+  getRestaurantAnalytics,
 } from "../controllers/restaurantController.js";
 import { createUpload } from "../middlewares/upload.js";
 import { isSellerMiddleware } from "../middlewares/roleMiddleware.js";
@@ -35,10 +36,19 @@ router.put(
   editMenuItem,
 );
 
+router.get(
+  "/:restaurantId/analytics",
+  isSellerMiddleware,
+  getRestaurantAnalytics,
+);
 router.get("/:restaurantId", getRestaurantInformations);
 router.get("/:restaurantId/menu-items", getRestaurantMenuItems);
 router.get("/:restaurantId/menu", getRestaurantMenuByCategories);
-router.delete("/:restaurantId/menu/:menuItemId", deleteMenuItem);
+router.delete(
+  "/:restaurantId/menu/:menuItemId",
+  isSellerMiddleware,
+  deleteMenuItem,
+);
 router.get("/:restaurantId/stats", isSellerMiddleware, getRestaurantStats);
 
 export default router;
