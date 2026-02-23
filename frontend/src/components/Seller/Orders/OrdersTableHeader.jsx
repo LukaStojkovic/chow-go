@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -7,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Filter, RefreshCw, Search } from "lucide-react";
+import Spinner from "@/components/Spinner";
 
 export function OrdersTableHeader({
   search,
@@ -14,6 +20,7 @@ export function OrdersTableHeader({
   statusFilter,
   setStatusFilter,
   onRefresh,
+  isRefreshing = false,
 }) {
   const filterOptions = [
     { value: "active", label: "Active Orders" },
@@ -44,6 +51,7 @@ export function OrdersTableHeader({
               Filter: {statusFilter === "active" ? "Active" : statusFilter}
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent align="end">
             {filterOptions.map((option) => (
               <DropdownMenuItem
@@ -55,8 +63,21 @@ export function OrdersTableHeader({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline" size="icon" onClick={onRefresh}>
-          <RefreshCw className="w-4 h-4" />
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          onClick={() => {
+            onRefresh();
+          }}
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? (
+            <Spinner size="sm" />
+          ) : (
+            <RefreshCw className="w-4 h-4" />
+          )}
         </Button>
       </div>
     </div>

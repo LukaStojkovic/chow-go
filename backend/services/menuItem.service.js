@@ -49,7 +49,7 @@ export async function createNewMenuItem({
     description: description?.trim() || "",
     price: numericPrice,
     category: category.trim(),
-    available: available !== "false",
+    available: available === true || available === "true",
     imageUrls: imageUrls || [],
     restaurant: restaurantId,
     owner: userId,

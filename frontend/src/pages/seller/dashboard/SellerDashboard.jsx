@@ -1,6 +1,11 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import useGetRestaurantStats from "@/hooks/Restaurants/useGetRestaurantStats";
 import Spinner from "@/components/Spinner";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { DashboardStats } from "./DashboardStats";
 import { RevenueChart } from "./RevenueChart";
 import { PopularItems } from "./PopularItems";
@@ -24,12 +29,17 @@ export const SellerDashboard = () => {
           <p className="text-red-500 mb-4">
             {error.response?.data?.message || "Failed to load dashboard data"}
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-          >
-            Retry
-          </button>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+              >
+                Retry
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Reload dashboard data</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     );

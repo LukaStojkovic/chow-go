@@ -10,6 +10,7 @@ export const KpiGrid = ({ kpis }) => {
         value={`$${kpis.todayRevenue.toFixed(2)}`}
         sub={`${kpis.todayOrders} orders`}
         color="bg-emerald-500"
+        tooltip="Revenue collected since midnight."
       />
 
       <KpiCard
@@ -18,6 +19,7 @@ export const KpiGrid = ({ kpis }) => {
         value={`$${kpis.monthlyRevenue.toFixed(2)}`}
         sub="Last 30 days"
         color="bg-indigo-500"
+        tooltip="Revenue from the past 30 days."
       />
 
       <KpiCard
@@ -26,6 +28,7 @@ export const KpiGrid = ({ kpis }) => {
         value={`$${(kpis.avgOrderValue || 0).toFixed(2)}`}
         sub="Today"
         color="bg-amber-500"
+        tooltip="Average amount spent per order today."
       />
 
       <KpiCard
@@ -34,6 +37,7 @@ export const KpiGrid = ({ kpis }) => {
         value={kpis.averageRating?.toFixed(1) || "—"}
         sub={`${kpis.totalReviews} reviews`}
         color="bg-rose-500"
+        tooltip="Average customer rating out of 5."
       />
     </div>
   );
