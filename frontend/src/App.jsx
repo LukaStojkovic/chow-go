@@ -17,7 +17,7 @@ import RestaurantPage from "./pages/RestaurantPage";
 import CustomerLayout from "./components/Auth/components/CustomerLayout";
 import ScrollToTop from "./hooks/ScrollToTop";
 import SellerLayout from "./components/Auth/components/SellerLayout";
-import { SellerDashboard } from "./pages/seller/SellerDashboard";
+import { SellerDashboard } from "./pages/seller/dashboard/SellerDashboard";
 import { SellerOrders } from "./pages/seller/SellerOrders";
 import { SellerMenu } from "./pages/seller/SellerMenu";
 import { SellerAnalytics } from "./pages/seller/SellerAnalytics";

@@ -22,6 +22,11 @@ import { ConfirmOrderDialog } from "@/components/Seller/Orders/ConfirmOrderDialo
 import { RejectOrderDialog } from "@/components/Seller/Orders/RejectOrderDialog";
 import { CancelOrderDialog } from "@/components/Seller/Orders/CancelOrderDialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Wifi, WifiOff } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSocket } from "@/contexts/SocketContext";
@@ -52,13 +57,19 @@ export const SellerOrders = () => {
 
   const { isConnected } = useSocket();
 
-  const { orders, counts, pagination, isLoadingOrders, refetch } =
-    useGetRestaurantOrders({
-      status: statusFilter,
-      search,
-      page: currentPage,
-      limit: 20,
-    });
+  const {
+    orders,
+    counts,
+    pagination,
+    isLoadingOrders,
+    isFetchingOrders,
+    refetch,
+  } = useGetRestaurantOrders({
+    status: statusFilter,
+    search,
+    page: currentPage,
+    limit: 20,
+  });
 
   const { confirmOrder, isConfirming } = useConfirmOrder();
   const { rejectOrder, isRejecting } = useRejectOrder();
@@ -149,19 +160,28 @@ export const SellerOrders = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Orders</h1>
-          <Badge variant={isConnected ? "success" : "destructive"}>
-            {isConnected ? (
-              <>
-                <Wifi className="w-3 h-3 mr-1" />
-                Live
-              </>
-            ) : (
-              <>
-                <WifiOff className="w-3 h-3 mr-1" />
-                Offline
-              </>
-            )}
-          </Badge>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant={isConnected ? "success" : "destructive"}>
+                {isConnected ? (
+                  <>
+                    <Wifi className="w-3 h-3 mr-1" />
+                    Live
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-3 h-3 mr-1" />
+                    Offline
+                  </>
+                )}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isConnected
+                ? "Connected – orders update in real time"
+                : "Disconnected – you may not see new orders until you refresh"}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
@@ -195,6 +215,7 @@ export const SellerOrders = () => {
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
               onRefresh={refetch}
+              isRefreshing={isFetchingOrders}
             />
           </CardHeader>
           <CardContent>

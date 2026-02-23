@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700 shadow-lg ",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 shadow-lg shadow-destructive/20",
+          "bg-destructive text-white hover:bg-destructive/90 shadow-lg shadow-destructive/20 cursor-pointer",
         outline:
           "border border-emerald-600 cursor-pointer text-emerald-600 bg-transparent hover:bg-emerald-50 dark:hover:bg-emerald-800/30 hover:text-emerald-700 dark:hover:text-emerald-400 shadow-sm",
         secondary:

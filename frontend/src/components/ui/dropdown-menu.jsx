@@ -52,7 +52,7 @@ function DropdownMenuItem({ className, inset, variant = "default", ...props }) {
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors",
+        "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors",
         "data-highlighted:bg-emerald-100 data-highlighted:text-emerald-900",
         "dark:data-highlighted:bg-emerald-950/40",
         "data-disabled:pointer-events-none data-disabled:opacity-50",

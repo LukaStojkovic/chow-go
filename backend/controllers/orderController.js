@@ -95,6 +95,7 @@ export async function createOrder(req, res, next) {
       subtotal,
       deliveryFee,
       tax,
+      serviceFee,
       tip: tipAmount,
       discount: 0,
       total,
@@ -236,7 +237,11 @@ export async function cancelOrder(req, res, next) {
       return next(new AppError("Order not found", 404));
     }
 
-    if (["picked_up", "in_transit", "delivered"].includes(order.status)) {
+    if (
+      ["picked_up", "in_transit", "delivered", "cancelled"].includes(
+        order.status,
+      )
+    ) {
       return next(new AppError("Cannot cancel order at this stage", 400));
     }
 
@@ -248,6 +253,10 @@ export async function cancelOrder(req, res, next) {
     await order.save();
 
     const restaurant = await Restaurant.findById(order.restaurant);
+
+    if (!restaurant) {
+      return next(new AppError("Restaurant not found", 404));
+    }
 
     await Notification.create({
       recipient: restaurant.ownerId,

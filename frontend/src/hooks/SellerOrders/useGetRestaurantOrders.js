@@ -5,6 +5,7 @@ export function useGetRestaurantOrders(params = {}) {
   const {
     data: ordersData,
     isLoading: isLoadingOrders,
+    isFetching: isFetchingOrders,
     error,
     refetch,
   } = useQuery({
@@ -18,6 +19,7 @@ export function useGetRestaurantOrders(params = {}) {
     counts: ordersData?.data?.counts || {},
     pagination: ordersData?.data?.pagination || {},
     isLoadingOrders,
+    isFetchingOrders,
     error,
     refetch,
   };

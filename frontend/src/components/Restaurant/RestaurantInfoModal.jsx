@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Clock, Phone } from "lucide-react";
+import { MapPin, Clock, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useOutsideClick from "@/hooks/useOutsideClick";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
@@ -130,6 +130,25 @@ const RestaurantInfoModal = ({
                     className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     {restaurantData.phone}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {restaurantData.email && (
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                  <Mail className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-50">
+                    Contact Email
+                  </p>
+                  <a
+                    href={`mailto:${restaurantData.email}`}
+                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    {restaurantData.email}
                   </a>
                 </div>
               </div>
