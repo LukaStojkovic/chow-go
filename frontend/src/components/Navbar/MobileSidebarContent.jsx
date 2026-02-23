@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { LogOut, Settings, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function MobileSidebarContent({
   authUser,
@@ -84,12 +84,12 @@ export default function MobileSidebarContent({
         >
           Restaurants
         </a>
-        <a
-          href="#"
+        <Link
+          to="/become-courier"
           className="block text-sm sm:text-lg text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
         >
-          Become a Rider
-        </a>
+          Become a Courier
+        </Link>
         <a
           href="#"
           className="block text-sm sm:text-lg text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"

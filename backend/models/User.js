@@ -28,12 +28,12 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["customer", "seller"],
+      enum: ["customer", "seller", "courier"],
       default: "customer",
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.pre("save", function (next) {

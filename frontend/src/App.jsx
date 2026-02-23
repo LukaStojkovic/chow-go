@@ -27,6 +27,7 @@ import OrderTrackingPage from "./pages/OrderTrackingPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import { SocketProvider } from "./contexts/SocketContext";
 import { useGlobalSocketEvents } from "./hooks/Sockets/useGlobalSocketEvents";
+import BecomeCourierPage from "./pages/BecomeCourierPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +63,7 @@ function AppContent() {
 
         <Route element={<PublicRoute />}>
           <Route path="/discovery" element={<DiscoverPage />} />
+          <Route path="/become-courier" element={<BecomeCourierPage />} />
         </Route>
 
         <Route element={<CustomerRoute />}>

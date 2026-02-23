@@ -3,6 +3,7 @@ import { Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import AuthButtons from "./AuthButtons";
 import UserMenu from "./UserMenu";
+import { Link } from "react-router-dom";
 
 export default function DesktopNav({
   isDark,
@@ -14,18 +15,12 @@ export default function DesktopNav({
 }) {
   return (
     <div className="hidden md:flex items-center gap-6">
-      <a
-        href="#"
+      <Link
+        to="/become-courier"
         className="font-medium hover:text-emerald-600 transition-colors text-sm"
       >
-        Partners
-      </a>
-      <a
-        href="#"
-        className="font-medium hover:text-emerald-600 transition-colors text-sm"
-      >
-        Careers
-      </a>
+        Become a Courier
+      </Link>
 
       <div className="flex items-center gap-4">
         {authUser ? (
