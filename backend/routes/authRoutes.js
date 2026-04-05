@@ -24,6 +24,7 @@ router.post(
   ]),
   register
 );
+router.post("/register/courier", register);
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/reset-password", resetPassword);

@@ -13,6 +13,8 @@ export default function ApplicationForm({ openAuthModal }) {
     step,
     submitSuccess,
     totalSteps,
+    isLoading,
+    apiError,
     control,
     handleSubmit,
     errors,
@@ -52,13 +54,17 @@ export default function ApplicationForm({ openAuthModal }) {
               {step === 1 && (
                 <PersonalInfoStep control={control} errors={errors} />
               )}
-
               {step === 2 && (
                 <VehicleInfoStep control={control} errors={errors} />
               )}
-
               {step === 3 && (
                 <DocumentsPaymentStep control={control} errors={errors} />
+              )}
+
+              {apiError && (
+                <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600 darkck:bg-red-900/20 dark:text-red-400">
+                  {apiError}
+                </p>
               )}
 
               <FormNavigationButtons
@@ -66,7 +72,7 @@ export default function ApplicationForm({ openAuthModal }) {
                 totalSteps={totalSteps}
                 onPrevious={handlePreviousStep}
                 onNext={handleNextStep}
-                onSubmit={handleSubmit(handleFormSubmit)}
+                isLoading={isLoading}
               />
 
               <p className="text-center text-xs text-gray-500 dark:text-gray-400">

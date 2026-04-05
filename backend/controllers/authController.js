@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
+import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
 
 export async function login(req, res, next) {
@@ -40,6 +41,13 @@ export async function login(req, res, next) {
 
   if (user.role === "seller" && user.restaurant) {
     response.restaurant = user.restaurant;
+  }
+
+  if (user.role === "courier") {
+    const courierProfile = await Courier.findOne({ userId: user._id });
+    if (courierProfile) {
+      response.courier = courierProfile;
+    }
   }
 
   res.status(200).json(response);
@@ -106,7 +114,7 @@ export const register = async (req, res, next) => {
     ) {
       await User.findByIdAndDelete(user._id);
       return next(
-        new AppError("At least one restaurant image is required", 400)
+        new AppError("At least one restaurant image is required", 400),
       );
     }
 
@@ -143,6 +151,83 @@ export const register = async (req, res, next) => {
     user.restaurant = restaurant._id;
     await user.save();
     await user.populate("restaurant");
+  }
+
+  if (role === "courier") {
+    const courierData = req.body;
+
+    const requiredCourierFields = ["vehicleType"];
+    const missingCourierField = requiredCourierFields.find(
+      (field) => !courierData[field],
+    );
+
+    if (missingCourierField) {
+      await User.findByIdAndDelete(user._id);
+      return next(new AppError(`${missingCourierField} is required`, 400));
+    }
+
+    const validVehicleTypes = ["bike", "scooter", "motorcycle", "car"];
+    if (!validVehicleTypes.includes(courierData.vehicleType)) {
+      await User.findByIdAndDelete(user._id);
+      return next(new AppError("Invalid vehicle type", 400));
+    }
+
+    let documents = {};
+    if (courierData.documents) {
+      try {
+        documents =
+          typeof courierData.documents === "string"
+            ? JSON.parse(courierData.documents)
+            : courierData.documents;
+      } catch {
+        documents = {};
+      }
+    }
+
+    const courierProfile = await Courier.create({
+      userId: user._id,
+      fullName: name,
+      phoneNumber: phoneNumber || courierData.courierPhone || "",
+      email: email.toLowerCase(),
+      profilePicture: profilePicture || "",
+      vehicleType: courierData.vehicleType,
+      vehicleNumber: courierData.vehicleNumber || "",
+      vehicleModel: courierData.vehicleModel || "",
+      documents: {
+        driverLicense: {
+          number: documents?.driverLicense?.number || "",
+          expiryDate: documents?.driverLicense?.expiryDate || null,
+          verified: false,
+        },
+        vehicleRegistration: {
+          number: documents?.vehicleRegistration?.number || "",
+          expiryDate: documents?.vehicleRegistration?.expiryDate || null,
+          verified: false,
+        },
+        insurance: {
+          number: documents?.insurance?.number || "",
+          expiryDate: documents?.insurance?.expiryDate || null,
+          verified: false,
+        },
+      },
+      verificationStatus: "pending",
+      isActive: false,
+      isOnline: false,
+      isAvailable: true,
+    });
+
+    generateToken(user._id, res);
+
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phoneNumber: user.phoneNumber,
+      profilePicture: user.profilePicture,
+      createdAt: user.createdAt,
+      courier: courierProfile,
+    });
   }
 
   generateToken(user._id, res);
@@ -219,7 +304,7 @@ export const updateProfile = async (req, res, next) => {
 
     const isCorrectPassword = await bcrypt.compare(
       currentPassword,
-      user.password
+      user.password,
     );
 
     if (!isCorrectPassword) {

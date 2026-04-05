@@ -17,6 +17,12 @@ export const STEP_1_FIELDS = {
     placeholder: "9876543210",
     type: "tel",
   },
+  password: {
+    name: "password",
+    label: "Password",
+    placeholder: "Min. 6 characters",
+    type: "password",
+  },
 };
 
 export const STEP_2_FIELDS = {

@@ -37,6 +37,22 @@ export async function loginUser(data) {
   }
 }
 
+export async function registerCourier(data) {
+  try {
+    const response = await axiosInstance.post("/auth/register/courier", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    toast.success("Courier application submitted!");
+    return response.data;
+  } catch (err) {
+    console.error("Error registerCourier:", err);
+    toast.error(err.response?.data?.message || "Registration failed");
+    throw err;
+  }
+}
+
 export async function logoutUser() {
   try {
     const response = await axiosInstance.post("/auth/logout");

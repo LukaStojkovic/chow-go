@@ -1,12 +1,12 @@
 import React from "react";
-import { ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 
 export const FormNavigationButtons = ({
   step,
   totalSteps,
   onPrevious,
   onNext,
-  onSubmit,
+  isLoading,
 }) => {
   return (
     <div className="flex gap-3 pt-4">
@@ -33,11 +33,20 @@ export const FormNavigationButtons = ({
       ) : (
         <button
           type="submit"
-          onClick={onSubmit}
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-offset-zinc-900"
+          disabled={isLoading}
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500 dark:hover:bg-emerald-600 dark:focus:ring-offset-zinc-900"
         >
-          Submit Application
-          <Check className="h-4 w-4" />
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Submitting…
+            </>
+          ) : (
+            <>
+              Submit Application
+              <Check className="h-4 w-4" />
+            </>
+          )}
         </button>
       )}
     </div>

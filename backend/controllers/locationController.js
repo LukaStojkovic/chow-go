@@ -5,12 +5,16 @@ import Restaurant from "../models/Restaurant.js";
 dotenv.config();
 
 async function fetchJson(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "ChowGo/1.0",
+    },
+  });
 
   if (!response.ok) {
     throw new AppError(
       `External API error: ${response.status} ${response.statusText}`,
-      502
+      502,
     );
   }
 
@@ -38,9 +42,10 @@ export async function getLocation(req, res, next) {
     return next(new AppError("Invalid latitude or longitude values", 400));
   }
 
-  const url = `https://nominatim.openstreetmap.org/reverse?lat=${latNum}&lon=${lonNum}&format=json&addressdetails=1&user-agent=ChowGo/1.0`;
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${latNum}&lon=${lonNum}&format=json&addressdetails=1`;
 
   const data = await fetchJson(url);
+  console.log(data);
 
   res.status(200).json(data);
 }
@@ -60,7 +65,7 @@ export async function locationPrediction(req, res, next) {
   }
 
   const url = `https://api.locationiq.com/v1/autocomplete?key=${accessKey}&q=${encodeURIComponent(
-    searchQuery
+    searchQuery,
   )}&limit=5&dedupe=1`;
 
   const data = await fetchJson(url);

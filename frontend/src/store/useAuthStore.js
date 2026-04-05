@@ -6,6 +6,7 @@ import {
   checkAuth,
   loginUser,
   logoutUser,
+  registerCourier,
   registerUser,
   updateProfile,
 } from "@/services/apiAuth";
@@ -41,6 +42,20 @@ export const useAuthStore = create((set) => ({
       set({ authUser: response || null });
     } catch (err) {
       console.log("Error in register", err);
+    } finally {
+      set({ isRegistering: false });
+    }
+  },
+
+  registerCourier: async (data) => {
+    set({ isRegistering: true });
+    try {
+      const response = await registerCourier(data);
+      set({ authUser: response || null });
+      return response;
+    } catch (err) {
+      console.error("Error in registerCourier", err);
+      throw err;
     } finally {
       set({ isRegistering: false });
     }

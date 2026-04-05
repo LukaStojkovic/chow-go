@@ -2,11 +2,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { courierApplicationSchema } from "@/lib/validationSchemas";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export const useCourierForm = () => {
   const [step, setStep] = useState(1);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [apiError, setApiError] = useState(null);
   const totalSteps = 3;
+
+  const { registerCourier, isRegistering } = useAuthStore();
 
   const {
     control,
@@ -20,6 +24,7 @@ export const useCourierForm = () => {
       fullName: "",
       email: "",
       phoneNumber: "",
+      password: "",
       vehicleType: "bike",
       vehicleNumber: "",
       vehicleModel: "",
@@ -40,77 +45,41 @@ export const useCourierForm = () => {
     3: "Documents & Payment",
   };
 
-  const handleNextStep = () => {
-    const stepData = {
-      step,
-      label: stepLabels[step],
-      timestamp: new Date().toISOString(),
-    };
+  const handleNextStep = () => setStep((prev) => prev + 1);
+  const handlePreviousStep = () => setStep((prev) => prev - 1);
 
-    if (step === 1) {
-      stepData.data = {
-        fullName: watchAllFields.fullName,
-        email: watchAllFields.email,
-        phoneNumber: watchAllFields.phoneNumber,
-      };
-    } else if (step === 2) {
-      stepData.data = {
-        vehicleType: watchAllFields.vehicleType,
-        vehicleNumber: watchAllFields.vehicleNumber,
-        vehicleModel: watchAllFields.vehicleModel,
-      };
-    } else if (step === 3) {
-      stepData.data = {
-        documents: watchAllFields.documents,
-        paymentMethod: watchAllFields.paymentMethod,
-      };
-    }
-
-    console.log(`✅ Step ${step} Completed:`, stepData);
-    setStep(step + 1);
-  };
-
-  const handleFormSubmit = (data) => {
-    console.log({
-      step: 3,
-      label: "Documents & Payment",
-      timestamp: new Date().toISOString(),
-      data: {
-        documents: data.documents,
-        paymentMethod: data.paymentMethod,
-      },
-    });
-
-    console.log({
-      timestamp: new Date().toISOString(),
-      personalInfo: {
-        fullName: data.fullName,
+  const handleFormSubmit = async (data) => {
+    setApiError(null);
+    console.log(data);
+    try {
+      const payload = {
+        name: data.fullName,
         email: data.email,
+        password: data.password,
         phoneNumber: data.phoneNumber,
-      },
-      vehicleInfo: {
+        role: "courier",
         vehicleType: data.vehicleType,
         vehicleNumber: data.vehicleNumber,
         vehicleModel: data.vehicleModel,
-      },
-      documents: data.documents,
-      paymentMethod: data.paymentMethod,
-    });
+        documents: JSON.stringify({
+          driverLicense: data.documents?.driverLicense,
+          vehicleRegistration: data.documents?.vehicleRegistration,
+          insurance: data.documents?.insurance,
+        }),
+      };
 
-    setSubmitSuccess(true);
-    setTimeout(() => {
-      setStep(1);
-      setSubmitSuccess(false);
-    }, 3000);
-  };
+      await registerCourier(payload);
 
-  const handlePreviousStep = () => {
-    setStep(step - 1);
-  };
-
-  const proceed = () => {
-    if (step < totalSteps) {
-      handleNextStep();
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setStep(1);
+        setSubmitSuccess(false);
+      }, 3000);
+    } catch (err) {
+      setApiError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
     }
   };
 
@@ -119,16 +88,15 @@ export const useCourierForm = () => {
     submitSuccess,
     totalSteps,
     stepLabels,
-
+    isLoading: isRegistering,
+    apiError,
     control,
     handleSubmit,
     errors,
     watchAllFields,
-
     handleNextStep,
     handleFormSubmit,
     handlePreviousStep,
-    proceed,
     setStep,
   };
 };

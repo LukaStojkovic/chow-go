@@ -32,7 +32,7 @@ export async function updateRestaurantInfo({
     throw new AppError("Restaurant not found", 404);
   }
 
-  // Handle profile picture
+  
   if (profilePictureFile) {
     if (restaurant.profilePicture) {
       await imageService.deleteCloudinaryImage(restaurant.profilePicture);
@@ -40,7 +40,7 @@ export async function updateRestaurantInfo({
     restaurant.profilePicture = profilePictureFile.path;
   }
 
-  // Update basic info
+
   if (name !== undefined && name.trim()) {
     restaurant.name = name.trim();
   }
@@ -72,7 +72,7 @@ export async function updateRestaurantInfo({
     restaurant.estimatedDeliveryTime = estimatedDeliveryTime.trim();
   }
 
-  // Update address
+
   if (address) {
     if (!restaurant.address) {
       restaurant.address = {};
