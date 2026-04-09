@@ -12,6 +12,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import SellerRoute from "./components/Auth/components/SellerRoute";
 import CustomerRoute from "./components/Auth/components/CustomerRoute";
 import PublicRoute from "./components/Auth/components/PublicRoute";
+import CourierRoute from "./components/Auth/components/CourierRoute";
 import ProfilePage from "./pages/ProfilePage";
 import RestaurantPage from "./pages/RestaurantPage";
 import CustomerLayout from "./components/Auth/components/CustomerLayout";
@@ -28,6 +29,7 @@ import MyOrdersPage from "./pages/MyOrdersPage";
 import { SocketProvider } from "./contexts/SocketContext";
 import { useGlobalSocketEvents } from "./hooks/Sockets/useGlobalSocketEvents";
 import BecomeCourierPage from "./pages/BecomeCourierPage";
+import CourierOrdersPage from "./pages/courier/CourierOrdersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +95,10 @@ function AppContent() {
           <Route path="menu" element={<SellerMenu />} />
           <Route path="analytics" element={<SellerAnalytics />} />
           <Route path="settings" element={<SellerSettings />} />
+        </Route>
+
+        <Route element={<CourierRoute />}>
+          <Route path="/courier/orders" element={<CourierOrdersPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

@@ -6,6 +6,7 @@ import restaurantsRoutes from "./routes/restaurantsRoutes.js";
 import deliveryAddressRoute from "./routes/deliveryAddressRoute.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import restaurantOrderRoutes from "./routes/restaurantOrderRoutes.js";
+import courierOrderRoutes from "./routes/courierOrderRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -14,9 +15,11 @@ import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 import { handleError } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
+import path from "path";
 
 const app = express();
 const httpServer = http.createServer(app);
+const __dirname = path.resolve();
 
 dotenv.config();
 
@@ -27,7 +30,7 @@ const limiter = rateLimit({
 });
 
 // MIDDLEWARES
-// app.use("/api", limiter);
+app.use("/api", limiter);
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(
@@ -48,6 +51,15 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/delivery-address", deliveryAddressRoute);
 app.use("/api/orders", orderRoutes);
 app.use("/api/restaurant/orders", restaurantOrderRoutes);
+app.use("/api/courier/orders", courierOrderRoutes);
+
+if(process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+  });
+}
 
 app.get("/", (_, res) => {
   res.send("Backend is Running");

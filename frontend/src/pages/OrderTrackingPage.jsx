@@ -12,6 +12,7 @@ import { DeliveryAddressInfo } from "@/components/OrderTracking/DeliveryAddressI
 import { CourierInfo } from "@/components/OrderTracking/CourierInfo";
 import { OrderItems } from "@/components/OrderTracking/OrderItems";
 import { DeliveryInstructions } from "@/components/OrderTracking/DeliveryInstructions";
+import { LiveDeliveryMap } from "@/components/OrderTracking/LiveDeliveryMap";
 
 const OrderTrackingPage = () => {
   const { orderId } = useParams();
@@ -86,6 +87,19 @@ const OrderTrackingPage = () => {
           <RestaurantInfo restaurant={order.restaurant} />
           <DeliveryAddressInfo address={order.deliveryAddressSnapshot} />
         </div>
+
+        {["assigned", "picked_up", "in_transit"].includes(order.status) && (
+          <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+            <h3 className="font-bold text-lg mb-4">Live Map</h3>
+            <LiveDeliveryMap
+              restaurant={order.restaurant}
+              courier={order.courier}
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+              Courier location updates in real time.
+            </p>
+          </div>
+        )}
 
         <CourierInfo courier={order.courier} />
 
