@@ -28,6 +28,13 @@ import MyOrdersPage from "./pages/MyOrdersPage";
 import { SocketProvider } from "./contexts/SocketContext";
 import { useGlobalSocketEvents } from "./hooks/Sockets/useGlobalSocketEvents";
 import BecomeCourierPage from "./pages/BecomeCourierPage";
+import CourierRoute from "./pages/courier/CourierRoute";
+import CourierLayout from "./pages/courier/CourierLayout";
+import CourierDashboard from "./pages/courier/CourierDashboard";
+import { CourierOrders } from "./pages/courier/CourierOrders";
+import { CourierEarnings } from "./pages/courier/CourierEarnings";
+import { CourierInfo } from "./components/OrderTracking/CourierInfo";
+import { CourierProfile } from "./pages/courier/CourierProfile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +100,21 @@ function AppContent() {
           <Route path="menu" element={<SellerMenu />} />
           <Route path="analytics" element={<SellerAnalytics />} />
           <Route path="settings" element={<SellerSettings />} />
+        </Route>
+
+        <Route
+          path="/courier"
+          element={
+            <CourierRoute>
+              <CourierLayout />
+            </CourierRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<CourierDashboard />} />
+          <Route path="orders" element={<CourierOrders />} />
+          <Route path="earnings" element={<CourierEarnings />} />
+          <Route path="profile" element={<CourierProfile />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

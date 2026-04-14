@@ -13,3 +13,10 @@ export const isCustomerMiddleware = (req, res, next) => {
   }
   next();
 };
+
+export const isCourierMiddleware = (req, res, next) => {
+  if (req.user.role !== "courier") {
+    return next(new AppError("Access denied. Courier role required.", 403));
+  }
+  next();
+};
