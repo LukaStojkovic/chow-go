@@ -50,7 +50,7 @@ export const useCourierForm = () => {
 
   const handleFormSubmit = async (data) => {
     setApiError(null);
-    console.log(data);
+
     try {
       const payload = {
         name: data.fullName,

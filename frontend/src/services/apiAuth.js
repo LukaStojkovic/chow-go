@@ -49,7 +49,6 @@ export async function registerCourier(data) {
   } catch (err) {
     console.error("Error registerCourier:", err);
     toast.error(err.response?.data?.message || "Registration failed");
-    throw err;
   }
 }
 

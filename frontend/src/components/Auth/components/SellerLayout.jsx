@@ -22,10 +22,6 @@ export default function SellerLayout() {
   const { logout, authUser } = useAuthStore();
   const location = useLocation();
 
-  const handleLogout = async () => {
-    await logout();
-  };
-
   const navItems = [
     { to: "/seller/dashboard", icon: LayoutDashboard, label: "Overview" },
     { to: "/seller/orders", icon: ShoppingBag, label: "Live Orders" },

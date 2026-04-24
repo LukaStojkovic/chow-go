@@ -14,12 +14,12 @@ export const FormNavigationButtons = ({
         <button
           type="button"
           onClick={onPrevious}
-          className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-800"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
-        </button>
-      )}
+        </button>      )}
 
       {step < totalSteps ? (
         <button

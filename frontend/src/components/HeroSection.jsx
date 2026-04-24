@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import useDetectLocation from "@/hooks/Location/useDetectLocation";
 import { useNavigate } from "react-router-dom";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import LocationAutocomplete from "./LocationAutocomplete";
 import ReputationStats from "./ReputationStats";
 
@@ -16,6 +17,7 @@ export default function HeroSection() {
     clearDetectedLocation,
   } = useDetectLocation();
   const { setLocation } = useDeliveryStore();
+  const { authUser } = useAuthStore();
   const navigate = useNavigate();
   const [locationInput, setLocationInput] = useState("");
 
@@ -79,13 +81,34 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="w-full max-w-2xl"
           >
-            <LocationAutocomplete
-              value={locationInput}
-              onChange={setLocationInput}
-              onSelect={handleLocationSelect}
-              onDetectClick={detect}
-              isDetecting={isDetecting}
-            />
+            {authUser?.role === "seller" || authUser?.role === "courier" ? (
+              <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-2xl shadow-emerald-900/5 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="mb-4 text-center">
+                  <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
+                    Welcome back, {" "} 
+                     {authUser.name}
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Access your administration portal to manage orders, menus, and deliveries.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(authUser.role === "seller" ? "/seller" : "/courier")}
+                  className="mx-auto inline-flex h-16 w-full max-w-xs items-center justify-center rounded-full bg-emerald-600 px-8 text-base font-semibold text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
+                >
+                  {authUser.role === "seller" ? "Go to Seller Portal" : "Go to Courier Dashboard"}
+                </button>
+              </div>
+            ) : (
+              <LocationAutocomplete
+                value={locationInput}
+                onChange={setLocationInput}
+                onSelect={handleLocationSelect}
+                onDetectClick={detect}
+                isDetecting={isDetecting}
+              />
+            )}
           </motion.div>
 
           <div className="mt-12 opacity-80 grayscale transition-all hover:grayscale-0">
