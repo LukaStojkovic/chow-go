@@ -6,6 +6,7 @@ import restaurantsRoutes from "./routes/restaurantsRoutes.js";
 import deliveryAddressRoute from "./routes/deliveryAddressRoute.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import restaurantOrderRoutes from "./routes/restaurantOrderRoutes.js";
+import courierRoutes from "./routes/courierRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -48,6 +49,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/delivery-address", deliveryAddressRoute);
 app.use("/api/orders", orderRoutes);
 app.use("/api/restaurant/orders", restaurantOrderRoutes);
+app.use("/api/courier", courierRoutes);
 
 app.get("/", (_, res) => {
   res.send("Backend is Running");

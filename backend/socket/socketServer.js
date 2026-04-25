@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Restaurant from "../models/Restaurant.js";
+import Courier from "../models/Courier.js";
+import * as courierOrderService from "../services/courierOrder.service.js";
 
 class SocketServer {
   constructor(httpServer) {
@@ -144,8 +146,23 @@ class SocketServer {
           break;
 
         case "courier":
-          // TODO: Implement courier registration with proper authorization
-          console.warn(`⚠️  Courier registration not yet implemented`);
+          const courier = await Courier.findOne({ userId: socket.userId });
+          if (!courier) {
+            console.error(
+              `🚨 Courier registration failed: No courier profile for user ${socket.userId}`,
+            );
+            socket.emit("registration_error", {
+              success: false,
+              message: "Courier profile not found",
+            });
+            socket.disconnect(true);
+            return;
+          }
+
+          this.connections.couriers.set(courier._id.toString(), socket.id);
+          socket.join(`courier:${courier._id}`);
+          socket.courierId = courier._id.toString();
+          console.log(`🛵 Courier registered: ${courier._id}`);
           break;
 
         default:
@@ -183,6 +200,9 @@ class SocketServer {
     this.connections.customers.delete(socket.userId);
     if (socket.restaurantId) {
       this.connections.restaurants.delete(socket.restaurantId);
+    }
+    if (socket.courierId) {
+      this.connections.couriers.delete(socket.courierId);
     }
   }
 
