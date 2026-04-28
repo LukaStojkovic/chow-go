@@ -4,6 +4,10 @@ import User from "../models/User.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import * as courierOrderService from "../services/courierOrder.service.js";
+import {
+  lastUpdateTime,
+  updateCourierLocation,
+} from "../services/locationTracking.service.js";
 
 class SocketServer {
   constructor(httpServer) {
@@ -72,6 +76,24 @@ class SocketServer {
 
       socket.on("register", async (data) => {
         await this.handleRegistration(socket, data);
+      });
+
+      socket.on("courier:location_update", async (data) => {
+        if (!socket.courierId) {
+          socket.emit("location:error", {
+            message: "Not registered as courier",
+          });
+          return;
+        }
+
+        try {
+          await updateCourierLocation({
+            courierId: socket.courierId,
+            coordinates: data?.coordinates,
+          });
+        } catch (err) {
+          socket.emit("location:error", { message: err.message });
+        }
       });
 
       socket.on("disconnect", () => {
@@ -203,6 +225,7 @@ class SocketServer {
     }
     if (socket.courierId) {
       this.connections.couriers.delete(socket.courierId);
+      lastUpdateTime.delete(socket.courierId);
     }
   }
 

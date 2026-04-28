@@ -1,13 +1,30 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Navigation, CheckCircle, Clock } from "lucide-react";
+import { MapPin, Package } from "lucide-react";
+import useGetAvailableOrders from "@/hooks/Courier/useGetAvailableOrders";
+import useGetCourierOrders from "@/hooks/Courier/useGetCourierOrders";
+import useAcceptCourierOrder from "@/hooks/Courier/useAcceptCourierOrder";
+import { ActiveOrderCard } from "@/components/Courier/components/ActiveOrderCard";
+import Spinner from "@/components/Spinner";
+import { CourierOrderCard } from "@/components/Courier/components/CourierOrderCard";
 
 export function CourierOrders() {
   const [activeTab, setActiveTab] = useState("available");
+  const { courierAvailableOrders, isLoadingOrders } = useGetAvailableOrders();
+  const { courierOrders, isLoadingCourierOrders } =
+    useGetCourierOrders("active");
+
+  const orders = courierAvailableOrders?.data?.orders ?? [];
+  const geoFiltered = courierAvailableOrders?.data?.geoFiltered;
+  const totalAvailable =
+    courierAvailableOrders?.data?.pagination?.totalItems ?? 0;
+
+  const activeOrders = courierOrders?.data?.orders ?? [];
+  const { acceptCourierOrder, isAccepting } = useAcceptCourierOrder();
 
   const tabs = [
-    { id: "available", label: "Available (2)" },
-    { id: "active", label: "Active (1)" },
+    { id: "available", label: `Available (${totalAvailable})` },
+    { id: "active", label: "Active" },
     { id: "history", label: "History" },
   ];
 
@@ -39,69 +56,83 @@ export function CourierOrders() {
       <div className="mt-6">
         {activeTab === "available" && (
           <div className="space-y-4">
-            {[1, 2].map((order) => (
-              <div key={order} className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4 dark:border-zinc-800">
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">$7.50</span>
-                  <span className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                    <Clock className="h-4 w-4" /> 2.4 km total
-                  </span>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1 h-3 w-3 rounded-full border-2 border-emerald-500 bg-white dark:bg-zinc-900" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Pizza Palace</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">123 Market St</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="mt-0.5 h-4 w-4 text-red-500" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Customer Dropoff</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">456 Elm Ave, Apt 2B</p>
-                    </div>
-                  </div>
-                </div>
-                <button className="mt-6 w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-700 shadow-lg shadow-emerald-500/20">
-                  Accept Delivery
-                </button>
+            {geoFiltered && (
+              <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                <MapPin className="h-3.5 w-3.5" />
+                Showing orders near your location
+              </p>
+            )}
+
+            {isLoadingOrders && <Spinner />}
+
+            {!isLoadingOrders && orders.length === 0 && (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-200 py-16 text-center dark:border-zinc-800">
+                <Package className="h-10 w-10 text-gray-300 dark:text-zinc-700" />
+                <p className="font-medium text-gray-500 dark:text-gray-400">
+                  No available orders nearby
+                </p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  New orders will appear here automatically
+                </p>
               </div>
-            ))}
+            )}
+
+            {!isLoadingOrders &&
+              orders.map((order) => (
+                <CourierOrderCard
+                  key={order._id}
+                  order={order}
+                  onAccept={acceptCourierOrder}
+                  isAccepting={isAccepting}
+                />
+              ))}
           </div>
         )}
 
         {activeTab === "active" && (
-          <div className="rounded-2xl border border-emerald-100 bg-white overflow-hidden shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="bg-emerald-50 px-5 py-3 dark:bg-emerald-900/20">
-              <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">HEADING TO RESTAURANT</span>
-            </div>
-            <div className="p-5">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Burger Joint</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">789 Tech Blvd • Order #4829</p>
-              
-              <div className="flex gap-3">
-                <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-700 shadow-lg shadow-emerald-500/20">
-                  <Navigation className="h-5 w-5" /> Navigate
-                </button>
-                <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 font-semibold text-gray-900 transition hover:bg-gray-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700">
-                  <CheckCircle className="h-5 w-5" /> Picked Up
-                </button>
+          <div className="space-y-4">
+            {isLoadingCourierOrders && <Spinner />}
+
+            {!isLoadingCourierOrders && activeOrders.length === 0 && (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-200 py-16 text-center dark:border-zinc-800">
+                <Package className="h-10 w-10 text-gray-300 dark:text-zinc-700" />
+                <p className="font-medium text-gray-500 dark:text-gray-400">
+                  No active deliveries
+                </p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  Accept an order to get started
+                </p>
               </div>
-            </div>
+            )}
+
+            {!isLoadingCourierOrders &&
+              activeOrders.map((order) => (
+                <ActiveOrderCard key={order._id} order={order} />
+              ))}
           </div>
         )}
 
         {activeTab === "history" && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Showing deliveries for today</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Showing deliveries for today
+            </p>
             {[1, 2, 3].map((item) => (
-              <div key={item} className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+              <div
+                key={item}
+                className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+              >
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">Order #102{item}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Completed at 2:{item}0 PM</p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Order #102{item}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Completed at 2:{item}0 PM
+                  </p>
                 </div>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">+$6.50</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  +$6.50
+                </span>
               </div>
             ))}
           </div>

@@ -6,6 +6,7 @@ import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
 
 const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
+const DEFAULT_RADIUS_METERS = 15_000;
 
 function isOrderAvailableForCourier(order) {
   return (
@@ -23,15 +24,88 @@ export async function getCourierByUserId(userId) {
   return courier;
 }
 
-export async function listAvailableOrders({ page = 1, limit = 20 }) {
+export async function listAvailableOrders({
+  courierUserId,
+  page = 1,
+  limit = 20,
+}) {
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
   const skip = (pageNum - 1) * limitNum;
 
-  const query = {
-    status: "ready",
-    courier: null,
-  };
+  const courier = await getCourierByUserId(courierUserId);
+
+  const [lng, lat] = courier.currentLocation?.coordinates ?? [0, 0];
+  const hasLocation = lng !== 0 || lat !== 0;
+
+  if (hasLocation) {
+    const pipeline = [
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [lng, lat] },
+          distanceField: "deliveryDistance",
+          maxDistance: DEFAULT_RADIUS_METERS,
+          spherical: true,
+          query: { status: "ready", courier: null },
+          key: "deliveryAddressSnapshot.location",
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $facet: {
+          orders: [
+            { $skip: skip },
+            { $limit: limitNum },
+            {
+              $lookup: {
+                from: "restaurants",
+                localField: "restaurant",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      name: 1,
+                      profilePicture: 1,
+                      address: 1,
+                      phone: 1,
+                      location: 1,
+                    },
+                  },
+                ],
+                as: "restaurant",
+              },
+            },
+            {
+              $unwind: {
+                path: "$restaurant",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const [result] = await Order.aggregate(pipeline);
+    const orders = result.orders;
+    const totalItems = result.total[0]?.count ?? 0;
+
+    return {
+      orders,
+      geoFiltered: true,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(totalItems / limitNum),
+        totalItems,
+        limit: limitNum,
+        hasNext: pageNum < Math.ceil(totalItems / limitNum),
+        hasPrev: pageNum > 1,
+      },
+    };
+  }
+
+  const query = { status: "ready", courier: null };
 
   const [orders, totalItems] = await Promise.all([
     Order.find(query)
@@ -44,6 +118,7 @@ export async function listAvailableOrders({ page = 1, limit = 20 }) {
 
   return {
     orders,
+    geoFiltered: false,
     pagination: {
       currentPage: pageNum,
       totalPages: Math.ceil(totalItems / limitNum),

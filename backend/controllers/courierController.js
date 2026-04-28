@@ -3,16 +3,16 @@ import { AppError } from "../utils/AppError.js";
 
 export async function getAvailableOrders(req, res, next) {
   const { page = 1, limit = 20 } = req.query;
-  const result = await courierOrderService.listAvailableOrders({ page, limit });
 
-  if (!result) {
-    return next(new AppError("Something went wrong", 404));
-  }
-
-  res.status(200).json({
-    status: "success",
-    data: result,
+  const result = await courierOrderService.listAvailableOrders({
+    courierUserId: req.user._id,
+    page,
+    limit,
   });
+
+  if (!result) return next(new AppError("Something went wrong", 404));
+
+  res.status(200).json({ status: "success", data: result });
 }
 
 export async function getCourierOrders(req, res, next) {

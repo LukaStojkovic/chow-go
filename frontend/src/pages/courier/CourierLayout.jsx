@@ -14,12 +14,44 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Logo from "@/components/Navbar/Logo";
 import { SidebarLink } from "@/components/ui/SidebarLink";
 import UserMenu from "@/components/Navbar/UserMenu";
+import { useEffect, useRef } from "react";
+import { useSocket } from "@/contexts/SocketContext";
 
 export default function CourierLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const { logout, authUser } = useAuthStore();
   const location = useLocation();
+  const { socket, isRegistered } = useSocket();
+  const watchIdRef = useRef(null);
+
+  useEffect(() => {
+    if (!socket || !isRegistered) return;
+
+    if (isOnline) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        ({ coords }) => {
+          socket.emit("courier:location_update", {
+            coordinates: [coords.longitude, coords.latitude],
+          });
+        },
+        (err) => console.error("Geolocation error:", err),
+        { enableHighAccuracy: true, maximumAge: 0 },
+      );
+    } else {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    }
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [isOnline, socket, isRegistered]);
 
   const navItems = [
     { to: "/courier/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -58,7 +90,9 @@ export default function CourierLayout() {
 
           <div className="mb-6 rounded-2xl bg-gray-50 p-4 dark:bg-black/50 border border-gray-100 dark:border-zinc-800">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-700 dark:text-gray-300">Status</span>
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
+                Status
+              </span>
               <button
                 onClick={() => setIsOnline(!isOnline)}
                 className={`relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
@@ -93,12 +127,18 @@ export default function CourierLayout() {
         <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white p-4 lg:hidden dark:border-zinc-800 dark:bg-zinc-900">
           <span className="text-lg font-bold">{currentTitle}</span>
           <div className="flex items-center gap-3">
-            <div className={`h-3 w-3 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-gray-300 dark:bg-zinc-700"}`} />
+            <div
+              className={`h-3 w-3 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-gray-300 dark:bg-zinc-700"}`}
+            />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="rounded-lg p-2 text-gray-600 transition-transform hover:bg-gray-100 active:scale-95 dark:text-gray-300 dark:hover:bg-zinc-800"
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </header>
