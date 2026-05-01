@@ -2,13 +2,16 @@ import Order from "../models/Order.js";
 import { getSocketServer } from "../socket/socketServer.js";
 
 async function getPopulatedOrder(orderId) {
-  return await Order.findById(orderId)
+  const order = await Order.findById(orderId)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
     .populate("courier", "fullName phoneNumber vehicleType currentLocation")
     .populate("items.menuItem", "name imageUrls");
+  if (!order) {
+    throw new Error(`Order not found: ${orderId}`);
+  }
+  return order;
 }
-
 export async function emitOrderConfirmed(customerId, order, estimatedTime) {
   try {
     const socketServer = getSocketServer();

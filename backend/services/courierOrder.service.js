@@ -36,9 +36,9 @@ export async function listAvailableOrders({
 
   const courier = await getCourierByUserId(courierUserId);
 
-  const [lng, lat] = courier.currentLocation?.coordinates ?? [0, 0];
-  const hasLocation = lng !== 0 || lat !== 0;
-
+  const coords = courier.currentLocation?.coordinates;
+  const hasLocation = Array.isArray(coords) && coords.length === 2;
+  const [lng, lat] = hasLocation ? coords : [0, 0];
   if (hasLocation) {
     const pipeline = [
       {
@@ -189,16 +189,27 @@ export async function acceptOrderOperation({ orderId, courierUserId }) {
     throw new AppError("You already have an active order", 400);
   }
 
-  const order = await Order.findById(orderId);
-  if (!order) throw new AppError("Order not found", 404);
-  if (!isOrderAvailableForCourier(order)) {
+  const order = await Order.findOneAndUpdate(
+    {
+      _id: orderId,
+      status: "ready",
+      courier: null,
+      cancelledAt: null,
+      rejectedAt: null,
+    },
+    {
+      $set: {
+        status: "assigned",
+        assignedAt: new Date(),
+        courier: courier._id,
+      },
+    },
+    { new: true },
+  );
+
+  if (!order) {
     throw new AppError("Order is not available for assignment", 400);
   }
-
-  order.status = "assigned";
-  order.assignedAt = new Date();
-  order.courier = courier._id;
-  await order.save();
 
   courier.currentOrder = order._id;
   courier.isAvailable = false;

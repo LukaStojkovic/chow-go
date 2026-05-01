@@ -8,8 +8,8 @@ export async function updateCourierLocation({ courierId, coordinates }) {
   const [lng, lat] = coordinates ?? [];
 
   if (
-    typeof lng !== "number" ||
-    typeof lat !== "number" ||
+    !Number.isFinite(lng) ||
+    !Number.isFinite(lat) ||
     lng < -180 ||
     lng > 180 ||
     lat < -90 ||
@@ -25,12 +25,16 @@ export async function updateCourierLocation({ courierId, coordinates }) {
   }
   lastUpdateTime.set(key, now);
 
-  await Courier.findByIdAndUpdate(courierId, {
+  const updated = await Courier.findByIdAndUpdate(courierId, {
     $set: {
       "currentLocation.coordinates": [lng, lat],
-      lastLocationUpdate: new Date(),
+      lastLocationUpdate: now,
     },
   });
 
-  return { courierId, coordinates: [lng, lat], timestamp: new Date() };
+  if (!updated) {
+    throw new AppError("Courier not found", 404);
+  }
+
+  return { courierId, coordinates: [lng, lat], timestamp: now };
 }

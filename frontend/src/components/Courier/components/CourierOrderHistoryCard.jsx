@@ -20,11 +20,13 @@ export default function CourierOrderHistoryCard({ order }) {
           )}
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          #{order.orderNumber?.split("-")[2]} •{" "}
-          {new Date(
-            order.deliveredAt ?? order.cancelledAt,
-          ).toLocaleDateString()}
-        </p>
+          #{order.orderNumber?.split("-")[2] ?? order.orderNumber ?? "N/A"} •{" "}
+          {order.deliveredAt || order.cancelledAt
+            ? new Date(
+                order.deliveredAt ?? order.cancelledAt,
+              ).toLocaleDateString()
+            : "N/A"}
+        </p>{" "}
       </div>
       <span
         className={`font-bold ${
@@ -33,7 +35,7 @@ export default function CourierOrderHistoryCard({ order }) {
             : "text-gray-400 dark:text-gray-500 line-through"
         }`}
       >
-        +${order.total?.toFixed(2)}
+        ${order.total?.toFixed(2) ?? "0.00"}{" "}
       </span>
     </div>
   );

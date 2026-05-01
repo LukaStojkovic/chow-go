@@ -63,12 +63,15 @@ export function ActiveOrderCard({ order }) {
               {order.restaurant?.name ?? "Restaurant"}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              #{order.orderNumber?.split("-")[2]}
-            </p>
+              #
+              {order.orderNumber?.split("-").pop() ??
+                order.orderNumber ??
+                "N/A"}
+            </p>{" "}
           </div>
           <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-            ${order.total?.toFixed(2)}
-          </span>
+            {order.total != null ? `${order.total.toFixed(2)}` : "—"}
+          </span>{" "}
         </div>
 
         <div className="mb-5 space-y-3">

@@ -1,14 +1,9 @@
 import { axiosInstance } from "@/lib/axios";
 
 export async function getCourierAvailableOrders() {
-  try {
-    const res = await axiosInstance.get(`/courier/available`);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching courier available orders:", err);
-  }
+  const res = await axiosInstance.get(`/courier/available`);
+  return res.data;
 }
-
 export async function getCourierOrders(status) {
   const params = status ? { status } : {};
   const res = await axiosInstance.get(`/courier/my-orders`, { params });
