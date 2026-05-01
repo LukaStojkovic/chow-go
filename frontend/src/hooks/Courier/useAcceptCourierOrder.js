@@ -10,7 +10,8 @@ export default function useAcceptCourierOrder() {
     onSuccess: () => {
       toast.success("Order accepted! Head to the restaurant.");
       queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
-      queryClient.invalidateQueries({ queryKey: ["courierOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["courierOrders", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["courierOrders", "history"] });
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message ?? "Failed to accept order");

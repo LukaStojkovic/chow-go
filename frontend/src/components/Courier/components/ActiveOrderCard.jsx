@@ -1,4 +1,8 @@
+import Spinner from "@/components/Spinner";
+import useMarkAsDeliveredOrder from "@/hooks/Courier/useMarkAsDeliveredOrder";
+import useMarkAsPickedUpOrder from "@/hooks/Courier/useMarkAsPickedUpOrder";
 import { CheckCircle, MapPin, Navigation } from "lucide-react";
+import useMarkAsInTransitOrder from "@/hooks/Courier/useMarkAsInTransitOrder";
 
 const STATUS_CONFIG = {
   assigned: {
@@ -25,7 +29,16 @@ const STATUS_CONFIG = {
 };
 
 export function ActiveOrderCard({ order }) {
+  const { markPickedUpOrder, isMarkingPickedUp } = useMarkAsPickedUpOrder();
+  const { markInTransitOrder, isMarkingInTransit } = useMarkAsInTransitOrder();
+  const { markDeliveredOrder, isMarkingDelivered } = useMarkAsDeliveredOrder();
+
   const config = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.assigned;
+  const action = {
+    assigned: { fn: markPickedUpOrder, isPending: isMarkingPickedUp },
+    picked_up: { fn: markInTransitOrder, isPending: isMarkingInTransit },
+    in_transit: { fn: markDeliveredOrder, isPending: isMarkingDelivered },
+  }[order.status] ?? { fn: () => {}, isPending: false };
   const NextIcon = config.nextIcon;
 
   const restaurantAddress = order.restaurant?.address
@@ -82,9 +95,19 @@ export function ActiveOrderCard({ order }) {
             <Navigation className="h-5 w-5" />
             Navigate
           </button>
-          <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-700">
-            <NextIcon className="h-5 w-5" />
-            {config.nextAction}
+          <button
+            onClick={() => action.fn(order._id)}
+            disabled={action.isPending}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {action.isPending ? (
+              <Spinner />
+            ) : (
+              <>
+                <NextIcon className="h-5 w-5" />
+                {config.nextAction}
+              </>
+            )}
           </button>
         </div>
       </div>

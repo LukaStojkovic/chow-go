@@ -7,12 +7,16 @@ import useAcceptCourierOrder from "@/hooks/Courier/useAcceptCourierOrder";
 import { ActiveOrderCard } from "@/components/Courier/components/ActiveOrderCard";
 import Spinner from "@/components/Spinner";
 import { CourierOrderCard } from "@/components/Courier/components/CourierOrderCard";
+import CourierOrderHistoryCard from "@/components/Courier/components/CourierOrderHistoryCard";
 
 export function CourierOrders() {
   const [activeTab, setActiveTab] = useState("available");
   const { courierAvailableOrders, isLoadingOrders } = useGetAvailableOrders();
   const { courierOrders, isLoadingCourierOrders } =
     useGetCourierOrders("active");
+  const { courierOrders: courierHistory, isLoading: isLoadingHistory } =
+    useGetCourierOrders("history");
+  const historyOrders = courierHistory?.data?.orders ?? [];
 
   const orders = courierAvailableOrders?.data?.orders ?? [];
   const geoFiltered = courierAvailableOrders?.data?.geoFiltered;
@@ -91,7 +95,7 @@ export function CourierOrders() {
 
         {activeTab === "active" && (
           <div className="space-y-4">
-            {isLoadingCourierOrders && <Spinner />}
+            {isLoadingCourierOrders || (isLoadingHistory && <Spinner />)}
 
             {!isLoadingCourierOrders && activeOrders.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-200 py-16 text-center dark:border-zinc-800">
@@ -114,27 +118,21 @@ export function CourierOrders() {
 
         {activeTab === "history" && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Showing deliveries for today
-            </p>
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
-                    Order #102{item}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Completed at 2:{item}0 PM
-                  </p>
-                </div>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  +$6.50
-                </span>
+            {isLoadingHistory && <Spinner />}
+
+            {!isLoadingHistory && historyOrders.length === 0 && (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-200 py-16 text-center dark:border-zinc-800">
+                <Package className="h-10 w-10 text-gray-300 dark:text-zinc-700" />
+                <p className="font-medium text-gray-500 dark:text-gray-400">
+                  No completed deliveries yet
+                </p>
               </div>
-            ))}
+            )}
+
+            {!isLoadingHistory &&
+              historyOrders.map((order) => (
+                <CourierOrderHistoryCard key={order._id} order={order} />
+              ))}
           </div>
         )}
       </div>

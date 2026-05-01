@@ -6,6 +6,7 @@ import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
 
 const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
+const COURIER_HISTORY_STATUSES = ["delivered", "cancelled"];
 const DEFAULT_RADIUS_METERS = 15_000;
 
 function isOrderAvailableForCourier(order) {
@@ -142,6 +143,8 @@ export async function listCourierOrders({
 
   const query = { courier: courierId };
   if (status === "active") query.status = { $in: COURIER_ACTIVE_STATUSES };
+  else if (status === "history")
+    query.status = { $in: COURIER_HISTORY_STATUSES };
   else if (status) query.status = status;
 
   const [orders, totalItems] = await Promise.all([
