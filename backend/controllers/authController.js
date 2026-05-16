@@ -211,8 +211,6 @@ export const register = async (req, res, next) => {
         },
       },
       verificationStatus: "pending",
-      isActive: false,
-      isOnline: false,
       isAvailable: true,
     });
 
@@ -403,5 +401,23 @@ export async function resetPassword(req, res, next) {
 }
 
 export const checkAuth = (req, res) => {
-  res.status(200).json(req.user);
+  const response = {
+    _id: req.user._id,
+    email: req.user.email,
+    name: req.user.name,
+    profilePicture: req.user.profilePicture,
+    phoneNumber: req.user.phoneNumber,
+    role: req.user.role,
+    createdAt: req.user.createdAt,
+  };
+
+  if (req.user.role === "seller" && req.user.restaurant) {
+    response.restaurant = req.user.restaurant;
+  }
+
+  if (req.user.role === "courier" && req.user.courier) {
+    response.courier = req.user.courier;
+  }
+
+  res.status(200).json(response);
 };

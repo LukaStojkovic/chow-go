@@ -16,19 +16,30 @@ import { SidebarLink } from "@/components/ui/SidebarLink";
 import UserMenu from "@/components/Navbar/UserMenu";
 import { useEffect, useRef } from "react";
 import { useSocket } from "@/contexts/SocketContext";
+import useChangeCourierDutyStatus from "@/hooks/Courier/useChangeCourierDutyStatus";
 
 export default function CourierLayout() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isOnline, setIsOnline] = useState(false);
-  const { logout, authUser } = useAuthStore();
   const location = useLocation();
+  const { logout, authUser } = useAuthStore();
   const { socket, isRegistered } = useSocket();
+  const { changeCourierDutyStatus, isChangingDutyStatus } =
+    useChangeCourierDutyStatus();
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(
+    authUser?.courier?.isAvailable ?? false,
+  );
+
   const watchIdRef = useRef(null);
+
+  useEffect(() => {
+    setIsAvailable(authUser?.courier?.isAvailable ?? false);
+  }, [authUser]);
 
   useEffect(() => {
     if (!socket || !isRegistered) return;
 
-    if (isOnline) {
+    if (isAvailable) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         ({ coords }) => {
           socket.emit("courier:location_update", {
@@ -51,7 +62,7 @@ export default function CourierLayout() {
         watchIdRef.current = null;
       }
     };
-  }, [isOnline, socket, isRegistered]);
+  }, [isAvailable, socket, isRegistered]);
 
   const navItems = [
     { to: "/courier/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -63,6 +74,13 @@ export default function CourierLayout() {
   const currentTitle =
     navItems.find((item) => item.to === location.pathname)?.label ||
     "Courier Portal";
+
+  function handleChangeDutyStatus() {
+    const nextStatus = !isAvailable;
+    changeCourierDutyStatus(nextStatus, {
+      onSuccess: () => setIsAvailable(nextStatus),
+    });
+  }
 
   return (
     <div className="min-h-screen flex overflow-hidden bg-gray-50 text-gray-900 dark:bg-black dark:text-gray-100">
@@ -94,15 +112,15 @@ export default function CourierLayout() {
                 Status
               </span>
               <button
-                onClick={() => setIsOnline(!isOnline)}
+                onClick={handleChangeDutyStatus}
                 className={`relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
-                  isOnline
+                  isAvailable
                     ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600"
                     : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700"
                 }`}
               >
                 <Power className="h-4 w-4" />
-                {isOnline ? "Online" : "Offline"}
+                {isAvailable ? "On duty" : "Off duty"}
               </button>
             </div>
           </div>
@@ -128,7 +146,7 @@ export default function CourierLayout() {
           <span className="text-lg font-bold">{currentTitle}</span>
           <div className="flex items-center gap-3">
             <div
-              className={`h-3 w-3 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-gray-300 dark:bg-zinc-700"}`}
+              className={`h-3 w-3 rounded-full ${isAvailable ? "bg-emerald-500 animate-pulse" : "bg-gray-300 dark:bg-zinc-700"}`}
             />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -154,7 +172,7 @@ export default function CourierLayout() {
               </p>
             </div>
 
-            <Outlet context={{ isOnline }} />
+            <Outlet context={{ isAvailable }} />
           </div>
         </div>
       </main>

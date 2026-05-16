@@ -39,9 +39,6 @@ const courierSchema = new mongoose.Schema(
         verified: { type: Boolean, default: false },
       },
     },
-
-    isActive: { type: Boolean, default: false },
-    isOnline: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
     verificationStatus: {
       type: String,
@@ -89,7 +86,7 @@ const courierSchema = new mongoose.Schema(
 );
 
 courierSchema.index({ currentLocation: "2dsphere" });
-courierSchema.index({ isOnline: 1, isAvailable: 1 });
+courierSchema.index({ isAvailable: 1 });
 
 const Courier = mongoose.model("Courier", courierSchema);
 

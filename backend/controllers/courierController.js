@@ -49,6 +49,19 @@ export async function getCourierOrderById(req, res, next) {
   });
 }
 
+export async function changeCourierDutyStatus(req, res, next) {
+  const { isAvailable } = req.body;
+  const courier = await courierOrderService.changeCourierDutyStatusOperation({
+    courierUserId: req.user._id,
+    isAvailable,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: { courier },
+  });
+}
+
 export async function acceptOrder(req, res, next) {
   const { orderId } = req.params;
   const order = await courierOrderService.acceptOrderOperation({

@@ -21,7 +21,7 @@ import {
 } from "recharts";
 
 export default function CourierDashboard() {
-  const { isOnline } = useOutletContext();
+  const { isAvailable } = useOutletContext();
 
   const hasActiveOrder = true;
   const stats = [
@@ -43,7 +43,7 @@ export default function CourierDashboard() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      {!isOnline && (
+      {!isAvailable && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -57,7 +57,7 @@ export default function CourierDashboard() {
         </motion.div>
       )}
 
-      {isOnline && hasActiveOrder && (
+      {isAvailable && hasActiveOrder && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

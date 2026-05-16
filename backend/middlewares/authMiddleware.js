@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Courier from "../models/Courier.js";
 import jwt from "jsonwebtoken";
 
 export async function protectedRoute(req, res, next) {
@@ -25,6 +26,13 @@ export async function protectedRoute(req, res, next) {
 
     if (user.role === "seller") {
       await user.populate("restaurant");
+    }
+
+    if (user.role === "courier") {
+      const courierProfile = await Courier.findOne({ userId: user._id });
+      if (courierProfile) {
+        user.courier = courierProfile;
+      }
     }
 
     req.user = user;

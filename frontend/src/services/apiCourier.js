@@ -29,3 +29,10 @@ export async function markDelivered(orderId) {
   const res = await axiosInstance.patch(`/courier/${orderId}/delivered`);
   return res.data;
 }
+
+export async function changeCourierDutyStatus(isAvailable) {
+  const res = await axiosInstance.patch(`/courier/duty-status`, {
+    isAvailable,
+  });
+  return res.data;
+}

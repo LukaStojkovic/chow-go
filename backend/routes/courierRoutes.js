@@ -3,6 +3,7 @@ import { isCourierMiddleware } from "../middlewares/roleMiddleware.js";
 import {
   acceptOrder,
   cancelAssignedOrder,
+  changeCourierDutyStatus,
   getAvailableOrders,
   getCourierOrderById,
   getCourierOrders,
@@ -20,6 +21,7 @@ router.use(protectedRoute, isCourierMiddleware);
 router.get("/available", getAvailableOrders);
 router.get("/my-orders", getCourierOrders);
 router.get("/my-orders/:orderId", getCourierOrderById);
+router.patch("/duty-status", changeCourierDutyStatus);
 
 router.patch("/:orderId/accept", acceptOrder);
 router.patch("/:orderId/cancel", cancelAssignedOrder);

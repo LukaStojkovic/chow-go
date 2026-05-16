@@ -174,11 +174,8 @@ export async function listCourierOrders({
 export async function acceptOrderOperation({ orderId, courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
 
-  if (!courier.isOnline || !courier.isAvailable) {
-    throw new AppError(
-      "You must be online and available to accept orders",
-      400,
-    );
+  if (!courier.isAvailable) {
+    throw new AppError("You must be on duty to accept orders", 400);
   }
 
   const existingActive = await Order.findOne({
@@ -353,4 +350,20 @@ export async function getCourierOrderById({ orderId, courierUserId }) {
 
   if (!order) throw new AppError("Order not found", 404);
   return order;
+}
+
+export async function changeCourierDutyStatusOperation({
+  courierUserId,
+  isAvailable,
+}) {
+  const courier = await getCourierByUserId(courierUserId);
+
+  if (isAvailable && courier.currentOrder) {
+    throw new AppError("Cannot go on duty while having an active order", 400);
+  }
+
+  courier.isAvailable = isAvailable;
+  await courier.save();
+
+  return courier;
 }
