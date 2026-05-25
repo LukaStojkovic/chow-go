@@ -1,7 +1,9 @@
 import { axiosInstance } from "@/lib/axios";
 
-export async function getCourierAvailableOrders() {
-  const res = await axiosInstance.get(`/courier/available`);
+export async function getCourierAvailableOrders(limit) {
+  const res = await axiosInstance.get(`/courier/available`, {
+    params: { limit },
+  });
   return res.data;
 }
 export async function getCourierOrders(status) {
