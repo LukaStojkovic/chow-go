@@ -32,6 +32,11 @@ export async function markDelivered(orderId) {
   return res.data;
 }
 
+export async function getCourierOverview() {
+  const res = await axiosInstance.get(`/courier/my-overview`);
+  return res.data.data.analytics;
+}
+
 export async function changeCourierDutyStatus(isAvailable) {
   const res = await axiosInstance.patch(`/courier/duty-status`, {
     isAvailable,

@@ -128,3 +128,14 @@ export async function markDelivered(req, res, next) {
     data: { order },
   });
 }
+
+export async function getCourierAnaytics(req, res, next) {
+  const analytics = await courierOrderService.getCourierAnalytics({
+    courierUserId: req.user._id,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: { analytics },
+  });
+}

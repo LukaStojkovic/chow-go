@@ -367,3 +367,174 @@ export async function changeCourierDutyStatusOperation({
 
   return courier;
 }
+
+export async function getCourierAnalytics({ courierUserId }) {
+  const courier = await getCourierByUserId(courierUserId);
+
+  const now = new Date();
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+  startOfWeek.setHours(0, 0, 0, 0);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const baseMatch = {
+    courier: courier._id,
+    status: "delivered",
+  };
+
+  const [
+    todayStats,
+    weekStats,
+    monthStats,
+    weeklyEarnings,
+    recentOrders,
+    ratingStats,
+  ] = await Promise.all([
+    Order.aggregate([
+      { $match: { ...baseMatch, deliveredAt: { $gte: startOfToday } } },
+      {
+        $group: {
+          _id: null,
+          earnings: { $sum: "$deliveryFee" },
+          deliveries: { $sum: 1 },
+          totalTime: {
+            $sum: {
+              $dateDiff: {
+                startDate: "$assignedAt",
+                endDate: "$deliveredAt",
+                unit: "minute",
+              },
+            },
+          },
+        },
+      },
+    ]),
+
+    Order.aggregate([
+      { $match: { ...baseMatch, deliveredAt: { $gte: startOfWeek } } },
+      {
+        $group: {
+          _id: null,
+          earnings: { $sum: "$deliveryFee" },
+          deliveries: { $sum: 1 },
+        },
+      },
+    ]),
+
+    Order.aggregate([
+      { $match: { ...baseMatch, deliveredAt: { $gte: startOfMonth } } },
+      {
+        $group: {
+          _id: null,
+          earnings: { $sum: "$deliveryFee" },
+          deliveries: { $sum: 1 },
+        },
+      },
+    ]),
+
+    Order.aggregate([
+      {
+        $match: {
+          ...baseMatch,
+          deliveredAt: { $gte: startOfWeek },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dayOfWeek: "$deliveredAt",
+          },
+          earnings: { $sum: "$deliveryFee" },
+          deliveries: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
+
+    Order.find(baseMatch)
+      .populate("restaurant", "name profilePicture address")
+      .populate("customer", "name")
+      .sort({ deliveredAt: -1 })
+      .limit(5)
+      .select("orderNumber total deliveryFee deliveredAt restaurant customer"),
+
+    Order.aggregate([
+      {
+        $match: {
+          courier: courier._id,
+          "customerRating.courierRating": { $exists: true, $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: "$customerRating.courierRating" },
+          totalRatings: { $sum: 1 },
+        },
+      },
+    ]),
+  ]);
+
+  const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const earningsMap = Object.fromEntries(
+    weeklyEarnings.map((d) => [
+      d._id - 1,
+      { earnings: d.earnings, deliveries: d.deliveries },
+    ]),
+  );
+  const chartData = DAY_NAMES.map((day, i) => ({
+    day,
+    earnings: earningsMap[i]?.earnings ?? 0,
+    deliveries: earningsMap[i]?.deliveries ?? 0,
+  }));
+
+  const today = todayStats[0] ?? { earnings: 0, deliveries: 0, totalTime: 0 };
+  const week = weekStats[0] ?? { earnings: 0, deliveries: 0 };
+  const month = monthStats[0] ?? { earnings: 0, deliveries: 0 };
+  const rating = ratingStats[0] ?? {
+    avgRating: courier.averageRating,
+    totalRatings: courier.totalRatings,
+  };
+
+  const acceptanceRate =
+    courier.totalDeliveries > 0
+      ? Math.round(
+          (courier.successfulDeliveries / courier.totalDeliveries) * 100,
+        )
+      : 100;
+
+  const avgDeliveryTime =
+    today.deliveries > 0 ? Math.round(today.totalTime / today.deliveries) : 0;
+
+  return {
+    today: {
+      earnings: today.earnings,
+      deliveries: today.deliveries,
+      avgDeliveryTime,
+    },
+    week: {
+      earnings: week.earnings,
+      deliveries: week.deliveries,
+    },
+    month: {
+      earnings: month.earnings,
+      deliveries: month.deliveries,
+    },
+    allTime: {
+      totalDeliveries: courier.totalDeliveries,
+      successfulDeliveries: courier.successfulDeliveries,
+      cancelledDeliveries: courier.cancelledDeliveries,
+      totalEarnings: courier.totalEarnings,
+      averageRating: Math.round((rating.avgRating ?? 0) * 10) / 10,
+      totalRatings: rating.totalRatings,
+      acceptanceRate,
+    },
+    chartData,
+    recentOrders,
+  };
+}

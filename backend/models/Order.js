@@ -177,6 +177,7 @@ orderSchema.pre("validate", async function (next) {
 });
 
 orderSchema.virtual("totalItems").get(function () {
+  if (!this.items || !Array.isArray(this.items)) return 0;
   return this.items.reduce((total, item) => total + item.quantity, 0);
 });
 

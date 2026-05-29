@@ -5,6 +5,7 @@ import {
   cancelAssignedOrder,
   changeCourierDutyStatus,
   getAvailableOrders,
+  getCourierAnaytics,
   getCourierOrderById,
   getCourierOrders,
   markDelivered,
@@ -21,6 +22,7 @@ router.use(protectedRoute, isCourierMiddleware);
 router.get("/available", getAvailableOrders);
 router.get("/my-orders", getCourierOrders);
 router.get("/my-orders/:orderId", getCourierOrderById);
+router.get("/my-overview", getCourierAnaytics);
 router.patch("/duty-status", changeCourierDutyStatus);
 
 router.patch("/:orderId/accept", acceptOrder);

@@ -7,35 +7,72 @@ import {
   TrendingUp,
   Package,
   AlertCircle,
+  Star,
 } from "lucide-react";
+
 import useGetAvailableOrders from "@/hooks/Courier/useGetAvailableOrders";
 import { ActiveDeliveryCard } from "./dashboard/ActiveDeliveryCard";
 import { StatsGrid } from "./dashboard/StatsGrid";
 import { EarningsOverview } from "./dashboard/EarningsOverview";
 import useAcceptCourierOrder from "@/hooks/Courier/useAcceptCourierOrder";
+import { useCourierOverview } from "@/hooks/Courier/useCourierOverview";
 
 export default function CourierDashboard() {
   const { isAvailable } = useOutletContext();
   const { courierAvailableOrders, isLoadingOrders } = useGetAvailableOrders(1);
   const { acceptCourierOrder, isAccepting } = useAcceptCourierOrder();
+  const { data: analytics, isLoading: isLoadingAnalytics } =
+    useCourierOverview();
 
   const activeOrder = courierAvailableOrders?.data?.orders?.[0];
   const hasActiveOrder = Boolean(activeOrder);
+
   const stats = [
-    { label: "Today's Earnings", value: "$84.50", icon: TrendingUp },
-    { label: "Deliveries", value: "12", icon: Package },
-    { label: "Acceptance Rate", value: "94%", icon: CheckCircle },
-    { label: "Avg Time", value: "24 min", icon: Clock },
+    {
+      label: "Today's Earnings",
+      value: isLoadingAnalytics
+        ? "—"
+        : `$${analytics?.today?.earnings?.toFixed(2) ?? "0.00"}`,
+      icon: TrendingUp,
+    },
+    {
+      label: "Deliveries Today",
+      value: isLoadingAnalytics
+        ? "—"
+        : String(analytics?.today?.deliveries ?? 0),
+      icon: Package,
+    },
+    {
+      label: "Acceptance Rate",
+      value: isLoadingAnalytics
+        ? "—"
+        : `${analytics?.allTime?.acceptanceRate ?? 100}%`,
+      icon: CheckCircle,
+    },
+    {
+      label: "Avg Time",
+      value: isLoadingAnalytics
+        ? "—"
+        : `${analytics?.today?.avgDeliveryTime ?? 0} min`,
+      icon: Clock,
+    },
+    {
+      label: "Rating",
+      value: isLoadingAnalytics
+        ? "—"
+        : `${analytics?.allTime?.averageRating ?? "N/A"}`,
+      icon: Star,
+    },
   ];
 
-  const chartData = [
-    { day: "Mon", earnings: 45 },
-    { day: "Tue", earnings: 60 },
-    { day: "Wed", earnings: 55 },
-    { day: "Thu", earnings: 80 },
-    { day: "Fri", earnings: 110 },
-    { day: "Sat", earnings: 135 },
-    { day: "Sun", earnings: 84.5 },
+  const chartData = analytics?.chartData ?? [
+    { day: "Sun", earnings: 0 },
+    { day: "Mon", earnings: 0 },
+    { day: "Tue", earnings: 0 },
+    { day: "Wed", earnings: 0 },
+    { day: "Thu", earnings: 0 },
+    { day: "Fri", earnings: 0 },
+    { day: "Sat", earnings: 0 },
   ];
 
   return (
@@ -63,9 +100,11 @@ export default function CourierDashboard() {
         />
       )}
 
-      <StatsGrid stats={stats} />
-
-      <EarningsOverview chartData={chartData} />
+      <StatsGrid analytics={analytics} isLoading={isLoadingAnalytics} />
+      <EarningsOverview
+        chartData={analytics?.chartData ?? []}
+        recentOrders={analytics?.recentOrders ?? []}
+      />
     </div>
   );
 }
