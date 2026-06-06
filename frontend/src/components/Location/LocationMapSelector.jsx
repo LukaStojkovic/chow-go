@@ -15,6 +15,11 @@ import { Navigation } from "lucide-react";
 import Spinner from "@/components/Spinner";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { greenDotIcon } from "@/utils/leafletIcons";
+import {
+  TILE_ATTRIBUTION,
+  TILE_DARK,
+  TILE_LIGHT,
+} from "@/constants/mapConstants";
 
 function MapClickHandler({ onMapClick }) {
   useMapEvents({
@@ -110,12 +115,8 @@ export function LocationMapSelector({
         className="rounded-lg"
       >
         <TileLayer
-          url={
-            isDark
-              ? "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.jpg"
-              : "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.jpg"
-          }
-          attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+          url={isDark ? TILE_DARK : TILE_LIGHT}
+          attribution={TILE_ATTRIBUTION}
         />
 
         {markerPosition && (

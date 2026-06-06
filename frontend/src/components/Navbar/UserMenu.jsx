@@ -29,6 +29,7 @@ export default function UserMenu({ user, onLogout }) {
   const navigate = useNavigate();
 
   const isSeller = user?.role === "seller";
+  const isCourier = user?.role === "courier";
 
   const ThemeIcon = ({ currentTheme }) => {
     switch (currentTheme) {
@@ -84,7 +85,7 @@ export default function UserMenu({ user, onLogout }) {
               <Store className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <span className="text-sm font-medium">Manage Restaurant</span>
             </DropdownMenuItem>
-          ) : (
+          ) : !isCourier ? (
             <>
               <DropdownMenuItem
                 onClick={() => navigate("/profile")}
@@ -93,6 +94,7 @@ export default function UserMenu({ user, onLogout }) {
                 <User className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-sm font-medium">Profile</span>
               </DropdownMenuItem>
+
               <DropdownMenuItem
                 onClick={() => navigate("/orders")}
                 className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
@@ -101,7 +103,7 @@ export default function UserMenu({ user, onLogout }) {
                 <span className="text-sm font-medium">My Orders</span>
               </DropdownMenuItem>
             </>
-          )}
+          ) : null}
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="my-1 flex w-full cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30">

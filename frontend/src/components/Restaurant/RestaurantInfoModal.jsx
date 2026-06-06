@@ -5,6 +5,11 @@ import useOutsideClick from "@/hooks/useOutsideClick";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { greenDotIcon } from "@/utils/leafletIcons";
+import {
+  TILE_ATTRIBUTION,
+  TILE_DARK,
+  TILE_LIGHT,
+} from "@/constants/mapConstants";
 
 const RestaurantInfoModal = ({
   showInfoModal,
@@ -37,12 +42,8 @@ const RestaurantInfoModal = ({
             style={{ height: "100%", width: "100%" }}
           >
             <TileLayer
-              url={
-                isDark
-                  ? "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.jpg"
-                  : "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.jpg"
-              }
-              attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>'
+              url={isDark ? TILE_DARK : TILE_LIGHT}
+              attribution={TILE_ATTRIBUTION}
             />
             <Marker
               position={[location.coordinates[1], location.coordinates[0]]}
