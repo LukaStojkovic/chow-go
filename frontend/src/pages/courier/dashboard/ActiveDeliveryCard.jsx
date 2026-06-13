@@ -14,8 +14,9 @@ export function ActiveDeliveryCard({
   const navigate = useNavigate();
 
   async function handleAcceptOrder(orderId) {
-    await onAccept(orderId);
-    navigate("/courier/orders");
+    onAccept(orderId, {
+      onSuccess: () => navigate(`/courier/delivery/${orderId}`),
+    });
   }
 
   return (
@@ -74,7 +75,7 @@ export function ActiveDeliveryCard({
                 to="/courier/orders"
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 font-semibold text-gray-900 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
               >
-                See more active deliveries
+                View all deliveries
               </Link>
               <button
                 onClick={() => handleAcceptOrder(activeOrder._id)}

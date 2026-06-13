@@ -272,6 +272,7 @@ export const useGlobalSocketEvents = () => {
     const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
       queryClient.invalidateQueries({ queryKey: ["courierOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["courierOrder"] });
     };
 
     socket.on("order:assigned", invalidate);

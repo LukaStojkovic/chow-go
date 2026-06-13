@@ -5,6 +5,7 @@ import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
 import Notification from "../models/OrderNotification.js";
 import { getSocketServer } from "../socket/socketServer.js";
+import { rateOrderOperation } from "../services/orderRating.service.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -288,6 +289,27 @@ export async function cancelOrder(req, res, next) {
       data: {
         order,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function rateOrder(req, res, next) {
+  try {
+    const { orderId } = req.params;
+    const { restaurantRating, restaurantReview } = req.body;
+
+    const order = await rateOrderOperation({
+      orderId,
+      customerUserId: req.user._id,
+      restaurantRating,
+      restaurantReview,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: { order },
     });
   } catch (error) {
     next(error);

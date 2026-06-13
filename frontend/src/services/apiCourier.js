@@ -12,6 +12,11 @@ export async function getCourierOrders(status) {
   return res.data;
 }
 
+export async function getCourierOrderById(orderId) {
+  const res = await axiosInstance.get(`/courier/my-orders/${orderId}`);
+  return res.data;
+}
+
 export async function acceptOrder(orderId) {
   const res = await axiosInstance.patch(`/courier/${orderId}/accept`);
   return res.data;
@@ -40,6 +45,18 @@ export async function getCourierOverview() {
 export async function changeCourierDutyStatus(isAvailable) {
   const res = await axiosInstance.patch(`/courier/duty-status`, {
     isAvailable,
+  });
+  return res.data;
+}
+
+export async function getCourierProfile() {
+  const res = await axiosInstance.get("/courier/profile");
+  return res.data;
+}
+
+export async function updateCourierProfile(formData) {
+  const res = await axiosInstance.patch("/courier/profile", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
 }

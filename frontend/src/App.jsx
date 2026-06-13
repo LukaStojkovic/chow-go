@@ -32,6 +32,7 @@ import CourierRoute from "./pages/courier/CourierRoute";
 import CourierLayout from "./pages/courier/CourierLayout";
 import CourierDashboard from "./pages/courier/CourierDashboard";
 import { CourierOrders } from "./pages/courier/CourierOrders";
+import CourierActiveDelivery from "./pages/courier/CourierActiveDelivery";
 import { CourierEarnings } from "./pages/courier/CourierEarnings";
 import { CourierInfo } from "./components/OrderTracking/CourierInfo";
 import { CourierProfile } from "./pages/courier/CourierProfile";
@@ -113,6 +114,7 @@ function AppContent() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<CourierDashboard />} />
           <Route path="orders" element={<CourierOrders />} />
+          <Route path="delivery/:orderId" element={<CourierActiveDelivery />} />
           <Route path="earnings" element={<CourierEarnings />} />
           <Route path="profile" element={<CourierProfile />} />
         </Route>

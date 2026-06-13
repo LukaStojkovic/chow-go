@@ -12,6 +12,8 @@ import { DeliveryAddressInfo } from "@/components/OrderTracking/DeliveryAddressI
 import { CourierInfo } from "@/components/OrderTracking/CourierInfo";
 import { OrderItems } from "@/components/OrderTracking/OrderItems";
 import { DeliveryInstructions } from "@/components/OrderTracking/DeliveryInstructions";
+import { OrderTrackingLiveMap } from "@/components/OrderTracking/OrderTrackingLiveMap";
+import { RestaurantReview } from "@/components/OrderTracking/RestaurantReview";
 
 const OrderTrackingPage = () => {
   const { orderId } = useParams();
@@ -82,6 +84,8 @@ const OrderTrackingPage = () => {
           )}
         </div>
 
+        <OrderTrackingLiveMap orderId={orderId} order={order} />
+
         <div className="grid md:grid-cols-2 gap-6">
           <RestaurantInfo restaurant={order.restaurant} />
           <DeliveryAddressInfo address={order.deliveryAddressSnapshot} />
@@ -92,6 +96,15 @@ const OrderTrackingPage = () => {
         <OrderItems order={order} />
 
         <DeliveryInstructions notes={order.customerNotes} />
+
+        {order.status === "delivered" && (
+          <RestaurantReview
+            orderId={orderId}
+            restaurant={order.restaurant}
+            courier={order.courier}
+            customerRating={order.customerRating}
+          />
+        )}
 
         {canCancel && (
           <button

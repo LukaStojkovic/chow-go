@@ -8,7 +8,7 @@ export default function useMarkAsInTransitOrder() {
   const { mutate: markInTransitOrder, isPending: isMarkingInTransit } =
     useMutation({
       mutationFn: markInTransit,
-      onSuccess: () => {
+      onSuccess: (_, orderId) => {
         toast.success("Order marked as in transit!");
         queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
         queryClient.invalidateQueries({
@@ -17,6 +17,7 @@ export default function useMarkAsInTransitOrder() {
         queryClient.invalidateQueries({
           queryKey: ["courierOrders", "history"],
         });
+        queryClient.invalidateQueries({ queryKey: ["courierOrder", orderId] });
       },
       onError: (err) => {
         toast.error(

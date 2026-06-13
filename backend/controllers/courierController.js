@@ -1,4 +1,5 @@
 import * as courierOrderService from "../services/courierOrder.service.js";
+import * as courierProfileService from "../services/courierProfile.service.js";
 import { AppError } from "../utils/AppError.js";
 
 export async function getAvailableOrders(req, res, next) {
@@ -137,5 +138,29 @@ export async function getCourierAnaytics(req, res, next) {
   res.status(200).json({
     status: "success",
     data: { analytics },
+  });
+}
+
+export async function getCourierProfile(req, res, next) {
+  const courier = await courierProfileService.getCourierProfile(req.user._id);
+
+  res.status(200).json({
+    status: "success",
+    data: { courier },
+  });
+}
+
+export async function updateCourierProfile(req, res, next) {
+  const { fullName } = req.body;
+  const courier = await courierProfileService.updateCourierProfileOperation({
+    courierUserId: req.user._id,
+    fullName,
+    profilePictureFile: req.file,
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Profile updated successfully",
+    data: { courier },
   });
 }

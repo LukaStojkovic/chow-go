@@ -8,7 +8,7 @@ export default function useMarkAsPickedUpOrder() {
   const { mutate: markPickedUpOrder, isPending: isMarkingPickedUp } =
     useMutation({
       mutationFn: markAsPickedUp,
-      onSuccess: () => {
+      onSuccess: (_, orderId) => {
         toast.success("Order marked as picked up!");
         queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
         queryClient.invalidateQueries({
@@ -17,6 +17,7 @@ export default function useMarkAsPickedUpOrder() {
         queryClient.invalidateQueries({
           queryKey: ["courierOrders", "history"],
         });
+        queryClient.invalidateQueries({ queryKey: ["courierOrder", orderId] });
       },
       onError: (err) => {
         toast.error(

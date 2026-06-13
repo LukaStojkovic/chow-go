@@ -36,10 +36,14 @@ export default function CourierLayout() {
     setIsAvailable(authUser?.courier?.isAvailable ?? false);
   }, [authUser]);
 
+  const isDeliveryPage = location.pathname.startsWith("/courier/delivery");
+
   useEffect(() => {
     if (!socket || !isRegistered) return;
 
-    if (isAvailable) {
+    const shouldTrackLocation = isAvailable || isDeliveryPage;
+
+    if (shouldTrackLocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         ({ coords }) => {
           socket.emit("courier:location_update", {
@@ -62,7 +66,7 @@ export default function CourierLayout() {
         watchIdRef.current = null;
       }
     };
-  }, [isAvailable, socket, isRegistered]);
+  }, [isAvailable, isDeliveryPage, socket, isRegistered]);
 
   const navItems = [
     { to: "/courier/dashboard", icon: LayoutDashboard, label: "Overview" },
@@ -71,9 +75,10 @@ export default function CourierLayout() {
     { to: "/courier/profile", icon: User, label: "My Profile" },
   ];
 
-  const currentTitle =
-    navItems.find((item) => item.to === location.pathname)?.label ||
-    "Courier Portal";
+  const currentTitle = isDeliveryPage
+    ? "Active Delivery"
+    : navItems.find((item) => item.to === location.pathname)?.label ||
+      "Courier Portal";
 
   function handleChangeDutyStatus() {
     const nextStatus = !isAvailable;
@@ -161,16 +166,28 @@ export default function CourierLayout() {
           </div>
         </header>
 
-        <div className="scroll-smooth p-4 sm:p-6 lg:p-10 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-8 hidden lg:block">
-              <h1 className="tracking-tight text-3xl font-extrabold text-gray-900 dark:text-white">
-                {currentTitle}
-              </h1>
-              <p className="mt-2 text-gray-500 dark:text-gray-400">
-                Manage your deliveries and track your earnings
-              </p>
-            </div>
+        <div
+          className={
+            isDeliveryPage
+              ? "flex flex-1 flex-col overflow-hidden"
+              : "scroll-smooth flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10"
+          }
+        >
+          <div
+            className={
+              isDeliveryPage ? "flex min-h-0 flex-1 flex-col" : "mx-auto max-w-5xl"
+            }
+          >
+            {!isDeliveryPage && (
+              <div className="mb-8 hidden lg:block">
+                <h1 className="tracking-tight text-3xl font-extrabold text-gray-900 dark:text-white">
+                  {currentTitle}
+                </h1>
+                <p className="mt-2 text-gray-500 dark:text-gray-400">
+                  Manage your deliveries and track your earnings
+                </p>
+              </div>
+            )}
 
             <Outlet context={{ isAvailable }} />
           </div>

@@ -7,11 +7,12 @@ export default function useAcceptCourierOrder() {
 
   const { mutate: acceptCourierOrder, isPending: isAccepting } = useMutation({
     mutationFn: acceptOrder,
-    onSuccess: () => {
+    onSuccess: (_, orderId) => {
       toast.success("Order accepted! Head to the restaurant.");
       queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
       queryClient.invalidateQueries({ queryKey: ["courierOrders", "active"] });
       queryClient.invalidateQueries({ queryKey: ["courierOrders", "history"] });
+      queryClient.invalidateQueries({ queryKey: ["courierOrder", orderId] });
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message ?? "Failed to accept order");

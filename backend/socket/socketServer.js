@@ -3,11 +3,12 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
-import * as courierOrderService from "../services/courierOrder.service.js";
+import Order from "../models/Order.js";
 import {
   lastUpdateTime,
   updateCourierLocation,
 } from "../services/locationTracking.service.js";
+import { emitCourierLocationUpdated } from "../services/orderSocket.service.js";
 
 class SocketServer {
   constructor(httpServer) {
@@ -87,10 +88,24 @@ class SocketServer {
         }
 
         try {
-          await updateCourierLocation({
+          const result = await updateCourierLocation({
             courierId: socket.courierId,
             coordinates: data?.coordinates,
           });
+
+          if (result) {
+            const courier = await Courier.findById(socket.courierId).select(
+              "currentOrder currentLocation lastLocationUpdate fullName vehicleType",
+            );
+            if (courier?.currentOrder) {
+              const order = await Order.findById(courier.currentOrder).select(
+                "_id",
+              );
+              if (order) {
+                await emitCourierLocationUpdated(order, courier);
+              }
+            }
+          }
         } catch (err) {
           socket.emit("location:error", { message: err.message });
         }

@@ -15,11 +15,7 @@ import { CourierOrderEarnings } from "./CourierOrderEarningsCard";
 import { CourierOrderItems } from "./CourierOrderItemsCard";
 import { CourierOrderNotes } from "./CourierOrderNoteCard";
 import { CourierOrderPayment } from "./CourierOrderPaymentCard";
-
-function toLatLng(coordinates) {
-  if (!Array.isArray(coordinates) || coordinates.length !== 2) return null;
-  return [coordinates[1], coordinates[0]];
-}
+import { toLatLng } from "@/utils/mapUtils";
 
 export function SectionLabel({ children }) {
   return (

@@ -4,6 +4,7 @@ import {
   createOrder,
   getCustomerOrders,
   getOrderById,
+  rateOrder,
 } from "../controllers/orderController.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 
@@ -15,5 +16,6 @@ router.post("/create", createOrder);
 router.get("/my-orders", getCustomerOrders);
 router.get("/:orderId", getOrderById);
 router.patch("/:orderId/cancel", cancelOrder);
+router.patch("/:orderId/rate", rateOrder);
 
 export default router;
