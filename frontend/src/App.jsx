@@ -115,7 +115,7 @@ function AppContent() {
           <Route path="dashboard" element={<CourierDashboard />} />
           <Route path="orders" element={<CourierOrders />} />
           <Route path="delivery/:orderId" element={<CourierActiveDelivery />} />
-          <Route path="earnings" element={<CourierEarnings />} />
+          {/* <Route path="earnings" element={<CourierEarnings />} /> */}
           <Route path="profile" element={<CourierProfile />} />
         </Route>
 

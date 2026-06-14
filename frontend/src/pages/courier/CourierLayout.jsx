@@ -71,7 +71,7 @@ export default function CourierLayout() {
   const navItems = [
     { to: "/courier/dashboard", icon: LayoutDashboard, label: "Overview" },
     { to: "/courier/orders", icon: ListOrdered, label: "Deliveries" },
-    { to: "/courier/earnings", icon: Wallet, label: "Earnings" },
+    // { to: "/courier/earnings", icon: Wallet, label: "Earnings" },
     { to: "/courier/profile", icon: User, label: "My Profile" },
   ];
 
@@ -175,7 +175,9 @@ export default function CourierLayout() {
         >
           <div
             className={
-              isDeliveryPage ? "flex min-h-0 flex-1 flex-col" : "mx-auto max-w-5xl"
+              isDeliveryPage
+                ? "flex min-h-0 flex-1 flex-col"
+                : "mx-auto max-w-5xl"
             }
           >
             {!isDeliveryPage && (
