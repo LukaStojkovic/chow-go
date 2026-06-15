@@ -37,7 +37,7 @@ const orderSchema = new mongoose.Schema(
     },
     courier: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Courier",
       default: null,
       index: true,
     },

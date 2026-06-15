@@ -4,6 +4,7 @@ import {
   TileLayer,
   Marker,
   Polyline,
+  Tooltip,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -83,13 +84,25 @@ function MapInner({
       />
 
       {restaurantCoords && (
-        <Marker position={restaurantCoords} icon={restaurantIcon} />
+        <Marker position={restaurantCoords} icon={restaurantIcon}>
+          <Tooltip direction="top" offset={[0, -24]} opacity={0.92}>
+            Restaurant pickup
+          </Tooltip>
+        </Marker>
       )}
       {deliveryCoords && (
-        <Marker position={deliveryCoords} icon={deliveryIcon} />
+        <Marker position={deliveryCoords} icon={deliveryIcon}>
+          <Tooltip direction="top" offset={[0, -24]} opacity={0.92}>
+            Delivery location
+          </Tooltip>
+        </Marker>
       )}
       {courierCoords && (
-        <Marker position={courierCoords} icon={courierIcon} />
+        <Marker position={courierCoords} icon={courierIcon}>
+          <Tooltip direction="top" offset={[0, -24]} opacity={0.92}>
+            Courier (live)
+          </Tooltip>
+        </Marker>
       )}
 
       {routeCoords?.length > 1 && (
