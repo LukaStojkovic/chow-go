@@ -107,7 +107,11 @@ export const SellerSettings = () => {
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="relative group">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={displayImage} alt="Restaurant Logo" />
+                <AvatarImage
+                  src={displayImage}
+                  alt="Restaurant Logo"
+                  className="w-full h-full object-cover"
+                />
                 <AvatarFallback>
                   {restaurant.name?.charAt(0) || "R"}
                 </AvatarFallback>
