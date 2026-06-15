@@ -1,15 +1,7 @@
 import React from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Clock,
-  CheckCircle,
-  TrendingUp,
-  Package,
-  AlertCircle,
-  Star,
-  Navigation,
-} from "lucide-react";
+import { AlertCircle, Navigation } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import useGetAvailableOrders from "@/hooks/Courier/useGetAvailableOrders";
@@ -38,54 +30,6 @@ export default function CourierDashboard() {
       onSuccess: () => navigate(`/courier/delivery/${orderId}`),
     });
   }
-
-  const stats = [
-    {
-      label: "Today's Earnings",
-      value: isLoadingAnalytics
-        ? "—"
-        : `$${analytics?.today?.earnings?.toFixed(2) ?? "0.00"}`,
-      icon: TrendingUp,
-    },
-    {
-      label: "Deliveries Today",
-      value: isLoadingAnalytics
-        ? "—"
-        : String(analytics?.today?.deliveries ?? 0),
-      icon: Package,
-    },
-    {
-      label: "Acceptance Rate",
-      value: isLoadingAnalytics
-        ? "—"
-        : `${analytics?.allTime?.acceptanceRate ?? 100}%`,
-      icon: CheckCircle,
-    },
-    {
-      label: "Avg Time",
-      value: isLoadingAnalytics
-        ? "—"
-        : `${analytics?.today?.avgDeliveryTime ?? 0} min`,
-      icon: Clock,
-    },
-    {
-      label: "Rating",
-      value: isLoadingAnalytics
-        ? "—"
-        : `${analytics?.allTime?.averageRating ?? "N/A"}`,
-      icon: Star,
-    },
-  ];
-
-  const chartData = analytics?.chartData ?? [
-    { day: "Sun", earnings: 0 },
-    { day: "Mon", earnings: 0 },
-    { day: "Tue", earnings: 0 },
-    { day: "Wed", earnings: 0 },
-    { day: "Thu", earnings: 0 },
-    { day: "Fri", earnings: 0 },
-    { day: "Sat", earnings: 0 },
-  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -123,14 +67,16 @@ export default function CourierDashboard() {
         </Link>
       )}
 
-      {isAvailable && !inProgressOrder && (isLoadingOrders || hasAvailableOrder) && (
-        <ActiveDeliveryCard
-          activeOrder={availableOrder}
-          isLoadingOrders={isLoadingOrders}
-          onAccept={handleAccept}
-          isAccepting={isAccepting}
-        />
-      )}
+      {isAvailable &&
+        !inProgressOrder &&
+        (isLoadingOrders || hasAvailableOrder) && (
+          <ActiveDeliveryCard
+            activeOrder={availableOrder}
+            isLoadingOrders={isLoadingOrders}
+            onAccept={handleAccept}
+            isAccepting={isAccepting}
+          />
+        )}
 
       <StatsGrid analytics={analytics} isLoading={isLoadingAnalytics} />
       <EarningsOverview

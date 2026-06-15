@@ -104,19 +104,19 @@ export function StatsGrid({ analytics, isLoading }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {summaryCards.map((card) => (
           <StatCard key={card.title} {...card} showArrow={false} />
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {periodCards.map((card, i) => (
           <StatCard key={card.title} {...card} showArrow={false} />
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {performanceCards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
