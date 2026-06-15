@@ -404,11 +404,16 @@ export async function getCourierAnalytics({ courierUserId }) {
           deliveries: { $sum: 1 },
           totalTime: {
             $sum: {
-              $dateDiff: {
-                startDate: "$assignedAt",
-                endDate: "$deliveredAt",
-                unit: "minute",
-              },
+              $ifNull: [
+                {
+                  $dateDiff: {
+                    startDate: { $ifNull: ["$pickedUpAt", "$assignedAt"] },
+                    endDate: "$deliveredAt",
+                    unit: "minute",
+                  },
+                },
+                0,
+              ],
             },
           },
         },
