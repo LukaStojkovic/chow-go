@@ -25,8 +25,11 @@ function isRestaurantOpen(openingTime, closingTime) {
 export function startCronJobs() {
   cron.schedule("* * * * *", async () => {
     try {
-      const activeRestaurants = await Restaurant.find({ isActive: true });
-      let updatedCount = 0;
+      const activeRestaurants = await Restaurant.find({ isActive: true })
+        .select("openingTime closingTime isOpenNow _id")
+        .lean();
+
+      const bulkOperations = [];
 
       for (const restaurant of activeRestaurants) {
         const shouldBeOpen = isRestaurantOpen(
@@ -35,14 +38,20 @@ export function startCronJobs() {
         );
 
         if (restaurant.isOpenNow !== shouldBeOpen) {
-          restaurant.isOpenNow = shouldBeOpen;
-          await restaurant.save({ validateBeforeSave: false });
-          updatedCount++;
+          bulkOperations.push({
+            updateOne: {
+              filter: { _id: restaurant._id },
+              update: { $set: { isOpenNow: shouldBeOpen } },
+            },
+          });
         }
       }
 
-      if (updatedCount > 0) {
-        console.log(`Cron: Updated isOpenNow for ${updatedCount} restaurants`);
+      if (bulkOperations.length > 0) {
+        await Restaurant.bulkWrite(bulkOperations);
+        console.log(
+          `Cron: Updated isOpenNow for ${bulkOperations.length} restaurants`,
+        );
       }
     } catch (error) {
       console.error("Cron job error:", error);
