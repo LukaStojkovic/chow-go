@@ -68,12 +68,12 @@ export default function MobileSidebarContent({
           >
             Log In
           </Button>
-          <button
+          <Button
             onClick={() => onSignup(false)}
-            className="w-full rounded-lg sm:rounded-xl bg-black px-4 sm:px-6 py-3 sm:py-3.5 font-bold text-white transition-transform hover:scale-105 active:scale-95 dark:bg-white dark:text-black text-base sm:text-lg h-12 sm:h-14 flex items-center justify-center"
+            className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg sm:rounded-xl"
           >
             Sign up
-          </button>
+          </Button>
         </div>
       )}
 
