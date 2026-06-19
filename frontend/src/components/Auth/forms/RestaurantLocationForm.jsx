@@ -3,14 +3,15 @@ import { MapPin, Clock } from "lucide-react";
 import { LocationMapSelector } from "@/components/Location/LocationMapSelector";
 import { InputField } from "../fields/InputField";
 import { useCallback } from "react";
+import { TimePicker } from "@/components/ui/TimePicker";
 
-export function RestaurantLocationForm({ register, errors, setValue }) {
+export function RestaurantLocationForm({ register, errors, setValue, watch }) {
   const handleLocationChange = useCallback(
     (lat, lng) => {
       setValue("restaurantLat", lat, { shouldDirty: true });
       setValue("restaurantLng", lng, { shouldDirty: true });
     },
-    [setValue]
+    [setValue],
   );
 
   return (
@@ -37,13 +38,19 @@ export function RestaurantLocationForm({ register, errors, setValue }) {
           <Clock className="w-4 h-4 text-emerald-600" />
           Operating Hours
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className=" flex-col flex grid-cols-2 gap-6">
           <div>
-            <InputField
-              register={register("openingTime")}
-              type="time"
-              placeholder="Opening Time"
-              error={errors.openingTime}
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Opening time
+            </label>
+            <TimePicker
+              value={watch ? watch("openingTime") : ""}
+              onChange={(val) =>
+                setValue("openingTime", val, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
             />
             {errors.openingTime && (
               <p className="text-xs text-red-500 mt-1">
@@ -52,11 +59,17 @@ export function RestaurantLocationForm({ register, errors, setValue }) {
             )}
           </div>
           <div>
-            <InputField
-              register={register("closingTime")}
-              type="time"
-              placeholder="Closing Time"
-              error={errors.closingTime}
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Closing time
+            </label>
+            <TimePicker
+              value={watch ? watch("closingTime") : ""}
+              onChange={(val) =>
+                setValue("closingTime", val, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
             />
             {errors.closingTime && (
               <p className="text-xs text-red-500 mt-1">

@@ -15,6 +15,7 @@ import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 import { handleError } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
+import { startCronJobs } from "./services/cron.service.js";
 import path from "path";
 
 const app = express();
@@ -75,6 +76,7 @@ mongoose
     httpServer.listen(process.env.PORT, () => {
       console.log(`🚀 Server is running on port ${process.env.PORT}`);
       console.log(`📡 Socket.IO ready for connections`);
+      startCronJobs();
     });
   })
   .catch((err) => {

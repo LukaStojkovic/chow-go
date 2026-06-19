@@ -93,48 +93,48 @@ export function useAuthForm(currentStep, onStepSuccess) {
     switch (currentStep) {
       case STEPS.RESTAURANT_LOCATION:
         return {
-          restaurantLat: 0,
-          restaurantLng: 0,
-          openingTime: "",
-          closingTime: "",
+          restaurantLat: registrationData.restaurantLat ?? 0,
+          restaurantLng: registrationData.restaurantLng ?? 0,
+          openingTime: registrationData.openingTime ?? "",
+          closingTime: registrationData.closingTime ?? "",
         };
       case STEPS.RESTAURANT_IMAGES:
         return {
-          restaurantDescription: "",
-          restaurantImages: [],
+          restaurantDescription: registrationData.restaurantDescription ?? "",
+          restaurantImages: registrationData.restaurantImages ?? [],
         };
       case STEPS.RESTAURANT_INFO:
         return {
-          restaurantName: "",
-          restaurantPhone: "",
-          restaurantAddress: "",
-          restaurantCity: "",
-          restaurantState: "",
-          restaurantZipCode: "",
-          cuisineType: "",
+          restaurantName: registrationData.restaurantName ?? "",
+          restaurantPhone: registrationData.restaurantPhone ?? "",
+          restaurantAddress: registrationData.restaurantAddress ?? "",
+          restaurantCity: registrationData.restaurantCity ?? "",
+          restaurantState: registrationData.restaurantState ?? "",
+          restaurantZipCode: registrationData.restaurantZipCode ?? "",
+          cuisineType: registrationData.cuisineType ?? "",
         };
       case STEPS.REGISTER:
         return role === "seller"
           ? {
-              name: "",
-              email: "",
-              password: "",
-              profilePicture: null,
+              name: registrationData.name ?? "",
+              email: registrationData.email ?? "",
+              password: registrationData.password ?? "",
+              profilePicture: registrationData.profilePicture ?? null,
             }
           : {
-              name: "",
-              email: "",
-              password: "",
-              phoneNumber: "",
-              profilePicture: null,
+              name: registrationData.name ?? "",
+              email: registrationData.email ?? "",
+              password: registrationData.password ?? "",
+              phoneNumber: registrationData.phoneNumber ?? "",
+              profilePicture: registrationData.profilePicture ?? null,
             };
       default:
         return {
-          email: "",
-          password: "",
+          email: registrationData.email ?? "",
+          password: registrationData.password ?? "",
         };
     }
-  }, [currentStep, role]);
+  }, [currentStep, role, registrationData]);
 
   const {
     register,
@@ -192,6 +192,10 @@ export function useAuthForm(currentStep, onStepSuccess) {
     setValue("profilePicture", null);
     setImagePreview(null);
   }, [setValue]);
+
+  const updateRegistrationData = useCallback((data) => {
+    setRegistrationData((prev) => ({ ...prev, ...data }));
+  }, []);
 
   const onSubmit = useCallback(
     async (data) => {
@@ -274,5 +278,6 @@ export function useAuthForm(currentStep, onStepSuccess) {
     resetForm,
     watch,
     setValue,
+    updateRegistrationData,
   };
 }

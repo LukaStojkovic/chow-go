@@ -41,7 +41,12 @@ export default function AuthModal({
     }
   }, [step]);
 
+  const auth = useAuthForm(step, handleNext);
+
   const handleBack = useCallback(() => {
+    const currentData = auth.watch();
+    auth.updateRegistrationData(currentData);
+
     if (step === STEPS.RESTAURANT_IMAGES) {
       setStep(STEPS.RESTAURANT_LOCATION);
     } else if (step === STEPS.RESTAURANT_LOCATION) {
@@ -51,12 +56,10 @@ export default function AuthModal({
     } else if (step === STEPS.REGISTER) {
       setStep(STEPS.LOGIN);
     }
-  }, [step]);
-
-  const auth = useAuthForm(step, handleNext);
+  }, [step, auth]);
 
   const passwordReset = usePasswordReset(
-    useCallback(() => setStep(STEPS.LOGIN), [])
+    useCallback(() => setStep(STEPS.LOGIN), []),
   );
 
   const isLoading = auth.isSubmitting || isLoggingIn || isRegistering;
@@ -81,6 +84,15 @@ export default function AuthModal({
 
   const footer = (
     <div className="flex gap-2 sm:gap-3 justify-end">
+      {step !== STEPS.LOGIN && !isForgotFlow && (
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+        >
+          Back
+        </Button>
+      )}
       <Button
         variant="outline"
         onClick={() => setIsOpen(false)}
@@ -102,10 +114,10 @@ export default function AuthModal({
                 {step === STEPS.LOGIN
                   ? "Logging in..."
                   : step === STEPS.REGISTER && auth.watchedRole === "customer"
-                  ? "Registering..."
-                  : step === STEPS.RESTAURANT_IMAGES
-                  ? "Creating..."
-                  : "Next"}
+                    ? "Registering..."
+                    : step === STEPS.RESTAURANT_IMAGES
+                      ? "Creating..."
+                      : "Next"}
               </span>
             </>
           ) : (
@@ -113,10 +125,10 @@ export default function AuthModal({
               {step === STEPS.LOGIN
                 ? "Log In"
                 : step === STEPS.REGISTER && auth.watchedRole === "customer"
-                ? "Register"
-                : step === STEPS.RESTAURANT_IMAGES
-                ? "Complete Registration"
-                : "Next"}
+                  ? "Register"
+                  : step === STEPS.RESTAURANT_IMAGES
+                    ? "Complete Registration"
+                    : "Next"}
             </>
           )}
         </Button>

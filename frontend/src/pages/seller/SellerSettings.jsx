@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TimePicker } from "@/components/ui/TimePicker";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Label } from "@/components/ui/label";
 import {
@@ -313,21 +314,23 @@ export const SellerSettings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="openingTime">Opening Time</Label>
-              <Input
-                id="openingTime"
-                type="time"
+              <TimePicker
                 value={formData.openingTime}
-                onChange={handleInputChange}
+                onChange={(val) => {
+                  hasUserModified.current = true;
+                  setFormData((prev) => ({ ...prev, openingTime: val }));
+                }}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="closingTime">Closing Time</Label>
-              <Input
-                id="closingTime"
-                type="time"
+              <TimePicker
                 value={formData.closingTime}
-                onChange={handleInputChange}
+                onChange={(val) => {
+                  hasUserModified.current = true;
+                  setFormData((prev) => ({ ...prev, closingTime: val }));
+                }}
               />
             </div>
           </div>
