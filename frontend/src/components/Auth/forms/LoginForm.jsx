@@ -24,6 +24,7 @@ export function LoginForm({ register, errors, onForgotPassword }) {
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
+            {...register("rememberMe")}
             className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
           />
           <span className="text-gray-700 dark:text-gray-300">Remember me</span>

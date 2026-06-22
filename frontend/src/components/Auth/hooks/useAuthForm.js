@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 const LOGIN_SCHEMA = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Min 6 characters"),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 const REGISTER_CUSTOMER_SCHEMA = z.object({
@@ -132,6 +133,7 @@ export function useAuthForm(currentStep, onStepSuccess) {
         return {
           email: registrationData.email ?? "",
           password: registrationData.password ?? "",
+          rememberMe: false,
         };
     }
   }, [currentStep, role, registrationData]);

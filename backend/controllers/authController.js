@@ -7,7 +7,7 @@ import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
 
 export async function login(req, res, next) {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
 
   if (!email || !password) {
     return next(new AppError("All fields are required", 400));
@@ -23,7 +23,7 @@ export async function login(req, res, next) {
     return next(new AppError("Invalid credentials", 400));
   }
 
-  generateToken(user._id, res);
+  generateToken(user._id, res, !!rememberMe);
 
   if (user.role === "seller") {
     await user.populate("restaurant");
