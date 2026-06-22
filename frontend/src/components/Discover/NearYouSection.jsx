@@ -1,12 +1,23 @@
-import { RESTAURANTS } from "@/lib/constants";
-import RestaurantCard from "./RestaurantCard";
-import { MapPin } from "lucide-react";
+import FoodItemCard from "./FoodItemCard";
+import { MapPin, Loader2 } from "lucide-react";
 
-export default function NearYouSection() {
+export default function NearYouSection({ items, isLoading }) {
+  if (isLoading && items.length === 0) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 sm:text-xl text-sm font-bold">
+        <h2 className="flex items-center gap-2 sm:text-xl text-sm font-bold text-gray-900 dark:text-white">
           <MapPin className="h-5 w-5 text-blue-500" />
           Near You
         </h2>
@@ -21,8 +32,8 @@ export default function NearYouSection() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {RESTAURANTS.map((restaurant, idx) => (
-          <RestaurantCard key={restaurant.id} data={restaurant} index={idx} />
+        {items.map((item, idx) => (
+          <FoodItemCard key={`near-${item._id}-${idx}`} item={item} />
         ))}
       </div>
     </section>

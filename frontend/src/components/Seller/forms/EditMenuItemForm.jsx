@@ -35,7 +35,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
   const [existingImages, setExistingImages] = useState([]);
   const { updateMenuItem, isUpdating } = useUpdateMenuItem();
   const { authUser } = useAuthStore();
-  const restaurantId = authUser?.restaurant?._id;
+  const restaurantId = authUser?.restaurant?._id || authUser?.restaurant?.[0]?._id;
 
   const {
     register,

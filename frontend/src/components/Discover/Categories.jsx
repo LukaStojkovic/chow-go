@@ -12,12 +12,12 @@ export default function Categories({
           key={cat.id}
           whileTap={{ scale: 0.9 }}
           className="flex flex-col items-center gap-2"
-          onClick={() => setActiveCategory(cat.name)}
+          onClick={() => setActiveCategory(cat.value)}
         >
           <div
             className={`flex h-16 w-16 items-center justify-center rounded-2xl text-2xl shadow-sm transition-colors ${
               cat.color
-            } ${activeCategory === cat.name ? "ring-2 ring-blue-500" : ""}`}
+            } ${activeCategory === cat.value ? "ring-2 ring-blue-500" : ""}`}
           >
             {cat.icon}
           </div>
