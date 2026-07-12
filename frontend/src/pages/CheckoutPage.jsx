@@ -54,10 +54,10 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex flex-col items-center justify-center text-center px-6">
         <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="text-blue-600 cursor-pointer font-medium hover:underline"
         >
-          Go back to menu
+          Go back to home
         </button>
       </div>
     );

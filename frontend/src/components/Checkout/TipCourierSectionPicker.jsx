@@ -34,11 +34,12 @@ export default function TipCourierSectionPicker({
         <input
           id="custom-tip"
           type="number"
+          min="0"
           placeholder="Custom"
           value={customTip}
           onChange={(e) => {
-            const val = parseFloat(e.target.value) || 0;
-            setCustomTip(e.target.value);
+            const val = Math.max(0, parseFloat(e.target.value) || 0);
+            setCustomTip(val === 0 && e.target.value === "" ? "" : val);
             setTipAmount(val);
           }}
           className="min-w-20 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-center dark:border-zinc-700 dark:bg-zinc-800"

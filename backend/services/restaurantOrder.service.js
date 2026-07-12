@@ -206,6 +206,10 @@ export async function updateOrderStatusOperation(
 
   await socketService.emitOrderStatusChanged(order.customer, order, newStatus);
 
+  if (newStatus === "ready") {
+    await socketService.emitNewOrderAvailable(order);
+  }
+
   return order;
 }
 

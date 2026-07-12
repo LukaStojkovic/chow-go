@@ -58,7 +58,7 @@ export async function createOrder(req, res, next) {
     const priorityFee = deliveryType === "priority" ? 1.99 : 0;
     const deliveryFee = baseDeliveryFee + priorityFee;
     const tax = 0;
-    const tipAmount = parseFloat(tip) || 0;
+    const tipAmount = Math.max(0, parseFloat(tip) || 0);
     const total = subtotal + deliveryFee + serviceFee + tax + tipAmount;
 
     for (const item of cart.items) {
@@ -102,9 +102,9 @@ export async function createOrder(req, res, next) {
       total,
       paymentMethod,
       customerNotes: customerNotes || "",
-      estimatedPreparationTime: 30,
+      estimatedPreparationTime: restaurant.estimatedPreparationTime || 30,
       estimatedDeliveryTime: new Date(
-        Date.now() + (deliveryType === "priority" ? 45 : 60) * 60 * 1000,
+        Date.now() + ((restaurant.estimatedPreparationTime || 30) + (deliveryType === "priority" ? 15 : 30)) * 60 * 1000,
       ),
     });
 
@@ -169,7 +169,7 @@ export async function getCustomerOrders(req, res, next) {
 
     const orders = await Order.find(query)
       .populate("restaurant", "name profilePicture address phone")
-      .populate("courier", "fullName phoneNumber vehicleType")
+      .populate("courier", "fullName phoneNumber profilePicture vehicleType")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -206,7 +206,7 @@ export async function getOrderById(req, res, next) {
     })
       .populate("customer", "name email phoneNumber")
       .populate("restaurant", "name profilePicture address phone location")
-      .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+      .populate("courier", "fullName phoneNumber profilePicture vehicleType currentLocation")
       .populate("items.menuItem", "name imageUrls");
 
     if (!order) {
@@ -239,7 +239,7 @@ export async function cancelOrder(req, res, next) {
     }
 
     if (
-      ["picked_up", "in_transit", "delivered", "cancelled"].includes(
+      ["preparing", "picked_up", "in_transit", "delivered", "cancelled"].includes(
         order.status,
       )
     ) {
@@ -298,13 +298,15 @@ export async function cancelOrder(req, res, next) {
 export async function rateOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { restaurantRating, restaurantReview } = req.body;
+    const { restaurantRating, restaurantReview, courierRating, courierReview } = req.body;
 
     const order = await rateOrderOperation({
       orderId,
       customerUserId: req.user._id,
       restaurantRating,
       restaurantReview,
+      courierRating,
+      courierReview,
     });
 
     res.status(200).json({

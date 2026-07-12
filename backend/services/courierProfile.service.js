@@ -10,6 +10,7 @@ export async function getCourierProfile(courierUserId) {
 export async function updateCourierProfileOperation({
   courierUserId,
   fullName,
+  phoneNumber,
   profilePictureFile,
 }) {
   const courier = await courierOrderService.getCourierByUserId(courierUserId);
@@ -24,6 +25,14 @@ export async function updateCourierProfileOperation({
     if (!trimmed) throw new AppError("Name cannot be empty", 400);
     courier.fullName = trimmed;
     user.name = trimmed;
+    hasUpdates = true;
+  }
+
+  if (phoneNumber !== undefined) {
+    const trimmed = phoneNumber.trim();
+    if (!trimmed) throw new AppError("Phone cannot be empty", 400);
+    courier.phoneNumber = trimmed;
+    user.phoneNumber = trimmed;
     hasUpdates = true;
   }
 

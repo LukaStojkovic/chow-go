@@ -44,12 +44,9 @@ export async function cancelOrder(orderId, reason) {
   }
 }
 
-export async function rateOrder(orderId, { restaurantRating, restaurantReview }) {
+export async function rateOrder(orderId, payload) {
   try {
-    const res = await axiosInstance.patch(`/orders/${orderId}/rate`, {
-      restaurantRating,
-      restaurantReview,
-    });
+    const res = await axiosInstance.patch(`/orders/${orderId}/rate`, payload);
     return res.data;
   } catch (err) {
     console.error("Error rating order:", err);

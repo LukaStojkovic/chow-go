@@ -215,6 +215,8 @@ export async function acceptOrderOperation({ orderId, courierUserId }) {
   await notificationService.createOrderStatusNotification(order, "assigned");
   await socketService.emitOrderAssigned(order);
 
+  await socketService.emitOrderTaken(order._id);
+
   const populated = await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
@@ -255,6 +257,8 @@ export async function cancelAssignedOrderOperation({
     order,
     reason || "Cancelled by courier",
   );
+
+  await socketService.emitOrderBackToPool(order);
 
   const populated = await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")

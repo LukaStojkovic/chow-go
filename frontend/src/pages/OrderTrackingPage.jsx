@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import BackNavbar from "@/components/Navbar/BackNavbar";
+import { useSocket } from "@/contexts/SocketContext";
 import Spinner from "@/components/Spinner";
 import { AlertCircle } from "lucide-react";
 import { useGetOrderById } from "@/hooks/Orders/useGetOrderById";
@@ -14,12 +16,35 @@ import { OrderItems } from "@/components/OrderTracking/OrderItems";
 import { DeliveryInstructions } from "@/components/OrderTracking/DeliveryInstructions";
 import { OrderTrackingLiveMap } from "@/components/OrderTracking/OrderTrackingLiveMap";
 import { RestaurantReview } from "@/components/OrderTracking/RestaurantReview";
+import { CourierReview } from "@/components/OrderTracking/CourierReview";
 
 const OrderTrackingPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { order, isLoadingOrder } = useGetOrderById(orderId);
+  const { order, isLoadingOrder, refetch } = useGetOrderById(orderId);
   const { cancelOrder, isCancelling } = useCancelOrder();
+  const { socket, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleOrderUpdate = (data) => {
+      const updatedOrderId = data.order?._id || data.orderId;
+      if (updatedOrderId === orderId) {
+        refetch();
+      }
+    };
+
+    socket.on("order:updated", handleOrderUpdate);
+    socket.on("order:status_changed", handleOrderUpdate);
+    socket.on("order:cancelled", handleOrderUpdate);
+
+    return () => {
+      socket.off("order:updated", handleOrderUpdate);
+      socket.off("order:status_changed", handleOrderUpdate);
+      socket.off("order:cancelled", handleOrderUpdate);
+    };
+  }, [socket, isConnected, orderId, refetch]);
 
   const handleCancelOrder = () => {
     cancelOrder({ orderId, reason: "Cancelled by customer" });
@@ -98,12 +123,18 @@ const OrderTrackingPage = () => {
         <DeliveryInstructions notes={order.customerNotes} />
 
         {order.status === "delivered" && (
-          <RestaurantReview
-            orderId={orderId}
-            restaurant={order.restaurant}
-            courier={order.courier}
-            customerRating={order.customerRating}
-          />
+          <div className="space-y-6">
+            <RestaurantReview
+              orderId={orderId}
+              restaurant={order.restaurant}
+              customerRating={order.customerRating}
+            />
+            <CourierReview
+              orderId={orderId}
+              courier={order.courier}
+              customerRating={order.customerRating}
+            />
+          </div>
         )}
 
         {canCancel && (

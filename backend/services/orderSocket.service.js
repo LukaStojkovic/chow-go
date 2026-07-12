@@ -275,3 +275,48 @@ export async function emitCourierLocationUpdated(order, courier) {
     console.error("Socket emit error (courier:location):", error);
   }
 }
+
+export async function emitNewOrderAvailable(order) {
+  try {
+    const socketServer = getSocketServer();
+    const payload = {
+      orderId: order._id,
+      restaurantId: order.restaurant,
+    };
+
+    for (const [courierId] of socketServer.connections.couriers) {
+      socketServer.emitToCourier(courierId, "order:available", payload);
+    }
+  } catch (error) {
+    console.error("Socket emit error (order:available):", error);
+  }
+}
+
+export async function emitOrderTaken(orderId) {
+  try {
+    const socketServer = getSocketServer();
+    const payload = { orderId };
+
+    for (const [courierId] of socketServer.connections.couriers) {
+      socketServer.emitToCourier(courierId, "order:taken", payload);
+    }
+  } catch (error) {
+    console.error("Socket emit error (order:taken):", error);
+  }
+}
+
+export async function emitOrderBackToPool(order) {
+  try {
+    const socketServer = getSocketServer();
+    const payload = {
+      orderId: order._id,
+      restaurantId: order.restaurant,
+    };
+
+    for (const [courierId] of socketServer.connections.couriers) {
+      socketServer.emitToCourier(courierId, "order:available", payload);
+    }
+  } catch (error) {
+    console.error("Socket emit error (order:available - back to pool):", error);
+  }
+}

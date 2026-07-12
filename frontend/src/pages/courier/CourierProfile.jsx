@@ -62,11 +62,13 @@ export function CourierProfile() {
   const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(courier?.fullName ?? "");
+  const [phoneNumber, setPhoneNumber] = useState(courier?.phoneNumber ?? authUser?.phoneNumber ?? "");
   const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     setFullName(courier?.fullName ?? authUser?.name ?? "");
-  }, [courier?.fullName, authUser?.name]);
+    setPhoneNumber(courier?.phoneNumber ?? authUser?.phoneNumber ?? "");
+  }, [courier?.fullName, authUser?.name, courier?.phoneNumber, authUser?.phoneNumber]);
 
   if (!courier) {
     return (
@@ -108,6 +110,7 @@ export function CourierProfile() {
     const formData = new FormData();
     formData.append("profilePicture", file);
     if (fullName.trim()) formData.append("fullName", fullName.trim());
+    if (phoneNumber.trim()) formData.append("phoneNumber", phoneNumber.trim());
     updateProfile(formData);
   }
 
@@ -120,6 +123,7 @@ export function CourierProfile() {
 
     const formData = new FormData();
     formData.append("fullName", trimmed);
+    if (phoneNumber.trim()) formData.append("phoneNumber", phoneNumber.trim());
     updateProfile(formData, {
       onSuccess: () => setIsEditing(false),
     });
@@ -127,6 +131,7 @@ export function CourierProfile() {
 
   function handleCancelEdit() {
     setFullName(courier.fullName ?? authUser?.name ?? "");
+    setPhoneNumber(courier.phoneNumber ?? authUser?.phoneNumber ?? "");
     setIsEditing(false);
   }
 
@@ -173,6 +178,12 @@ export function CourierProfile() {
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-lg font-bold text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:max-w-sm"
                   placeholder="Your full name"
+                />
+                <input
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-md font-semibold text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:max-w-sm"
+                  placeholder="Your phone number"
                 />
                 <div className="flex justify-center gap-2 sm:justify-start">
                   <button

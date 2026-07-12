@@ -151,10 +151,11 @@ export async function getCourierProfile(req, res, next) {
 }
 
 export async function updateCourierProfile(req, res, next) {
-  const { fullName } = req.body;
+  const { fullName, phoneNumber } = req.body;
   const courier = await courierProfileService.updateCourierProfileOperation({
     courierUserId: req.user._id,
     fullName,
+    phoneNumber,
     profilePictureFile: req.file,
   });
 

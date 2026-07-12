@@ -277,7 +277,7 @@ export const updateProfile = async (req, res, next) => {
     updateData.name = name.trim();
   }
 
-  if (phone && user.role === "customer") {
+  if (phone) {
     const phoneRegex = /^[+]?[0-9]{7,15}$/;
 
     if (!phoneRegex.test(phone.replace(/[\s-]/g, ""))) {

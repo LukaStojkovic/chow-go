@@ -8,8 +8,12 @@ export function CourierInfo({ courier }) {
       <h3 className="font-bold text-lg mb-4">Delivery Partner</h3>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-            <Bike className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center overflow-hidden shrink-0">
+            {courier.profilePicture ? (
+              <img src={courier.profilePicture} alt={courier.fullName} className="h-full w-full object-cover" />
+            ) : (
+              <Bike className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            )}
           </div>
           <div>
             <p className="font-semibold">{courier.fullName}</p>
