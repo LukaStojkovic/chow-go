@@ -37,7 +37,21 @@ app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      const allowed = [
+        process.env.FRONTEND_URL || "http://localhost:5173",
+        "http://localhost:8081",
+        "http://localhost:19006",
+      ];
+      if (
+        !origin ||
+        allowed.includes(origin) ||
+        process.env.NODE_ENV !== "production"
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );

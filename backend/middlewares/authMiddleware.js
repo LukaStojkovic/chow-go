@@ -2,9 +2,17 @@ import User from "../models/User.js";
 import Courier from "../models/Courier.js";
 import jwt from "jsonwebtoken";
 
+function extractToken(req) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
+  return req.cookies?.jwt || null;
+}
+
 export async function protectedRoute(req, res, next) {
   try {
-    const token = req.cookies.jwt;
+    const token = extractToken(req);
 
     if (!token) {
       return res

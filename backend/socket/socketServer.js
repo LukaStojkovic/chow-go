@@ -14,7 +14,13 @@ class SocketServer {
   constructor(httpServer) {
     this.io = new Server(httpServer, {
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin: (origin, callback) => {
+          if (!origin || process.env.NODE_ENV !== "production") {
+            return callback(null, true);
+          }
+          const allowed = process.env.FRONTEND_URL || "http://localhost:5173";
+          return callback(null, origin === allowed);
+        },
         credentials: true,
         methods: ["GET", "POST"],
       },
@@ -35,21 +41,23 @@ class SocketServer {
   setupMiddleware() {
     this.io.use(async (socket, next) => {
       try {
-        const cookies = socket.handshake.headers.cookie;
+        let token = socket.handshake.auth?.token;
 
-        if (!cookies) {
-          return next(new Error("Authentication error: No cookies"));
+        if (!token) {
+          const cookies = socket.handshake.headers.cookie;
+          if (cookies) {
+            const tokenCookie = cookies
+              .split(";")
+              .find((c) => c.trim().startsWith("jwt="));
+            if (tokenCookie) {
+              token = tokenCookie.split("=")[1];
+            }
+          }
         }
 
-        const tokenCookie = cookies
-          .split(";")
-          .find((c) => c.trim().startsWith("jwt="));
-
-        if (!tokenCookie) {
+        if (!token) {
           return next(new Error("Authentication error: No token provided"));
         }
-
-        const token = tokenCookie.split("=")[1];
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.userId);

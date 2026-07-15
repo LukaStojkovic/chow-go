@@ -23,7 +23,7 @@ export async function login(req, res, next) {
     return next(new AppError("Invalid credentials", 400));
   }
 
-  generateToken(user._id, res, !!rememberMe);
+  const token = generateToken(user._id, res, !!rememberMe);
 
   if (user.role === "seller") {
     await user.populate("restaurant");
@@ -37,6 +37,7 @@ export async function login(req, res, next) {
     phoneNumber: user.phoneNumber,
     role: user.role,
     createdAt: user.createdAt,
+    token,
   };
 
   if (user.role === "seller" && user.restaurant) {
@@ -214,7 +215,7 @@ export const register = async (req, res, next) => {
       isAvailable: true,
     });
 
-    generateToken(user._id, res);
+    const courierToken = generateToken(user._id, res);
 
     return res.status(201).json({
       _id: user._id,
@@ -225,10 +226,11 @@ export const register = async (req, res, next) => {
       profilePicture: user.profilePicture,
       createdAt: user.createdAt,
       courier: courierProfile,
+      token: courierToken,
     });
   }
 
-  generateToken(user._id, res);
+  const token = generateToken(user._id, res);
 
   const response = {
     _id: user._id,
@@ -238,6 +240,7 @@ export const register = async (req, res, next) => {
     phoneNumber: user.phoneNumber,
     profilePicture: user.profilePicture,
     createdAt: user.createdAt,
+    token,
   };
 
   if (user.role === "seller" && user.restaurant) {
