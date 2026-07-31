@@ -22,7 +22,7 @@ export default function CheckoutPage() {
 
   const [tipAmount, setTipAmount] = useState(0);
   const [deliveryType, setDeliveryType] = useState("standard");
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
   const [customTip, setCustomTip] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
 

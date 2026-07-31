@@ -13,7 +13,7 @@ export default function DeliveryTimeSectionPicker({
       </h2>
 
       <div className="space-y-3">
-        <label
+        {/* <label
           className={`flex cursor-pointer items-center justify-between rounded-lg sm:rounded-xl border p-3 sm:p-4 transition-all gap-3 ${
             deliveryType === "priority"
               ? "border-blue-600 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/10"
@@ -40,7 +40,7 @@ export default function DeliveryTimeSectionPicker({
           <span className="font-semibold text-gray-900 dark:text-gray-100 shrink-0 text-sm sm:text-base">
             +$1.99
           </span>
-        </label>
+        </label> */}
 
         <label
           className={`flex cursor-pointer items-center justify-between rounded-lg sm:rounded-xl border p-3 sm:p-4 transition-all gap-3 ${

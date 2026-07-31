@@ -8,15 +8,25 @@ import useAcceptCourierOrder from "@/hooks/Courier/useAcceptCourierOrder";
 import Spinner from "@/components/Spinner";
 import { CourierOrderCard } from "@/components/Courier/components/CourierOrderCard";
 import CourierOrderHistoryCard from "@/components/Courier/components/CourierOrderHistoryCard";
+import PaginationSelector from "@/components/ui/PaginationSelector";
+
+const HISTORY_LIMIT = 10;
 
 export function CourierOrders() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("available");
+  const [historyPage, setHistoryPage] = useState(1);
+
   const { courierAvailableOrders, isLoadingOrders } = useGetAvailableOrders();
   const { courierOrders: activeData } = useGetCourierOrders("active");
-  const { courierOrders: courierHistory, isLoading: isLoadingHistory } =
-    useGetCourierOrders("history");
+  const {
+    courierOrders: courierHistory,
+    isLoadingCourierOrders: isLoadingHistory,
+    isFetchingCourierOrders: isFetchingHistory,
+  } = useGetCourierOrders("history", historyPage, HISTORY_LIMIT);
+
   const historyOrders = courierHistory?.data?.orders ?? [];
+  const historyPagination = courierHistory?.data?.pagination;
   const activeOrder = activeData?.data?.orders?.[0];
 
   const orders = courierAvailableOrders?.data?.orders ?? [];
@@ -135,6 +145,15 @@ export function CourierOrders() {
               historyOrders.map((order) => (
                 <CourierOrderHistoryCard key={order._id} order={order} />
               ))}
+
+            {!isLoadingHistory && historyPagination && (
+              <PaginationSelector
+                pagination={historyPagination}
+                page={historyPage}
+                setPage={setHistoryPage}
+                isFetching={isFetchingHistory}
+              />
+            )}
           </div>
         )}
       </div>

@@ -13,7 +13,7 @@ export default function PaymentMethodSectionPicker({
       </h2>
 
       <div className="space-y-3">
-        <label
+        {/* <label
           className={`flex cursor-pointer items-center justify-between rounded-lg sm:rounded-xl border p-4 transition-all ${
             paymentMethod === "card"
               ? "border-blue-600 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/10"
@@ -45,7 +45,7 @@ export default function PaymentMethodSectionPicker({
           <button className="text-xs font-medium text-blue-600 hover:underline">
             Change
           </button>
-        </label>
+        </label> */}
 
         <label
           className={`flex cursor-pointer items-center justify-between rounded-lg sm:rounded-xl border p-4 transition-all ${

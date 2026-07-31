@@ -6,8 +6,9 @@ export async function getCourierAvailableOrders(limit) {
   });
   return res.data;
 }
-export async function getCourierOrders(status) {
-  const params = status ? { status } : {};
+export async function getCourierOrders(status, page = 1, limit = 10) {
+  const params = { page, limit };
+  if (status) params.status = status;
   const res = await axiosInstance.get(`/courier/my-orders`, { params });
   return res.data;
 }
