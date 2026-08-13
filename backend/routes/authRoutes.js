@@ -8,9 +8,12 @@ import {
   resetPassword,
   updateProfile,
   verifyOtp,
+  googleCallback,
+  googleCompleteProfile
 } from "../controllers/authController.js";
 import { createUpload } from "../middlewares/upload.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
+import passport from "passport";
 
 const router = express.Router();
 const uploadUser = createUpload("users");
@@ -35,6 +38,18 @@ router.put(
   protectedRoute,
   uploadUser.single("profilePicture"),
   updateProfile
+);
+
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  googleCallback
+);
+router.post(
+  "/google/complete-profile",
+  uploadUser.fields([{ name: "restaurantImages", maxCount: 5 }]),
+  googleCompleteProfile,
 );
 
 router.get("/check", protectedRoute, checkAuth);

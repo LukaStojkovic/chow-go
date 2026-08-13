@@ -10,7 +10,7 @@ export default function MobileSidebarContent({
   onSignup,
 }) {
   const profilePicture =
-    authUser?.profilePicture || "defaultProfilePicture.png";
+    authUser?.profilePicture || "/defaultProfilePicture.png";
   const navigate = useNavigate();
 
   return (

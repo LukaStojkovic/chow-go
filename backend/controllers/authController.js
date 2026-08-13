@@ -18,6 +18,10 @@ export async function login(req, res, next) {
     return next(new AppError("Invalid credentials", 400));
   }
 
+  if (!user.password && user.authProvider === "google") {
+    return next(new AppError("Please login with Google", 400));
+  }
+
   const isCorrectPassword = await bcrypt.compare(password, user.password);
   if (!isCorrectPassword) {
     return next(new AppError("Invalid credentials", 400));
@@ -420,4 +424,238 @@ export const checkAuth = (req, res) => {
   }
 
   res.status(200).json(response);
+};
+
+export const googleCallback = async (req, res, next) => {
+  const data = req.user;
+
+  if (!data) {
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/auth/google/callback?error=auth_failed`
+    );
+  }
+
+  if (data.isNewUser) {
+    req.session.googleProfile = data.googleProfile;
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/auth/google/callback?newUser=true`
+    );
+  }
+  generateToken(data._id, res);
+  return res.redirect(
+    `${process.env.FRONTEND_URL}/auth/google/callback?success=true`
+  );
+};
+
+export const googleCompleteProfile = async (req, res, next) => {
+  const googleProfile = req.session?.googleProfile;
+
+  if (!googleProfile) {
+    return next(
+      new AppError(
+        "Google profile session expired. Please try signing in with Google again.",
+        400,
+      ),
+    );
+  }
+
+  const body = req.body;
+  const { role, phoneNumber, vehicleType, vehicleNumber, vehicleModel } = body;
+
+  if (!role || !["customer", "seller", "courier"].includes(role)) {
+    return next(new AppError("Valid role is required", 400));
+  }
+
+  if (await User.exists({ email: googleProfile.email })) {
+    delete req.session.googleProfile;
+    return next(new AppError("An account with this email already exists", 400));
+  }
+
+  if (role === "customer" && !phoneNumber) {
+    return next(new AppError("Phone number is required for customers", 400));
+  }
+
+  if (role === "courier") {
+    if (!phoneNumber) {
+      return next(new AppError("Phone number is required for couriers", 400));
+    }
+    if (!vehicleType) {
+      return next(new AppError("Vehicle type is required for couriers", 400));
+    }
+
+    const validVehicleTypes = ["bike", "scooter", "motorcycle", "car"];
+    if (!validVehicleTypes.includes(vehicleType)) {
+      return next(new AppError("Invalid vehicle type", 400));
+    }
+    if (!vehicleNumber) {
+      return next(new AppError("Vehicle number is required", 400));
+    }
+    if (!vehicleModel) {
+      return next(new AppError("Vehicle model is required", 400));
+    }
+  }
+
+  if (role === "seller") {
+    const requiredFields = [
+      "restaurantName",
+      "cuisineType",
+      "restaurantPhone",
+      "restaurantAddress",
+      "restaurantCity",
+      "restaurantZipCode",
+      "openingTime",
+      "closingTime",
+      "restaurantLat",
+      "restaurantLng",
+      "restaurantDescription",
+    ];
+
+    const missing = requiredFields.find((field) => !body[field]);
+    if (missing) {
+      return next(new AppError(`${missing} is required`, 400));
+    }
+
+    if (
+      !req.files?.restaurantImages ||
+      req.files.restaurantImages.length === 0
+    ) {
+      return next(
+        new AppError("At least one restaurant image is required", 400),
+      );
+    }
+
+    const lng = parseFloat(body.restaurantLng);
+    const lat = parseFloat(body.restaurantLat);
+
+    if (isNaN(lng) || isNaN(lat) || Math.abs(lng) > 180 || Math.abs(lat) > 90) {
+      return next(new AppError("Invalid coordinates", 400));
+    }
+  }
+
+  const user = await User.create({
+    name: googleProfile.name,
+    email: googleProfile.email,
+    googleId: googleProfile.googleId,
+    profilePicture: googleProfile.profilePicture || "",
+    authProvider: "google",
+    role,
+    phoneNumber: phoneNumber || undefined,
+  });
+
+  if (role === "seller") {
+    const lng = parseFloat(body.restaurantLng);
+    const lat = parseFloat(body.restaurantLat);
+
+    const restaurant = await Restaurant.create({
+      ownerId: user._id,
+      name: body.restaurantName,
+      cuisineType: body.cuisineType,
+      profilePicture:
+        googleProfile.profilePicture || "/defaultProfilePicture.png",
+      description: body.restaurantDescription,
+      images: req.files.restaurantImages.map((file) => file.path),
+      phone: body.restaurantPhone,
+      email: googleProfile.email.toLowerCase(),
+      openingTime: body.openingTime,
+      closingTime: body.closingTime,
+      isActive: true,
+      address: {
+        street: body.restaurantAddress,
+        city: body.restaurantCity,
+        state: body.restaurantState || "",
+        zipCode: body.restaurantZipCode,
+        country: "Serbia",
+      },
+      location: { type: "Point", coordinates: [lng, lat] },
+    });
+
+    user.restaurant = restaurant._id;
+    await user.save();
+    await user.populate("restaurant");
+
+    generateToken(user._id, res);
+    delete req.session.googleProfile;
+
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture,
+      phoneNumber: user.phoneNumber,
+      createdAt: user.createdAt,
+      restaurant: user.restaurant,
+    });
+  }
+
+  if (role === "courier") {
+    let documents = {};
+    if (body.documents) {
+      try {
+        documents =
+          typeof body.documents === "string"
+            ? JSON.parse(body.documents)
+            : body.documents;
+      } catch {
+        documents = {};
+      }
+    }
+
+    const courierProfile = await Courier.create({
+      userId: user._id,
+      fullName: googleProfile.name,
+      phoneNumber: phoneNumber || "",
+      email: googleProfile.email,
+      profilePicture: googleProfile.profilePicture || "",
+      vehicleType,
+      vehicleNumber: vehicleNumber || "",
+      vehicleModel: vehicleModel || "",
+      documents: {
+        driverLicense: {
+          number: documents?.driverLicense?.number || "",
+          expiryDate: documents?.driverLicense?.expiryDate || null,
+          verified: false,
+        },
+        vehicleRegistration: {
+          number: documents?.vehicleRegistration?.number || "",
+          expiryDate: documents?.vehicleRegistration?.expiryDate || null,
+          verified: false,
+        },
+        insurance: {
+          number: documents?.insurance?.number || "",
+          expiryDate: documents?.insurance?.expiryDate || null,
+          verified: false,
+        },
+      },
+      verificationStatus: "pending",
+      isAvailable: true,
+    });
+
+    generateToken(user._id, res);
+    delete req.session.googleProfile;
+
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture,
+      phoneNumber: user.phoneNumber,
+      createdAt: user.createdAt,
+      courier: courierProfile,
+    });
+  }
+
+  generateToken(user._id, res);
+  delete req.session.googleProfile;
+
+  return res.status(201).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    profilePicture: user.profilePicture,
+    phoneNumber: user.phoneNumber,
+    createdAt: user.createdAt,
+  });
 };

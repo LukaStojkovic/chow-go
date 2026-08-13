@@ -18,12 +18,16 @@ import { handleError } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
 import { startCronJobs } from "./services/cron.service.js";
 import path from "path";
+import session from "express-session";
+import passport from "passport";
+import { configurePassport } from "./config/passport.js";
 
 const app = express();
 const httpServer = http.createServer(app);
 const __dirname = path.resolve();
 
 dotenv.config();
+configurePassport();
 
 const limiter = rateLimit({
   max: 100,
@@ -37,10 +41,24 @@ app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
     credentials: true,
   }),
 );
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const socketServer = initializeSocketServer(httpServer);
 
