@@ -34,25 +34,27 @@ export default function AccountSettings({
         </div>
       </div>
 
-      <div className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 rounded-xl transition cursor-pointer">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="p-2 shrink-0 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg">
-            <Lock size={18} />
+      {authUser?.authProvider !== "google" && (
+        <div className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 rounded-xl transition cursor-pointer">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="p-2 shrink-0 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg">
+              <Lock size={18} />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium truncate">Password</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                ••••••••••
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-medium truncate">Password</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              ••••••••••
-            </span>
-          </div>
+          <button
+            onClick={() => setIsPasswordModalOpen(true)}
+            className="text-xs font-semibold cursor-pointer text-blue-600 px-2 py-1 rounded-md bg-blue-50 dark:bg-transparent dark:hover:bg-zinc-800"
+          >
+            Update
+          </button>
         </div>
-        <button
-          onClick={() => setIsPasswordModalOpen(true)}
-          className="text-xs font-semibold cursor-pointer text-blue-600 px-2 py-1 rounded-md bg-blue-50 dark:bg-transparent dark:hover:bg-zinc-800"
-        >
-          Update
-        </button>
-      </div>
+      )}
 
       <div className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 rounded-xl transition">
         <div className="flex items-center gap-3">

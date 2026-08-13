@@ -91,3 +91,22 @@ export async function updateProfile(data) {
     toast.error(err.response?.data?.message);
   }
 }
+
+export async function completeGoogleProfile(data) {
+  try {
+    const isFormData = data instanceof FormData;
+    const response = await axiosInstance.post(
+      "/auth/google/complete-profile",
+      data,
+      isFormData
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : undefined,
+    );
+    toast.success("Account created successfully!");
+    return response.data;
+  } catch (err) {
+    console.error("Error completeGoogleProfile:", err);
+    toast.error(err.response?.data?.message || "Profile completion failed");
+    throw err;
+  }
+}

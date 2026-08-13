@@ -36,6 +36,7 @@ import CourierActiveDelivery from "./pages/courier/CourierActiveDelivery";
 import { CourierEarnings } from "./pages/courier/CourierEarnings";
 import { CourierInfo } from "./components/OrderTracking/CourierInfo";
 import { CourierProfile } from "./pages/courier/CourierProfile";
+import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +69,7 @@ function AppContent() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/auth/google/callback" element={<GoogleAuthCallbackPage />} />
 
         <Route element={<PublicRoute />}>
           <Route path="/discovery" element={<DiscoverPage />} />

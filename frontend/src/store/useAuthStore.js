@@ -9,6 +9,7 @@ import {
   registerCourier,
   registerUser,
   updateProfile,
+  completeGoogleProfile,
 } from "@/services/apiAuth";
 import useCartStore from "./useCartStore";
 import { axiosInstance } from "@/lib/axios";
@@ -27,9 +28,11 @@ export const useAuthStore = create((set) => ({
     try {
       const response = await checkAuth();
       set({ authUser: response || null });
+      return response;
     } catch (err) {
       console.error("Error checking auth: ", err);
       set({ authUser: null });
+      return null;
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -80,6 +83,20 @@ export const useAuthStore = create((set) => ({
       useCartStore.getState().clearCart();
     } catch (err) {
       console.error("Error during logout: ", err);
+    }
+  },
+
+  completeGoogleProfile: async (data) => {
+    set({ isRegistering: true });
+    try {
+      const response = await completeGoogleProfile(data);
+      set({ authUser: response || null });
+      return response;
+    } catch (err) {
+      console.error("Error in completeGoogleProfile", err);
+      throw err;
+    } finally {
+      set({ isRegistering: false });
     }
   },
 
