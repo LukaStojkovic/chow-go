@@ -162,7 +162,7 @@ export default function AuthModal({
               type="button"
               onClick={() => setStep(STEPS.REGISTER)}
               disabled={isLoading}
-              className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline transition-colors"
+              className="text-emerald-600 cursor-pointer dark:text-emerald-400 font-medium hover:underline transition-colors"
             >
               Sign up
             </button>
@@ -192,7 +192,7 @@ export default function AuthModal({
               type="button"
               onClick={() => setStep(STEPS.LOGIN)}
               disabled={isLoading}
-              className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline transition-colors"
+              className="text-emerald-600 cursor-pointer dark:text-emerald-400 font-medium hover:underline transition-colors"
             >
               Log in
             </button>

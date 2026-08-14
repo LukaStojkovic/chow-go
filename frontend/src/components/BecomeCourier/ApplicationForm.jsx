@@ -80,7 +80,7 @@ export default function ApplicationForm({ openAuthModal }) {
                 <button
                   type="button"
                   onClick={() => openAuthModal(true)}
-                  className="font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+                  className="font-medium cursor-pointer text-emerald-600 hover:underline dark:text-emerald-400"
                 >
                   Sign in here
                 </button>

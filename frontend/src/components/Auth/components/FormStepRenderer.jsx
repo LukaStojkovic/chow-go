@@ -36,7 +36,7 @@ export const FormStepRenderer = ({
           <button
             type="button"
             onClick={() => onAction({ type: "goToRegister" })}
-            className="text-green-600 dark:text-green-400 font-medium hover:underline"
+            className="text-green-600 dark:text-green-400 cursor-pointer font-medium hover:underline"
           >
             Sign up
           </button>

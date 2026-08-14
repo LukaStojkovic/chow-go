@@ -11,9 +11,24 @@ import { DocumentsPaymentStep } from "@/components/BecomeCourier/components/Docu
 import { useGoogleRoleForm } from "../hooks/useGoogleRoleForm";
 
 const ROLES = [
-  { id: "customer", label: "Customer", icon: User, description: "Order food from local restaurants" },
-  { id: "seller", label: "Restaurant Owner", icon: Store, description: "Manage your restaurant and orders" },
-  { id: "courier", label: "Courier", icon: Bike, description: "Deliver orders and earn money" },
+  {
+    id: "customer",
+    label: "Customer",
+    icon: User,
+    description: "Order food from local restaurants",
+  },
+  {
+    id: "seller",
+    label: "Restaurant Owner",
+    icon: Store,
+    description: "Manage your restaurant and orders",
+  },
+  {
+    id: "courier",
+    label: "Courier",
+    icon: Bike,
+    description: "Deliver orders and earn money",
+  },
 ];
 
 function StepProgress({ steps, stepIndex }) {
@@ -75,17 +90,27 @@ export function GoogleRoleSelection() {
   const submitLabel = isLastStep ? "Create Account" : "Continue";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#09090B] flex flex-col items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8"
+        className="relative w-full max-w-lg bg-white dark:bg-zinc-900/95 rounded-2xl shadow-xl p-6 sm:p-8 overflow-hidden"
       >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="absolute inset-0 z-0 pointer-events-none"
+        >
+          <div className="absolute top-0 right-0 w-64 sm:w-72 h-64 sm:h-72 bg-linear-to-br from-emerald-500/20 to-emerald-600/10 dark:from-emerald-500/10 dark:to-emerald-600/5 rounded-full blur-3xl" />
+
+          <div className="absolute bottom-0 left-0 w-56 sm:w-64 h-56 sm:h-64 bg-linear-to-tr from-emerald-500/15 to-teal-600/5 dark:from-emerald-500/8 dark:to-teal-600/3 rounded-full blur-3xl" />
+        </motion.div>
         {!isFirstStep && (
           <button
             type="button"
             onClick={goBack}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 mb-4 transition-colors"
+            className="flex items-center gap-1 cursor-pointer text-sm text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -123,7 +148,7 @@ export function GoogleRoleSelection() {
                       key={r.id}
                       type="button"
                       onClick={() => setRole(r.id)}
-                      className={`flex items-start gap-4 p-4 rounded-xl text-left transition-all border ${
+                      className={`flex items-start gap-4 p-4 rounded-xl text-left cursor-pointer transition-all border ${
                         isActive
                           ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500 shadow-md"
                           : "bg-white/50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-700 hover:border-emerald-300"
@@ -238,7 +263,9 @@ export function GoogleRoleSelection() {
 
           <Button
             type={currentStep === "role" ? "button" : "submit"}
-            onClick={currentStep === "role" ? handleContinueFromRole : undefined}
+            onClick={
+              currentStep === "role" ? handleContinueFromRole : undefined
+            }
             disabled={isRegistering}
             className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
           >

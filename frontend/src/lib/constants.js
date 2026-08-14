@@ -162,3 +162,20 @@ export const RESTAURANTS = [
     promoted: true,
   },
 ];
+
+export const cuisineOptions = [
+  { value: "fast_food", label: "Fast Food" },
+  { value: "italian", label: "Italian" },
+  { value: "chinese", label: "Chinese" },
+  { value: "indian", label: "Indian" },
+  { value: "mexican", label: "Mexican" },
+  { value: "japanese", label: "Japanese" },
+  { value: "thai", label: "Thai" },
+  { value: "pizza", label: "Pizza" },
+  { value: "burgers", label: "Burgers" },
+  { value: "healthy", label: "Healthy" },
+  { value: "desserts", label: "Desserts" },
+  { value: "serbian", label: "Serbian" },
+  { value: "mediterranean", label: "Mediterranean" },
+];
+
