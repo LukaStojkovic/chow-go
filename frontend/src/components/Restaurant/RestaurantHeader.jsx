@@ -1,7 +1,7 @@
 import React from "react";
-import { Star, Clock, Bike, ChevronRight } from "lucide-react";
+import { Star, Clock, Bike, ChevronRight, Heart } from "lucide-react";
 
-const RestaurantHeader = ({ restaurantData, onShowInfoModal }) => {
+const RestaurantHeader = ({ restaurantData, onShowInfoModal, isFavourited, onToggleFavourite, isTogglingFavourite }) => {
   return (
     <>
       <div className="relative h-[250px] w-full md:h-[350px]">
@@ -31,6 +31,25 @@ const RestaurantHeader = ({ restaurantData, onShowInfoModal }) => {
               className="h-full w-full object-cover"
             />
           </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavourite?.();
+            }}
+            disabled={isTogglingFavourite}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition disabled:opacity-50"
+            title={isFavourited ? "Remove from favourites" : "Add to favourites"}
+          >
+            <Heart
+              size={22}
+              className={`transition-colors ${
+                isFavourited
+                  ? "text-red-500 fill-red-500"
+                  : "text-gray-400 dark:text-gray-500"
+              }`}
+            />
+          </button>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-medium">
           <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">

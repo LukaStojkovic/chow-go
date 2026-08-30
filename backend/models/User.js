@@ -47,6 +47,12 @@ const userSchema = new mongoose.Schema(
       default: "customer",
       required: true,
     },
+    favouriteRestaurants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Restaurant",
+      },
+    ],
   },
   { timestamps: true },
 );

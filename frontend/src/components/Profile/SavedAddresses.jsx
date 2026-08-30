@@ -8,12 +8,14 @@ import {
   Trash2,
   Heart,
   Loader2,
+  Pen,
 } from "lucide-react";
 
 export default function SavedAddresses({
   addresses,
   onSetDefaultAddress,
   onAddNew,
+  onEdit,
   onDelete,
   settingDefaultAddressId,
   deletingAddressId,
@@ -99,6 +101,17 @@ export default function SavedAddresses({
                       )}
                     </button>
                   )}
+                  <button
+                    onClick={() => onEdit(addr)}
+                    disabled={
+                      settingDefaultAddressId === addr._id ||
+                      deletingAddressId === addr._id
+                    }
+                    title="Edit Address"
+                    className="p-1.5 text-gray-400 hover:text-emerald-500 cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Pen size={16} />
+                  </button>
                   <button
                     onClick={() => onDelete(addr._id)}
                     disabled={

@@ -14,7 +14,7 @@ async function getNearbyRestaurantIds(lat, lon, maxDistance = 20000) {
         spherical: true,
       },
     },
-    { $match: { isActive: true } },
+    { $match: { isActive: true, isOpenNow: true } },
     { $project: { _id: 1 } },
   ]);
   return restaurants.map((r) => r._id);

@@ -9,6 +9,7 @@ import restaurantOrderRoutes from "./routes/restaurantOrderRoutes.js";
 import courierRoutes from "./routes/courierRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import discoverRoutes from "./routes/discoverRoutes.js";
+import favouriteRoutes from "./routes/favouriteRoutes.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -73,6 +74,7 @@ app.use("/api/delivery-address", deliveryAddressRoute);
 app.use("/api/orders", orderRoutes);
 app.use("/api/restaurant/orders", restaurantOrderRoutes);
 app.use("/api/courier", courierRoutes);
+app.use("/api/favourites", favouriteRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));

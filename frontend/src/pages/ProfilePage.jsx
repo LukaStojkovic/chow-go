@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import BackNavbar from "@/components/Navbar/BackNavbar";
@@ -12,65 +13,36 @@ import Modal from "@/components/Modal";
 import useAddDeliveryAddress from "@/hooks/DeliveryAddress/useAddDeliveryAddress";
 import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
 import Spinner from "@/components/Spinner";
-
 import useDeleteDeliveryAddress from "@/hooks/DeliveryAddress/useDeleteDeliveryAddress";
 import useSetDefaultDeliveryAddress from "@/hooks/DeliveryAddress/useSetDefaultDeliveryAdress";
+import { useGetCustomerOrders } from "@/hooks/Orders/useGetCustomerOrders";
+import useGetFavourites from "@/hooks/Favourites/useGetFavourites";
+import useToggleFavourite from "@/hooks/Favourites/useToggleFavourite";
 
-const MOCK_ADDRESSES = [
-  {
-    id: 1,
-    label: "Home",
-    address: "Bulevar Nemanjića 12, Niš",
-    type: "home",
-    isDefault: true,
-  },
-  {
-    id: 2,
-    label: "Office",
-    address: "Obrenovićeva 45, Niš",
-    type: "work",
-    isDefault: false,
-  },
-];
-
-const MOCK_ORDERS = [
-  {
-    id: "ORD-7721",
-    restaurant: "Burger House",
-    date: "Today, 14:30",
-    total: "1.250 RSD",
-    status: "Delivered",
-    items: "2x Smash Burger, 1x Fries",
-  },
-  {
-    id: "ORD-7720",
-    restaurant: "Pizza Bar",
-    date: "Yesterday, 20:15",
-    total: "980 RSD",
-    status: "Delivered",
-    items: "1x Capricciosa 32cm",
-  },
-];
-
-const MOCK_FAVORITES = [
-  { id: 1, name: "Sushi Star", rating: 4.8, img: "🍣", category: "Japanese" },
-  { id: 2, name: "Walter BBQ", rating: 4.9, img: "🍖", category: "Balkan" },
-];
+import useUpdateDeliveryAddress from "@/hooks/DeliveryAddress/useUpdateDeliveryAddress";
 
 export default function ProfilePage() {
   const { authUser, logout } = useAuthStore();
   const { isDark, toggle } = useDarkMode();
   const { addDeliveryAddressAsync, isAddingDeliveryAddress } =
     useAddDeliveryAddress();
+  const { updateDeliveryAddressAsync, isUpdatingDeliveryAddress } =
+    useUpdateDeliveryAddress();
   const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
   const { setDefaultAddress, loadingAddressId: settingDefaultAddressId } =
     useSetDefaultDeliveryAddress();
   const { deleteAddress, loadingAddressId: deletingAddressId } =
     useDeleteDeliveryAddress();
 
+  const navigate = useNavigate();
+  const { orders, isLoadingOrders } = useGetCustomerOrders({ limit: 3 });
+  const { favourites } = useGetFavourites();
+  const { toggleFav, isTogglingFavourite } = useToggleFavourite();
+
   const [name, setName] = useState(authUser?.name || "Unknown Name");
   const [phone, setPhone] = useState(authUser?.phoneNumber || "Unkown Number");
   const [openAddAddressModal, setOpenAddAddressModal] = useState(false);
+  const [addressToEdit, setAddressToEdit] = useState(null);
 
   const handleSetDefaultAddress = (id) => {
     setDefaultAddress({ addressId: id });
@@ -80,16 +52,39 @@ export default function ProfilePage() {
     deleteAddress({ addressId: id });
   };
 
+  const handleEditAddress = (address) => {
+    setAddressToEdit(address);
+    setOpenAddAddressModal(true);
+  };
+
   const handleAddNewAddress = (data) => {
-    addDeliveryAddressAsync({ data });
+    if (addressToEdit) {
+      updateDeliveryAddressAsync({ addressId: addressToEdit._id, data }).then(() => {
+        setAddressToEdit(null);
+        setOpenAddAddressModal(false);
+      });
+    } else {
+      addDeliveryAddressAsync({ data }).then(() => {
+        setOpenAddAddressModal(false);
+      });
+    }
+  };
+
+  const handleCloseAddressModal = () => {
+    setOpenAddAddressModal(false);
+    setTimeout(() => setAddressToEdit(null), 300); // clear after animation
   };
 
   const handleReorder = (orderId) => {
-    console.log("Reorder:", orderId);
+    navigate(`/orders/${orderId}`);
   };
 
   const handleViewAllOrders = () => {
-    console.log("View all orders");
+    navigate("/orders");
+  };
+
+  const handleRemoveFavourite = (restaurantId) => {
+    toggleFav(restaurantId);
   };
 
   if (isLoadingAddresses) return <Spinner fullScreen />;
@@ -121,7 +116,11 @@ export default function ProfilePage() {
             <SavedAddresses
               addresses={deliveryAddresses.data}
               onSetDefaultAddress={handleSetDefaultAddress}
-              onAddNew={() => setOpenAddAddressModal(true)}
+              onAddNew={() => {
+                setAddressToEdit(null);
+                setOpenAddAddressModal(true);
+              }}
+              onEdit={handleEditAddress}
               onDelete={handleDeleteAddress}
               settingDefaultAddressId={settingDefaultAddressId}
               deletingAddressId={deletingAddressId}
@@ -129,26 +128,32 @@ export default function ProfilePage() {
 
             <Modal
               isOpen={openAddAddressModal}
-              onClose={() => setOpenAddAddressModal(false)}
+              onClose={handleCloseAddressModal}
               size="lg"
-              title={"Add new address"}
+              title={addressToEdit ? "Edit address" : "Add new address"}
             >
               <AddAddressModal
                 isOpen={openAddAddressModal}
                 onSave={handleAddNewAddress}
-                onClose={() => setOpenAddAddressModal(false)}
-                isLoading={isAddingDeliveryAddress}
+                onClose={handleCloseAddressModal}
+                isLoading={isAddingDeliveryAddress || isUpdatingDeliveryAddress}
+                initialData={addressToEdit}
               />
             </Modal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <RecentOrders
-                orders={MOCK_ORDERS}
+                orders={orders}
                 onViewAll={handleViewAllOrders}
                 onReorder={handleReorder}
+                isLoading={isLoadingOrders}
               />
 
-              <Favorites favorites={MOCK_FAVORITES} />
+              <Favorites
+                favourites={favourites}
+                onRemoveFavourite={handleRemoveFavourite}
+                isToggling={isTogglingFavourite}
+              />
             </div>
           </div>
         </div>

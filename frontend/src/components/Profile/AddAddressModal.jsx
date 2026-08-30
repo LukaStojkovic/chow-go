@@ -48,19 +48,27 @@ export default function AddAddressModal({
   onSave,
   onClose,
   isLoading,
+  initialData,
 }) {
-  const [view, setView] = useState("map");
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [view, setView] = useState(initialData ? "details" : "map");
+  const [selectedLocation, setSelectedLocation] = useState(
+    initialData?.location?.coordinates
+      ? {
+          lat: initialData.location.coordinates[1],
+          lng: initialData.location.coordinates[0],
+        }
+      : null
+  );
 
   const [form, setForm] = useState({
-    type: "apartment",
-    apartment: "",
-    floor: "",
-    entrance: "",
-    doorCode: "",
-    buildingName: "",
-    notes: "",
-    label: "home",
+    type: initialData?.addressType || "apartment",
+    apartment: initialData?.apartment || "",
+    floor: initialData?.floor || "",
+    entrance: initialData?.entrance || "",
+    doorCode: initialData?.doorCode || "",
+    buildingName: initialData?.buildingName || "",
+    notes: initialData?.notes || "",
+    label: initialData?.label || "home",
   });
 
   const { data: addressData, isLoading: isAddressLoading } =
@@ -68,20 +76,38 @@ export default function AddAddressModal({
 
   useEffect(() => {
     if (isOpen) {
-      setView("map");
-      setSelectedLocation(null);
-      setForm({
-        type: "apartment",
-        apartment: "",
-        floor: "",
-        entrance: "",
-        doorCode: "",
-        buildingName: "",
-        notes: "",
-        label: "home",
-      });
+      if (initialData) {
+        setView("details");
+        setSelectedLocation({
+          lat: initialData.location.coordinates[1],
+          lng: initialData.location.coordinates[0],
+        });
+        setForm({
+          type: initialData.addressType || "apartment",
+          apartment: initialData.apartment || "",
+          floor: initialData.floor || "",
+          entrance: initialData.entrance || "",
+          doorCode: initialData.doorCode || "",
+          buildingName: initialData.buildingName || "",
+          notes: initialData.notes || "",
+          label: initialData.label || "home",
+        });
+      } else {
+        setView("map");
+        setSelectedLocation(null);
+        setForm({
+          type: "apartment",
+          apartment: "",
+          floor: "",
+          entrance: "",
+          doorCode: "",
+          buildingName: "",
+          notes: "",
+          label: "home",
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   const handleConfirmLocation = () => {
     if (selectedLocation) setView("details");
@@ -96,7 +122,7 @@ export default function AddAddressModal({
       await onSave?.({
         ...form,
         location: selectedLocation,
-        address: addressData?.address || "",
+        address: addressData?.address || initialData?.fullAddress || "",
       });
       onClose?.();
     } catch (error) {
@@ -332,6 +358,8 @@ export default function AddAddressModal({
                     <Spinner size={16} />
                     Saving...
                   </>
+                ) : initialData ? (
+                  "Update address"
                 ) : (
                   "Save address"
                 )}

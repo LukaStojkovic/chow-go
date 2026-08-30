@@ -11,6 +11,17 @@ export async function addUserDeliveryAddress(data) {
   }
 }
 
+export async function updateUserDeliveryAddress({ addressId, data }) {
+  try {
+    const response = await axiosInstance.put(`/delivery-address/${addressId}`, data);
+
+    return response.data;
+  } catch (err) {
+    console.error("Error updating delivery address:", err);
+    throw err;
+  }
+}
+
 export async function getUserDeliveryAddresses() {
   try {
     const response = await axiosInstance.get("/delivery-address");

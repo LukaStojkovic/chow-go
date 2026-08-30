@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import useGetRestaurantsInfo from "@/hooks/Restaurants/useGetRestaurantsInfo";
 import useGetRestaurantMenuByCategory from "@/hooks/Restaurants/useGetRestaurantMenuByCategory";
+import useGetFavourites from "@/hooks/Favourites/useGetFavourites";
+import useToggleFavourite from "@/hooks/Favourites/useToggleFavourite";
 import Spinner from "@/components/Spinner";
 import RestaurantHeader from "@/components/Restaurant/RestaurantHeader";
 import MenuNavigation from "@/components/Restaurant/MenuNavigation";
@@ -13,6 +15,12 @@ export default function RestaurantPage() {
   const { restaurantData, isLoading } = useGetRestaurantsInfo(restaurantId);
   const { menu, isLoading: isLoadingMenu } =
     useGetRestaurantMenuByCategory(restaurantId);
+
+  const { favourites } = useGetFavourites();
+  const { toggleFav, isTogglingFavourite } = useToggleFavourite();
+  const isFavourited = favourites.some(
+    (fav) => fav._id === restaurantId
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -72,6 +80,9 @@ export default function RestaurantPage() {
         <RestaurantHeader
           restaurantData={restaurantData}
           onShowInfoModal={() => setShowInfoModal(true)}
+          isFavourited={isFavourited}
+          onToggleFavourite={() => toggleFav(restaurantId)}
+          isTogglingFavourite={isTogglingFavourite}
         />
 
         <MenuNavigation

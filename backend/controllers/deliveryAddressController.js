@@ -6,7 +6,7 @@ export async function getDeliveryAddresses(req, res, next) {
 
   const userAddresses = await Addresses.find({ userId, isDeleted: false })
     .select(
-      "_id userId label fullAddress buildingName location isDefault isDeleted notes",
+      "_id userId label fullAddress buildingName apartment floor entrance doorCode notes addressType location isDefault isDeleted",
     )
     .lean();
 
@@ -184,6 +184,63 @@ export async function deleteDeliveryAddress(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Address deleted successfully",
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateDeliveryAddress(req, res, next) {
+  const { addressId } = req.params;
+  const userId = req.user._id;
+
+  const {
+    address,
+    apartment,
+    buildingName,
+    doorCode,
+    entrance,
+    floor,
+    label,
+    location,
+    notes,
+    type,
+  } = req.body;
+
+  if (!address || !location?.lat || !location?.lng) {
+    return next(new AppError("Address and location required", 400));
+  }
+
+  try {
+    const existingAddress = await Addresses.findOne({
+      _id: addressId,
+      userId,
+      isDeleted: false,
+    });
+
+    if (!existingAddress) {
+      return next(new AppError("Address not found", 404));
+    }
+
+    existingAddress.label = label;
+    existingAddress.addressType = type;
+    existingAddress.fullAddress = address;
+    existingAddress.buildingName = buildingName;
+    existingAddress.apartment = apartment;
+    existingAddress.floor = floor;
+    existingAddress.entrance = entrance;
+    existingAddress.doorCode = doorCode;
+    existingAddress.notes = notes;
+    existingAddress.location = {
+      type: "Point",
+      coordinates: [location.lng, location.lat],
+    };
+
+    await existingAddress.save();
+
+    return res.status(200).json({
+      success: true,
+      address: existingAddress,
     });
   } catch (error) {
     return next(error);
