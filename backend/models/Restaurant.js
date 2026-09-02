@@ -1,4 +1,34 @@
 import mongoose from "mongoose";
+import {
+  DAYS_OF_WEEK,
+  DEFAULT_CLOSING_TIME,
+  DEFAULT_OPENING_TIME,
+  TIME_PATTERN,
+} from "../utils/schedule.js";
+
+const dayScheduleSchema = new mongoose.Schema(
+  {
+    isOpen: { type: Boolean, default: true },
+    openingTime: {
+      type: String,
+      default: DEFAULT_OPENING_TIME,
+      match: [TIME_PATTERN, "openingTime must be in 24-hour HH:MM format"],
+    },
+    closingTime: {
+      type: String,
+      default: DEFAULT_CLOSING_TIME,
+      match: [TIME_PATTERN, "closingTime must be in 24-hour HH:MM format"],
+    },
+  },
+  { _id: false },
+);
+
+const weeklyScheduleFields = Object.fromEntries(
+  DAYS_OF_WEEK.map((day) => [
+    day,
+    { type: dayScheduleSchema, default: () => ({}) },
+  ]),
+);
 
 const restaurantSchema = new mongoose.Schema(
   {
@@ -75,14 +105,7 @@ const restaurantSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    openingTime: {
-      type: String,
-      required: true,
-    },
-    closingTime: {
-      type: String,
-      required: true,
-    },
+    schedule: weeklyScheduleFields,
 
     isActive: {
       type: Boolean,
@@ -109,7 +132,7 @@ const restaurantSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 restaurantSchema.index({ location: "2dsphere" });

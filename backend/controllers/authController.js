@@ -5,6 +5,10 @@ import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
+import {
+  buildScheduleFromRange,
+  isValidTimeString,
+} from "../utils/schedule.js";
 
 export async function login(req, res, next) {
   const { email, password, rememberMe } = req.body;
@@ -112,6 +116,16 @@ export const register = async (req, res, next) => {
     }
 
     if (
+      !isValidTimeString(sellerData.openingTime) ||
+      !isValidTimeString(sellerData.closingTime)
+    ) {
+      await User.findByIdAndDelete(user._id);
+      return next(
+        new AppError("Operating hours must be in 24-hour HH:MM format", 400),
+      );
+    }
+
+    if (
       !req.files ||
       !req.files.restaurantImages ||
       req.files.restaurantImages.length === 0
@@ -139,8 +153,10 @@ export const register = async (req, res, next) => {
       images: req.files.restaurantImages.map((file) => file.path),
       phone: sellerData.restaurantPhone,
       email: email.toLowerCase(),
-      openingTime: sellerData.openingTime,
-      closingTime: sellerData.closingTime,
+      schedule: buildScheduleFromRange(
+        sellerData.openingTime,
+        sellerData.closingTime,
+      ),
       isActive: true,
       address: {
         street: sellerData.restaurantAddress,
@@ -431,19 +447,19 @@ export const googleCallback = async (req, res, next) => {
 
   if (!data) {
     return res.redirect(
-      `${process.env.FRONTEND_URL}/auth/google/callback?error=auth_failed`
+      `${process.env.FRONTEND_URL}/auth/google/callback?error=auth_failed`,
     );
   }
 
   if (data.isNewUser) {
     req.session.googleProfile = data.googleProfile;
     return res.redirect(
-      `${process.env.FRONTEND_URL}/auth/google/callback?newUser=true`
+      `${process.env.FRONTEND_URL}/auth/google/callback?newUser=true`,
     );
   }
   generateToken(data._id, res);
   return res.redirect(
-    `${process.env.FRONTEND_URL}/auth/google/callback?success=true`
+    `${process.env.FRONTEND_URL}/auth/google/callback?success=true`,
   );
 };
 
@@ -516,6 +532,15 @@ export const googleCompleteProfile = async (req, res, next) => {
     }
 
     if (
+      !isValidTimeString(body.openingTime) ||
+      !isValidTimeString(body.closingTime)
+    ) {
+      return next(
+        new AppError("Operating hours must be in 24-hour HH:MM format", 400),
+      );
+    }
+
+    if (
       !req.files?.restaurantImages ||
       req.files.restaurantImages.length === 0
     ) {
@@ -556,8 +581,7 @@ export const googleCompleteProfile = async (req, res, next) => {
       images: req.files.restaurantImages.map((file) => file.path),
       phone: body.restaurantPhone,
       email: googleProfile.email.toLowerCase(),
-      openingTime: body.openingTime,
-      closingTime: body.closingTime,
+      schedule: buildScheduleFromRange(body.openingTime, body.closingTime),
       isActive: true,
       address: {
         street: body.restaurantAddress,

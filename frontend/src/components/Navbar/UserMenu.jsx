@@ -48,6 +48,7 @@ export default function UserMenu({ user, onLogout }) {
         <button className="flex items-center gap-2 rounded-full border border-white/20 bg-white/60 px-2 py-1.5 outline-none ring-2 ring-transparent backdrop-blur-md transition-all duration-200 hover:bg-white hover:ring-emerald-500/30 dark:border-zinc-800/50 dark:bg-zinc-900/60 dark:hover:bg-zinc-800 dark:hover:ring-emerald-500/20 sm:px-4 sm:py-2">
           <img
             src={user.profilePicture || "/defaultProfilePicture.png"}
+            referrerPolicy="no-referrer"
             alt={user.name}
             className="h-8 w-8 rounded-full object-cover ring-2 ring-emerald-500/40"
           />

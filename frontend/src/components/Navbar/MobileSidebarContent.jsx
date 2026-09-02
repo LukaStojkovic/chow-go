@@ -20,6 +20,7 @@ export default function MobileSidebarContent({
           <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/50 dark:bg-zinc-800/50 rounded-lg sm:rounded-xl border border-gray-200/50 dark:border-zinc-800/50">
             <img
               src={profilePicture}
+              referrerPolicy="no-referrer"
               alt={authUser.name}
               className="w-12 sm:w-14 h-12 sm:h-14 rounded-full object-cover ring-2 ring-emerald-500/40"
             />

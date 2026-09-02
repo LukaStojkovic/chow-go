@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TimePicker } from "@/components/ui/TimePicker";
+import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,10 +20,18 @@ import {
   Mail,
   Clock,
   Loader2,
+  CopyPlus,
+  MoonStar,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
+import {
+  WEEK_DAYS,
+  getTodayKey,
+  isOvernight,
+  normalizeSchedule,
+} from "@/utils/scheduleUtils";
 
 export const SellerSettings = () => {
   const { authUser, apiUpdateRestaurant, isUpdatingProfile } = useAuthStore();
@@ -40,10 +49,11 @@ export const SellerSettings = () => {
     state: restaurant.address?.state || "",
     zipCode: restaurant.address?.zipCode || "",
     country: restaurant.address?.country || "",
-    openingTime: restaurant.openingTime || "",
-    closingTime: restaurant.closingTime || "",
+    schedule: normalizeSchedule(restaurant.schedule),
     estimatedDeliveryTime: restaurant.estimatedDeliveryTime || "",
   });
+
+  const todayKey = getTodayKey();
 
   const [debouncedFormData] = useDebounce(formData, 1000);
 
@@ -76,12 +86,21 @@ export const SellerSettings = () => {
     formDataToSend.append("description", debouncedFormData.description);
     formDataToSend.append("phone", debouncedFormData.phone);
     formDataToSend.append("email", debouncedFormData.email);
-    formDataToSend.append("openingTime", debouncedFormData.openingTime);
-    formDataToSend.append("closingTime", debouncedFormData.closingTime);
     formDataToSend.append(
       "estimatedDeliveryTime",
       debouncedFormData.estimatedDeliveryTime,
     );
+
+    WEEK_DAYS.forEach(({ key }) => {
+      const day = debouncedFormData.schedule[key];
+
+      formDataToSend.append(
+        `schedule[${key}][isOpen]`,
+        day.isOpen ? "true" : "false",
+      );
+      formDataToSend.append(`schedule[${key}][openingTime]`, day.openingTime);
+      formDataToSend.append(`schedule[${key}][closingTime]`, day.closingTime);
+    });
 
     formDataToSend.append("address[street]", debouncedFormData.street);
     formDataToSend.append("address[city]", debouncedFormData.city);
@@ -96,6 +115,34 @@ export const SellerSettings = () => {
     const { id, value } = e.target;
     hasUserModified.current = true;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const updateDay = (dayKey, changes) => {
+    hasUserModified.current = true;
+    setFormData((prev) => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [dayKey]: { ...prev.schedule[dayKey], ...changes },
+      },
+    }));
+  };
+
+  const copyDayToWholeWeek = (dayKey) => {
+    hasUserModified.current = true;
+    setFormData((prev) => {
+      const source = prev.schedule[dayKey];
+
+      return {
+        ...prev,
+        schedule: WEEK_DAYS.reduce((acc, { key }) => {
+          acc[key] = { ...source };
+          return acc;
+        }, {}),
+      };
+    });
+
+    toast.success("Applied to every day of the week");
   };
 
   const displayImage =
@@ -308,31 +355,108 @@ export const SellerSettings = () => {
 
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold">Operating Hours</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-semibold">Operating Hours</h3>
+              <CardDescription className="text-sm text-muted-foreground mt-1">
+                Set hours for each day, or switch a day off to close it entirely
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => copyDayToWholeWeek("monday")}
+              className="shrink-0"
+            >
+              <CopyPlus className="w-4 h-4 mr-2" />
+              Copy Monday to all
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="openingTime">Opening Time</Label>
-              <TimePicker
-                value={formData.openingTime}
-                onChange={(val) => {
-                  hasUserModified.current = true;
-                  setFormData((prev) => ({ ...prev, openingTime: val }));
-                }}
-              />
-            </div>
+        <CardContent>
+          <div className="divide-y divide-border">
+            {WEEK_DAYS.map(({ key, label }) => {
+              const day = formData.schedule[key];
+              const isToday = key === todayKey;
 
-            <div className="space-y-2">
-              <Label htmlFor="closingTime">Closing Time</Label>
-              <TimePicker
-                value={formData.closingTime}
-                onChange={(val) => {
-                  hasUserModified.current = true;
-                  setFormData((prev) => ({ ...prev, closingTime: val }));
-                }}
-              />
-            </div>
+              return (
+                <div
+                  key={key}
+                  className="flex flex-col lg:flex-row lg:items-center gap-4 py-4 first:pt-0 last:pb-0"
+                >
+                  <div className="flex items-center gap-3 lg:w-56 shrink-0">
+                    <Switch
+                      id={`schedule-${key}`}
+                      checked={day.isOpen}
+                      onCheckedChange={(checked) =>
+                        updateDay(key, { isOpen: checked })
+                      }
+                    />
+                    <Label
+                      htmlFor={`schedule-${key}`}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <span className="font-medium">{label}</span>
+                      {isToday && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                          Today
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+
+                  {day.isOpen ? (
+                    <div className="flex-1 space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">
+                            Opens
+                          </Label>
+                          <TimePicker
+                            value={day.openingTime}
+                            onChange={(val) =>
+                              updateDay(key, { openingTime: val })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">
+                            Closes
+                          </Label>
+                          <TimePicker
+                            value={day.closingTime}
+                            onChange={(val) =>
+                              updateDay(key, { closingTime: val })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {day.openingTime === day.closingTime && (
+                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5" />
+                          Open 24 hours
+                        </p>
+                      )}
+
+                      {isOvernight(day) && (
+                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <MoonStar className="w-3.5 h-3.5" />
+                          Closes after midnight, the next morning
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">
+                        Closed all day — customers cannot order.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

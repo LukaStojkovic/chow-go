@@ -10,6 +10,12 @@ import {
   TILE_DARK,
   TILE_LIGHT,
 } from "@/constants/mapConstants";
+import {
+  WEEK_DAYS,
+  formatDayHours,
+  getTodayKey,
+  normalizeSchedule,
+} from "@/utils/scheduleUtils";
 
 const RestaurantInfoModal = ({
   showInfoModal,
@@ -19,6 +25,8 @@ const RestaurantInfoModal = ({
   const { isDark } = useDarkMode();
   const modalRef = useOutsideClick(() => setShowInfoModal(false));
   const { location } = restaurantData;
+  const schedule = normalizeSchedule(restaurantData.schedule);
+  const todayKey = getTodayKey();
 
   if (!showInfoModal || !restaurantData) return null;
 
@@ -98,15 +106,12 @@ const RestaurantInfoModal = ({
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
                 <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold text-gray-900 dark:text-gray-50">
                   Opening Hours
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  {restaurantData.openingHours || "Daily 10:00 AM - 11:00 PM"}
-                </p>
                 <p
-                  className={`text-xs font-semibold mt-1 ${
+                  className={`text-xs font-semibold mt-0.5 ${
                     restaurantData.isOpenNow
                       ? "text-green-600 dark:text-green-400"
                       : "text-red-600 dark:text-red-400"
@@ -114,6 +119,33 @@ const RestaurantInfoModal = ({
                 >
                   {restaurantData.isOpenNow ? "Open Now" : "Closed"}
                 </p>
+                <dl className="mt-2 space-y-1">
+                  {WEEK_DAYS.map(({ key, label }) => {
+                    const isToday = key === todayKey;
+
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center justify-between gap-4 text-sm ${
+                          isToday
+                            ? "font-semibold text-gray-900 dark:text-gray-100"
+                            : "text-gray-500 dark:text-gray-400"
+                        }`}
+                      >
+                        <dt>{label}</dt>
+                        <dd
+                          className={
+                            !schedule[key].isOpen && !isToday
+                              ? "text-gray-400 dark:text-gray-500"
+                              : undefined
+                          }
+                        >
+                          {formatDayHours(schedule[key])}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
               </div>
             </div>
 

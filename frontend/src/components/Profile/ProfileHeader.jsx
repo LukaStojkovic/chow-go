@@ -56,6 +56,7 @@ export default function ProfileHeader({
         <div className="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-gray-50 dark:border-zinc-800">
           <img
             src={displayImage}
+            referrerPolicy="no-referrer"
             alt="Profile"
             className="w-full h-full object-cover"
           />

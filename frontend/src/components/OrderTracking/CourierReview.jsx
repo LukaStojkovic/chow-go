@@ -57,6 +57,7 @@ export function CourierReview({ orderId, courier, customerRating }) {
         {courier.profilePicture ? (
           <img
             src={courier.profilePicture}
+            referrerPolicy="no-referrer"
             alt={courier.fullName}
             className="h-12 w-12 rounded-full object-cover"
           />

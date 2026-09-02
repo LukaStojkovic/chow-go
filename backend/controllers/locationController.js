@@ -127,8 +127,7 @@ export async function getNearRestaurants(req, res, next) {
       {
         $project: {
           name: 1,
-          openingTime: 1,
-          closingTime: 1,
+          schedule: 1,
           isOpenNow: 1,
           averageRating: 1,
           totalReviews: 1,

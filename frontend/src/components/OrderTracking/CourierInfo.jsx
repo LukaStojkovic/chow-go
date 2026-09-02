@@ -12,6 +12,7 @@ export function CourierInfo({ courier }) {
             {courier.profilePicture ? (
               <img
                 src={courier.profilePicture}
+                referrerPolicy="no-referrer"
                 alt={courier.fullName}
                 className="h-full w-full object-cover"
               />

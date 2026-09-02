@@ -143,6 +143,7 @@ export function CourierProfile() {
             <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-gray-50 dark:border-zinc-800">
               <img
                 src={displayImage}
+                referrerPolicy="no-referrer"
                 alt={courier.fullName}
                 className="h-full w-full object-cover"
               />

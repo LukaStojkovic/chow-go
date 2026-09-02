@@ -17,6 +17,7 @@ export const RecentRatingsSection = ({ ratings }) => {
                 order.customer?.profilePicture ||
                 `https://ui-avatars.com/api/?name=${order.customer?.name}`
               }
+              referrerPolicy="no-referrer"
               alt=""
               className="w-8 h-8 rounded-full object-cover shrink-0"
             />
