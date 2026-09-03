@@ -42,7 +42,10 @@ export async function getOrdersByRestaurant({
   const [orders, totalItems, statusCounts] = await Promise.all([
     Order.find(query)
       .populate("customer", "name phoneNumber email")
-      .populate("courier", "fullName phoneNumber vehicleType")
+      .populate(
+        "courier",
+        "fullName phoneNumber vehicleType currentLocation lastLocationUpdate",
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum),
@@ -95,7 +98,10 @@ export async function getOrderById(orderId, restaurantId) {
     restaurant: restaurantId,
   })
     .populate("customer", "name email phoneNumber")
-    .populate("courier", "fullName phoneNumber vehicleType")
+    .populate(
+      "courier",
+      "fullName phoneNumber vehicleType currentLocation lastLocationUpdate",
+    )
     .populate("items.menuItem", "name imageUrls");
 
   if (!order) {

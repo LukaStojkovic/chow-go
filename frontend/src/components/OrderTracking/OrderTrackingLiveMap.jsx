@@ -7,17 +7,22 @@ import { formatDistance, formatDuration, toLatLng } from "@/utils/mapUtils";
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
 export function OrderTrackingLiveMap({ orderId, order }) {
-  const showLive = order.courier && LIVE_STATUSES.includes(order.status);
-  console.log(order, LIVE_STATUSES.includes(order.status));
+  const showLive = Boolean(order.courier) && LIVE_STATUSES.includes(order.status);
+
   const restaurantCoords = toLatLng(order.restaurant?.location?.coordinates);
   const deliveryCoords = toLatLng(
     order.deliveryAddressSnapshot?.location?.coordinates,
   );
-  const courierCoords = useOrderCourierLocation(orderId, order.courier);
+  const { coords: courierCoords, isStale } = useOrderCourierLocation(
+    orderId,
+    order.courier,
+  );
 
-  const routeFrom = courierCoords ?? restaurantCoords;
-  const routeTo = deliveryCoords;
-  const { route, isLoadingRoute } = useRouteDirections(
+  const headingToRestaurant = order.status === "assigned";
+  const routeFrom = courierCoords ?? (headingToRestaurant ? null : restaurantCoords);
+  const routeTo = headingToRestaurant ? restaurantCoords : deliveryCoords;
+
+  const { route } = useRouteDirections(
     routeFrom,
     routeTo,
     showLive && Boolean(routeFrom && routeTo),
@@ -26,31 +31,40 @@ export function OrderTrackingLiveMap({ orderId, order }) {
   const hasAnyCoords = restaurantCoords || deliveryCoords;
   if (!hasAnyCoords && !showLive) return null;
 
+  const liveLabel = headingToRestaurant
+    ? "Heading to the restaurant"
+    : "On the way to you";
+
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm ">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4 ">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4 ">
+        <div className="flex min-w-0 items-center gap-2">
           {showLive ? (
             <>
-              <div className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+              <div className="relative flex h-2.5 w-2.5 shrink-0">
+                {!isStale && (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                )}
+                <span
+                  className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
+                    isStale ? "bg-muted-foreground" : "bg-primary"
+                  }`}
+                />
               </div>
-              <h3 className="font-bold text-foreground ">
-                Live tracking
+              <h3 className="truncate font-bold text-foreground ">
+                {isStale ? "Last known position" : liveLabel}
               </h3>
             </>
           ) : (
             <>
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-bold text-foreground ">
-                Order map
-              </h3>
+              <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <h3 className="font-bold text-foreground ">Order map</h3>
             </>
           )}
         </div>
-        {showLive && !isLoadingRoute && route && (
-          <p className="text-sm text-muted-foreground ">
+
+        {showLive && route && !headingToRestaurant && (
+          <p className="shrink-0 text-sm text-muted-foreground ">
             {formatDistance(route.distance)} · {formatDuration(route.duration)}
           </p>
         )}

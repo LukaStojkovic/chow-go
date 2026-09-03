@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const pointSchema = new mongoose.Schema(
+  {
+    type: { type: String, enum: ["Point"], default: "Point" },
+    coordinates: { type: [Number], required: true },
+  },
+  { _id: false },
+);
+
 const courierSchema = new mongoose.Schema(
   {
     userId: {
@@ -46,10 +54,7 @@ const courierSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    currentLocation: {
-      type: { type: String, enum: ["Point"], default: "Point" },
-      coordinates: { type: [Number], default: [0, 0] },
-    },
+    currentLocation: { type: pointSchema, default: undefined },
     lastLocationUpdate: Date,
 
     totalDeliveries: { type: Number, default: 0 },

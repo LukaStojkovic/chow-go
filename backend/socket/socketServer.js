@@ -5,10 +5,20 @@ import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import Order from "../models/Order.js";
 import {
-  lastUpdateTime,
+  forgetCourierThrottle,
   updateCourierLocation,
 } from "../services/locationTracking.service.js";
 import { emitCourierLocationUpdated } from "../services/orderSocket.service.js";
+
+export const COURIER_POOL_ROOM = "couriers:pool";
+
+const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
+
+const DELIVERY_CONTEXT_TTL_MS = 60_000;
+
+const DELIVERY_MISS_TTL_MS = 5_000;
+
+const isEmpty = (set) => !set || set.size === 0;
 
 class SocketServer {
   constructor(httpServer) {
@@ -80,35 +90,7 @@ class SocketServer {
       });
 
       socket.on("courier:location_update", async (data) => {
-        if (!socket.courierId) {
-          socket.emit("location:error", {
-            message: "Not registered as courier",
-          });
-          return;
-        }
-
-        try {
-          const result = await updateCourierLocation({
-            courierId: socket.courierId,
-            coordinates: data?.coordinates,
-          });
-
-          if (result) {
-            const courier = await Courier.findById(socket.courierId).select(
-              "currentOrder currentLocation lastLocationUpdate fullName vehicleType",
-            );
-            if (courier?.currentOrder) {
-              const order = await Order.findById(courier.currentOrder).select(
-                "_id",
-              );
-              if (order) {
-                await emitCourierLocationUpdated(order, courier);
-              }
-            }
-          }
-        } catch (err) {
-          socket.emit("location:error", { message: err.message });
-        }
+        await this.handleCourierLocationUpdate(socket, data);
       });
 
       socket.on("disconnect", () => {
@@ -119,6 +101,86 @@ class SocketServer {
         socket.emit("pong");
       });
     });
+  }
+
+  async handleCourierLocationUpdate(socket, data) {
+    if (!socket.courierId) {
+      socket.emit("location:error", { message: "Not registered as courier" });
+      return;
+    }
+
+    try {
+      const { shouldBroadcast, coordinates, timestamp } =
+        await updateCourierLocation({
+          courierId: socket.courierId,
+          coordinates: data?.coordinates,
+        });
+
+      if (!shouldBroadcast) return;
+
+      const context = await this.resolveDeliveryContext(socket, data?.orderId);
+      if (!context) return;
+
+      emitCourierLocationUpdated({
+        orderId: context.orderId,
+        customerId: context.customerId,
+        restaurantId: context.restaurantId,
+        courierId: socket.courierId,
+        coordinates,
+        timestamp,
+      });
+    } catch (err) {
+      socket.emit("location:error", { message: err.message });
+    }
+  }
+
+  async resolveDeliveryContext(socket, hintedOrderId) {
+    const key = hintedOrderId ? String(hintedOrderId) : "";
+    const now = Date.now();
+
+    const cached = socket.deliveryContext;
+    if (cached && cached.key === key && cached.expiresAt > now) {
+      return cached.value;
+    }
+
+    let order = null;
+    if (key) {
+      order = await Order.findOne({
+        _id: key,
+        courier: socket.courierId,
+        status: { $in: COURIER_ACTIVE_STATUSES },
+      })
+        .select("customer restaurant")
+        .lean();
+    } else {
+      const courier = await Courier.findById(socket.courierId)
+        .select("currentOrder")
+        .lean();
+      if (courier?.currentOrder) {
+        order = await Order.findOne({
+          _id: courier.currentOrder,
+          status: { $in: COURIER_ACTIVE_STATUSES },
+        })
+          .select("customer restaurant")
+          .lean();
+      }
+    }
+
+    const value = order
+      ? {
+          orderId: String(order._id),
+          customerId: order.customer ? String(order.customer) : null,
+          restaurantId: order.restaurant ? String(order.restaurant) : null,
+        }
+      : null;
+
+    socket.deliveryContext = {
+      key,
+      value,
+      expiresAt: now + (value ? DELIVERY_CONTEXT_TTL_MS : DELIVERY_MISS_TTL_MS),
+    };
+
+    return value;
   }
 
   async handleRegistration(socket, data) {
@@ -137,11 +199,9 @@ class SocketServer {
         return;
       }
 
-      console.log(`📝 Registering socket for ${role}:`, socket.userId);
-
       switch (role) {
         case "customer":
-          this.connections.customers.set(socket.userId, socket.id);
+          this.addConnection("customers", socket.userId, socket.id);
           socket.join(`customer:${socket.userId}`);
           console.log(`👤 Customer registered: ${socket.userId}`);
           break;
@@ -162,7 +222,7 @@ class SocketServer {
           const restaurant = await Restaurant.findOne({
             _id: restaurantId,
             ownerId: socket.userId,
-          });
+          }).select("_id");
 
           if (!restaurant) {
             console.error(
@@ -176,14 +236,16 @@ class SocketServer {
             return;
           }
 
-          this.connections.restaurants.set(restaurantId, socket.id);
+          this.addConnection("restaurants", restaurantId, socket.id);
           socket.join(`restaurant:${restaurantId}`);
           socket.restaurantId = restaurantId;
           console.log(`🏪 Restaurant registered: ${restaurantId}`);
           break;
 
         case "courier":
-          const courier = await Courier.findOne({ userId: socket.userId });
+          const courier = await Courier.findOne({
+            userId: socket.userId,
+          }).select("_id");
           if (!courier) {
             console.error(
               `🚨 Courier registration failed: No courier profile for user ${socket.userId}`,
@@ -196,10 +258,11 @@ class SocketServer {
             return;
           }
 
-          this.connections.couriers.set(courier._id.toString(), socket.id);
-          socket.join(`courier:${courier._id}`);
           socket.courierId = courier._id.toString();
-          console.log(`🛵 Courier registered: ${courier._id}`);
+          this.addConnection("couriers", socket.courierId, socket.id);
+          socket.join(`courier:${socket.courierId}`);
+          socket.join(COURIER_POOL_ROOM);
+          console.log(`🛵 Courier registered: ${socket.courierId}`);
           break;
 
         default:
@@ -234,47 +297,80 @@ class SocketServer {
       `❌ User disconnected: ${socket.userName} (${socket.userRole})`,
     );
 
-    this.connections.customers.delete(socket.userId);
+    if (socket.userRole === "customer") {
+      this.removeConnection("customers", socket.userId, socket.id);
+    }
     if (socket.restaurantId) {
-      this.connections.restaurants.delete(socket.restaurantId);
+      this.removeConnection("restaurants", socket.restaurantId, socket.id);
     }
     if (socket.courierId) {
-      this.connections.couriers.delete(socket.courierId);
-      lastUpdateTime.delete(socket.courierId);
+      this.removeConnection("couriers", socket.courierId, socket.id);
+      if (isEmpty(this.connections.couriers.get(socket.courierId))) {
+        forgetCourierThrottle(socket.courierId);
+      }
     }
+  }
+
+  addConnection(kind, key, socketId) {
+    const id = key.toString();
+    const existing = this.connections[kind].get(id);
+    if (existing) existing.add(socketId);
+    else this.connections[kind].set(id, new Set([socketId]));
+  }
+
+  removeConnection(kind, key, socketId) {
+    const id = key.toString();
+    const existing = this.connections[kind].get(id);
+    if (!existing) return;
+    existing.delete(socketId);
+    if (existing.size === 0) this.connections[kind].delete(id);
+  }
+
+  emitToRoom(room, event, data, label) {
+    const size = this.io.sockets.adapter.rooms.get(room)?.size ?? 0;
+    if (size === 0) {
+      console.log(`⚠️  ${label} not connected`);
+      return false;
+    }
+    this.io.to(room).emit(event, data);
+    console.log(`📤 Emitted ${event} to ${label}`);
+    return true;
   }
 
   emitToCustomer(userId, event, data) {
-    const socketId = this.connections.customers.get(userId.toString());
-    if (socketId) {
-      this.io.to(`customer:${userId}`).emit(event, data);
-      console.log(`📤 Emitted ${event} to customer ${userId}`);
-      return true;
-    }
-    console.log(`⚠️  Customer ${userId} not connected`);
-    return false;
+    return this.emitToRoom(
+      `customer:${userId}`,
+      event,
+      data,
+      `customer ${userId}`,
+    );
   }
 
   emitToRestaurant(restaurantId, event, data) {
-    const socketId = this.connections.restaurants.get(restaurantId.toString());
-    if (socketId) {
-      this.io.to(`restaurant:${restaurantId}`).emit(event, data);
-      console.log(`📤 Emitted ${event} to restaurant ${restaurantId}`);
-      return true;
-    }
-    console.log(`⚠️  Restaurant ${restaurantId} not connected`);
-    return false;
+    return this.emitToRoom(
+      `restaurant:${restaurantId}`,
+      event,
+      data,
+      `restaurant ${restaurantId}`,
+    );
   }
 
   emitToCourier(courierId, event, data) {
-    const socketId = this.connections.couriers.get(courierId.toString());
-    if (socketId) {
-      this.io.to(`courier:${courierId}`).emit(event, data);
-      console.log(`📤 Emitted ${event} to courier ${courierId}`);
-      return true;
-    }
-    console.log(`⚠️  Courier ${courierId} not connected`);
-    return false;
+    return this.emitToRoom(
+      `courier:${courierId}`,
+      event,
+      data,
+      `courier ${courierId}`,
+    );
+  }
+
+  emitToCourierPool(event, data) {
+    return this.emitToRoom(
+      COURIER_POOL_ROOM,
+      event,
+      data,
+      "the courier pool",
+    );
   }
 
   getStats() {
@@ -283,6 +379,7 @@ class SocketServer {
       customers: this.connections.customers.size,
       restaurants: this.connections.restaurants.size,
       couriers: this.connections.couriers.size,
+      courierPool: this.io.sockets.adapter.rooms.get(COURIER_POOL_ROOM)?.size ?? 0,
     };
   }
 }

@@ -4,64 +4,98 @@ import { haversineMeters } from "@/utils/mapUtils";
 
 const ROUTE_REFRESH_MS = 45000;
 const REROUTE_DEVIATION_M = 120;
+const ROUTE_RETRY_MS = 8000;
 
 export function useRouteDirections(from, to, enabled = true) {
   const [route, setRoute] = useState(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
-  const lastFromRef = useRef(null);
+  const [routeError, setRouteError] = useState(null);
+  const [failureCount, setFailureCount] = useState(0);
+
+  const lastOriginRef = useRef(null);
   const fromRef = useRef(from);
   fromRef.current = from;
+  const toRef = useRef(to);
+  toRef.current = to;
+
+  const requestIdRef = useRef(0);
+
+  const toKey = to ? `${to[0]},${to[1]}` : null;
+  const fromLat = from?.[0];
+  const fromLng = from?.[1];
 
   const loadRoute = useCallback(
     async (origin, force = false) => {
-      if (!enabled || !origin || !to) return;
+      const destination = toRef.current;
+      if (!enabled || !origin || !destination) return;
 
       if (
         !force &&
-        lastFromRef.current &&
-        haversineMeters(lastFromRef.current, origin) < REROUTE_DEVIATION_M
+        lastOriginRef.current &&
+        haversineMeters(lastOriginRef.current, origin) < REROUTE_DEVIATION_M
       ) {
         return;
       }
 
+      const requestId = ++requestIdRef.current;
       setIsLoadingRoute(true);
+
       try {
-        const result = await fetchDrivingRoute(origin, to);
+        const result = await fetchDrivingRoute(origin, destination);
+        if (requestId !== requestIdRef.current) return;
+
         if (result) {
-          lastFromRef.current = origin;
+          lastOriginRef.current = origin;
           setRoute(result);
+          setRouteError(null);
         }
       } catch (err) {
+        if (requestId !== requestIdRef.current) return;
         console.error("Route fetch error:", err);
+        setRouteError(err?.message ?? "Failed to fetch route");
+        setFailureCount((n) => n + 1);
       } finally {
-        setIsLoadingRoute(false);
+        if (requestId === requestIdRef.current) setIsLoadingRoute(false);
       }
     },
-    [enabled, to?.[0], to?.[1]],
+    [enabled],
   );
 
   useEffect(() => {
-    if (!enabled || !to) {
-      setRoute(null);
-      lastFromRef.current = null;
+    requestIdRef.current += 1;
+    setRoute(null);
+    setRouteError(null);
+    lastOriginRef.current = null;
+
+    if (!enabled || !toKey) {
+      setIsLoadingRoute(false);
       return;
     }
-    if (from) loadRoute(from, true);
-  }, [to?.[0], to?.[1], enabled, loadRoute]);
+    if (fromRef.current) loadRoute(fromRef.current, true);
+  }, [toKey, enabled, loadRoute]);
 
   useEffect(() => {
-    if (!enabled || !from) return;
-    loadRoute(from, false);
-  }, [from?.[0], from?.[1], enabled, loadRoute]);
+    if (!enabled || fromLat == null || fromLng == null) return;
+    loadRoute([fromLat, fromLng], false);
+  }, [fromLat, fromLng, enabled, loadRoute]);
 
   useEffect(() => {
-    if (!enabled || !to) return;
+    if (!enabled || !toKey) return;
     const interval = setInterval(
-      () => loadRoute(fromRef.current, false),
+      () => loadRoute(fromRef.current, true),
       ROUTE_REFRESH_MS,
     );
     return () => clearInterval(interval);
-  }, [enabled, to?.[0], to?.[1], loadRoute]);
+  }, [enabled, toKey, loadRoute]);
 
-  return { route, isLoadingRoute };
+  useEffect(() => {
+    if (!enabled || !routeError || failureCount === 0) return;
+    const timeout = setTimeout(
+      () => loadRoute(fromRef.current, true),
+      ROUTE_RETRY_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [enabled, routeError, failureCount, loadRoute]);
+
+  return { route, isLoadingRoute, routeError };
 }

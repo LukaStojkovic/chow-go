@@ -94,6 +94,6 @@ export async function rateOrderOperation({
   return Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location averageRating totalReviews")
-    .populate("courier", "fullName phoneNumber profilePicture vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber profilePicture vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 }

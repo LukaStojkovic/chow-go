@@ -207,7 +207,7 @@ export async function getOrderById(req, res, next) {
     })
       .populate("customer", "name email phoneNumber")
       .populate("restaurant", "name profilePicture address phone location")
-      .populate("courier", "fullName phoneNumber profilePicture vehicleType currentLocation")
+      .populate("courier", "fullName phoneNumber profilePicture vehicleType currentLocation lastLocationUpdate")
       .populate("items.menuItem", "name imageUrls");
 
     if (!order) {

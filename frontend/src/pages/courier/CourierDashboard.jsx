@@ -14,7 +14,7 @@ import { useCourierOverview } from "@/hooks/Courier/useCourierOverview";
 
 export default function CourierDashboard() {
   const navigate = useNavigate();
-  const { isAvailable } = useOutletContext();
+  const { isAvailable, activeOrder } = useOutletContext();
   const { courierAvailableOrders, isLoadingOrders } = useGetAvailableOrders(1);
   const { courierOrders: activeData } = useGetCourierOrders("active");
   const { acceptCourierOrder, isAccepting } = useAcceptCourierOrder();
@@ -33,7 +33,7 @@ export default function CourierDashboard() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      {!isAvailable && (
+      {!isAvailable && !activeOrder && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

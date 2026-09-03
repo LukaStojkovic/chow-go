@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export const useGlobalSocketEvents = () => {
-  const { socket, isConnected, register } = useSocket();
-  const { authUser } = useAuthStore();
+  const { socket, isConnected, connectionEpoch, register } = useSocket();
+  const { authUser, checkAuth } = useAuthStore();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -269,24 +269,55 @@ export const useGlobalSocketEvents = () => {
   useEffect(() => {
     if (!socket || authUser?.role !== "courier") return;
 
-    const invalidate = () => {
-      queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
+    const invalidateOwnOrders = () => {
       queryClient.invalidateQueries({ queryKey: ["courierOrders"] });
       queryClient.invalidateQueries({ queryKey: ["courierOrder"] });
     };
 
-    socket.on("order:assigned", invalidate);
-    socket.on("order:picked_up", invalidate);
-    socket.on("order:in_transit", invalidate);
-    socket.on("order:delivered", invalidate);
+    const invalidatePool = () => {
+      queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
+    };
+
+    const refreshOwnOrders = () => {
+      invalidateOwnOrders();
+      invalidatePool();
+      checkAuth();
+    };
+
+    socket.on("order:assigned", refreshOwnOrders);
+    socket.on("order:picked_up", invalidateOwnOrders);
+    socket.on("order:in_transit", invalidateOwnOrders);
+    socket.on("order:delivered", refreshOwnOrders);
+    socket.on("order:courier_unassigned", refreshOwnOrders);
+
+    socket.on("order:available", invalidatePool);
+    socket.on("order:taken", invalidatePool);
 
     return () => {
-      socket.off("order:assigned", invalidate);
-      socket.off("order:picked_up", invalidate);
-      socket.off("order:in_transit", invalidate);
-      socket.off("order:delivered", invalidate);
+      socket.off("order:assigned", refreshOwnOrders);
+      socket.off("order:picked_up", invalidateOwnOrders);
+      socket.off("order:in_transit", invalidateOwnOrders);
+      socket.off("order:delivered", refreshOwnOrders);
+      socket.off("order:courier_unassigned", refreshOwnOrders);
+      socket.off("order:available", invalidatePool);
+      socket.off("order:taken", invalidatePool);
     };
-  }, [socket, authUser, queryClient]);
+  }, [socket, authUser, queryClient, checkAuth]);
+
+  useEffect(() => {
+    if (connectionEpoch < 2 || !authUser) return;
+
+    if (authUser.role === "customer") {
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["customerOrders"] });
+    } else if (authUser.role === "seller") {
+      queryClient.invalidateQueries({ queryKey: ["restaurantOrders"] });
+    } else if (authUser.role === "courier") {
+      queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["courierOrders"] });
+      queryClient.invalidateQueries({ queryKey: ["courierOrder"] });
+    }
+  }, [connectionEpoch, authUser, queryClient]);
 
   return { isConnected };
 };

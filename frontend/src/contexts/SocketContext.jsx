@@ -1,9 +1,10 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useState,
   useRef,
+  useState,
 } from "react";
 import { io } from "socket.io-client";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -22,24 +23,18 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [connectionEpoch, setConnectionEpoch] = useState(0);
+
   const { authUser } = useAuthStore();
   const socketRef = useRef(null);
   const registrationDataRef = useRef(null);
 
-  useEffect(() => {
-    if (!authUser) {
-      if (socketRef.current) {
-        console.log("🔌 Disconnecting socket (user logged out)");
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setSocket(null);
-        setIsConnected(false);
-        setIsRegistered(false);
-      }
-      return;
-    }
+  const userId = authUser?._id ?? null;
+  const userRole = authUser?.role ?? null;
 
-    if (socketRef.current?.connected) {
+  useEffect(() => {
+    if (!userId) {
+      registrationDataRef.current = null;
       return;
     }
 
@@ -57,6 +52,7 @@ export const SocketProvider = ({ children }) => {
     newSocket.on("connect", () => {
       console.log("✅ Socket connected:", newSocket.id);
       setIsConnected(true);
+      setConnectionEpoch((n) => n + 1);
 
       if (registrationDataRef.current) {
         newSocket.emit("register", registrationDataRef.current);
@@ -81,10 +77,7 @@ export const SocketProvider = ({ children }) => {
 
     newSocket.on("registration_error", (data) => {
       console.error("❌ Socket registration error:", data.message);
-    });
-
-    newSocket.on("pong", () => {
-      console.log("💓 Heartbeat received");
+      setIsRegistered(false);
     });
 
     socketRef.current = newSocket;
@@ -92,25 +85,28 @@ export const SocketProvider = ({ children }) => {
 
     return () => {
       console.log("🔌 Cleaning up socket connection");
+      newSocket.removeAllListeners();
       newSocket.disconnect();
+      socketRef.current = null;
+      setSocket(null);
+      setIsConnected(false);
+      setIsRegistered(false);
     };
-  }, [authUser]);
+  }, [userId, userRole]);
 
-  const register = (data) => {
-    if (socketRef.current && isConnected) {
+  const register = useCallback((data) => {
+    registrationDataRef.current = data;
+    if (socketRef.current?.connected) {
       console.log("📝 Registering socket with data:", data);
-      registrationDataRef.current = data;
       socketRef.current.emit("register", data);
-    } else {
-      console.warn("⚠️ Socket not connected, cannot register");
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (!socketRef.current || !isConnected) return;
+    if (!isConnected) return;
 
     const interval = setInterval(() => {
-      socketRef.current.emit("ping");
+      socketRef.current?.emit("ping");
     }, 30000);
 
     return () => clearInterval(interval);
@@ -120,6 +116,7 @@ export const SocketProvider = ({ children }) => {
     socket,
     isConnected,
     isRegistered,
+    connectionEpoch,
     register,
   };
 

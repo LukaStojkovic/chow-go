@@ -7,6 +7,7 @@ export function NavigationBanner({
   distance,
   duration,
   isLoadingRoute,
+  isApproximate = false,
   onRecenter,
   followMode,
 }) {
@@ -24,11 +25,17 @@ export function NavigationBanner({
           {destinationLabel}
         </p>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground ">
-          {isLoadingRoute ? (
+          {isLoadingRoute && distance == null ? (
             <Spinner size="sm" />
           ) : (
             <>
-              {distance != null && <span>{formatDistance(distance)}</span>}
+              {distance != null && (
+                <span>
+                  {isApproximate ? "~" : ""}
+                  {formatDistance(distance)}
+                  {isApproximate ? " direct" : ""}
+                </span>
+              )}
               {duration != null && (
                 <>
                   <span>·</span>

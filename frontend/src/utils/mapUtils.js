@@ -1,6 +1,10 @@
 export function toLatLng(coordinates) {
   if (!Array.isArray(coordinates) || coordinates.length !== 2) return null;
-  return [coordinates[1], coordinates[0]];
+  const [lng, lat] = coordinates;
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+  if (lng === 0 && lat === 0) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return [lat, lng];
 }
 
 export function toOsrmCoord(latLng) {
@@ -34,4 +38,13 @@ export function haversineMeters(a, b) {
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+
+export function lerpLatLng(from, to, t) {
+  return [from[0] + (to[0] - from[0]) * t, from[1] + (to[1] - from[1]) * t];
+}
+
+export function isSamePosition(a, b) {
+  if (!a || !b) return a === b;
+  return haversineMeters(a, b) < 1;
 }

@@ -4,6 +4,7 @@ import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
+import { isUsableCoordinatePair } from "./locationTracking.service.js";
 
 const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 const COURIER_HISTORY_STATUSES = ["delivered", "cancelled"];
@@ -37,9 +38,9 @@ export async function listAvailableOrders({
   const courier = await getCourierByUserId(courierUserId);
 
   const coords = courier.currentLocation?.coordinates;
-  const hasLocation = Array.isArray(coords) && coords.length === 2;
-  const [lng, lat] = hasLocation ? coords : [0, 0];
+  const hasLocation = isUsableCoordinatePair(coords);
   if (hasLocation) {
+    const [lng, lat] = coords;
     const pipeline = [
       {
         $geoNear: {
@@ -151,7 +152,7 @@ export async function listCourierOrders({
     Order.find(query)
       .populate("customer", "name email phoneNumber")
       .populate("restaurant", "name profilePicture address phone location")
-      .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+      .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum),
@@ -220,7 +221,7 @@ export async function acceptOrderOperation({ orderId, courierUserId }) {
   const populated = await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 
   return populated;
@@ -263,7 +264,7 @@ export async function cancelAssignedOrderOperation({
   const populated = await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 
   return populated;
@@ -288,7 +289,7 @@ export async function markPickedUpOperation({ orderId, courierUserId }) {
   return await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 }
 
@@ -310,7 +311,7 @@ export async function markInTransitOperation({ orderId, courierUserId }) {
   return await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 }
 
@@ -339,7 +340,7 @@ export async function markDeliveredOperation({ orderId, courierUserId }) {
   return await Order.findById(order._id)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 }
 
@@ -349,7 +350,7 @@ export async function getCourierOrderById({ orderId, courierUserId }) {
   const order = await Order.findOne({ _id: orderId, courier: courier._id })
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
 
   if (!order) throw new AppError("Order not found", 404);

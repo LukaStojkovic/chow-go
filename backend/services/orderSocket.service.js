@@ -5,7 +5,7 @@ async function getPopulatedOrder(orderId) {
   const order = await Order.findById(orderId)
     .populate("customer", "name email phoneNumber")
     .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
     .populate("items.menuItem", "name imageUrls");
   if (!order) {
     throw new Error(`Order not found: ${orderId}`);
@@ -238,84 +238,63 @@ export async function emitOrderDelivered(order) {
   }
 }
 
-export async function emitCourierLocationUpdated(order, courier) {
+export function emitCourierLocationUpdated({
+  orderId,
+  customerId,
+  restaurantId,
+  courierId,
+  coordinates,
+  timestamp,
+}) {
   try {
     const socketServer = getSocketServer();
-    const populatedOrder = await getPopulatedOrder(order._id);
 
     const payload = {
-      orderId: populatedOrder._id,
-      courier: {
-        _id: courier._id,
-        currentLocation: courier.currentLocation,
-        lastLocationUpdate: courier.lastLocationUpdate,
-        fullName: courier.fullName,
-        vehicleType: courier.vehicleType,
-      },
+      orderId: String(orderId),
+      courierId: String(courierId),
+      coordinates,
+      timestamp,
     };
 
-    socketServer.emitToCustomer(
-      populatedOrder.customer._id,
-      "courier:location",
-      payload,
-    );
-    socketServer.emitToRestaurant(
-      populatedOrder.restaurant._id,
-      "courier:location",
-      payload,
-    );
-    if (populatedOrder.courier?._id) {
-      socketServer.emitToCourier(
-        populatedOrder.courier._id,
-        "courier:location",
-        payload,
-      );
+    if (customerId) {
+      socketServer.emitToCustomer(customerId, "courier:location", payload);
     }
+    if (restaurantId) {
+      socketServer.emitToRestaurant(restaurantId, "courier:location", payload);
+    }
+    socketServer.emitToCourier(courierId, "courier:location", payload);
   } catch (error) {
     console.error("Socket emit error (courier:location):", error);
   }
 }
 
-export async function emitNewOrderAvailable(order) {
+export function emitNewOrderAvailable(order) {
   try {
-    const socketServer = getSocketServer();
-    const payload = {
-      orderId: order._id,
-      restaurantId: order.restaurant,
-    };
-
-    for (const [courierId] of socketServer.connections.couriers) {
-      socketServer.emitToCourier(courierId, "order:available", payload);
-    }
+    getSocketServer().emitToCourierPool("order:available", {
+      orderId: String(order._id),
+      restaurantId: String(order.restaurant),
+    });
   } catch (error) {
     console.error("Socket emit error (order:available):", error);
   }
 }
 
-export async function emitOrderTaken(orderId) {
+export function emitOrderTaken(orderId) {
   try {
-    const socketServer = getSocketServer();
-    const payload = { orderId };
-
-    for (const [courierId] of socketServer.connections.couriers) {
-      socketServer.emitToCourier(courierId, "order:taken", payload);
-    }
+    getSocketServer().emitToCourierPool("order:taken", {
+      orderId: String(orderId),
+    });
   } catch (error) {
     console.error("Socket emit error (order:taken):", error);
   }
 }
 
-export async function emitOrderBackToPool(order) {
+export function emitOrderBackToPool(order) {
   try {
-    const socketServer = getSocketServer();
-    const payload = {
-      orderId: order._id,
-      restaurantId: order.restaurant,
-    };
-
-    for (const [courierId] of socketServer.connections.couriers) {
-      socketServer.emitToCourier(courierId, "order:available", payload);
-    }
+    getSocketServer().emitToCourierPool("order:available", {
+      orderId: String(order._id),
+      restaurantId: String(order.restaurant),
+    });
   } catch (error) {
     console.error("Socket emit error (order:available - back to pool):", error);
   }

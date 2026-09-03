@@ -21,6 +21,7 @@ import { OrdersPagination } from "@/components/Seller/Orders/OrdersPagination";
 import { ConfirmOrderDialog } from "@/components/Seller/Orders/ConfirmOrderDialog";
 import { RejectOrderDialog } from "@/components/Seller/Orders/RejectOrderDialog";
 import { CancelOrderDialog } from "@/components/Seller/Orders/CancelOrderDialog";
+import { SellerLiveDeliveries } from "@/components/Seller/Orders/SellerLiveDeliveries";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -55,6 +56,9 @@ export const SellerOrders = () => {
     return authUser?.restaurant?.[0]?._id || null;
   }, [authUser]);
 
+  const restaurantCoordinates =
+    authUser?.restaurant?.[0]?.location?.coordinates ?? null;
+
   const { isConnected } = useSocket();
 
   const {
@@ -68,6 +72,12 @@ export const SellerOrders = () => {
     status: statusFilter,
     search,
     page: currentPage,
+    limit: 20,
+  });
+
+  const { orders: liveOrders } = useGetRestaurantOrders({
+    status: "active",
+    page: 1,
     limit: 20,
   });
 
@@ -206,6 +216,11 @@ export const SellerOrders = () => {
             isLoading={isLoadingOrders}
           />
         </div>
+
+        <SellerLiveDeliveries
+          orders={liveOrders}
+          restaurantCoordinates={restaurantCoordinates}
+        />
 
         <Card>
           <CardHeader>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -20,20 +20,153 @@ import {
   deliveryIcon,
   restaurantIcon,
 } from "@/components/Map/mapIcons";
+import {
+  haversineMeters,
+  isSamePosition,
+  lerpLatLng,
+} from "@/utils/mapUtils";
+
+const FALLBACK_CENTER = [44.8176, 20.4633];
+
+const SNAP_THRESHOLD_M = 500;
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+function KeepSizeInSync() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+
+    const raf = requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+
+    if (typeof ResizeObserver === "undefined") {
+      return () => cancelAnimationFrame(raf);
+    }
+
+    const observer = new ResizeObserver(() => {
+      map.invalidateSize({ pan: false });
+    });
+    observer.observe(container);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, [map]);
+
+  return null;
+}
+
+function SmoothMarker({ position, icon, tooltip, durationMs = 1000 }) {
+  const map = useMap();
+  const markerRef = useRef(null);
+  const frameRef = useRef(null);
+  const renderedRef = useRef(null);
+
+  const lat = position?.[0];
+  const lng = position?.[1];
+
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frameRef.current);
+      markerRef.current?.remove();
+      markerRef.current = null;
+      renderedRef.current = null;
+    },
+    [map],
+  );
+
+  useEffect(() => {
+    if (lat == null || lng == null) {
+      cancelAnimationFrame(frameRef.current);
+      markerRef.current?.remove();
+      markerRef.current = null;
+      renderedRef.current = null;
+      return;
+    }
+
+    const target = [lat, lng];
+
+    if (!markerRef.current) {
+      const marker = L.marker(target, { icon }).addTo(map);
+      if (tooltip) {
+        marker.bindTooltip(tooltip, {
+          direction: "top",
+          offset: [0, -24],
+          opacity: 0.92,
+        });
+      }
+      markerRef.current = marker;
+      renderedRef.current = target;
+      return;
+    }
+
+    const marker = markerRef.current;
+    const from = renderedRef.current;
+
+    if (
+      !from ||
+      prefersReducedMotion() ||
+      haversineMeters(from, target) > SNAP_THRESHOLD_M ||
+      isSamePosition(from, target)
+    ) {
+      renderedRef.current = target;
+      marker.setLatLng(target);
+      return;
+    }
+
+    cancelAnimationFrame(frameRef.current);
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = t * (2 - t);
+      const next = lerpLatLng(from, target, eased);
+      marker.setLatLng(next);
+      renderedRef.current = next;
+
+      if (t < 1) {
+        frameRef.current = requestAnimationFrame(step);
+      } else {
+        renderedRef.current = target;
+      }
+    };
+
+    frameRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [map, lat, lng, icon, tooltip, durationMs]);
+
+  return null;
+}
 
 function FollowCourier({ coords, enabled }) {
   const map = useMap();
-  const initialized = useRef(false);
+  const hasCentred = useRef(false);
+  const wasEnabled = useRef(false);
 
   useEffect(() => {
     if (!coords) return;
-    if (enabled) {
-      map.setView(coords, Math.max(map.getZoom(), 16), { animate: true });
-      initialized.current = true;
-    } else if (!initialized.current) {
-      map.setView(coords, 15);
-      initialized.current = true;
+
+    const justEnabled = enabled && !wasEnabled.current;
+    wasEnabled.current = enabled;
+
+    if (!enabled) {
+      if (!hasCentred.current) {
+        map.setView(coords, 15);
+        hasCentred.current = true;
+      }
+      return;
     }
+
+    if (justEnabled || !hasCentred.current) {
+      map.setView(coords, Math.max(map.getZoom(), 16), { animate: true });
+      hasCentred.current = true;
+      return;
+    }
+
+    map.panTo(coords, { animate: true, duration: 0.9, easeLinearity: 0.5 });
   }, [map, coords, enabled]);
 
   return null;
@@ -41,19 +174,22 @@ function FollowCourier({ coords, enabled }) {
 
 function FitAllPoints({ points, enabled }) {
   const map = useMap();
-  const didFit = useRef(false);
+  const fittedCount = useRef(0);
+
+  const valid = points.filter(Boolean);
+  const count = valid.length;
 
   useEffect(() => {
-    if (enabled || didFit.current) return;
-    const valid = points.filter(Boolean);
-    if (valid.length >= 2) {
-      map.fitBounds(L.latLngBounds(valid), { padding: [48, 48], maxZoom: 16 });
-      didFit.current = true;
-    } else if (valid.length === 1) {
+    if (enabled || count === 0 || count === fittedCount.current) return;
+    fittedCount.current = count;
+
+    if (count === 1) {
       map.setView(valid[0], 15);
-      didFit.current = true;
+      return;
     }
-  }, [map, points, enabled]);
+    map.fitBounds(L.latLngBounds(valid), { padding: [48, 48], maxZoom: 16 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, count, enabled]);
 
   return null;
 }
@@ -65,14 +201,19 @@ function MapInner({
   routeCoords,
   followCourier,
   isDark,
-  fitPoints,
 }) {
-  const center =
-    courierCoords ?? restaurantCoords ?? deliveryCoords ?? [44.8176, 20.4633];
+  const [initialCenter] = useState(
+    () => courierCoords ?? restaurantCoords ?? deliveryCoords ?? FALLBACK_CENTER,
+  );
+
+  const points = useMemo(
+    () => [restaurantCoords, deliveryCoords, courierCoords],
+    [restaurantCoords, deliveryCoords, courierCoords],
+  );
 
   return (
     <MapContainer
-      center={center}
+      center={initialCenter}
       zoom={14}
       scrollWheelZoom
       zoomControl={false}
@@ -97,13 +238,11 @@ function MapInner({
           </Tooltip>
         </Marker>
       )}
-      {courierCoords && (
-        <Marker position={courierCoords} icon={courierIcon}>
-          <Tooltip direction="top" offset={[0, -24]} opacity={0.92}>
-            Courier (live)
-          </Tooltip>
-        </Marker>
-      )}
+      <SmoothMarker
+        position={courierCoords}
+        icon={courierIcon}
+        tooltip="Courier (live)"
+      />
 
       {routeCoords?.length > 1 && (
         <Polyline
@@ -130,13 +269,11 @@ function MapInner({
         />
       )}
 
+      <KeepSizeInSync />
       {courierCoords && (
         <FollowCourier coords={courierCoords} enabled={followCourier} />
       )}
-      <FitAllPoints
-        points={[restaurantCoords, deliveryCoords, courierCoords]}
-        enabled={followCourier}
-      />
+      <FitAllPoints points={points} enabled={followCourier} />
     </MapContainer>
   );
 }
@@ -160,7 +297,6 @@ export function NavigationMap({
         routeCoords={routeCoords}
         followCourier={followCourier}
         isDark={isDark}
-        fitPoints={[restaurantCoords, deliveryCoords, courierCoords]}
       />
     </div>
   );
