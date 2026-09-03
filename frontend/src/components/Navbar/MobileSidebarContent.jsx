@@ -17,18 +17,18 @@ export default function MobileSidebarContent({
     <>
       {authUser ? (
         <div className="space-y-4 sm:space-y-6">
-          <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/50 dark:bg-zinc-800/50 rounded-lg sm:rounded-xl border border-gray-200/50 dark:border-zinc-800/50">
+          <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card/50 rounded-lg sm:rounded-xl border border-border/50 ">
             <img
               src={profilePicture}
               referrerPolicy="no-referrer"
               alt={authUser.name}
-              className="w-12 sm:w-14 h-12 sm:h-14 rounded-full object-cover ring-2 ring-emerald-500/40"
+              className="w-12 sm:w-14 h-12 sm:h-14 rounded-full object-cover ring-2 ring-ring/40"
             />
             <div className="min-w-0">
               <p className="font-semibold text-sm sm:text-base">
                 Welcome back!
               </p>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {authUser.name}
               </p>
             </div>
@@ -38,14 +38,14 @@ export default function MobileSidebarContent({
             <Button
               onClick={() => navigate("/profile")}
               variant="ghost"
-              className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-emerald-50/50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200"
+              className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-primary-subtle/50 text-muted-foreground "
             >
               <User className="w-4 sm:w-5 h-4 sm:h-5 mr-2 sm:mr-3 shrink-0" />
               Profile
             </Button>
             <Button
               variant="ghost"
-              className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-emerald-50/50 dark:hover:bg-emerald-950/40 text-gray-700 dark:text-gray-200"
+              className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-primary-subtle/50 text-muted-foreground "
             >
               <Settings className="w-4 sm:w-5 h-4 sm:h-5 mr-2 sm:mr-3 shrink-0" />
               Settings
@@ -53,7 +53,7 @@ export default function MobileSidebarContent({
             <Button
               onClick={onLogout}
               variant="ghost"
-              className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-950/40"
+              className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base text-destructive hover:bg-destructive-subtle/50 "
             >
               <LogOut className="w-4 sm:w-5 h-4 sm:h-5 mr-2 sm:mr-3 shrink-0" />
               Logout
@@ -65,35 +65,35 @@ export default function MobileSidebarContent({
           <Button
             onClick={() => onLogin(true)}
             variant="ghost"
-            className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg sm:rounded-xl"
+            className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-muted rounded-lg sm:rounded-xl"
           >
             Log In
           </Button>
           <Button
             onClick={() => onSignup(false)}
-            className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg sm:rounded-xl"
+            className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-muted rounded-lg sm:rounded-xl"
           >
             Sign up
           </Button>
         </div>
       )}
 
-      <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-gray-200/50 dark:border-zinc-800/50">
+      <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-border/50 ">
         <a
           href="#"
-          className="block text-sm sm:text-lg text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+          className="block text-sm sm:text-lg text-muted-foreground hover:text-primary transition-colors font-medium"
         >
           Restaurants
         </a>
         <Link
           to="/become-courier"
-          className="block text-sm sm:text-lg text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+          className="block text-sm sm:text-lg text-muted-foreground hover:text-primary transition-colors font-medium"
         >
           Become a Courier
         </Link>
         <a
           href="#"
-          className="block text-sm sm:text-lg text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+          className="block text-sm sm:text-lg text-muted-foreground hover:text-primary transition-colors font-medium"
         >
           Help Center
         </a>

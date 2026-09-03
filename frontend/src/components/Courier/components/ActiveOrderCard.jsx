@@ -7,22 +7,22 @@ import useMarkAsInTransitOrder from "@/hooks/Courier/useMarkAsInTransitOrder";
 const STATUS_CONFIG = {
   assigned: {
     label: "Heading to restaurant",
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/20",
+    color: "text-warning ",
+    bg: "bg-warning-subtle ",
     nextAction: "Picked Up",
     nextIcon: CheckCircle,
   },
   picked_up: {
     label: "Order picked up",
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/20",
+    color: "text-primary ",
+    bg: "bg-primary-subtle ",
     nextAction: "Start Delivery",
     nextIcon: Navigation,
   },
   in_transit: {
     label: "On the way",
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    color: "text-primary ",
+    bg: "bg-primary-subtle ",
     nextAction: "Mark Delivered",
     nextIcon: CheckCircle,
   },
@@ -49,7 +49,7 @@ export function ActiveOrderCard({ order }) {
     order.deliveryAddressSnapshot?.fullAddress ?? "Address unavailable";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card ">
       <div className={`px-5 py-3 ${config.bg}`}>
         <span className={`text-sm font-bold uppercase ${config.color}`}>
           {config.label}
@@ -59,34 +59,34 @@ export function ActiveOrderCard({ order }) {
       <div className="p-5">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-lg font-bold text-gray-900 dark:text-white">
+            <p className="text-lg font-bold text-foreground ">
               {order.restaurant?.name ?? "Restaurant"}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground ">
               #
               {order.orderNumber?.split("-").pop() ??
                 order.orderNumber ??
                 "N/A"}
             </p>{" "}
           </div>
-          <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+          <span className="text-lg font-bold text-primary ">
             {order.total != null ? `${order.total.toFixed(2)}` : "—"}
           </span>{" "}
         </div>
 
         <div className="mb-5 space-y-3">
           <div className="flex items-start gap-3">
-            <div className="mt-1 h-3 w-3 shrink-0 rounded-full border-2 border-emerald-500 bg-white dark:bg-zinc-900" />
+            <div className="mt-1 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card " />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+              <p className="truncate text-sm font-medium text-foreground ">
                 {restaurantAddress}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0">
-              <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+              <p className="truncate text-sm text-muted-foreground ">
                 {deliveryAddress}
               </p>
             </div>
@@ -94,14 +94,14 @@ export function ActiveOrderCard({ order }) {
         </div>
 
         <div className="flex gap-3">
-          <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 font-semibold text-gray-900 transition hover:bg-gray-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700">
+          <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-muted py-3 font-semibold text-foreground transition hover:bg-secondary ">
             <Navigation className="h-5 w-5" />
             Navigate
           </button>
           <button
             onClick={() => action.fn(order._id)}
             disabled={action.isPending}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             {action.isPending ? (
               <Spinner />

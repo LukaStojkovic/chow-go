@@ -14,18 +14,18 @@ export const StatCard = ({
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow"
+    className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow"
   >
     <div className="flex items-start justify-between mb-4">
       <div>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+        <p className="text-sm font-medium text-muted-foreground ">
           {title}
         </p>
-        <h3 className="text-3xl font-bold mt-2 text-gray-900 dark:text-white tracking-tight">
+        <h3 className="text-3xl font-bold mt-2 text-foreground tracking-tight">
           {value}
         </h3>
         {subtitle && (
-          <p className="mt-1 text-xs text-gray-400 dark:text-zinc-400">
+          <p className="mt-1 text-xs text-muted-foreground ">
             {subtitle}
           </p>
         )}
@@ -42,8 +42,8 @@ export const StatCard = ({
           <span
             className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${
               isPositive
-                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                ? "bg-primary-subtle text-primary "
+                : "bg-destructive-subtle text-destructive "
             }`}
           >
             {isPositive ? (
@@ -53,7 +53,7 @@ export const StatCard = ({
             )}
             {trend}
           </span>
-          <span className="text-gray-400">vs last month</span>
+          <span className="text-muted-foreground">vs last month</span>
         </>
       )}
     </div>

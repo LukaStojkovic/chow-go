@@ -1,23 +1,51 @@
 import { axiosInstance } from "@/lib/axios";
 
+/**
+ * Append the fields shared by creating and updating a menu item.
+ *
+ * Nested `promotion[...]` keys are rebuilt into an object on the server by
+ * multer's append-field, the same way the weekly schedule is submitted from
+ * seller settings. The block is always sent - including when the promotion is
+ * off - because the backend replaces the promotion wholesale, and omitting it
+ * would make "end this deal" impossible to express.
+ */
+function appendMenuItemFields(formData, menuItemData) {
+  formData.append("name", menuItemData.name);
+  formData.append("category", menuItemData.category);
+  formData.append("price", menuItemData.price);
+  formData.append("available", menuItemData.available);
+  if (menuItemData.description) {
+    formData.append("description", menuItemData.description);
+  }
+
+  const promotion = menuItemData.promotion || {};
+  formData.append("promotion[isActive]", promotion.isActive ? "true" : "false");
+
+  if (promotion.isActive) {
+    formData.append("promotion[type]", promotion.type || "percentage");
+    formData.append("promotion[value]", promotion.value ?? "");
+    formData.append("promotion[label]", promotion.label || "");
+    // Sent only when set: an empty string is not a date, and the backend reads
+    // a missing bound as "runs until switched off".
+    if (promotion.startsAt) {
+      formData.append("promotion[startsAt]", promotion.startsAt);
+    }
+    if (promotion.endsAt) {
+      formData.append("promotion[endsAt]", promotion.endsAt);
+    }
+  }
+
+  const images = Array.isArray(menuItemData.images) ? menuItemData.images : [];
+  images.forEach((image) => {
+    formData.append("images", image);
+  });
+}
+
 export async function createMenuItem(restaurantId, menuItemData) {
   try {
     const formData = new FormData();
 
-    formData.append("name", menuItemData.name);
-    formData.append("category", menuItemData.category);
-    formData.append("price", menuItemData.price);
-    formData.append("available", menuItemData.available);
-    if (menuItemData.description) {
-      formData.append("description", menuItemData.description);
-    }
-
-    const images = Array.isArray(menuItemData.images)
-      ? menuItemData.images
-      : [];
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
+    appendMenuItemFields(formData, menuItemData);
 
     const res = await axiosInstance.post(
       `/restaurants/${restaurantId}/menu`,
@@ -87,26 +115,13 @@ export async function updateMenuItem(restaurantId, menuItemId, menuItemData) {
   try {
     const formData = new FormData();
 
-    formData.append("name", menuItemData.name);
-    formData.append("category", menuItemData.category);
-    formData.append("price", menuItemData.price);
-    formData.append("available", menuItemData.available);
-    if (menuItemData.description) {
-      formData.append("description", menuItemData.description);
-    }
+    appendMenuItemFields(formData, menuItemData);
 
     if (menuItemData.existingImages && menuItemData.existingImages.length > 0) {
       menuItemData.existingImages.forEach((url) => {
         formData.append("existingImages", url);
       });
     }
-
-    const images = Array.isArray(menuItemData.images)
-      ? menuItemData.images
-      : [];
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
 
     const res = await axiosInstance.put(
       `/restaurants/${restaurantId}/menu/${menuItemId}`,

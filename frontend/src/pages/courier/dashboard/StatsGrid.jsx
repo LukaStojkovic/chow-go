@@ -20,7 +20,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? fmt(analytics?.today?.earnings),
       icon: DollarSign,
       colorClass:
-        "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
+        "bg-primary-subtle text-primary ",
     },
     {
       title: "Deliveries",
@@ -28,7 +28,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? analytics?.today?.deliveries ?? 0,
       icon: Truck,
       colorClass:
-        "bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400",
+        "bg-primary-subtle text-primary ",
     },
     {
       title: "Avg time",
@@ -40,7 +40,7 @@ export function StatsGrid({ analytics, isLoading }) {
           : "—"),
       icon: Clock,
       colorClass:
-        "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
+        "bg-warning-subtle text-warning ",
     },
   ];
 
@@ -51,7 +51,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? fmt(analytics?.week?.earnings),
       icon: CalendarDays,
       colorClass:
-        "bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400",
+        "bg-info-subtle text-info ",
     },
     {
       title: "This month",
@@ -59,7 +59,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? fmt(analytics?.month?.earnings),
       icon: CalendarDays,
       colorClass:
-        "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
+        "bg-warning-subtle text-warning ",
     },
     {
       title: "All time",
@@ -67,7 +67,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? fmt(analytics?.allTime?.totalEarnings),
       icon: CalendarDays,
       colorClass:
-        "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
+        "bg-primary-subtle text-primary ",
     },
   ];
 
@@ -77,7 +77,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? `${analytics?.allTime?.acceptanceRate ?? 100}%`,
       icon: CircleCheck,
       colorClass:
-        "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
+        "bg-primary-subtle text-primary ",
       showArrow: false,
     },
     {
@@ -85,11 +85,11 @@ export function StatsGrid({ analytics, isLoading }) {
       value:
         dash ??
         (analytics?.allTime?.averageRating > 0
-          ? `${analytics.allTime.averageRating.toFixed(1)} ★`
+          ? analytics.allTime.averageRating.toFixed(1)
           : "—"),
       icon: Star,
       colorClass:
-        "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400",
+        "bg-warning-subtle text-warning ",
       showArrow: false,
     },
     {
@@ -97,7 +97,7 @@ export function StatsGrid({ analytics, isLoading }) {
       value: dash ?? analytics?.allTime?.successfulDeliveries ?? 0,
       icon: Truck,
       colorClass:
-        "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400",
+        "bg-muted text-muted-foreground ",
       showArrow: false,
     },
   ];

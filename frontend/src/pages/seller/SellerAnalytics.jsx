@@ -19,14 +19,14 @@ export const SellerAnalytics = () => {
   if (isLoadingAnalytics) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl flex items-center gap-3 text-red-800 dark:text-red-400">
+      <div className="p-4 bg-destructive-subtle border border-destructive rounded-xl flex items-center gap-3 text-destructive ">
         <AlertCircle className="w-5 h-5 shrink-0" />
         <p className="text-sm font-medium">{error}</p>
       </div>

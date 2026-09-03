@@ -1,6 +1,7 @@
 import Cart from "../models/Cart.js";
 import MenuItem from "../models/MenuItem.js";
 import { AppError } from "../utils/AppError.js";
+import { effectivePrice } from "../utils/promotion.js";
 
 export async function getCart(req, res, next) {
   const cart = await Cart.findOne({ user: req.user.id })
@@ -25,7 +26,7 @@ export async function getCart(req, res, next) {
 }
 
 export async function addToCart(req, res, next) {
-  const { menuItemId, quantity = 1 } = req.body;
+  const { menuItemId, quantity = 1, specialInstructions } = req.body;
 
   if (!menuItemId) {
     return next(new AppError("Menu item ID is required", 400));
@@ -70,12 +71,24 @@ export async function addToCart(req, res, next) {
 
   if (existingItem) {
     existingItem.quantity += quantity;
+    // A note supplied on a later add replaces the line's note; sending none
+    // leaves whatever was already there untouched.
+    if (specialInstructions !== undefined) {
+      existingItem.specialInstructions = specialInstructions;
+    }
   } else {
+    // Priced from the menu item at the moment it is added, never from the
+    // client. A promotion that ends later does not reprice a line already in
+    // the basket - which is the behaviour the price snapshot already had.
+    const unitPrice = effectivePrice(menuItem.price, menuItem.promotion);
+
     cart.items.push({
       menuItem: menuItem._id,
       name: menuItem.name,
-      price: menuItem.price,
+      price: unitPrice,
+      basePrice: unitPrice < menuItem.price ? menuItem.price : undefined,
       quantity,
+      specialInstructions,
     });
   }
 
@@ -129,7 +142,7 @@ export const clearCart = async (req, res, next) => {
 
 export const updateCartItemQuantity = async (req, res, next) => {
   const { menuItemId } = req.params;
-  const { quantity } = req.body;
+  const { quantity, specialInstructions } = req.body;
 
   if (quantity == null || quantity < 0) {
     return next(new AppError("Quantity must be 0 or greater", 400));
@@ -155,6 +168,9 @@ export const updateCartItemQuantity = async (req, res, next) => {
     );
   } else {
     item.quantity = quantity;
+    if (specialInstructions !== undefined) {
+      item.specialInstructions = specialInstructions;
+    }
   }
 
   await cart.save();

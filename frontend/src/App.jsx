@@ -1,59 +1,66 @@
+import { useEffect } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
+import { Toaster } from "sonner";
+
+import { useAuthStore } from "./store/useAuthStore";
+import { useDarkMode } from "./hooks/useDarkMode";
+import { useMotionPreference } from "./hooks/useMotionPreference";
+import { useGlobalSocketEvents } from "./hooks/Sockets/useGlobalSocketEvents";
+import { SocketProvider } from "./contexts/SocketContext";
+import ScrollToTop from "./hooks/ScrollToTop";
+import Spinner from "./components/Spinner";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { CustomerShell } from "./components/shell/CustomerShell";
+
 import LandingPage from "./pages/LandingPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import DiscoverPage from "./pages/DiscoverPage";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "sonner";
-import { Route, Routes, Navigate } from "react-router-dom";
-import { useEffect } from "react";
-import { useAuthStore } from "./store/useAuthStore";
-import { useDarkMode } from "./hooks/useDarkMode";
-import Spinner from "./components/Spinner";
-import CheckoutPage from "./pages/CheckoutPage";
-import SellerRoute from "./components/Auth/components/SellerRoute";
-import CustomerRoute from "./components/Auth/components/CustomerRoute";
-import PublicRoute from "./components/Auth/components/PublicRoute";
-import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
 import RestaurantPage from "./pages/RestaurantPage";
-import CustomerLayout from "./components/Auth/components/CustomerLayout";
-import ScrollToTop from "./hooks/ScrollToTop";
+import FavouritesPage from "./pages/FavouritesPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import OrderTrackingPage from "./pages/OrderTrackingPage";
+import MyOrdersPage from "./pages/MyOrdersPage";
+import ProfilePage from "./pages/ProfilePage";
+import BecomeCourierPage from "./pages/BecomeCourierPage";
+import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
+import AuthModal from "./components/Auth/AuthModal";
+
+import PublicRoute from "./components/Auth/components/PublicRoute";
+import CustomerRoute from "./components/Auth/components/CustomerRoute";
+import SellerRoute from "./components/Auth/components/SellerRoute";
 import SellerLayout from "./components/Auth/components/SellerLayout";
 import { SellerDashboard } from "./pages/seller/dashboard/SellerDashboard";
 import { SellerOrders } from "./pages/seller/SellerOrders";
 import { SellerMenu } from "./pages/seller/SellerMenu";
 import { SellerAnalytics } from "./pages/seller/SellerAnalytics";
 import { SellerSettings } from "./pages/seller/SellerSettings";
-import AuthModal from "./components/Auth/AuthModal";
-import OrderTrackingPage from "./pages/OrderTrackingPage";
-import MyOrdersPage from "./pages/MyOrdersPage";
-import { SocketProvider } from "./contexts/SocketContext";
-import { useGlobalSocketEvents } from "./hooks/Sockets/useGlobalSocketEvents";
-import BecomeCourierPage from "./pages/BecomeCourierPage";
+
 import CourierRoute from "./pages/courier/CourierRoute";
 import CourierLayout from "./pages/courier/CourierLayout";
 import CourierDashboard from "./pages/courier/CourierDashboard";
 import { CourierOrders } from "./pages/courier/CourierOrders";
 import CourierActiveDelivery from "./pages/courier/CourierActiveDelivery";
-import { CourierEarnings } from "./pages/courier/CourierEarnings";
-import { CourierInfo } from "./components/OrderTracking/CourierInfo";
 import { CourierProfile } from "./pages/courier/CourierProfile";
-import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // Freshness is driven by socket-triggered invalidation rather than by
+      // time - see hooks/Sockets/useGlobalSocketEvents.
       staleTime: 0,
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
 
 function AppContent() {
-  const {
-    checkAuth,
-    isCheckingAuth,
-    isAuthOpen,
-    isLoginModal,
-    closeAuthModal,
-  } = useAuthStore();
+  const { checkAuth, isCheckingAuth, isAuthOpen, isLoginModal, closeAuthModal } =
+    useAuthStore();
   const { isDark } = useDarkMode();
 
   useGlobalSocketEvents();
@@ -67,25 +74,67 @@ function AppContent() {
   return (
     <>
       <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth/google/callback" element={<GoogleAuthCallbackPage />} />
 
+        {/* Browsable without an account. Signing in is required at the point
+            it actually matters - adding to the basket. */}
         <Route element={<PublicRoute />}>
-          <Route path="/discovery" element={<DiscoverPage />} />
+          <Route element={<CustomerShell />}>
+            <Route path="/discovery" element={<DiscoverPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/restaurant/:restaurantId" element={<RestaurantPage />} />
+          </Route>
           <Route path="/become-courier" element={<BecomeCourierPage />} />
         </Route>
 
         <Route element={<CustomerRoute />}>
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/orders" element={<MyOrdersPage />} />
-          <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route element={<CustomerLayout />}>
+          <Route element={<CustomerShell />}>
+            <Route path="/favourites" element={<FavouritesPage />} />
+          </Route>
+
+          {/* Focused screens: a back-and-title header, and no basket trigger
+              competing with the task at hand. */}
+          <Route
+            element={<CustomerShell variant="detail" title="Your orders" backTo="/discovery" />}
+          >
+            <Route path="/orders" element={<MyOrdersPage />} />
+          </Route>
+          <Route element={<CustomerShell variant="detail" title="Order" backTo="/orders" />}>
+            <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
+          </Route>
+          <Route
+            element={
+              <CustomerShell
+                variant="detail"
+                title="Order confirmed"
+                showBasket={false}
+                showBottomNav={false}
+                backTo="/discovery"
+              />
+            }
+          >
             <Route
-              path="/restaurant/:restaurantId"
-              element={<RestaurantPage />}
+              path="/orders/:orderId/confirmed"
+              element={<OrderConfirmationPage />}
             />
+          </Route>
+          <Route
+            element={
+              <CustomerShell
+                variant="detail"
+                title="Checkout"
+                showBasket={false}
+                showBottomNav={false}
+              />
+            }
+          >
+            <Route path="/checkout" element={<CheckoutPage />} />
+          </Route>
+          <Route element={<CustomerShell variant="detail" title="Profile" backTo="/discovery" />}>
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 
@@ -117,38 +166,33 @@ function AppContent() {
           <Route path="dashboard" element={<CourierDashboard />} />
           <Route path="orders" element={<CourierOrders />} />
           <Route path="delivery/:orderId" element={<CourierActiveDelivery />} />
-          {/* <Route path="earnings" element={<CourierEarnings />} /> */}
           <Route path="profile" element={<CourierProfile />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
+      {/* Toasts inherit the app surface and the semantic status tokens rather
+          than painting their own gradients. */}
       <Toaster
-        position="bottom-right"
+        position="bottom-center"
         theme={isDark ? "dark" : "light"}
+        duration={4500}
+        gap={8}
         toastOptions={{
           classNames: {
             toast:
-              "bg-white/90 dark:bg-gray-900/95 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-2xl rounded-2xl",
-            title: "font-semibold",
-            description: "text-gray-600 dark:text-gray-400",
-            success:
-              "bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-0 shadow-xl",
-            error:
-              "bg-gradient-to-r from-red-500 to-pink-600 text-white border-0 shadow-xl",
-            info: "bg-gradient-to-r from-blue-500 to-cyan-600 text-white border-0 shadow-xl",
-            warning:
-              "bg-gradient-to-r from-orange-500 to-yellow-600 text-white border-0 shadow-xl",
-            closeButton:
-              "bg-white/20 dark:bg-gray-800/40 hover:bg-white/30 dark:hover:bg-gray-700/60 border border-white/30 dark:border-gray-700 text-white",
-            actionButton:
-              "bg-white/20 hover:bg-white/30 dark:bg-gray-800/40 dark:hover:bg-gray-700/60 text-white font-medium",
+              "bg-popover text-popover-foreground border border-border rounded-md shadow-overlay",
+            title: "text-label",
+            description: "text-body-sm text-muted-foreground",
+            actionButton: "bg-primary text-primary-foreground rounded-sm text-label",
+            cancelButton: "bg-muted text-muted-foreground rounded-sm text-label",
+            success: "[&_[data-icon]]:text-success",
+            error: "[&_[data-icon]]:text-destructive",
+            warning: "[&_[data-icon]]:text-warning",
+            info: "[&_[data-icon]]:text-info",
           },
         }}
-        richColors
-        duration={4000}
-        expand
       />
 
       <AuthModal
@@ -161,11 +205,21 @@ function AppContent() {
 }
 
 function App() {
+  // Defaults to "user" - the OS preference - and only departs from it when
+  // someone has explicitly chosen otherwise in Profile > Appearance.
+  const { framerValue } = useMotionPreference();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <SocketProvider>
-        <AppContent />
-      </SocketProvider>
+      {/* One place decides whether Framer variants animate; components never
+          check `useReducedMotion()` themselves. */}
+      <MotionConfig reducedMotion={framerValue}>
+        <TooltipProvider delayDuration={300} skipDelayDuration={0}>
+          <SocketProvider>
+            <AppContent />
+          </SocketProvider>
+        </TooltipProvider>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

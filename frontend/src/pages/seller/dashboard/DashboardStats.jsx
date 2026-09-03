@@ -10,7 +10,7 @@ export const DashboardStats = ({ stats }) => {
         trend={`${stats.totalRevenue.trend}%`}
         isPositive={stats.totalRevenue.isPositive}
         icon={DollarSign}
-        colorClass="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+        colorClass="bg-primary-subtle text-primary "
       />
       <StatCard
         title="Active Orders"
@@ -18,7 +18,7 @@ export const DashboardStats = ({ stats }) => {
         trend={`${stats.activeOrders.trend}%`}
         isPositive={stats.activeOrders.isPositive}
         icon={Clock}
-        colorClass="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+        colorClass="bg-warning-subtle text-warning "
       />
       <StatCard
         title="Total Customers"
@@ -26,7 +26,7 @@ export const DashboardStats = ({ stats }) => {
         trend={`${stats.totalCustomers.trend}%`}
         isPositive={stats.totalCustomers.isPositive}
         icon={Users}
-        colorClass="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+        colorClass="bg-primary-subtle text-primary "
       />
       <StatCard
         title="Avg. Rating"
@@ -34,7 +34,7 @@ export const DashboardStats = ({ stats }) => {
         trend={`${stats.avgRating.totalReviews} reviews`}
         isPositive={true}
         icon={Utensils}
-        colorClass="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+        colorClass="bg-info-subtle text-info "
       />
     </div>
   );

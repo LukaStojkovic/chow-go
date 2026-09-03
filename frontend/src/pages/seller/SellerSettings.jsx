@@ -184,7 +184,7 @@ export const SellerSettings = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUpdatingProfile}
-                className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-emerald-600 hover:bg-emerald-700"
+                className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-primary hover:bg-primary"
               >
                 <Camera className="w-4 h-4" />
               </Button>
@@ -193,12 +193,12 @@ export const SellerSettings = () => {
               <div className="flex items-center gap-2 justify-center md:justify-start">
                 <h2 className="text-2xl font-bold">{restaurant.name}</h2>
                 {isUpdatingProfile && (
-                  <Loader2 className="w-4 h-4 text-emerald-600 animate-spin" />
+                  <Loader2 className="w-4 h-4 text-primary animate-spin" />
                 )}
               </div>
               <CardDescription className="text-sm mt-1">
                 {restaurant.cuisineType && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-subtle text-primary">
                     {restaurant.cuisineType}
                   </span>
                 )}
@@ -399,7 +399,7 @@ export const SellerSettings = () => {
                     >
                       <span className="font-medium">{label}</span>
                       {isToday && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-primary-subtle text-primary ">
                           Today
                         </span>
                       )}

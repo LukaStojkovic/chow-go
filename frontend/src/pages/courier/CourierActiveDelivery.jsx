@@ -53,12 +53,12 @@ export default function CourierActiveDelivery() {
   if (isError || !order) {
     return (
       <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-        <p className="font-medium text-gray-500 dark:text-gray-400">
+        <p className="font-medium text-muted-foreground ">
           Delivery not found
         </p>
         <Link
           to="/courier/orders"
-          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+          className="text-sm font-semibold text-primary hover:text-primary "
         >
           Back to deliveries
         </Link>
@@ -73,7 +73,7 @@ export default function CourierActiveDelivery() {
 
         <Link
           to="/courier/orders"
-          className="absolute left-4 top-4 z-1000 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-gray-900 shadow-lg backdrop-blur-sm transition hover:bg-white dark:bg-zinc-900/95 dark:text-white"
+          className="absolute left-4 top-4 z-1000 flex h-10 w-10 items-center justify-center rounded-full bg-card/95 text-foreground shadow-lg backdrop-blur-sm transition hover:bg-white "
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>

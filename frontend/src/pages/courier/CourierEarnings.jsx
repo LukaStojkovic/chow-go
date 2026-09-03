@@ -16,24 +16,24 @@ export function CourierEarnings() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="mb-2 flex items-center gap-2 text-gray-500 dark:text-gray-400">
+        <div className="rounded-2xl border border-border bg-card p-6 ">
+          <div className="mb-2 flex items-center gap-2 text-muted-foreground ">
             <Wallet className="h-5 w-5" /> <span>Available Balance</span>
           </div>
-          <p className="text-4xl font-extrabold text-gray-900 dark:text-white">
+          <p className="text-4xl font-extrabold text-foreground ">
             $142.50
           </p>
-          <button className="mt-4 w-full rounded-xl bg-gray-900 py-2.5 font-semibold text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+          <button className="mt-4 w-full rounded-md bg-primary py-2.5 font-semibold text-primary-foreground transition hover:bg-primary-hover">
             Cash Out Now
           </button>
         </div>
 
-        <div className="sm:col-span-2 rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="sm:col-span-2 rounded-2xl border border-border bg-card p-6 ">
           <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-muted-foreground ">
               <TrendingUp className="h-5 w-5" /> <span>This Week</span>
             </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
+            <span className="text-xl font-bold text-foreground ">
               $569.00
             </span>
           </div>
@@ -51,13 +51,13 @@ export function CourierEarnings() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="border-b border-gray-200 p-5 dark:border-zinc-800">
-          <h3 className="font-bold text-gray-900 dark:text-white">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden ">
+        <div className="border-b border-border p-5 ">
+          <h3 className="font-bold text-foreground ">
             Recent Transactions
           </h3>
         </div>
-        <div className="divide-y divide-gray-100 dark:divide-zinc-800">
+        <div className="divide-y divide-border ">
           {[
             {
               title: "Delivery Earnings",
@@ -81,7 +81,7 @@ export function CourierEarnings() {
             <div key={i} className="flex items-center justify-between p-5">
               <div className="flex items-center gap-4">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full ${tx.type === "earn" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-400"}`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${tx.type === "earn" ? "bg-primary-subtle text-primary " : "bg-muted text-muted-foreground "}`}
                 >
                   {tx.type === "earn" ? (
                     <Wallet className="h-5 w-5" />
@@ -90,16 +90,16 @@ export function CourierEarnings() {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-foreground ">
                     {tx.title}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground ">
                     {tx.date}
                   </p>
                 </div>
               </div>
               <span
-                className={`font-bold ${tx.type === "earn" ? "text-emerald-600 dark:text-emerald-400" : "text-gray-900 dark:text-white"}`}
+                className={`font-bold ${tx.type === "earn" ? "text-primary " : "text-foreground "}`}
               >
                 {tx.amount}
               </span>

@@ -17,11 +17,12 @@ export async function getCart() {
   }
 }
 
-export async function addToCart(menuItemId, quantity) {
+export async function addToCart(menuItemId, quantity, specialInstructions) {
   try {
     const res = await axiosInstance.post(`/cart/items`, {
       menuItemId,
       quantity,
+      specialInstructions,
     });
     return res.data;
   } catch (err) {
@@ -30,10 +31,11 @@ export async function addToCart(menuItemId, quantity) {
   }
 }
 
-export async function updateCartItemQuantity(menuItemId, quantity) {
+export async function updateCartItemQuantity(menuItemId, quantity, specialInstructions) {
   try {
     const res = await axiosInstance.patch(`/cart/items/${menuItemId}`, {
       quantity,
+      specialInstructions,
     });
     return res.data;
   } catch (err) {

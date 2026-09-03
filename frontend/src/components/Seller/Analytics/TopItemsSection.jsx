@@ -2,8 +2,8 @@ export const TopItemsSection = ({ items }) => {
   const maxQty = items?.[0]?.totalQuantity || 1;
 
   return (
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-100 dark:border-zinc-800">
-      <h3 className="text-lg font-bold mb-6 dark:text-white">
+    <div className="bg-card p-6 rounded-3xl border border-border ">
+      <h3 className="text-lg font-bold mb-6 ">
         Top Selling Items
       </h3>
 
@@ -11,17 +11,17 @@ export const TopItemsSection = ({ items }) => {
         {items.map((item, i) => (
           <div key={i} className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span className="font-medium dark:text-white truncate">
+              <span className="font-medium truncate">
                 {item.name}
               </span>
-              <span className="text-gray-500 ml-2 shrink-0">
+              <span className="text-muted-foreground ml-2 shrink-0">
                 {item.totalQuantity} sold · ${item.totalRevenue.toFixed(0)}
               </span>
             </div>
 
-            <div className="h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
+                className="h-full bg-primary rounded-full transition-all"
                 style={{
                   width: `${(item.totalQuantity / maxQty) * 100}%`,
                 }}

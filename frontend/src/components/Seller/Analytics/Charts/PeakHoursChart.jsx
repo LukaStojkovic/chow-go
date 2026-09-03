@@ -15,8 +15,8 @@ export const PeakHoursChart = ({ data }) => {
   const filteredHours = data?.filter((_, i) => i >= 6 && i <= 23);
 
   return (
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-100 dark:border-zinc-800">
-      <h3 className="text-lg font-bold mb-6 dark:text-white flex items-center">
+    <div className="bg-card p-6 rounded-3xl border border-border ">
+      <h3 className="text-lg font-bold mb-6 flex items-center">
         Peak Hours
         <UiTooltip>
           <TooltipTrigger>

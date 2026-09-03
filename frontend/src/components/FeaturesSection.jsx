@@ -43,7 +43,7 @@ const FOOD_ITEMS = [
 
 export default function FeaturesSection() {
   return (
-    <section className="relative py-24 bg-gray-50 dark:bg-black/50">
+    <section className="relative py-24 bg-muted ">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 flex flex-col items-center justify-between gap-4 md:flex-row md:items-end">
           <motion.div
@@ -52,15 +52,15 @@ export default function FeaturesSection() {
             viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl ">
               Explore Our Menu
             </h2>
-            <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-lg text-muted-foreground ">
               Discover delicious dishes from top-rated restaurants near you.
             </p>
           </motion.div>
 
-          <button className="group flex items-center gap-2 font-semibold text-emerald-600 transition-colors hover:text-emerald-700">
+          <button className="group flex items-center gap-2 font-semibold text-primary transition-colors hover:text-primary">
             View all categories
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </button>
@@ -83,7 +83,7 @@ function FoodCard({ url, title, desc, price, delay }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay }}
-      className="group relative cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:bg-zinc-900 dark:border dark:border-zinc-800"
+      className="group relative cursor-pointer overflow-hidden rounded-3xl bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border "
     >
       {/* Image Area */}
       <div className="aspect-4/3 overflow-hidden">
@@ -97,14 +97,14 @@ function FoodCard({ url, title, desc, price, delay }) {
       {/* Content Area */}
       <div className="p-6">
         <div className="mb-2 flex items-start justify-between">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-bold text-foreground ">
             {title}
           </h3>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <span className="rounded-full bg-primary-subtle px-3 py-1 text-sm font-bold text-primary ">
             {price}
           </span>
         </div>
-        <p className="text-gray-500 dark:text-gray-400">{desc}</p>
+        <p className="text-muted-foreground ">{desc}</p>
       </div>
     </motion.div>
   );

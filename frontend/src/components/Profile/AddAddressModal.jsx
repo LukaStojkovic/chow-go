@@ -154,11 +154,11 @@ export default function AddAddressModal({
               />
             </div>
 
-            <div className="p-4 sm:p-5 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="p-4 sm:p-5 border-t border-border ">
               <Button
                 onClick={handleConfirmLocation}
                 disabled={!selectedLocation}
-                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all active:scale-95"
+                className="w-full h-12 bg-primary hover:bg-primary text-primary-foreground rounded-xl font-bold transition-all active:scale-95"
               >
                 Confirm location
               </Button>
@@ -175,21 +175,21 @@ export default function AddAddressModal({
             <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-6 space-y-6 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-600">
               <button
                 onClick={() => setView("map")}
-                className="flex items-center gap-1.5 text-emerald-600 font-medium hover:opacity-80 transition-opacity"
+                className="flex items-center gap-1.5 text-primary font-medium hover:opacity-80 transition-opacity"
               >
                 <ChevronLeft className="w-5 h-5" />
                 Change location
               </button>
 
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white/50 dark:bg-zinc-900/50">
-                <div className="p-2.5 rounded-lg bg-emerald-100/50 dark:bg-emerald-900/30">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card/50 ">
+                <div className="p-2.5 rounded-lg bg-primary-subtle/50 ">
+                  <MapPin className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <div className="text-xs text-muted-foreground ">
                     Selected Location
                   </div>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 line-clamp-2">
+                  <p className="text-sm font-medium text-foreground line-clamp-2">
                     {isAddressLoading ? (
                       <Spinner size={16} />
                     ) : (
@@ -200,14 +200,14 @@ export default function AddAddressModal({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                   Address Type
                 </Label>
                 <Select
                   value={form.type}
                   onValueChange={(val) => updateForm("type", val)}
                 >
-                  <SelectTrigger className="h-11 border-zinc-300 dark:border-zinc-700 focus:ring-emerald-500">
+                  <SelectTrigger className="h-11 border-border focus:ring-ring">
                     <SelectValue placeholder="Select type..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -228,14 +228,14 @@ export default function AddAddressModal({
                 currentType === "hotel" ||
                 currentType === "other") && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                     Building name
                   </Label>
                   <Input
                     placeholder="e.g. Green Life Residence"
                     value={form.buildingName}
                     onChange={(e) => updateForm("buildingName", e.target.value)}
-                    className="h-11 border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500"
+                    className="h-11 border-border focus-visible:ring-ring"
                   />
                 </div>
               )}
@@ -244,18 +244,18 @@ export default function AddAddressModal({
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                      <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                         Floor
                       </Label>
                       <Input
                         placeholder="e.g. 4"
                         value={form.floor}
                         onChange={(e) => updateForm("floor", e.target.value)}
-                        className="h-11 border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500"
+                        className="h-11 border-border focus-visible:ring-ring"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                      <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                         Apartment
                       </Label>
                       <Input
@@ -264,20 +264,20 @@ export default function AddAddressModal({
                         onChange={(e) =>
                           updateForm("apartment", e.target.value)
                         }
-                        className="h-11 border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500"
+                        className="h-11 border-border focus-visible:ring-ring"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                       Entrance / Staircase
                     </Label>
                     <Input
                       placeholder="e.g. A, B, Left"
                       value={form.entrance}
                       onChange={(e) => updateForm("entrance", e.target.value)}
-                      className="h-11 border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500"
+                      className="h-11 border-border focus-visible:ring-ring"
                     />
                   </div>
                 </>
@@ -286,32 +286,32 @@ export default function AddAddressModal({
               {currentType === "house" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                       Entrance / Staircase
                     </Label>
                     <Input
                       placeholder="e.g. Main entrance"
                       value={form.entrance}
                       onChange={(e) => updateForm("entrance", e.target.value)}
-                      className="h-11 border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500"
+                      className="h-11 border-border focus-visible:ring-ring"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                       Door / Gate number
                     </Label>
                     <Input
                       placeholder="e.g. 42B"
                       value={form.doorCode}
                       onChange={(e) => updateForm("doorCode", e.target.value)}
-                      className="h-11 border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500"
+                      className="h-11 border-border focus-visible:ring-ring"
                     />
                   </div>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                   Save as
                 </Label>
                 <div className="flex flex-wrap gap-2">
@@ -323,8 +323,8 @@ export default function AddAddressModal({
                       className={cn(
                         "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all",
                         form.label === opt.id
-                          ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                          : "border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800",
+                          ? "border-primary bg-primary-subtle text-primary "
+                          : "border-border hover:bg-muted ",
                       )}
                     >
                       <opt.icon className="w-4 h-4" />
@@ -335,23 +335,23 @@ export default function AddAddressModal({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-bold uppercase text-zinc-500 dark:text-zinc-400 tracking-wider">
+                <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                   Delivery notes
                 </Label>
                 <Textarea
                   placeholder="Gate code, landmarks, call before delivery..."
                   value={form.notes}
                   onChange={(e) => updateForm("notes", e.target.value)}
-                  className="min-h-[100px] border-zinc-300 dark:border-zinc-700 focus-visible:ring-emerald-500 resize-none"
+                  className="min-h-[100px] border-border focus-visible:ring-ring resize-none"
                 />
               </div>
             </div>
 
-            <div className="shrink-0 border-t border-zinc-200 dark:border-zinc-800  p-5 sm:p-6">
+            <div className="shrink-0 border-t border-border  p-5 sm:p-6">
               <Button
                 onClick={handleSave}
                 disabled={isLoading}
-                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-12 bg-primary hover:bg-primary text-primary-foreground rounded-xl font-bold shadow-md  transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

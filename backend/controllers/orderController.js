@@ -80,6 +80,7 @@ export async function createOrder(req, res, next) {
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        specialInstructions: item.specialInstructions,
       })),
       deliveryAddress: deliveryAddressId,
       deliveryAddressSnapshot: {

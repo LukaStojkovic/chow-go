@@ -39,8 +39,8 @@ function StepProgress({ steps, stepIndex }) {
           <div
             className={`h-2 flex-1 rounded-full transition-colors ${
               index <= stepIndex
-                ? "bg-emerald-600"
-                : "bg-gray-200 dark:bg-zinc-700"
+                ? "bg-primary"
+                : "bg-secondary "
             }`}
           />
         </div>
@@ -52,7 +52,7 @@ function StepProgress({ steps, stepIndex }) {
 function CourierPhoneField({ register, errors }) {
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-gray-900 dark:text-white">
+      <h3 className="font-semibold text-foreground ">
         Contact Information
       </h3>
       <InputField
@@ -90,11 +90,11 @@ export function GoogleRoleSelection() {
   const submitLabel = isLastStep ? "Create Account" : "Continue";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#09090B] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-muted dark:bg-[#09090B] flex flex-col items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-lg bg-white dark:bg-zinc-900/95 rounded-2xl shadow-xl p-6 sm:p-8 overflow-hidden"
+        className="relative w-full max-w-lg bg-card rounded-2xl shadow-xl p-6 sm:p-8 overflow-hidden"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -102,15 +102,15 @@ export function GoogleRoleSelection() {
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="absolute inset-0 z-0 pointer-events-none"
         >
-          <div className="absolute top-0 right-0 w-64 sm:w-72 h-64 sm:h-72 bg-linear-to-br from-emerald-500/20 to-emerald-600/10 dark:from-emerald-500/10 dark:to-emerald-600/5 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-0 w-64 sm:w-72 h-64 sm:h-72    rounded-full blur-3xl" />
 
-          <div className="absolute bottom-0 left-0 w-56 sm:w-64 h-56 sm:h-64 bg-linear-to-tr from-emerald-500/15 to-teal-600/5 dark:from-emerald-500/8 dark:to-teal-600/3 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-56 sm:w-64 h-56 sm:h-64    rounded-full blur-3xl" />
         </motion.div>
         {!isFirstStep && (
           <button
             type="button"
             onClick={goBack}
-            className="flex items-center gap-1 cursor-pointer text-sm text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 mb-4 transition-colors"
+            className="flex items-center gap-1 cursor-pointer text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -118,10 +118,10 @@ export function GoogleRoleSelection() {
         )}
 
         <div className="text-center mb-2">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold text-foreground ">
             {stepTitle}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             {currentStep === "role"
               ? "How would you like to use Chow & Go?"
               : "Fill in the details below to finish setting up your account"}
@@ -150,24 +150,24 @@ export function GoogleRoleSelection() {
                       onClick={() => setRole(r.id)}
                       className={`flex items-start gap-4 p-4 rounded-xl text-left cursor-pointer transition-all border ${
                         isActive
-                          ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500 shadow-md"
-                          : "bg-white/50 dark:bg-zinc-800/50 border-gray-200 dark:border-zinc-700 hover:border-emerald-300"
+                          ? "bg-primary-subtle border-primary shadow-md"
+                          : "bg-card/50 border-border hover:border-primary"
                       }`}
                     >
                       <div
                         className={`p-2 rounded-lg ${
                           isActive
-                            ? "bg-emerald-600 text-white"
-                            : "bg-gray-100 dark:bg-zinc-700 text-gray-600 dark:text-gray-300"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground "
                         }`}
                       >
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">
+                        <p className="font-semibold text-foreground ">
                           {r.label}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground ">
                           {r.description}
                         </p>
                       </div>
@@ -267,7 +267,7 @@ export function GoogleRoleSelection() {
               currentStep === "role" ? handleContinueFromRole : undefined
             }
             disabled={isRegistering}
-            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+            className="w-full h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-xl flex items-center justify-center gap-2"
           >
             {isRegistering ? (
               <>

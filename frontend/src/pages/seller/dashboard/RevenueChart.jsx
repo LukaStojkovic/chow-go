@@ -12,9 +12,9 @@ import {
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg text-xs">
+      <div className="bg-popover text-popover-foreground border border-border px-3 py-2 rounded-md shadow-overlay text-xs">
         <p className="font-semibold">${payload[0].value.toFixed(2)}</p>
-        <p className="text-gray-300">{payload[0].payload.orders} orders</p>
+        <p className="text-muted-foreground">{payload[0].payload.orders} orders</p>
       </div>
     );
   }
@@ -43,14 +43,14 @@ export const RevenueChart = ({ chartData }) => {
   );
 
   return (
-    <div className="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 p-8 shadow-sm">
+    <div className="lg:col-span-2 bg-card rounded-3xl border border-border p-8 shadow-sm">
       <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+        <h3 className="text-xl font-bold text-foreground ">
           Revenue Analytics
         </h3>
-        <div className="flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 rounded-lg px-3 py-2">
-          <TrendingUp className="w-4 h-4 text-emerald-500" />
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+        <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
+          <TrendingUp className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-muted-foreground ">
             Last 7 Days
           </span>
         </div>
@@ -95,10 +95,10 @@ export const RevenueChart = ({ chartData }) => {
             </AreaChart>
           </ResponsiveContainer>
           <div className="mt-4 flex items-center justify-between text-xs">
-            <span className="text-gray-500 dark:text-gray-400">
+            <span className="text-muted-foreground ">
               Peak: ${maxRevenue.toFixed(2)}
             </span>
-            <span className="text-gray-500 dark:text-gray-400">
+            <span className="text-muted-foreground ">
               Total: ${totalRevenue.toFixed(2)}
             </span>
           </div>
@@ -106,11 +106,11 @@ export const RevenueChart = ({ chartData }) => {
       ) : (
         <div className="h-64 flex items-center justify-center">
           <div className="text-center">
-            <TrendingUp className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">
+            <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground ">
               No revenue data yet
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Start receiving orders to see analytics
             </p>
           </div>

@@ -105,7 +105,7 @@ export function LocationMapSelector({
 
   return (
     <div
-      className={`relative w-full h-80 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden bg-gray-100 dark:bg-zinc-900 ${className}`}
+      className={`relative w-full h-80 rounded-lg border border-border overflow-hidden bg-muted ${className}`}
     >
       <MapContainer
         center={center}
@@ -132,7 +132,7 @@ export function LocationMapSelector({
           onClick={handleDetectClick}
           disabled={isDetecting}
           size="sm"
-          className="shadow-2xl flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+          className="shadow-2xl flex items-center gap-2 bg-primary hover:bg-primary text-primary-foreground font-medium"
         >
           <Navigation
             className={`w-4 h-4 ${isDetecting ? "animate-pulse" : ""}`}

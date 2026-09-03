@@ -3,8 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logos/chow-logo-filled.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chow & Go - Food Delivery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Order food from restaurants near you and follow every step of the delivery, live."
+    />
+    <!-- Paints the browser chrome to match the app surface in both themes.
+         Must track --background in src/index.css. -->
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;550;600;650;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Chow &amp; Go - Food Delivery</title>
+
+    <!--
+      Motion preference, resolved before first paint.
+
+      This product animates by default regardless of the OS "reduce motion"
+      setting; `useMotionPreference` owns the same logic once React is running,
+      and this exists only so the first frame agrees with it. Without it the
+      `prefers-reduced-motion` block in index.css would win for the handful of
+      frames before hydration, and page-entry animation would be suppressed on
+      exactly the load where it matters most.
+    -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("motion");
+          var pref =
+            saved === "reduced" || saved === "system" ? saved : "full";
+          if (pref !== "system") {
+            document.documentElement.setAttribute("data-motion", pref);
+          }
+        } catch (error) {
+          document.documentElement.setAttribute("data-motion", "full");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

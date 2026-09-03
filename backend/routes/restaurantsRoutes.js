@@ -17,6 +17,14 @@ import { isSellerMiddleware } from "../middlewares/roleMiddleware.js";
 const router = Router();
 const uploadMenuItemImage = createUpload("menuItems");
 const uploadRestaurantImage = createUpload("restaurants");
+
+// Public reads. A restaurant's profile and its menu are already served without
+// a token by /discover/search and /discover/feed, so gating these two added no
+// protection - it only meant a visitor browsing discovery hit a wall the
+// moment they opened a restaurant. Everything below `router.use` stays gated.
+router.get("/:restaurantId", getRestaurantInformations);
+router.get("/:restaurantId/menu", getRestaurantMenuByCategories);
+
 router.use(protectedRoute);
 
 router.put(
@@ -41,9 +49,7 @@ router.get(
   isSellerMiddleware,
   getRestaurantAnalytics,
 );
-router.get("/:restaurantId", getRestaurantInformations);
 router.get("/:restaurantId/menu-items", getRestaurantMenuItems);
-router.get("/:restaurantId/menu", getRestaurantMenuByCategories);
 router.delete(
   "/:restaurantId/menu/:menuItemId",
   isSellerMiddleware,

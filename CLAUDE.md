@@ -72,6 +72,16 @@ Persisted notifications (`models/OrderNotification.js`, registered as model `"No
 
 The seller edits hours per day in `SellerSettings.jsx`, which autosaves nested multipart fields (`schedule[monday][isOpen]`); multer's `append-field` rebuilds them into an object, and the service merges day-by-day so a partial payload never wipes untouched days. `frontend/src/utils/scheduleUtils.js` holds the display-side ordering and formatting shared by the settings form and `RestaurantInfoModal`.
 
+## Menu item promotions
+
+A seller marks a single dish down via `MenuItem.promotion` — `{isActive, type: percentage|fixed, value, label, startsAt, endsAt}`. Both dates are optional; a missing bound means "no bound", so an open-ended deal runs until the seller switches it off.
+
+`utils/promotion.js` is the single source of truth: `isPromotionLive`, `effectivePrice`, `discountPercent`, `normalizePromotionInput` (coerces the multipart strings and rejects a deal that would price a dish under 0.50 or exceed 90% off) and `withPromotion`, which decorates a **lean** document with `promotionalPrice`/`discountPercent` — virtuals do not survive `.lean()` and every discovery read is lean.
+
+The resolved price is computed server-side everywhere it matters: the discover feed, popular, search and restaurant-menu responses all pass through `withPromotion`, and `cartController.addToCart` snapshots `effectivePrice` into `Cart.items.price` with the original in `basePrice`. A promotion ending later does not reprice a line already in a basket. `frontend/src/lib/promotion.js` mirrors the rules but is used **only** by the seller’s own menu screens (which read raw documents) and the form’s live preview — customer-facing prices always come from the server.
+
+`GET /api/discover/promotions?lat&lon` returns `{ deals, newRestaurants }` and backs the two discovery rails. There is no "free delivery" promotion: delivery fees are a flat platform charge with no per-restaurant field, so the card would advertise something checkout could not honour.
+
 ## Backend conventions
 
 Layering is `routes → controllers → services → models`, but only partly migrated. Newer code (courier, restaurantOrder, restaurant, menuItem, stats, analytics) keeps controllers thin and puts logic in `services/*.service.js` that `throw new AppError(msg, status)`. Older code (`orderController`, `cartController`, `favouriteController`, `discoverController`, `authController`) does DB work inline. **Follow the service pattern for new work.**

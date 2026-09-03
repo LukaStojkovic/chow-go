@@ -62,7 +62,7 @@ export function OrderActionsDropdown({
             <DropdownMenuItem
               onClick={() => onCancel(order._id)}
               disabled={isCancelling}
-              className="text-red-600 focus:text-red-600"
+              className="text-destructive focus:text-destructive"
             >
               <Ban className="w-4 h-4 mr-2" />
               Cancel Order
@@ -83,7 +83,7 @@ export function OrderActionsDropdown({
             <DropdownMenuItem
               onClick={() => onCancel(order._id)}
               disabled={isCancelling}
-              className="text-red-600 focus:text-red-600"
+              className="text-destructive focus:text-destructive"
             >
               <Ban className="w-4 h-4 mr-2" />
               Cancel Order
@@ -95,7 +95,7 @@ export function OrderActionsDropdown({
           <DropdownMenuItem
             onClick={() => onCancel(order._id)}
             disabled={isCancelling}
-            className="text-red-600 focus:text-red-600"
+            className="text-destructive focus:text-destructive"
           >
             <Ban className="w-4 h-4 mr-2" />
             Cancel Order

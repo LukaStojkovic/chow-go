@@ -9,8 +9,8 @@ export function RoleSelector({ role, setRole }) {
         onClick={() => setRole("customer")}
         className={`flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all ${
           role === "customer"
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20"
-            : "bg-white/50 dark:bg-zinc-800/50 hover:bg-white dark:hover:bg-zinc-700 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-zinc-700"
+            ? "bg-primary hover:bg-primary text-primary-foreground shadow-lg "
+            : "bg-card/50 hover:bg-white text-foreground border border-border "
         }`}
       >
         <User className="w-4 h-4 mr-2" />
@@ -21,8 +21,8 @@ export function RoleSelector({ role, setRole }) {
         onClick={() => setRole("seller")}
         className={`flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all ${
           role === "seller"
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20"
-            : "bg-white/50 dark:bg-zinc-800/50 hover:bg-white dark:hover:bg-zinc-700 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-zinc-700"
+            ? "bg-primary hover:bg-primary text-primary-foreground shadow-lg "
+            : "bg-card/50 hover:bg-white text-foreground border border-border "
         }`}
       >
         <Store className="w-4 h-4 mr-2" />

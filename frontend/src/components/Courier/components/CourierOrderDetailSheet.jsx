@@ -119,14 +119,14 @@ export function CourierOrderDetailSheet({
                 onClose();
               }}
               disabled={isAccepting}
-              className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20 gap-2"
+              className="w-full h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-xl shadow-lg  gap-2"
             >
               {isAccepting ? (
                 <Spinner />
               ) : (
                 <>
                   Accept delivery
-                  <Badge className="bg-emerald-500/40 hover:bg-emerald-500/40 text-white border-0 font-medium">
+                  <Badge className="bg-primary/40 hover:bg-primary/40 text-primary-foreground border-0 font-medium">
                     +${earnings.toFixed(2)}
                   </Badge>
                 </>

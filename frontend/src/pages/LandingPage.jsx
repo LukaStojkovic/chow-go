@@ -23,10 +23,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-zinc-950 dark:text-gray-100 selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-card text-foreground selection:bg-primary/30">
       <BrushEffect />
 
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-transparent bg-white/80 px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md transition-all duration-300 dark:bg-zinc-950/80">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-transparent bg-card/80 px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md transition-all duration-300 ">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <Logo />
 

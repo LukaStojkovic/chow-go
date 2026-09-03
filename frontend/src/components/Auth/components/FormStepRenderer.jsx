@@ -26,17 +26,17 @@ export const FormStepRenderer = ({
           <button
             type="button"
             onClick={() => onAction({ type: "goToForgot" })}
-            className="text-green-600 hover:underline cursor-pointer"
+            className="text-primary hover:underline cursor-pointer"
           >
             Forgot password?
           </button>
         </div>
-        <div className="text-center text-sm text-gray-600 dark:text-gray-400 pt-4">
+        <div className="text-center text-sm text-muted-foreground pt-4">
           Don't have an account?{" "}
           <button
             type="button"
             onClick={() => onAction({ type: "goToRegister" })}
-            className="text-green-600 dark:text-green-400 cursor-pointer font-medium hover:underline"
+            className="text-primary cursor-pointer font-medium hover:underline"
           >
             Sign up
           </button>
@@ -87,7 +87,7 @@ export const FormStepRenderer = ({
           <button
             type="button"
             onClick={() => onAction({ type: "goToLogin" })}
-            className="text-sm text-green-600 hover:underline cursor-pointer"
+            className="text-sm text-primary hover:underline cursor-pointer"
           >
             Back to login
           </button>
@@ -110,14 +110,14 @@ export const FormStepRenderer = ({
           <button
             type="button"
             onClick={() => onAction({ type: "resendCode" })}
-            className="text-sm text-green-600 hover:underline cursor-pointer"
+            className="text-sm text-primary hover:underline cursor-pointer"
           >
             Resend code
           </button>
         </div>
         <Button
           type="submit"
-          className="w-full bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium"
+          className="w-full font-medium"
         >
           Verify Code
         </Button>
@@ -135,7 +135,7 @@ export const FormStepRenderer = ({
         />
         <Button
           type="submit"
-          className="w-full bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium"
+          className="w-full      text-white font-medium"
         >
           Set New Password
         </Button>

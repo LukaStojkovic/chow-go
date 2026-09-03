@@ -7,22 +7,22 @@ import { CheckCircle, MapPin, Navigation, Phone } from "lucide-react";
 const STATUS_CONFIG = {
   assigned: {
     label: "Heading to restaurant",
-    color: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-900/20",
+    color: "text-warning ",
+    bg: "bg-warning-subtle ",
     nextAction: "Picked Up",
     nextIcon: CheckCircle,
   },
   picked_up: {
     label: "Order picked up",
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-900/20",
+    color: "text-primary ",
+    bg: "bg-primary-subtle ",
     nextAction: "Start Delivery",
     nextIcon: Navigation,
   },
   in_transit: {
     label: "On the way to customer",
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    color: "text-primary ",
+    bg: "bg-primary-subtle ",
     nextAction: "Mark Delivered",
     nextIcon: CheckCircle,
   },
@@ -56,7 +56,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
     order.orderNumber?.split("-").pop() ?? order.orderNumber ?? "N/A";
 
   return (
-    <div className="rounded-t-3xl border-t border-gray-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-t-3xl border-t border-border bg-card shadow-2xl ">
       <div className={`px-5 py-3 ${config.bg}`}>
         <span
           className={`text-xs font-bold uppercase tracking-wide ${config.color}`}
@@ -68,28 +68,28 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-lg font-bold text-gray-900 dark:text-white">
+            <p className="truncate text-lg font-bold text-foreground ">
               {order.restaurant?.name ?? "Restaurant"}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground ">
               Order #{shortNum}
             </p>
           </div>
-          <span className="shrink-0 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+          <span className="shrink-0 text-lg font-bold text-primary ">
             ${order.total?.toFixed(2) ?? "—"}
           </span>
         </div>
 
         <div className="space-y-2.5">
           <div className="flex items-start gap-2.5">
-            <div className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-emerald-500" />
-            <p className="truncate text-sm text-gray-600 dark:text-gray-300">
+            <div className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-primary" />
+            <p className="truncate text-sm text-muted-foreground ">
               {restaurantAddress}
             </p>
           </div>
           <div className="flex items-start gap-2.5">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-            <p className="truncate text-sm text-gray-600 dark:text-gray-300">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+            <p className="truncate text-sm text-muted-foreground ">
               {deliveryAddress}
             </p>
           </div>
@@ -98,7 +98,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
         {order.customer?.phoneNumber && (
           <a
             href={`tel:${order.customer.phoneNumber}`}
-            className="flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+            className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary "
           >
             <Phone className="h-4 w-4" />
             Call customer
@@ -109,7 +109,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
           type="button"
           onClick={() => action.fn(order._id)}
           disabled={action.isPending}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
         >
           {action.isPending ? (
             <Spinner />

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export default function GlowButton({
   className,
-  glowColor = "from-emerald-500 via-green-500 to-green-500",
+  glowColor = "  ",
   children,
   ...props
 }) {
@@ -26,14 +26,14 @@ export default function GlowButton({
           ease: "easeInOut",
         }}
         className={cn(
-          "absolute -inset-1 rounded-lg bg-linear-to-r blur-xl",
-          `bg-linear-to-r ${glowColor}`
+          "absolute -inset-1 rounded-lg  blur-xl",
+          ` ${glowColor}`
         )}
       />
       <Button
         className={cn(
-          "relative z-10 bg-linear-to-r text-white shadow-lg transition-all duration-300 hover:shadow-2xl",
-          `bg-linear-to-r ${glowColor}`,
+          "relative z-10 shadow-lg transition-all duration-300 hover:shadow-2xl",
+          ` ${glowColor}`,
           className
         )}
         {...props}

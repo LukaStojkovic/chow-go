@@ -22,8 +22,8 @@ export function OrderStatsCard({ label, value, isLoading }) {
           </>
         ) : (
           <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-emerald-100/70 dark:bg-emerald-950/50 p-3">
-              <Icon className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="rounded-lg bg-primary-subtle/70 p-3">
+              <Icon className="h-6 w-6 text-primary " />
             </div>
             <div>
               <div className="text-2xl font-bold">{value || 0}</div>

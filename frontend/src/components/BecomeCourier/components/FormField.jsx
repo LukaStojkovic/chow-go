@@ -3,13 +3,13 @@ import React from "react";
 export const FormField = ({ label, error, children }) => (
   <div className="space-y-1">
     {label && (
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="text-sm font-medium text-muted-foreground ">
         {label}
       </label>
     )}
     {children}
     {error && (
-      <div className="flex items-center gap-2 text-xs text-red-500 dark:text-red-400">
+      <div className="flex items-center gap-2 text-xs text-destructive ">
         <svg
           className="h-3 w-3"
           fill="currentColor"

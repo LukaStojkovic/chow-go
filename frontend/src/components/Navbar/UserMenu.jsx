@@ -34,107 +34,107 @@ export default function UserMenu({ user, onLogout }) {
   const ThemeIcon = ({ currentTheme }) => {
     switch (currentTheme) {
       case "light":
-        return <Sun className="mr-3 h-4 w-4 text-emerald-600" />;
+        return <Sun className="mr-3 h-4 w-4 text-primary" />;
       case "dark":
-        return <Moon className="mr-3 h-4 w-4 text-emerald-600" />;
+        return <Moon className="mr-3 h-4 w-4 text-primary" />;
       default:
-        return <Monitor className="mr-3 h-4 w-4 text-emerald-600" />;
+        return <Monitor className="mr-3 h-4 w-4 text-primary" />;
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full border border-white/20 bg-white/60 px-2 py-1.5 outline-none ring-2 ring-transparent backdrop-blur-md transition-all duration-200 hover:bg-white hover:ring-emerald-500/30 dark:border-zinc-800/50 dark:bg-zinc-900/60 dark:hover:bg-zinc-800 dark:hover:ring-emerald-500/20 sm:px-4 sm:py-2">
+        <button className="flex items-center gap-2 rounded-full border border-border/20 bg-card/60 px-2 py-1.5 outline-none ring-2 ring-transparent backdrop-blur-md transition-all duration-200 hover:bg-white hover:ring-ring/30 sm:px-4 sm:py-2">
           <img
             src={user.profilePicture || "/defaultProfilePicture.png"}
             referrerPolicy="no-referrer"
             alt={user.name}
-            className="h-8 w-8 rounded-full object-cover ring-2 ring-emerald-500/40"
+            className="h-8 w-8 rounded-full object-cover ring-2 ring-ring/40"
           />
-          <span className="hidden text-sm font-medium text-gray-900 dark:text-gray-100 sm:block">
+          <span className="hidden text-sm font-medium text-foreground sm:block">
             {user.name || "User"}
           </span>
-          <ChevronDown className="hidden h-4 w-4 text-gray-500 transition-transform duration-200 sm:block" />
+          <ChevronDown className="hidden h-4 w-4 text-muted-foreground transition-transform duration-200 sm:block" />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuPortal>
         <DropdownMenuContent
           align="end"
-          className="mt-2 w-64 rounded-2xl border border-gray-200/50 bg-white/95 p-2 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/95"
+          className="mt-2 w-64 rounded-2xl border border-border/50 bg-card/95 p-2 shadow-2xl backdrop-blur-xl "
           style={{ zIndex: 9999 }}
         >
-          <DropdownMenuLabel className="flex flex-col items-start rounded-lg bg-gray-50 px-4 py-3 dark:bg-zinc-800/50">
-            <span className="max-w-full truncate text-base font-bold text-gray-900 dark:text-white">
+          <DropdownMenuLabel className="flex flex-col items-start rounded-lg bg-muted px-4 py-3 ">
+            <span className="max-w-full truncate text-base font-bold text-foreground ">
               {user.name || "Current User"}
             </span>
             {user.email && (
-              <span className="mt-1 max-w-full truncate text-xs text-gray-500 dark:text-gray-400">
+              <span className="mt-1 max-w-full truncate text-xs text-muted-foreground ">
                 {user.email}
               </span>
             )}
           </DropdownMenuLabel>
 
-          <DropdownMenuSeparator className="my-2 h-px bg-gray-200 dark:bg-zinc-700" />
+          <DropdownMenuSeparator className="my-2 h-px bg-secondary " />
 
           {isSeller ? (
             <DropdownMenuItem
               onClick={() => navigate("/seller/dashboard")}
-              className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
+              className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle "
             >
-              <Store className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <Store className="mr-3 h-4 w-4 shrink-0 text-primary " />
               <span className="text-sm font-medium">Manage Restaurant</span>
             </DropdownMenuItem>
           ) : !isCourier ? (
             <>
               <DropdownMenuItem
                 onClick={() => navigate("/profile")}
-                className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
+                className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle "
               >
-                <User className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <User className="mr-3 h-4 w-4 shrink-0 text-primary " />
                 <span className="text-sm font-medium">Profile</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={() => navigate("/orders")}
-                className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
+                className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle "
               >
-                <ShoppingBasket className="mr-3 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <ShoppingBasket className="mr-3 h-4 w-4 shrink-0 text-primary " />
                 <span className="text-sm font-medium">My Orders</span>
               </DropdownMenuItem>
             </>
           ) : null}
 
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="my-1 flex w-full cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30">
+            <DropdownMenuSubTrigger className="my-1 flex w-full cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle ">
               <div className="flex flex-1 items-center">
                 <ThemeIcon currentTheme={theme} />
                 <span className="text-sm font-medium">Theme</span>
               </div>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent className="ml-2 rounded-2xl border border-gray-200/50 bg-white/95 p-2 shadow-2xl backdrop-blur-xl dark:border-zinc-800/50 dark:bg-zinc-900/95">
+              <DropdownMenuSubContent className="ml-2 rounded-2xl border border-border/50 bg-card/95 p-2 shadow-2xl backdrop-blur-xl ">
                 {["light", "dark", "system"].map((t) => (
                   <DropdownMenuItem
                     key={t}
                     onClick={() => setTheme(t)}
-                    className="flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-emerald-50 dark:text-gray-200 dark:hover:bg-emerald-950/30"
+                    className="flex cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle "
                   >
                     {t === "light" && (
-                      <Sun className="mr-3 h-4 w-4 shrink-0 text-emerald-600" />
+                      <Sun className="mr-3 h-4 w-4 shrink-0 text-primary" />
                     )}
                     {t === "dark" && (
-                      <Moon className="mr-3 h-4 w-4 shrink-0 text-emerald-600" />
+                      <Moon className="mr-3 h-4 w-4 shrink-0 text-primary" />
                     )}
                     {t === "system" && (
-                      <Monitor className="mr-3 h-4 w-4 shrink-0 text-emerald-600" />
+                      <Monitor className="mr-3 h-4 w-4 shrink-0 text-primary" />
                     )}
                     <span className="flex-1 text-sm font-medium capitalize">
                       {t}
                     </span>
                     {theme === t && (
-                      <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+                      <Check className="h-4 w-4 shrink-0 text-primary" />
                     )}
                   </DropdownMenuItem>
                 ))}
@@ -142,13 +142,13 @@ export default function UserMenu({ user, onLogout }) {
             </DropdownMenuPortal>
           </DropdownMenuSub>
 
-          <DropdownMenuSeparator className="my-2 h-px bg-gray-200 dark:bg-zinc-700" />
+          <DropdownMenuSeparator className="my-2 h-px bg-secondary " />
 
           <DropdownMenuItem
             onClick={onLogout}
-            className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-red-600 hover:bg-red-50 focus:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 dark:focus:bg-red-950/30"
+            className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-destructive hover:bg-destructive-subtle focus:bg-destructive-subtle "
           >
-            <LogOut className="mr-3 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+            <LogOut className="mr-3 h-4 w-4 shrink-0 text-destructive " />
             <span className="text-sm font-medium">Logout</span>
           </DropdownMenuItem>
         </DropdownMenuContent>

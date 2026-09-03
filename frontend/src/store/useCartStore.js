@@ -1,3 +1,6 @@
+import { toast } from "sonner";
+import { create } from "zustand";
+
 import {
   addToCart,
   clearCart as clearCartApi,
@@ -5,36 +8,79 @@ import {
   removeItemFromCart,
   updateCartItemQuantity,
 } from "@/services/apiCart";
-import { toast } from "sonner";
-import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 
+/**
+ * Mirror of the server-side cart.
+ *
+ * The server is authoritative - every mutation returns the whole cart and we
+ * replace local state with it, so the two cannot drift. Optimistic updates for
+ * quantity live in the basket panel, which reconciles by refetching on error.
+ */
 const useCartStore = create((set, get) => ({
   items: [],
   totalPrice: 0,
   restaurant: null,
   isLoading: false,
+  /** Set when the customer tries to add across restaurants; the UI confirms. */
+  pendingConflict: null,
 
-  addItem: async (menuItemId, quantity = 1) => {
+  /**
+   * @param {string} menuItemId
+   * @param {number} [quantity]
+   * @param {string} [specialInstructions]
+   * @returns {Promise<boolean>} Whether the item made it into the basket.
+   */
+  addItem: async (menuItemId, quantity = 1, specialInstructions) => {
+    if (!useAuthStore.getState().authUser) {
+      useAuthStore.getState().openAuthModal(true);
+      return false;
+    }
+
     try {
-      const res = await addToCart(menuItemId, quantity);
-      set({ items: res.data.items, totalPrice: res.data.totalPrice });
-      toast.success(`Added to cart!`);
+      const res = await addToCart(menuItemId, quantity, specialInstructions);
+      set({
+        items: res.data.items,
+        totalPrice: res.data.totalPrice,
+        restaurant: res.data.restaurant,
+      });
+      return true;
     } catch (err) {
-      toast.error(err.message || "Failed to add item");
+      // The backend rejects items from a second restaurant. That is a decision
+      // for the customer to make, not an error to shout about.
+      if (/one restaurant/i.test(err?.message || "")) {
+        set({ pendingConflict: { menuItemId, quantity, specialInstructions } });
+        return false;
+      }
+      toast.error(err.message || "Could not add this item. Try again.");
+      return false;
     }
   },
 
-  updateItemQuantity: async (menuItemId, quantity) => {
+  /** Empty the basket, then retry the add that caused the conflict. */
+  resolveConflictByReplacing: async () => {
+    const conflict = get().pendingConflict;
+    if (!conflict) return false;
+
+    set({ pendingConflict: null });
+    await get().clearCart();
+    return get().addItem(
+      conflict.menuItemId,
+      conflict.quantity,
+      conflict.specialInstructions,
+    );
+  },
+
+  dismissConflict: () => set({ pendingConflict: null }),
+
+  updateItemQuantity: async (menuItemId, quantity, specialInstructions) => {
     try {
-      const res = await updateCartItemQuantity(menuItemId, quantity);
+      const res = await updateCartItemQuantity(menuItemId, quantity, specialInstructions);
       set({ items: res.data.items, totalPrice: res.data.totalPrice });
-      if (quantity === 0) {
-        toast.success("Item removed");
-      }
     } catch (err) {
-      toast.error(err.message || "Failed to update quantity");
+      toast.error(err.message || "Could not update the quantity.");
       get().fetchCart();
+      throw err;
     }
   },
 
@@ -42,10 +88,10 @@ const useCartStore = create((set, get) => ({
     try {
       const res = await removeItemFromCart(menuItemId);
       set({ items: res.data.items, totalPrice: res.data.totalPrice });
-      toast.success("Item removed");
     } catch (err) {
-      toast.error(err.message || "Failed to remove item");
+      toast.error(err.message || "Could not remove this item.");
       get().fetchCart();
+      throw err;
     }
   },
 
@@ -59,11 +105,16 @@ const useCartStore = create((set, get) => ({
       await clearCartApi();
       set({ items: [], totalPrice: 0, restaurant: null });
     } catch (err) {
-      toast.error(err.message || "Failed to clear cart");
+      toast.error(err.message || "Could not empty your basket.");
     }
   },
 
   fetchCart: async () => {
+    if (!useAuthStore.getState().authUser) {
+      set({ items: [], totalPrice: 0, restaurant: null, isLoading: false });
+      return;
+    }
+
     set({ isLoading: true });
     try {
       const res = await getCart();
@@ -73,7 +124,9 @@ const useCartStore = create((set, get) => ({
         restaurant: res.data.restaurant,
       });
     } catch (err) {
-      toast.error(err.message || "Failed to load cart");
+      // A failed cart read is not worth a toast on every page load; the basket
+      // simply shows its last known contents.
+      console.error("Error loading cart:", err);
     } finally {
       set({ isLoading: false });
     }

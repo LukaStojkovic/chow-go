@@ -110,7 +110,7 @@ export const SellerMenu = () => {
           onClick={() => setOpenAddItemModal(true)}
           variant="outline"
           size="lg"
-          className="rounded-xl hover:text-emerald-600 border-emerald-600 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-700 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-950/30 font-medium shadow-sm"
+          className="rounded-xl hover:text-primary border-primary text-primary hover:bg-primary-subtle hover:border-primary font-medium shadow-sm"
         >
           <Plus className="w-5 h-5 mr-2" />
           Add Menu Item

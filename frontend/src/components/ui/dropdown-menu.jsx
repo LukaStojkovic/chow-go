@@ -53,8 +53,8 @@ function DropdownMenuItem({ className, inset, variant = "default", ...props }) {
       data-variant={variant}
       className={cn(
         "relative flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors",
-        "data-highlighted:bg-emerald-100 data-highlighted:text-emerald-900",
-        "dark:data-highlighted:bg-emerald-950/40",
+        "data-highlighted:bg-primary-subtle data-highlighted:text-primary",
+        "",
         "data-disabled:pointer-events-none data-disabled:opacity-50",
         "data-inset:pl-8",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
@@ -163,10 +163,10 @@ function DropdownMenuSubTrigger({ className, inset, children, ...props }) {
       data-inset={inset}
       className={cn(
         "flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none transition-colors",
-        "data-[state=open]:bg-emerald-100 data-[state=open]:text-emerald-900",
-        "data-highlighted:bg-emerald-100 data-highlighted:text-emerald-900",
-        "dark:data-[state=open]:bg-emerald-950/40 dark:data-highlighted:bg-emerald-950/40",
-        "dark:data-[state=open]:text-emerald-200 dark:data-highlighted:text-emerald-200",
+        "data-[state=open]:bg-primary-subtle data-[state=open]:text-primary",
+        "data-highlighted:bg-primary-subtle data-highlighted:text-primary",
+        "",
+        "",
         "data-inset:pl-8",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-4",
         className,

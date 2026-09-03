@@ -20,17 +20,17 @@ export function ActiveDeliveryCard({
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-xl shadow-emerald-900/5 dark:border-gray-800 dark:bg-gray-900">
-      <div className="bg-emerald-50 px-6 py-4 dark:bg-emerald-900/20">
+    <div className="overflow-hidden rounded-3xl border border-primary bg-card shadow-xl  ">
+      <div className="bg-primary-subtle px-6 py-4 ">
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-sm font-bold text-emerald-600 dark:text-emerald-400">
+          <span className="flex items-center gap-2 text-sm font-bold text-primary ">
             <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
             </span>
             ACTIVE DELIVERY
           </span>
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+          <span className="rounded-full bg-primary-subtle px-3 py-1 text-xs font-bold text-primary ">
             Est. Payout: {payout}
           </span>
         </div>
@@ -44,14 +44,14 @@ export function ActiveDeliveryCard({
         ) : (
           <>
             <div className="relative pl-6">
-              <div className="absolute bottom-2 left-[11px] top-2 w-2px bg-gray-200 dark:bg-gray-700" />
+              <div className="absolute bottom-2 left-[11px] top-2 w-2px bg-secondary " />
 
               <div className="relative mb-6">
-                <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-emerald-500 bg-white dark:bg-gray-900" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">
+                <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-primary bg-card " />
+                <h4 className="font-semibold text-foreground ">
                   {activeOrder?.restaurant?.name ?? "Restaurant"}
                 </h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground ">
                   {activeOrder?.restaurant?.address
                     ? `${activeOrder.restaurant.address.street} • ${activeOrder.restaurant.address.city}`
                     : "Address unavailable"}
@@ -59,11 +59,11 @@ export function ActiveDeliveryCard({
               </div>
 
               <div className="relative">
-                <MapPin className="absolute -left-7 top-0.5 h-5 w-5 text-red-500" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">
+                <MapPin className="absolute -left-7 top-0.5 h-5 w-5 text-destructive" />
+                <h4 className="font-semibold text-foreground ">
                   Delivery Address
                 </h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground ">
                   {activeOrder?.deliveryAddressSnapshot?.fullAddress ??
                     "Address unavailable"}
                 </p>
@@ -73,14 +73,14 @@ export function ActiveDeliveryCard({
             <div className="mt-8 flex gap-3">
               <Link
                 to="/courier/orders"
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-100 py-3 font-semibold text-gray-900 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-muted py-3 font-semibold text-foreground transition hover:bg-secondary "
               >
                 View all deliveries
               </Link>
               <button
                 onClick={() => handleAcceptOrder(activeOrder._id)}
                 disabled={isAccepting}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white transition hover:bg-emerald-700 shadow-lg shadow-emerald-500/20"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition hover:bg-primary shadow-lg "
               >
                 <Navigation className="h-5 w-5" />
                 {isAccepting ? <Spinner size={14} /> : "Accept Delivery"}

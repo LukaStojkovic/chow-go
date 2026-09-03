@@ -28,24 +28,24 @@ const VERIFICATION_CONFIG = {
   verified: {
     label: "Verified",
     className:
-      "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+      "bg-primary-subtle text-primary ",
   },
   pending: {
     label: "Pending verification",
     className:
-      "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
+      "bg-warning-subtle text-warning ",
   },
   rejected: {
     label: "Verification rejected",
-    className: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+    className: "bg-destructive-subtle text-destructive ",
   },
 };
 
 function DetailRow({ label, value }) {
   return (
     <div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
-      <p className="font-medium capitalize text-gray-900 dark:text-white">
+      <p className="text-sm text-muted-foreground ">{label}</p>
+      <p className="font-medium capitalize text-foreground ">
         {value || "—"}
       </p>
     </div>
@@ -72,7 +72,7 @@ export function CourierProfile() {
 
   if (!courier) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-gray-500">
+      <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
         Courier profile not found
       </div>
     );
@@ -137,10 +137,10 @@ export function CourierProfile() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-2xl border border-border bg-card p-6 ">
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
           <div className="relative shrink-0">
-            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-gray-50 dark:border-zinc-800">
+            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-border ">
               <img
                 src={displayImage}
                 referrerPolicy="no-referrer"
@@ -165,7 +165,7 @@ export function CourierProfile() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUpdating}
-              className="absolute bottom-0 right-0 rounded-full bg-emerald-600 p-2.5 text-white shadow-lg transition hover:bg-emerald-700 disabled:opacity-60"
+              className="absolute bottom-0 right-0 rounded-full bg-primary p-2.5 text-primary-foreground shadow-lg transition hover:bg-primary disabled:opacity-60"
             >
               <Camera className="h-4 w-4" />
             </button>
@@ -177,13 +177,13 @@ export function CourierProfile() {
                 <input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-lg font-bold text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:max-w-sm"
+                  className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 text-lg font-bold text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20 sm:max-w-sm"
                   placeholder="Your full name"
                 />
                 <input
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-md font-semibold text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:max-w-sm"
+                  className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 text-md font-semibold text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20 sm:max-w-sm"
                   placeholder="Your phone number"
                 />
                 <div className="flex justify-center gap-2 sm:justify-start">
@@ -191,7 +191,7 @@ export function CourierProfile() {
                     type="button"
                     onClick={handleSaveName}
                     disabled={isUpdating}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary disabled:opacity-60"
                   >
                     {isUpdating ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -203,7 +203,7 @@ export function CourierProfile() {
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-200 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-secondary "
                   >
                     <X className="h-4 w-4" />
                     Cancel
@@ -212,13 +212,13 @@ export function CourierProfile() {
               </div>
             ) : (
               <>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-bold text-foreground ">
                   {courier.fullName}
                 </h2>
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                  className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary "
                 >
                   <Edit2 className="h-3.5 w-3.5" />
                   Edit name
@@ -228,8 +228,8 @@ export function CourierProfile() {
 
             <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
               {!isLoadingAnalytics && avgRating > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                  <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                <span className="inline-flex items-center gap-1 rounded-full bg-warning-subtle px-3 py-1 text-xs font-semibold text-warning ">
+                  <Star className="h-3.5 w-3.5 fill-rating text-rating" />
                   {avgRating.toFixed(1)} ({totalRatings})
                 </span>
               )}
@@ -245,59 +245,59 @@ export function CourierProfile() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="rounded-2xl border border-border bg-card p-5 ">
+          <p className="text-sm text-muted-foreground ">
             Total deliveries
           </p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="mt-1 text-2xl font-bold text-foreground ">
             {courier.totalDeliveries ?? 0}
           </p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="rounded-2xl border border-border bg-card p-5 ">
+          <p className="text-sm text-muted-foreground ">
             Successful
           </p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="mt-1 text-2xl font-bold text-foreground ">
             {courier.successfulDeliveries ?? 0}
           </p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Earnings</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+        <div className="rounded-2xl border border-border bg-card p-5 ">
+          <p className="text-sm text-muted-foreground ">Earnings</p>
+          <p className="mt-1 text-2xl font-bold text-primary ">
             ${(courier.totalEarnings ?? 0).toFixed(2)}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-zinc-800">
-            <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            <h3 className="font-bold text-gray-900 dark:text-white">
+        <div className="rounded-2xl border border-border bg-card p-6 ">
+          <div className="mb-4 flex items-center gap-2 border-b border-border pb-4 ">
+            <Mail className="h-5 w-5 text-muted-foreground " />
+            <h3 className="font-bold text-foreground ">
               Contact
             </h3>
           </div>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground ">
                   Email
                 </p>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium text-foreground ">
                   {courier.email}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground ">
                   Phone
                 </p>
                 <a
                   href={`tel:${courier.phoneNumber}`}
-                  className="font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+                  className="font-medium text-primary hover:underline "
                 >
                   {courier.phoneNumber}
                 </a>
@@ -306,10 +306,10 @@ export function CourierProfile() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-zinc-800">
-            <Bike className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            <h3 className="font-bold text-gray-900 dark:text-white">
+        <div className="rounded-2xl border border-border bg-card p-6 ">
+          <div className="mb-4 flex items-center gap-2 border-b border-border pb-4 ">
+            <Bike className="h-5 w-5 text-muted-foreground " />
+            <h3 className="font-bold text-foreground ">
               Vehicle details
             </h3>
           </div>
@@ -328,10 +328,10 @@ export function CourierProfile() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-4 dark:border-zinc-800">
-          <Truck className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          <h3 className="font-bold text-gray-900 dark:text-white">Account</h3>
+      <div className="rounded-2xl border border-border bg-card p-6 ">
+        <div className="mb-4 flex items-center gap-2 border-b border-border pb-4 ">
+          <Truck className="h-5 w-5 text-muted-foreground " />
+          <h3 className="font-bold text-foreground ">Account</h3>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <DetailRow

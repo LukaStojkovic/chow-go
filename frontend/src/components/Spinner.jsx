@@ -20,7 +20,7 @@ export default function Spinner({
     <div className={cn(containerClasses, className)}>
       <div
         className={cn(
-          "animate-spin rounded-full border-gray-300 dark:border-gray-700 border-t-green-500 dark:border-t-green-400",
+          "animate-spin rounded-full border-border border-t-green-500 dark:border-t-green-400",
           sizeClasses[size]
         )}
       />

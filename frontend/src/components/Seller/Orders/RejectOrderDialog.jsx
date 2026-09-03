@@ -33,7 +33,7 @@ export function RejectOrderDialog({ isOpen, onClose, onReject, isRejecting }) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-600">
+          <DialogTitle className="flex items-center gap-2 text-destructive">
             <XCircle className="h-5 w-5" />
             Reject Order
           </DialogTitle>

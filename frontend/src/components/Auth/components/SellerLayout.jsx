@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PageTransition } from "@/components/layout/PageTransition";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -35,7 +36,7 @@ export default function SellerLayout() {
     "Seller Portal";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 flex overflow-hidden">
+    <div className="min-h-screen bg-muted text-foreground flex overflow-hidden">
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -50,7 +51,7 @@ export default function SellerLayout() {
 
       <aside
         className={`
-    fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800
+    fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border 
     transform transition-transform duration-300 ease-in-out
     lg:static lg:translate-x-0
     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
@@ -69,18 +70,18 @@ export default function SellerLayout() {
             ))}
           </nav>
 
-          <div className="pt-6 mt-6 border-t border-gray-100 dark:border-zinc-800">
+          <div className="pt-6 mt-6 border-t border-border ">
             <UserMenu user={authUser} onLogout={logout} />
           </div>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-gray-50 dark:bg-black/95">
-        <header className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 shrink-0">
+      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-muted ">
+        <header className="lg:hidden flex items-center justify-between p-4 bg-card border-b border-border shrink-0">
           <span className="font-bold text-lg">{currentTitle}</span>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg active:scale-95 transition-transform"
+            className="p-2 text-muted-foreground hover:bg-muted rounded-lg active:scale-95 transition-transform"
           >
             {isMobileMenuOpen ? (
               <X className="w-6 h-6" />
@@ -93,15 +94,15 @@ export default function SellerLayout() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 scroll-smooth">
           <div className="mx-auto max-w-7xl">
             <div className="hidden lg:block mb-8">
-              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
                 {currentTitle}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-muted-foreground mt-2">
                 Manage your store performance and details
               </p>
             </div>
 
-            <Outlet />
+            <PageTransition />
           </div>
         </div>
       </main>

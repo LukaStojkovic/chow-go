@@ -1,133 +1,90 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Sparkles, Loader2 } from "lucide-react";
-import { useDeliveryStore } from "@/store/useDeliveryStore";
-import Categories from "../components/Discover/Categories";
-import FoodItemCard from "../components/Discover/FoodItemCard";
-import PromoCarousel from "@/components/Discover/PromoCarousel";
-import { CATEGORIES, PROMOS } from "@/lib/constants";
-import NearYouSection from "@/components/Discover/NearYouSection";
-import CartSidebar from "@/components/Discover/CartSidebar";
-import { Button } from "@/components/ui/button";
-import NearbyRestaurantsSection from "@/components/Discover/NearbyRestaurantsSection";
-import MainHeader from "@/components/Discover/MainHeader";
-import useCartStore from "@/store/useCartStore";
+/**
+ * Home / discovery.
+ *
+ * Composed entirely of feature sections; this file owns routing guards and the
+ * one piece of cross-section state (which dish the customisation sheet is
+ * showing). Sections fetch their own data and own their own loading, empty and
+ * error states, so a failure in one never blanks the page.
+ */
+
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+
 import { useAuthStore } from "@/store/useAuthStore";
+import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useDiscoverStore } from "@/store/useDiscoverStore";
+import useCartStore from "@/store/useCartStore";
+
+import { PageContainer, Stack } from "@/components/layout/primitives";
+import { CategoryRail } from "@/components/discovery/CategoryRail";
+import { ItemCustomizationSheet } from "@/components/basket/ItemCustomizationSheet";
+import { PromotionsSection } from "@/features/home/PromotionsSection";
+import { NearbyRestaurantsSection } from "@/features/home/NearbyRestaurantsSection";
+import { NewInTownSection } from "@/features/home/NewInTownSection";
+import { ReorderSection } from "@/features/home/ReorderSection";
+import { PopularDishesSection } from "@/features/home/PopularDishesSection";
+import { DiscoveryFeed } from "@/features/home/DiscoveryFeed";
 
 export default function DiscoverPage() {
   const { address, coordinates } = useDeliveryStore();
-  const { authUser } = useAuthStore();
-  const navigate = useNavigate();
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const authUser = useAuthStore((state) => state.authUser);
   const fetchCart = useCartStore((state) => state.fetchCart);
-
   const {
-    feedItems,
-    popularItems,
     activeCategory,
-    hasMore,
-    isLoadingFeed,
-    isLoadingPopular,
     setActiveCategory,
     fetchFeed,
     fetchPopular,
-    loadMore,
+    fetchPromotions,
   } = useDiscoverStore();
 
+  const [selectedDish, setSelectedDish] = useState(null);
+
+  const hasLocation = Boolean(address && coordinates?.lat && coordinates?.lon);
+
   useEffect(() => {
-    if (authUser) {
-      fetchCart();
-    }
+    if (authUser) fetchCart();
   }, [authUser, fetchCart]);
 
   useEffect(() => {
-    if (coordinates?.lat && coordinates?.lon) {
-      const { lat, lon } = coordinates;
-      fetchFeed(lat, lon);
-      fetchPopular(lat, lon);
-    }
-  }, [coordinates, activeCategory, fetchFeed, fetchPopular]);
+    if (!hasLocation) return;
+    fetchFeed(coordinates.lat, coordinates.lon);
+    fetchPopular(coordinates.lat, coordinates.lon);
+    // `activeCategory` is a dependency because changing it resets the feed and
+    // page 1 has to be refetched.
+  }, [hasLocation, coordinates?.lat, coordinates?.lon, activeCategory, fetchFeed, fetchPopular]);
 
-  if (!address || !coordinates?.lat || !coordinates?.lon) {
-    navigate("/");
-    return null;
-  }
+  // Promotions and new arrivals are not category-filtered, so they refetch on a
+  // change of address only - not every time a cuisine chip is pressed.
+  useEffect(() => {
+    if (!hasLocation) return;
+    fetchPromotions(coordinates.lat, coordinates.lon);
+  }, [hasLocation, coordinates?.lat, coordinates?.lon, fetchPromotions]);
 
-  const lat = coordinates?.lat;
-  const lon = coordinates?.lon;
+  // Discovery is meaningless without a delivery address; the landing page is
+  // where one is chosen. `replace` keeps this out of the history stack so Back
+  // does not bounce between the two.
+  if (!hasLocation) return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 text-gray-900 dark:bg-zinc-950 dark:text-gray-100 transition-colors duration-300">
-      <MainHeader setIsCartOpen={setIsCartOpen} />
+    <>
+      <PageContainer as="div" className="py-5 sm:py-6">
+        <h1 className="sr-only">Restaurants and dishes delivering to {address}</h1>
 
-      <main className="container mx-auto max-w-5xl space-y-10 px-4 py-6">
-        <section className="overflow-hidden rounded-2xl">
-          <PromoCarousel promos={PROMOS} />
-        </section>
+        <Stack gap="2xl">
+          <section aria-label="Browse by category">
+            <CategoryRail value={activeCategory} onChange={setActiveCategory} />
+          </section>
 
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Categories
-            </h2>
-            <button className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
-              See all
-            </button>
-          </div>
-          <Categories
-            categories={CATEGORIES}
-            activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
-          />
-        </section>
+          <PromotionsSection />
+          <ReorderSection />
+          <NearbyRestaurantsSection />
+          <NewInTownSection />
+          <PopularDishesSection onAddDish={setSelectedDish} />
+          <DiscoveryFeed onAddDish={setSelectedDish} />
+        </Stack>
+      </PageContainer>
 
-        <NearbyRestaurantsSection />
-
-        <NearYouSection items={feedItems} isLoading={isLoadingFeed} />
-
-        <section className="pt-2">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
-              <Sparkles className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-              Popular Right Now
-            </h2>
-          </div>
-
-          {isLoadingPopular && popularItems.length === 0 ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            </div>
-          ) : (
-            <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide">
-              {popularItems.map((item, idx) => (
-                <div
-                  key={`pop-${item._id}-${idx}`}
-                  className="w-72 shrink-0 h-[320px]"
-                >
-                  <FoodItemCard item={item} />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {hasMore && (
-          <div className="mt-12 flex justify-center">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => lat && lon && loadMore(lat, lon)}
-              disabled={isLoadingFeed}
-              className="h-12 rounded-full px-8 text-base font-semibold shadow-sm hover:bg-blue-50 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-blue-400"
-            >
-              {isLoadingFeed ? "Loading..." : "Load more"}
-            </Button>
-          </div>
-        )}
-      </main>
-
-      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-    </div>
+      <ItemCustomizationSheet dish={selectedDish} onClose={() => setSelectedDish(null)} />
+    </>
   );
 }

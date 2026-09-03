@@ -19,18 +19,18 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
 
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4 dark:border-zinc-800">
+      <div className="rounded-2xl border border-border bg-card p-5 ">
+        <div className="mb-4 flex items-center justify-between border-b border-border pb-4 ">
           <div>
-            <span className="text-lg font-bold text-gray-900 dark:text-white">
+            <span className="text-lg font-bold text-foreground ">
               ${order.total?.toFixed(2)}
             </span>
-            <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
+            <span className="ml-2 text-xs text-muted-foreground ">
               #{order.orderNumber?.split("-")[2]}
             </span>
           </div>
           {distanceKm && (
-            <span className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1 text-sm text-muted-foreground ">
               <Clock className="h-4 w-4" />
               {distanceKm} km away
             </span>
@@ -39,30 +39,30 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
 
         <div className="space-y-4">
           <div className="flex items-start gap-3">
-            <div className="mt-1 h-3 w-3 shrink-0 rounded-full border-2 border-emerald-500 bg-white dark:bg-zinc-900" />
+            <div className="mt-1 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card " />
             <div className="min-w-0">
-              <p className="truncate font-medium text-gray-900 dark:text-white">
+              <p className="truncate font-medium text-foreground ">
                 {order.restaurant?.name ?? "Restaurant"}
               </p>
-              <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+              <p className="truncate text-sm text-muted-foreground ">
                 {restaurantAddress}
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0">
-              <p className="font-medium text-gray-900 dark:text-white">
+              <p className="font-medium text-foreground ">
                 Customer dropoff
               </p>
-              <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+              <p className="truncate text-sm text-muted-foreground ">
                 {deliveryAddress}
               </p>
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 dark:text-gray-500">
+          <p className="text-xs text-muted-foreground ">
             {order.items?.length === 1
               ? `${order.items[0].quantity}x ${order.items[0].name}`
               : `${order.items?.reduce((s, i) => s + i.quantity, 0)} items`}
@@ -72,14 +72,14 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
         <div className="mt-5 flex gap-2">
           <button
             onClick={() => setShowDetails(true)}
-            className="flex-1 rounded-xl border border-gray-200 bg-gray-50 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700"
+            className="flex-1 rounded-xl border border-border bg-muted py-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted "
           >
             Details
           </button>
           <button
             onClick={() => onAccept(order._id)}
             disabled={isAccepting}
-            className="flex flex-2 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-2 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isAccepting ? <Spinner /> : "Accept Delivery"}
           </button>

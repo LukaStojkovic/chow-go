@@ -63,21 +63,21 @@ export const MenuItemImageUploader = ({
         className={cn(
           "flex flex-col items-center justify-center w-full h-72 border-2 border-dashed rounded-xl cursor-pointer transition-all",
           isDragging
-            ? "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20"
-            : "border-border bg-card/50 hover:border-emerald-500"
+            ? "border-primary bg-primary-subtle/50 "
+            : "border-border bg-card/50 hover:border-primary"
         )}
       >
         <div className="flex flex-col items-center justify-center pt-8 pb-10">
           <Upload
             className={cn(
               "w-16 h-16 mb-5",
-              isDragging ? "text-emerald-600" : "text-muted-foreground"
+              isDragging ? "text-primary" : "text-muted-foreground"
             )}
           />
           <p
             className={cn(
               "text-base font-medium",
-              isDragging ? "text-emerald-600" : "text-muted-foreground"
+              isDragging ? "text-primary" : "text-muted-foreground"
             )}
           >
             {isDragging

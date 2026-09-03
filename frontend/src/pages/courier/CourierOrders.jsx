@@ -52,38 +52,38 @@ export function CourierOrders() {
       {activeOrder && (
         <Link
           to={`/courier/delivery/${activeOrder._id}`}
-          className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 transition hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
+          className="flex items-center justify-between rounded-2xl border border-primary bg-primary-subtle px-5 py-4 transition hover:bg-primary-subtle "
         >
           <div>
-            <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
+            <p className="text-sm font-bold text-primary ">
               Active delivery in progress
             </p>
-            <p className="text-sm text-emerald-600/80 dark:text-emerald-400/80">
+            <p className="text-sm text-primary/80 ">
               {activeOrder.restaurant?.name ?? "Restaurant"} → customer
             </p>
           </div>
-          <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-primary ">
             <Navigation className="h-4 w-4" />
             Resume
           </span>
         </Link>
       )}
 
-      <div className="flex space-x-1 rounded-xl bg-gray-200/50 p-1 dark:bg-zinc-900">
+      <div className="flex space-x-1 rounded-xl bg-secondary/50 p-1 ">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`relative flex-1 rounded-lg py-2.5 text-sm font-medium transition-all ${
               activeTab === tab.id
-                ? "text-gray-900 dark:text-white"
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                ? "text-foreground "
+                : "text-muted-foreground hover:text-muted-foreground "
             }`}
           >
             {activeTab === tab.id && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 rounded-lg bg-white shadow-sm dark:bg-zinc-800"
+                className="absolute inset-0 rounded-lg bg-card shadow-sm "
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
@@ -96,7 +96,7 @@ export function CourierOrders() {
         {activeTab === "available" && (
           <div className="space-y-4">
             {geoFiltered && (
-              <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-primary ">
                 <MapPin className="h-3.5 w-3.5" />
                 Showing orders near your location
               </p>
@@ -105,12 +105,12 @@ export function CourierOrders() {
             {isLoadingOrders && <Spinner />}
 
             {!isLoadingOrders && orders.length === 0 && (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-200 py-16 text-center dark:border-zinc-800">
-                <Package className="h-10 w-10 text-gray-300 dark:text-zinc-700" />
-                <p className="font-medium text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center ">
+                <Package className="h-10 w-10 text-muted-foreground " />
+                <p className="font-medium text-muted-foreground ">
                   No available orders nearby
                 </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
+                <p className="text-sm text-muted-foreground ">
                   New orders will appear here automatically
                 </p>
               </div>
@@ -133,9 +133,9 @@ export function CourierOrders() {
             {isLoadingHistory && <Spinner />}
 
             {!isLoadingHistory && historyOrders.length === 0 && (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-gray-200 py-16 text-center dark:border-zinc-800">
-                <Package className="h-10 w-10 text-gray-300 dark:text-zinc-700" />
-                <p className="font-medium text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center ">
+                <Package className="h-10 w-10 text-muted-foreground " />
+                <p className="font-medium text-muted-foreground ">
                   No completed deliveries yet
                 </p>
               </div>

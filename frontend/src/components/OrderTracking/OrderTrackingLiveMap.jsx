@@ -27,30 +27,30 @@ export function OrderTrackingLiveMap({ orderId, order }) {
   if (!hasAnyCoords && !showLive) return null;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-zinc-800">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm ">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4 ">
         <div className="flex items-center gap-2">
           {showLive ? (
             <>
               <div className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
               </div>
-              <h3 className="font-bold text-gray-900 dark:text-white">
+              <h3 className="font-bold text-foreground ">
                 Live tracking
               </h3>
             </>
           ) : (
             <>
-              <MapPin className="h-4 w-4 text-gray-400" />
-              <h3 className="font-bold text-gray-900 dark:text-white">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-bold text-foreground ">
                 Order map
               </h3>
             </>
           )}
         </div>
         {showLive && !isLoadingRoute && route && (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground ">
             {formatDistance(route.distance)} · {formatDuration(route.duration)}
           </p>
         )}
@@ -67,22 +67,22 @@ export function OrderTrackingLiveMap({ orderId, order }) {
         />
       </div>
 
-      <div className="flex items-center gap-4 border-t border-gray-100 px-5 py-3 text-xs text-gray-500 dark:border-zinc-800 dark:text-gray-400">
+      <div className="flex items-center gap-4 border-t border-border px-5 py-3 text-xs text-muted-foreground ">
         {restaurantCoords && (
           <span className="flex items-center gap-1.5">
-            <UtensilsCrossed className="h-3.5 w-3.5 text-emerald-500" />
+            <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
             Restaurant
           </span>
         )}
         {showLive && (
           <span className="flex items-center gap-1.5">
-            <Bike className="h-3.5 w-3.5 text-blue-500" />
+            <Bike className="h-3.5 w-3.5 text-primary" />
             {order.courier?.fullName ?? "Courier"}
           </span>
         )}
         {deliveryCoords && (
           <span className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-red-500" />
+            <MapPin className="h-3.5 w-3.5 text-destructive" />
             Drop-off
           </span>
         )}

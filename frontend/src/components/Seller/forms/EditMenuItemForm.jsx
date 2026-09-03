@@ -13,11 +13,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { editMenuItemSchema } from "../schemas/menuItemSchema";
+import {
+  editMenuItemSchema,
+  promotionToFormValues,
+} from "../schemas/menuItemSchema";
 import { useUpdateMenuItem } from "../hooks/useUpdateMenuItem";
 import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";
 import { MenuItemImageUploader } from "./MenuItemImageUploader";
+import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
 import { X } from "lucide-react";
 
 const CATEGORIES = [
@@ -53,6 +57,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
       description: menuItem?.description || "",
       images: [],
       existingImages: menuItem?.imageUrls || [],
+      promotion: promotionToFormValues(menuItem?.promotion),
     },
   });
 
@@ -63,6 +68,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
       setValue("price", menuItem.price?.toString() || "");
       setValue("available", menuItem.available ?? true);
       setValue("description", menuItem.description || "");
+      setValue("promotion", promotionToFormValues(menuItem.promotion));
 
       const urls = Array.isArray(menuItem.imageUrls)
         ? menuItem.imageUrls
@@ -187,6 +193,13 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
         />
       </div>
 
+      <MenuItemPromotionFields
+        register={register}
+        watch={watch}
+        setValue={setValue}
+        errors={errors}
+      />
+
       <div className="space-y-6">
         <div>
           <Label>Current Images</Label>
@@ -240,7 +253,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
           type="submit"
           size="lg"
           disabled={isUpdating}
-          className="bg-emerald-600 hover:bg-emerald-700 px-8"
+          className="bg-primary hover:bg-primary px-8"
         >
           {isUpdating ? <Spinner size="sm" /> : "Update Menu Item"}
         </Button>

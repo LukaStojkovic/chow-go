@@ -17,7 +17,7 @@ export default function DesktopNav({
     <div className="hidden md:flex items-center gap-6">
       <Link
         to="/become-courier"
-        className="font-medium hover:text-emerald-600 transition-colors text-sm"
+        className="font-medium hover:text-primary transition-colors text-sm"
       >
         Become a Courier
       </Link>

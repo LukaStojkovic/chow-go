@@ -9,42 +9,42 @@ export default function ProsSection() {
       title: "Lightning Fast",
       description:
         "Get your food delivered in 30 minutes or less. We prioritize speed without compromising quality.",
-      color: "from-blue-500 to-cyan-500",
+      color: " ",
     },
     {
       icon: ChefHat,
       title: "Top Restaurants",
       description:
         "Order from the best restaurants in your area. Curated selection of quality establishments.",
-      color: "from-orange-500 to-red-500",
+      color: " ",
     },
     {
       icon: Shield,
       title: "Secure & Safe",
       description:
         "Your data and payments are protected with industry-leading security measures.",
-      color: "from-green-500 to-emerald-500",
+      color: " ",
     },
     {
       icon: Zap,
       title: "Real-time Tracking",
       description:
         "Track your order in real-time from kitchen to your doorstep. Never wonder where your food is.",
-      color: "from-purple-500 to-pink-500",
+      color: " ",
     },
     {
       icon: Star,
       title: "Premium Quality",
       description:
         "Only the finest ingredients and most trusted restaurants. Quality guaranteed.",
-      color: "from-yellow-500 to-orange-500",
+      color: " ",
     },
     {
       icon: TrendingUp,
       title: "Best Prices",
       description:
         "Competitive prices with exclusive deals and discounts. More value for your money.",
-      color: "from-indigo-500 to-blue-500",
+      color: " ",
     },
   ];
 
@@ -80,11 +80,11 @@ export default function ProsSection() {
                   className="group relative overflow-hidden rounded-2xl border bg-card p-6 transition-all duration-300 hover:shadow-2xl"
                 >
                   <div
-                    className={`absolute inset-0 bg-linear-to-br ${feature.color} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
+                    className={`absolute inset-0  ${feature.color} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
                   />
                   <div className="relative z-10">
                     <div
-                      className={`mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br ${feature.color} shadow-lg`}
+                      className={`mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl  ${feature.color} shadow-lg`}
                     >
                       <Icon className="h-7 w-7 text-white" />
                     </div>

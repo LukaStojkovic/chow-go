@@ -13,11 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { menuItemSchema } from "../schemas/menuItemSchema";
+import { EMPTY_PROMOTION, menuItemSchema } from "../schemas/menuItemSchema";
 import { useCreateMenuItem } from "../hooks/useCreateMenuItem";
 import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";
 import { MenuItemImageUploader } from "./MenuItemImageUploader";
+import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
 
 const CATEGORIES = [
   { value: "pizza", label: "Pizza" },
@@ -51,6 +52,7 @@ export const AddMenuItemForm = ({ onClose }) => {
       available: true,
       description: "",
       images: [],
+      promotion: { ...EMPTY_PROMOTION },
     },
   });
 
@@ -147,6 +149,13 @@ export const AddMenuItemForm = ({ onClose }) => {
         />
       </div>
 
+      <MenuItemPromotionFields
+        register={register}
+        watch={watch}
+        setValue={setValue}
+        errors={errors}
+      />
+
       <MenuItemImageUploader
         {...{ images, setValue, previews, setPreviews, errors }}
       />
@@ -159,7 +168,7 @@ export const AddMenuItemForm = ({ onClose }) => {
           type="submit"
           size="lg"
           disabled={isCreating}
-          className="bg-emerald-600 hover:bg-emerald-700 px-8"
+          className="bg-primary hover:bg-primary px-8"
         >
           {isCreating ? <Spinner size="sm" /> : "Add Menu Item"}
         </Button>

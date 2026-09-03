@@ -90,7 +90,7 @@ export function CourierOrderMap({
       />
       {distanceKm && (
         <div className="absolute left-3 bottom-3 z-999 flex items-center gap-1.5 rounded-lg bg-background/90 backdrop-blur-sm border border-border px-2.5 py-1.5 text-xs font-medium shadow-sm">
-          <Clock className="h-3.5 w-3.5 text-emerald-500" />
+          <Clock className="h-3.5 w-3.5 text-primary" />
           {distanceKm} km{etaMin ? ` · ~${etaMin} min` : ""}
         </div>
       )}

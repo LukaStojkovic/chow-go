@@ -23,7 +23,7 @@ export function CourierOrderEarnings({ deliveryFee = 0, tip = 0 }) {
         {cells.map(({ label, value, highlight }) => (
           <div key={label} className="rounded-xl bg-muted/50 p-3 text-center">
             <p
-              className={`text-base font-semibold ${highlight ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}
+              className={`text-base font-semibold ${highlight ? "text-primary " : "text-foreground"}`}
             >
               {value}
             </p>

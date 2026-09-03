@@ -79,7 +79,7 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
           <button
             onClick={handleClose}
             disabled={isUpdatingProfile}
-            className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-zinc-800 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-zinc-700 transition disabled:opacity-50"
+            className="flex-1 py-2.5 px-4 bg-muted rounded-lg font-medium hover:bg-secondary transition disabled:opacity-50"
           >
             Cancel
           </button>
@@ -87,7 +87,7 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
             type="submit"
             form="password-form"
             disabled={isUpdatingProfile || !isValid || !isDirty}
-            className="flex-1 py-2.5 px-4 bg-linear-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 disabled:opacity-50 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition"
+            className="flex-1 py-2.5 px-4 bg-primary hover:bg-primary-hover text-primary-foreground disabled:opacity-50 rounded-sm font-medium flex items-center justify-center gap-2 transition"
           >
             {isUpdatingProfile ? (
               <>
@@ -126,7 +126,7 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
             register={register}
             errors={errors}
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-muted-foreground ">
             At least 6 characters
           </p>
         </div>

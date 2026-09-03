@@ -3,34 +3,236 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   Chow & Go - design tokens
+   --------------------------------------------------------------------------
+   Every colour, radius, shadow and motion value in the product resolves from
+   this file. Components must reference the semantic Tailwind utilities that
+   these tokens generate (bg-card, text-muted-foreground, border-border, ...)
+   and never hardcode a palette colour such as `bg-green-500`.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Light theme
+
+   Neutral zinc surfaces, near-black text, one confident green for action and
+   one blue for informational / promotional accents. Green is never the page,
+   only the thing you are meant to press or the state you are meant to trust -
+   food photography stays the most colourful thing on screen.
+   -------------------------------------------------------------------------- */
+:root {
+  /* Surfaces */
+  --background: #fafafa;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
+  /* Brand green.
+     #00875c rather than the original #009966 so white label text clears 4.5:1
+     - the two are indistinguishable side by side, but only one is readable. */
+  --primary: #00875c;
+  --primary-foreground: #ffffff;
+  --primary-hover: #00714c;
+  --primary-subtle: #e6f5ef;
+  --primary-subtle-foreground: #00694a;
+
+  /* Neutrals. `accent` is the hover surface shadcn primitives reach for, so it
+     stays a quiet neutral - a solid colour here would flash green through
+     every dropdown and select. */
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+
+  /* Status */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --destructive-subtle: #fef2f2;
+  --success: #15803d;
+  --success-foreground: #ffffff;
+  --success-subtle: #ecfdf3;
+  --warning: #b45309;
+  --warning-foreground: #ffffff;
+  --warning-subtle: #fef6e7;
+
+  /* Blue: the second brand colour. Promotions, "new", delivery information -
+     anything informational that must not read as an action or a warning. */
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  --info-subtle: #eff4ff;
+
+  /* Rating stars only. Amber reads as a star; the accessible `warning` brown
+     does not, and a star is a shape rather than text so it needs no contrast
+     ratio of its own. */
+  --rating: #f5a524;
+
+  /* Text sitting directly on a photograph. Fixed in both themes, because a
+     scrim is always dark and the text on it is always white - deriving it from
+     `foreground` would invert it in dark mode and make it unreadable. */
+  --scrim-foreground: #ffffff;
+  --scrim-foreground-muted: rgb(255 255 255 / 0.78);
+
+  /* Lines and controls */
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --input: #e4e4e7;
+  --ring: #00875c;
+
+  /* Data visualisation - used by recharts in seller analytics */
+  --chart-1: #00875c;
+  --chart-2: #06b6d4;
+  --chart-3: #8b5cf6;
+  --chart-4: #ec4899;
+  --chart-5: #14b8a6;
+
+  /* Seller / courier console chrome */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #09090b;
+  --sidebar-primary: #00875c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #00875c;
+
+  /* Elevation - four levels, nothing else. Tuned to the Tailwind ramp the
+     product used before, so a card lifting on hover reads as a real lift. */
+  --elevation-subtle: 0 1px 2px 0 rgb(9 9 11 / 0.05);
+  --elevation-raised: 0 4px 6px -2px rgb(9 9 11 / 0.06),
+    0 12px 24px -6px rgb(9 9 11 / 0.12);
+  --elevation-overlay: 0 10px 25px -5px rgb(9 9 11 / 0.12),
+    0 24px 50px -12px rgb(9 9 11 / 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   Dark theme
+   Zinc, effectively black at the page level. The green brightens so it still
+   reads as the action colour against #09090b, and carries near-black label
+   text rather than white. Borders stay one step off the surface, never bright.
+   -------------------------------------------------------------------------- */
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #27272a;
+  --popover-foreground: #fafafa;
+
+  --primary: #00b877;
+  --primary-foreground: #06120d;
+  --primary-hover: #00cd86;
+  --primary-subtle: #0d2a20;
+  --primary-subtle-foreground: #4ade9f;
+
+  --secondary: #27272a;
+  --secondary-foreground: #d4d4d8;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+
+  --destructive: #f87171;
+  --destructive-foreground: #1a0b0b;
+  --destructive-subtle: #2a1414;
+  --success: #4ade80;
+  --success-foreground: #052e16;
+  --success-subtle: #13291b;
+  --warning: #fbbf24;
+  --warning-foreground: #1c1401;
+  --warning-subtle: #2a2114;
+
+  --info: #60a5fa;
+  --info-foreground: #06121f;
+  --info-subtle: #16263d;
+
+  --rating: #fbbf24;
+
+  --scrim-foreground: #ffffff;
+  --scrim-foreground-muted: rgb(255 255 255 / 0.78);
+
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --input: #27272a;
+  --ring: #00b877;
+
+  --chart-1: #00b877;
+  --chart-2: #22d3ee;
+  --chart-3: #a78bfa;
+  --chart-4: #fb7185;
+  --chart-5: #2dd4bf;
+
+  --sidebar: #18181b;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #00b877;
+  --sidebar-primary-foreground: #06120d;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #00b877;
+
+  --elevation-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+  --elevation-raised: 0 4px 6px -2px rgb(0 0 0 / 0.5),
+    0 12px 24px -6px rgb(0 0 0 / 0.6);
+  --elevation-overlay: 0 10px 25px -5px rgb(0 0 0 / 0.6),
+    0 24px 50px -12px rgb(0 0 0 / 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Token to Tailwind utility mapping
+   -------------------------------------------------------------------------- */
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+
+  --color-rating: var(--rating);
+  --color-scrim-foreground: var(--scrim-foreground);
+  --color-scrim-foreground-muted: var(--scrim-foreground-muted);
+
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -39,113 +241,282 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-subtle: var(--elevation-subtle);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-overlay: var(--elevation-overlay);
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: #ffffff;
-  --foreground: #09090b;
-  --card: #f4f4f5;
-  --card-foreground: #09090b;
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #009966;
-  --primary-foreground: #ffffff;
-  --secondary: #f0f9ff;
-  --secondary-foreground: #1f2937;
-  --muted: #e4e4e7;
-  --muted-foreground: #71717a;
-  --accent: #009966;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --border: #e4e4e7;
-  --input: #f4f4f5;
-  --ring: #009966;
-  --chart-1: #009966;
-  --chart-2: #06b6d4;
-  --chart-3: #8b5cf6;
-  --chart-4: #ec4899;
-  --chart-5: #14b8a6;
-  --sidebar: #f4f4f5;
-  --sidebar-foreground: #09090b;
-  --sidebar-primary: #009966;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #009966;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #e4e4e7;
-  --sidebar-ring: #009966;
-}
+/* --------------------------------------------------------------------------
+   Radii - a restrained scale.
+   xs    compact controls inside a card (chips, thumbnails)
+   sm    inputs, buttons, small controls
+   md    cards, menus, popovers          <- the default surface radius
+   lg    bottom sheets, hero surfaces
+   full  avatars, circular icon buttons, true pills only
 
-.dark {
-  --radius: 0.625rem;
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #18181b;
-  --card-foreground: #fafafa;
-  --popover: #27272a;
-  --popover-foreground: #fafafa;
-  --primary: #009966;
-  --primary-foreground: #09090b;
-  --secondary: #27272a;
-  --secondary-foreground: #d4d4d8;
-  --muted: #3f3f46;
-  --muted-foreground: #a1a1aa;
-  --accent: #009966;
-  --accent-foreground: #ffffff;
-  --destructive: #ff6b6b;
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #009966;
-  --chart-1: #009966;
-  --chart-2: #06b6d4;
-  --chart-3: #a78bfa;
-  --chart-4: #fb7185;
-  --chart-5: #4ade80;
-  --sidebar: #18181b;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #009966;
-  --sidebar-primary-foreground: #09090b;
-  --sidebar-accent: #009966;
-  --sidebar-accent-foreground: #09090b;
-  --sidebar-border: #27272a;
-  --sidebar-ring: #009966;
+   xl/2xl/3xl are deliberately collapsed onto lg: shadcn primitives and older
+   screens reach for them, and this keeps those surfaces on-system instead of
+   introducing three more radii.
+   -------------------------------------------------------------------------- */
+@theme {
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.25rem;
+
+  /* ------------------------------------------------------------------------
+     Typography
+     One family, a fixed set of roles. `price` variants carry tabular figures
+     so totals line up column-to-column across basket, checkout and
+     confirmation.
+     ------------------------------------------------------------------------ */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --text-display: 2rem;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+
+  --text-h1: 1.5rem;
+  --text-h1--line-height: 1.25;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h1--font-weight: 700;
+
+  --text-h2: 1.1875rem;
+  --text-h2--line-height: 1.3;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h2--font-weight: 650;
+
+  --text-h3: 1rem;
+  --text-h3--line-height: 1.35;
+  --text-h3--letter-spacing: -0.005em;
+  --text-h3--font-weight: 650;
+
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.55;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.55;
+
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.5;
+
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
+  --text-label--font-weight: 550;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--font-weight: 500;
+
+  --text-price: 0.9375rem;
+  --text-price--line-height: 1.3;
+  --text-price--font-weight: 650;
+
+  --text-price-lg: 1.25rem;
+  --text-price-lg--line-height: 1.2;
+  --text-price-lg--letter-spacing: -0.01em;
+  --text-price-lg--font-weight: 700;
+
+  /* ------------------------------------------------------------------------
+     Motion - four durations, two easings. Nothing else.
+     ------------------------------------------------------------------------ */
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --duration-micro: 150ms;
+  --duration-standard: 250ms;
+  --duration-panel: 340ms;
+  --duration-page: 300ms;
+  /* Photography only: a slow zoom reads as depth, a fast one as a glitch. */
+  --duration-image: 500ms;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-body antialiased;
   }
 
   .dark {
     color-scheme: dark;
   }
 
-  /* body,
-  body * {
-    @apply transition-colors duration;
-  } */
-
-  .dark ::-webkit-scrollbar {
-    @apply w-2;
+  /* A single, consistent focus ring for every interactive element. */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
   }
 
+  ::-webkit-scrollbar {
+    @apply h-2 w-2;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-strong rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer utilities {
+  /* The transition every interactive surface (cards, tiles, rails) shares.
+     Named properties only - `transition-all` would animate colour and layout
+     changes that should be instant.
+
+     `transform` is deliberately absent. Framer drives the hover lift on that
+     property with a spring, and a CSS transition on the same property fights
+     it frame by frame: the lift never settles, and the compositor never goes
+     idle. Transform belongs to Framer; colour and shadow belong here. */
+  .surface-interactive {
+    transition-property: box-shadow, border-color, background-color;
+    transition-duration: var(--duration-standard);
+    transition-timing-function: var(--ease-standard);
+  }
+
+  /* Darkens a photograph from the left so text laid over it stays readable
+     regardless of what the photo contains. One gradient, one purpose. */
+  .photo-scrim {
+    background-image: linear-gradient(
+      to right,
+      rgb(9 9 11 / 0.9) 0%,
+      rgb(9 9 11 / 0.66) 50%,
+      rgb(9 9 11 / 0.2) 100%
+    );
+  }
+
+  /* The hover zoom on a card's photo. */
+  .image-zoom {
+    transition: transform var(--duration-image) var(--ease-standard);
+  }
+  .group:hover .image-zoom {
+    transform: scale(1.06);
+  }
+
+  /* Prices and quantities never jitter as digits change. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Horizontal rails (cuisine chips, restaurant carousels) hide their bar but
+     stay scrollable by keyboard, trackpad and touch. */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
 
-  .dark ::-webkit-scrollbar-track {
-    @apply bg-slate-900;
+  /* Full-bleed a rail out of PageContainer's gutter on small screens so cards
+     scroll to the true screen edge instead of stopping short. */
+  .rail-bleed {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    scroll-padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .rail-bleed {
+      margin-inline: -1.5rem;
+      padding-inline: 1.5rem;
+      scroll-padding-inline: 1.5rem;
+    }
   }
 
-  .dark ::-webkit-scrollbar-thumb {
-    @apply bg-slate-700 rounded hover:bg-slate-600;
+  /* Keeps sticky bottom bars clear of the iOS home indicator. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .bottom-safe {
+    bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Screen-reader-only, but revealed on focus - used by the skip link. */
+  .focusable-sr-only:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion
+
+   "Reduce motion" means reduce *movement* - the travel that can trigger
+   vestibular symptoms. It does not mean "remove every transition", and the
+   blanket `transition-duration: 0.01ms` this block used to carry did exactly
+   that: hover colours, shadows, focus rings and fades all snapped, and the
+   whole product felt broken rather than considerate on any machine with the
+   OS setting enabled.
+
+   So: looping and keyframe animation stops, translation and zoom stop, and
+   colour, shadow and opacity transitions keep running at their normal
+   duration. Framer's side of this is `reducedMotion="user"` in App.jsx, which
+   strips transform and layout animation while leaving opacity alone - which is
+   why every overlay variant in `lib/motion.js` carries an opacity channel.
+   -------------------------------------------------------------------------- */
+/* The OS preference, which `useMotionPreference` can override by stamping
+   `data-motion` on <html>. `:not([data-motion="full"])` is what lets someone
+   who turned Windows' animation effects off still opt this product back in. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Movement out, colour and depth kept. */
+  :root:not([data-motion="full"]) .surface-interactive {
+    transition-property: box-shadow, border-color, background-color;
+  }
+
+  :root:not([data-motion="full"]) .image-zoom,
+  :root:not([data-motion="full"]) .group:hover .image-zoom {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* An explicit "reduced" choice, which applies whatever the OS says. */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}
+
+:root[data-motion="reduced"] .surface-interactive {
+  transition-property: box-shadow, border-color, background-color;
+}
+
+:root[data-motion="reduced"] .image-zoom,
+:root[data-motion="reduced"] .group:hover .image-zoom {
+  transform: none;
+  transition: none;
 }

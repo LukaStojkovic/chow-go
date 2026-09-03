@@ -38,11 +38,11 @@ export default function MobileNav({
 
         <SheetContent
           side="right"
-          className="w-full max-w-sm bg-white/95 dark:bg-zinc-900/95 border-l border-gray-200/50 dark:border-zinc-800/50 p-0 backdrop-blur-xl"
+          className="w-full max-w-sm bg-card/95 border-l border-border/50 p-0 backdrop-blur-xl"
         >
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200/50 dark:border-zinc-800/50">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border/50 ">
               <h2 className="text-lg sm:text-xl font-bold">Menu</h2>
             </div>
 
@@ -55,8 +55,8 @@ export default function MobileNav({
               />
             </div>
 
-            <div className="px-4 sm:px-6 py-4 sm:py-6 border-t border-gray-200/50 dark:border-zinc-800/50">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-4 sm:px-6 py-4 sm:py-6 border-t border-border/50 ">
+              <p className="text-xs sm:text-sm text-muted-foreground ">
                 © {new Date().getFullYear()} Chow & Go
               </p>
             </div>

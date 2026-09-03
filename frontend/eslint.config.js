@@ -23,7 +23,28 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // `eslint-plugin-react` is not installed, so nothing marks an identifier
+      // used when it only appears inside JSX. Two consequences to work around:
+      //
+      //  - Components referenced as `<Icon />` or `<motion.div>` look unused.
+      //    Capitalised names are exempted for that reason, and `motion` is
+      //    named explicitly because it is the one lowercase JSX namespace we use.
+      //  - A component passed in as a prop (`{ icon: Icon }`) is an *argument*,
+      //    not a variable, so it needs argsIgnorePattern as well - without it
+      //    every render-prop component reports a false error.
+      'no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^(motion|[A-Z_])',
+          argsIgnorePattern: '^(_|[A-Z])',
+          caughtErrors: 'none',
+        },
+      ],
     },
+  },
+  {
+    // Vite's config runs in Node, not the browser.
+    files: ['vite.config.js'],
+    languageOptions: { globals: globals.node },
   },
 ])

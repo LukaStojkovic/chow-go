@@ -1,181 +1,120 @@
+/**
+ * Product constants: taxonomies, navigation and filter options.
+ *
+ * Category icons are Lucide components, not emoji - emoji render differently
+ * on every platform, cannot inherit `currentColor`, and are announced as their
+ * unicode name by screen readers.
+ */
+
+import {
+  Beef,
+  CakeSlice,
+  CookingPot,
+  Croissant,
+  CupSoda,
+  Fish,
+  Flame,
+  LayoutGrid,
+  Pizza,
+  Salad,
+  Soup,
+} from "lucide-react";
+
+/**
+ * Discovery category rail.
+ *
+ * `value` must match `MenuItem.category` as sellers actually store it. The
+ * previous values ("burger", "japanese", "salad") matched nothing in the
+ * database, so every chip silently returned an empty feed - the backend now
+ * matches these case-insensitively so seller-typed casing still resolves.
+ *
+ * @type {{ id: string, label: string, value: string, icon: import("lucide-react").LucideIcon }[]}
+ */
 export const CATEGORIES = [
+  { id: "all", label: "All", value: "All", icon: LayoutGrid },
+  { id: "pizza", label: "Pizza", value: "Pizza", icon: Pizza },
+  { id: "burgers", label: "Burgers", value: "Burgers", icon: Beef },
+  { id: "pasta", label: "Pasta", value: "Pasta", icon: CookingPot },
+  { id: "salads", label: "Salads", value: "Salads", icon: Salad },
+  { id: "grill", label: "Grill", value: "Grill", icon: Flame },
+  { id: "sushi", label: "Sushi", value: "Sushi", icon: Fish },
+  { id: "soups", label: "Soups", value: "Soups", icon: Soup },
+  { id: "breakfast", label: "Breakfast", value: "Breakfast", icon: Croissant },
+  { id: "desserts", label: "Desserts", value: "Desserts", icon: CakeSlice },
+  { id: "drinks", label: "Drinks", value: "Drinks", icon: CupSoda },
+];
+
+/**
+ * Cuisine enum on the Restaurant model, mapped to display labels.
+ * Keys must stay in sync with `backend/models/Restaurant.js`.
+ */
+export const CUISINE_LABELS = {
+  fast_food: "Fast food",
+  italian: "Italian",
+  chinese: "Chinese",
+  indian: "Indian",
+  mexican: "Mexican",
+  japanese: "Japanese",
+  thai: "Thai",
+  pizza: "Pizza",
+  burgers: "Burgers",
+  healthy: "Healthy",
+  desserts: "Desserts",
+  serbian: "Serbian",
+  mediterranean: "Mediterranean",
+};
+
+/** Select options for the seller signup and settings forms. */
+export const cuisineOptions = Object.entries(CUISINE_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);
+
+/** Sort options on the search results screen. */
+export const SORT_OPTIONS = [
+  { value: "relevance", label: "Most relevant" },
+  { value: "rating", label: "Highest rated" },
+  { value: "delivery_time", label: "Fastest delivery" },
+  { value: "distance", label: "Closest to me" },
+];
+
+/** Delivery-time buckets offered as a search filter, in minutes. */
+export const DELIVERY_TIME_FILTERS = [
+  { value: "any", label: "Any time" },
+  { value: "30", label: "Under 30 min" },
+  { value: "45", label: "Under 45 min" },
+  { value: "60", label: "Under 1 hour" },
+];
+
+/** Delivery speed options at checkout. Mirrors the backend's `deliveryType`. */
+export const DELIVERY_TYPES = [
   {
-    id: 0,
-    name: "All",
-    value: "",
-    icon: "✨",
-    color: "bg-slate-100 dark:bg-slate-700/30",
+    value: "standard",
+    label: "Standard",
+    description: "Arrives within the restaurant's usual delivery window.",
   },
   {
-    id: 1,
-    name: "Burgers",
-    value: "burger",
-    icon: "🍔",
-    color: "bg-orange-100 dark:bg-orange-900/30",
-  },
-  {
-    id: 2,
-    name: "Sushi",
-    value: "japanese",
-    icon: "🍣",
-    color: "bg-blue-100 dark:bg-blue-900/30",
-  },
-  {
-    id: 3,
-    name: "Pizza",
-    value: "pizza",
-    icon: "🍕",
-    color: "bg-red-100 dark:bg-red-900/30",
-  },
-  {
-    id: 4,
-    name: "Asian",
-    value: "japanese",
-    icon: "🍜",
-    color: "bg-yellow-100 dark:bg-yellow-900/30",
-  },
-  {
-    id: 5,
-    name: "Salads",
-    value: "salad",
-    icon: "🥗",
-    color: "bg-green-100 dark:bg-green-900/30",
-  },
-  {
-    id: 6,
-    name: "Dessert",
-    value: "dessert",
-    icon: "🍩",
-    color: "bg-pink-100 dark:bg-pink-900/30",
-  },
-  {
-    id: 7,
-    name: "Drinks",
-    value: "drinks",
-    icon: "🥤",
-    color: "bg-purple-100 dark:bg-purple-900/30",
-  },
-  {
-    id: 8,
-    name: "Other",
-    value: "other",
-    icon: "🥘",
-    color: "bg-yellow-100 dark:bg-yellow-900/30",
+    value: "priority",
+    label: "Priority",
+    description: "Moved to the front of the courier queue.",
   },
 ];
 
-export const PROMOS = [
+/** Payment methods. Mirrors the `paymentMethod` enum on the Order model. */
+export const PAYMENT_METHODS = [
   {
-    id: 1,
-    title: "50% OFF Lunch",
-    subtitle: "On selected partners",
-    bg: "from-blue-600 to-indigo-600",
-    img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=500&q=80",
+    value: "cash",
+    label: "Cash on delivery",
+    description: "Pay the courier when your order arrives.",
   },
   {
-    id: 2,
-    title: "Free Delivery",
-    subtitle: "All weekend long",
-    bg: "from-emerald-500 to-teal-500",
-    img: "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: 3,
-    title: "New in Town",
-    subtitle: "Try something fresh",
-    bg: "from-orange-500 to-red-500",
-    img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=80",
+    value: "card",
+    label: "Card",
+    description: "Pay by card when your order arrives.",
   },
 ];
 
-export const RESTAURANTS = [
-  {
-    id: 1,
-    name: "Burger & Co.",
-    rating: 4.8,
-    reviews: "1.2k+",
-    time: "20-30 min",
-    deliveryFee: "Free",
-    image:
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
-    tags: ["American", "Burgers", "Fast Food"],
-    promoted: true,
-  },
-  {
-    id: 2,
-    name: "Sushi Master",
-    rating: 4.5,
-    reviews: "500+",
-    time: "35-45 min",
-    deliveryFee: "$2.99",
-    image:
-      "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=800&q=80",
-    tags: ["Japanese", "Sushi", "Healthy"],
-    promoted: false,
-  },
-  {
-    id: 3,
-    name: "La Pizzeria",
-    rating: 4.9,
-    reviews: "2k+",
-    time: "25-35 min",
-    deliveryFee: "$1.49",
-    image:
-      "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=800&q=80",
-    tags: ["Italian", "Pizza", "Comfort Food"],
-    promoted: false,
-  },
-  {
-    id: 4,
-    name: "Green Bowl",
-    rating: 4.6,
-    reviews: "320",
-    time: "15-25 min",
-    deliveryFee: "$0.99",
-    image:
-      "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
-    tags: ["Healthy", "Salads", "Vegan"],
-    promoted: false,
-  },
-  {
-    id: 5,
-    name: "Taco Fiesta",
-    rating: 4.4,
-    reviews: "850",
-    time: "30-40 min",
-    deliveryFee: "Free",
-    image:
-      "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80",
-    tags: ["Mexican", "Tacos", "Spicy"],
-    promoted: false,
-  },
-  {
-    id: 6,
-    name: "Wok 'n Roll",
-    rating: 4.7,
-    reviews: "1.5k",
-    time: "25-40 min",
-    deliveryFee: "$1.99",
-    image:
-      "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80",
-    tags: ["Asian", "Noodles", "Chinese"],
-    promoted: true,
-  },
-];
+/** How many saved addresses the backend allows (pre-save hook on Addresses). */
+export const MAX_SAVED_ADDRESSES = 5;
 
-export const cuisineOptions = [
-  { value: "fast_food", label: "Fast Food" },
-  { value: "italian", label: "Italian" },
-  { value: "chinese", label: "Chinese" },
-  { value: "indian", label: "Indian" },
-  { value: "mexican", label: "Mexican" },
-  { value: "japanese", label: "Japanese" },
-  { value: "thai", label: "Thai" },
-  { value: "pizza", label: "Pizza" },
-  { value: "burgers", label: "Burgers" },
-  { value: "healthy", label: "Healthy" },
-  { value: "desserts", label: "Desserts" },
-  { value: "serbian", label: "Serbian" },
-  { value: "mediterranean", label: "Mediterranean" },
-];
-
+/** Longest a delivery instruction may be, matching the checkout textarea. */
+export const MAX_ORDER_NOTES = 500;

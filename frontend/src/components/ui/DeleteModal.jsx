@@ -31,7 +31,7 @@ export const DeleteModal = ({
           {cancelText}
         </Button>
         <Button
-          className="bg-red-600 hover:bg-red-700 text-white"
+          className="bg-destructive hover:bg-destructive text-destructive-foreground"
           onClick={handleConfirm}
           disabled={isLoading}
         >

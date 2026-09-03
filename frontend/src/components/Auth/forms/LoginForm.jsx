@@ -26,14 +26,14 @@ export function LoginForm({ register, errors, onForgotPassword }) {
           <input
             type="checkbox"
             {...register("rememberMe")}
-            className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+            className="rounded border-border text-primary focus:ring-ring"
           />
-          <span className="text-gray-700 dark:text-gray-300">Remember me</span>
+          <span className="text-muted-foreground ">Remember me</span>
         </label>
         <button
           type="button"
           onClick={onForgotPassword}
-          className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium transition-colors"
+          className="text-primary hover:underline font-medium transition-colors"
         >
           Forgot password?
         </button>
@@ -41,10 +41,10 @@ export function LoginForm({ register, errors, onForgotPassword }) {
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-400 dark:border-gray-600"></div>
+          <div className="w-full border-t border-border "></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white dark:bg-gray-800 rounded-full text-slate-600">
+          <span className="px-2 bg-card rounded-full text-muted-foreground">
             Or continue with
           </span>
         </div>

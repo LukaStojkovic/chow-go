@@ -43,7 +43,7 @@ export function RestaurantInfoForm({ register, errors }) {
         {...register("cuisineType", {
           required: "Cuisine type is required",
         })}
-        className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl bg-white/50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 px-3 text-sm focus:border-emerald-500 focus:ring-emerald-500/20"
+        className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl bg-card/50 border border-border px-3 text-sm focus:border-primary focus:ring-ring/20"
       >
         <option value="">Select cuisine type</option>
 

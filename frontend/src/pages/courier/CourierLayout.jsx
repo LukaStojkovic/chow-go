@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PageTransition } from "@/components/layout/PageTransition";
 import {
   LayoutDashboard,
   ListOrdered,
@@ -88,7 +89,7 @@ export default function CourierLayout() {
   }
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-gray-50 text-gray-900 dark:bg-black dark:text-gray-100">
+    <div className="min-h-screen flex overflow-hidden bg-muted text-foreground ">
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -103,7 +104,7 @@ export default function CourierLayout() {
 
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-72 transform border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out dark:border-zinc-800 dark:bg-zinc-900
+          fixed inset-y-0 left-0 z-50 w-72 transform border-r border-border bg-card transition-transform duration-300 ease-in-out 
           lg:static lg:translate-x-0
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
@@ -111,17 +112,17 @@ export default function CourierLayout() {
         <div className="flex h-full flex-col p-6">
           <Logo className="mb-4" showTitle={true} />
 
-          <div className="mb-6 rounded-2xl bg-gray-50 p-4 dark:bg-black/50 border border-gray-100 dark:border-zinc-800">
+          <div className="mb-6 rounded-2xl bg-muted p-4 border border-border ">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-700 dark:text-gray-300">
+              <span className="font-semibold text-muted-foreground ">
                 Status
               </span>
               <button
                 onClick={handleChangeDutyStatus}
                 className={`relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition-colors ${
                   isAvailable
-                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600"
-                    : "bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-zinc-800 dark:text-gray-400 dark:hover:bg-zinc-700"
+                    ? "bg-primary text-primary-foreground shadow-lg  hover:bg-primary"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary "
                 }`}
               >
                 <Power className="h-4 w-4" />
@@ -140,22 +141,22 @@ export default function CourierLayout() {
             ))}
           </nav>
 
-          <div className="mt-6 border-t border-gray-100 pt-6 dark:border-zinc-800">
+          <div className="mt-6 border-t border-border pt-6 ">
             <UserMenu user={authUser} onLogout={logout} />
           </div>
         </div>
       </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col h-screen overflow-hidden bg-gray-50 dark:bg-black/95">
-        <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white p-4 lg:hidden dark:border-zinc-800 dark:bg-zinc-900">
+      <main className="flex min-w-0 flex-1 flex-col h-screen overflow-hidden bg-muted ">
+        <header className="flex shrink-0 items-center justify-between border-b border-border bg-card p-4 lg:hidden ">
           <span className="text-lg font-bold">{currentTitle}</span>
           <div className="flex items-center gap-3">
             <div
-              className={`h-3 w-3 rounded-full ${isAvailable ? "bg-emerald-500 animate-pulse" : "bg-gray-300 dark:bg-zinc-700"}`}
+              className={`h-3 w-3 rounded-full ${isAvailable ? "bg-primary animate-pulse" : "bg-secondary "}`}
             />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="rounded-lg p-2 text-gray-600 transition-transform hover:bg-gray-100 active:scale-95 dark:text-gray-300 dark:hover:bg-zinc-800"
+              className="rounded-lg p-2 text-muted-foreground transition-transform hover:bg-muted active:scale-95 "
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -182,16 +183,16 @@ export default function CourierLayout() {
           >
             {!isDeliveryPage && (
               <div className="mb-8 hidden lg:block">
-                <h1 className="tracking-tight text-3xl font-extrabold text-gray-900 dark:text-white">
+                <h1 className="tracking-tight text-3xl font-extrabold text-foreground ">
                   {currentTitle}
                 </h1>
-                <p className="mt-2 text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-muted-foreground ">
                   Manage your deliveries and track your earnings
                 </p>
               </div>
             )}
 
-            <Outlet context={{ isAvailable }} />
+            <PageTransition context={{ isAvailable }} />
           </div>
         </div>
       </main>

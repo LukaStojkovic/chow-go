@@ -1,224 +1,209 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+/**
+ * Order history.
+ *
+ * Filtered by a real tablist rather than a row of buttons, so arrow keys move
+ * between filters and the selected one is announced. The filter lives in the
+ * URL, so a filtered view can be linked and Back returns to the previous
+ * filter instead of leaving the page.
+ */
 
-import BackNavbar from "@/components/Navbar/BackNavbar";
-import Spinner from "@/components/Spinner";
-import {
-  Clock,
-  Package,
-  CheckCircle2,
-  XCircle,
-  ChevronRight,
-} from "lucide-react";
+import { useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Package } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { staggerContainer } from "@/lib/motion";
+import { ACTIVE_STATUS_FILTER, toOrderViews } from "@/lib/adapters/order";
 import { useGetCustomerOrders } from "@/hooks/Orders/useGetCustomerOrders";
+import { useReorder } from "@/hooks/Orders/useReorder";
 
-const MyOrdersPage = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+import { PageContainer, Stack } from "@/components/layout/primitives";
+import { Button } from "@/components/ui/button";
+import { EmptyState, ErrorState } from "@/components/common/StateViews";
+import { OrderCard, OrderCardSkeleton } from "@/features/orders/OrderCard";
+import { ReplaceBasketDialog } from "@/components/basket/ReplaceBasketDialog";
 
-  const statusParam =
-    activeTab === "all"
-      ? undefined
-      : activeTab === "active"
-        ? "pending,confirmed,preparing,ready,picked_up,in_transit"
-        : activeTab;
+const TABS = [
+  { id: "all", label: "All", status: undefined },
+  { id: "active", label: "Active", status: ACTIVE_STATUS_FILTER },
+  { id: "delivered", label: "Delivered", status: "delivered" },
+  { id: "cancelled", label: "Cancelled", status: "cancelled,rejected" },
+];
 
-  const { orders, pagination, isLoadingOrders } = useGetCustomerOrders({
-    status: statusParam,
-    page: currentPage,
-    limit: 10,
-  });
-
-  const tabs = [
-    { id: "all", label: "All Orders" },
-    { id: "active", label: "Active" },
-    { id: "delivered", label: "Delivered" },
-    { id: "cancelled", label: "Cancelled" },
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
-      case "confirmed":
-      case "preparing":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
-      case "ready":
-      case "picked_up":
-      case "in_transit":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400";
-      case "delivered":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
-      case "cancelled":
-      case "rejected":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "delivered":
-        return <CheckCircle2 className="h-5 w-5" />;
-      case "cancelled":
-      case "rejected":
-        return <XCircle className="h-5 w-5" />;
-      default:
-        return <Clock className="h-5 w-5" />;
-    }
-  };
-
-  if (isLoadingOrders && currentPage === 1) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 pb-24">
-      <BackNavbar title="My Orders" />
-
-      <main className="container mx-auto max-w-4xl px-4 py-6">
-        <div className="bg-white dark:bg-zinc-900 rounded-xl p-2 shadow-sm border border-gray-100 dark:border-zinc-800 mb-6">
-          <div className="grid grid-cols-4 gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setCurrentPage(1);
-                }}
-                className={`py-2 px-4 rounded-lg text-sm font-semibold transition ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {!orders?.length ? (
-          <div className="bg-white dark:bg-zinc-900 rounded-xl p-12 text-center shadow-sm border border-gray-100 dark:border-zinc-800">
-            <Package className="h-16 w-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">No orders found</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {activeTab === "all"
-                ? "You haven't placed any orders yet"
-                : `You don't have any ${activeTab} orders`}
-            </p>
-            <button
-              onClick={() => navigate("/discovery")}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
-            >
-              Start Ordering
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                onClick={() => navigate(`/orders/${order._id}`)}
-                className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 hover:shadow-md transition cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={order.restaurant?.profilePicture}
-                      alt={order.restaurant?.name}
-                      className="h-12 w-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="font-bold text-lg">
-                        {order.restaurant?.name}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400" />
-                </div>
-
-                <div className="flex items-center gap-2 mb-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${getStatusColor(
-                      order.status,
-                    )}`}
-                  >
-                    {getStatusIcon(order.status)}
-                    {order.status?.replace(/_/g, " ").toUpperCase() ??
-                      "Unknown Status"}
-                  </span>
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  {(order.items || []).slice(0, 2).map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {item.quantity}x {item.name}
-                      </span>
-                      <span className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                  {order.items?.length > 2 && (
-                    <p className="text-sm text-gray-500">
-                      +{order.items.length - 2} more items
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-zinc-800">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Order #{order.orderNumber}
-                  </span>
-                  <span className="text-lg font-bold">
-                    ${(order.total ?? 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {pagination?.totalPages > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={!pagination.hasPrev}
-              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">
-              Page {pagination.currentPage} of {pagination.totalPages}
-            </span>
-            <button
-              onClick={() =>
-                setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))
-              }
-              disabled={!pagination.hasNext}
-              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+const EMPTY_COPY = {
+  all: {
+    title: "No orders yet",
+    description: "Once you place your first order it will live here, ready to reorder.",
+  },
+  active: {
+    title: "Nothing in progress",
+    description: "You have no orders being prepared or on their way right now.",
+  },
+  delivered: {
+    title: "No delivered orders yet",
+    description: "Orders show up here once they have arrived.",
+  },
+  cancelled: {
+    title: "No cancelled orders",
+    description: "Nothing here - which is exactly how it should be.",
+  },
 };
 
-export default MyOrdersPage;
+export default function MyOrdersPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const rawTab = searchParams.get("filter") ?? "all";
+  const activeTab = TABS.some((tab) => tab.id === rawTab) ? rawTab : "all";
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+
+  const status = TABS.find((tab) => tab.id === activeTab)?.status;
+  const { orders: rawOrders, pagination, isLoadingOrders, error, refetch } =
+    useGetCustomerOrders({ status, page, limit: 10 });
+
+  const { reorder, reorderingId, conflict, confirmReplace, cancelReplace } = useReorder();
+
+  const orders = useMemo(() => toOrderViews(rawOrders), [rawOrders]);
+
+  const setTab = (tabId) => setSearchParams(tabId === "all" ? {} : { filter: tabId });
+  const setPage = (nextPage) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("page", String(nextPage));
+    setSearchParams(next);
+  };
+
+  return (
+    <>
+      <PageContainer width="reading" className="py-6">
+        <Stack gap="lg">
+          <div
+            role="tablist"
+            aria-label="Filter orders"
+            className="border-border scrollbar-hide flex gap-1 overflow-x-auto rounded-md border p-1"
+          >
+            {TABS.map((tab) => {
+              const isActive = tab.id === activeTab;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  type="button"
+                  aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => setTab(tab.id)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+                    event.preventDefault();
+                    const index = TABS.findIndex((t) => t.id === activeTab);
+                    const delta = event.key === "ArrowRight" ? 1 : -1;
+                    setTab(TABS[(index + delta + TABS.length) % TABS.length].id);
+                  }}
+                  className={cn(
+                    "h-9 flex-1 rounded-sm px-3 text-label whitespace-nowrap",
+                    "transition-colors duration-(--duration-micro) ease-(--ease-standard)",
+                    "outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {error ? (
+            <ErrorState
+              title="We could not load your orders"
+              description="This is a connection problem, not a problem with your orders."
+              onRetry={refetch}
+            />
+          ) : isLoadingOrders ? (
+            <ul className="space-y-3" aria-busy="true">
+              <span className="sr-only" role="status">
+                Loading your orders
+              </span>
+              {[0, 1, 2].map((i) => (
+                <OrderCardSkeleton key={i} />
+              ))}
+            </ul>
+          ) : orders.length === 0 ? (
+            <EmptyState
+              icon={Package}
+              title={EMPTY_COPY[activeTab].title}
+              description={EMPTY_COPY[activeTab].description}
+              action={
+                <Button asChild>
+                  <Link to="/discovery">Browse restaurants</Link>
+                </Button>
+              }
+              secondaryAction={
+                activeTab !== "all" ? (
+                  <Button variant="ghost" onClick={() => setTab("all")}>
+                    Show all orders
+                  </Button>
+                ) : null
+              }
+            />
+          ) : (
+            <>
+              <motion.ul
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="space-y-3"
+              >
+                {orders.map((order) => (
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    isReordering={reorderingId === order.id}
+                    onReorder={() =>
+                      reorder(rawOrders.find((candidate) => candidate._id === order.id))
+                    }
+                  />
+                ))}
+              </motion.ul>
+
+              {pagination?.totalPages > 1 && (
+                <nav
+                  aria-label="Order history pages"
+                  className="flex items-center justify-center gap-3"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!pagination.hasPrev}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span aria-live="polite" className="text-body-sm text-muted-foreground tabular">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!pagination.hasNext}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Next
+                  </Button>
+                </nav>
+              )}
+            </>
+          )}
+        </Stack>
+      </PageContainer>
+
+      <ReplaceBasketDialog
+        open={Boolean(conflict)}
+        currentRestaurantName={conflict?.currentRestaurantName}
+        nextRestaurantName={conflict?.order?.restaurant?.name}
+        onConfirm={confirmReplace}
+        onCancel={cancelReplace}
+      />
+    </>
+  );
+}

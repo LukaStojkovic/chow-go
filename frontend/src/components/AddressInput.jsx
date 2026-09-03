@@ -20,14 +20,14 @@ export default function AddressInput({
     >
       <div className="relative flex flex-col sm:flex-row gap-3 items-center justify-center">
         <div className="relative flex-1 w-full max-w-xl">
-          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-600 dark:text-green-400 z-10" />
+          <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary z-10" />
 
           <Input
             type="text"
             placeholder="Enter delivery address (e.g. 123 Main St, New York)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="pl-12 pr-16 py-7 text-lg bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-white/30 dark:border-gray-700/50 shadow-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/20 dark:focus:ring-green-500/30 rounded-2xl w-full"
+            className="pl-12 pr-16 py-7 text-lg bg-card/90 backdrop-blur-xl border-border/30 shadow-xl focus:border-primary focus:ring-4 focus:ring-ring/20 rounded-2xl w-full"
             required
           />
 
@@ -35,7 +35,7 @@ export default function AddressInput({
             type="button"
             onClick={detect}
             disabled={isDetecting}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/50 transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-primary-subtle transition-colors disabled:opacity-50"
             aria-label="Auto-detect location"
           >
             {isDetecting ? (
@@ -47,10 +47,10 @@ export default function AddressInput({
                   ease: "linear",
                 }}
               >
-                <LocateFixed className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <LocateFixed className="w-5 h-5 text-primary " />
               </motion.div>
             ) : (
-              <LocateFixed className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <LocateFixed className="w-5 h-5 text-primary " />
             )}
           </button>
         </div>
@@ -58,7 +58,7 @@ export default function AddressInput({
         {/* <GlowButton
           type="submit"
           size="lg"
-          className="h-14 px-8 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-xl rounded-2xl"
+          className="h-14 px-8      text-white font-semibold shadow-xl rounded-2xl"
         >
           Find Food
           <Bike className="ml-2 w-5 h-5" />

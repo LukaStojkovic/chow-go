@@ -21,7 +21,7 @@ export function CourierOrderRoute({ restaurant, deliveryAddressSnapshot }) {
       <SectionLabel>Route</SectionLabel>
       <div className="space-y-3">
         <div className="flex items-start gap-3">
-          <div className="mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-emerald-500 bg-background" />
+          <div className="mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-background" />
           <div className="min-w-0">
             <p className="font-medium text-foreground truncate">
               {restaurant?.name ?? "Restaurant"}
@@ -35,7 +35,7 @@ export function CourierOrderRoute({ restaurant, deliveryAddressSnapshot }) {
         <div className="ml-1.5 h-5 w-px bg-border" />
 
         <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
           <div className="min-w-0">
             <p className="font-medium text-foreground">Customer dropoff</p>
             <p className="text-sm text-muted-foreground truncate">

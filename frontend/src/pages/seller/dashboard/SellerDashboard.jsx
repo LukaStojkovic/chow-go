@@ -26,14 +26,14 @@ export const SellerDashboard = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <p className="text-red-500 mb-4">
+          <p className="text-destructive mb-4">
             {error.response?.data?.message || "Failed to load dashboard data"}
           </p>
           <Tooltip>
             <TooltipTrigger>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary transition-colors"
               >
                 Retry
               </button>

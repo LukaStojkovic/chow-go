@@ -19,9 +19,9 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+        className="rounded-3xl border border-border bg-card p-6 shadow-sm "
       >
-        <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+        <h3 className="mb-4 text-base font-semibold text-foreground ">
           Weekly earnings
         </h3>
         <div className="h-52 w-full">
@@ -82,34 +82,34 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+          className="rounded-3xl border border-border bg-card p-6 shadow-sm "
         >
-          <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white">
+          <h3 className="mb-4 text-base font-semibold text-foreground ">
             Recent deliveries
           </h3>
-          <div className="divide-y divide-gray-100 dark:divide-zinc-800">
+          <div className="divide-y divide-border ">
             {recentOrders.map((o) => (
               <div
                 key={o._id}
                 className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-xs font-semibold text-primary ">
                   {generateNameInitials(o.restaurant?.name)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="truncate text-sm font-medium text-foreground ">
                     {o.restaurant?.name}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {o.orderNumber?.split("-").slice(-1)[0].replace(/^0+/, "#")}{" "}
                     · {o.customer?.name}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <p className="text-sm font-semibold text-foreground ">
                     ${o.deliveryFee?.toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     {formatDateAgo(o.deliveredAt)}
                   </p>
                 </div>

@@ -37,7 +37,7 @@ export default function CourierDashboard() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+          className="flex items-center gap-3 rounded-2xl bg-warning-subtle p-4 text-warning "
         >
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium">
@@ -50,17 +50,17 @@ export default function CourierDashboard() {
       {inProgressOrder && (
         <Link
           to={`/courier/delivery/${inProgressOrder._id}`}
-          className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 transition hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/30"
+          className="flex items-center justify-between rounded-2xl border border-primary bg-primary-subtle px-6 py-5 transition hover:bg-primary-subtle "
         >
           <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+            <p className="text-sm font-bold uppercase tracking-wide text-primary ">
               Delivery in progress
             </p>
-            <p className="mt-1 font-semibold text-gray-900 dark:text-white">
+            <p className="mt-1 font-semibold text-foreground ">
               {inProgressOrder.restaurant?.name ?? "Restaurant"}
             </p>
           </div>
-          <span className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white">
+          <span className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
             <Navigation className="h-4 w-4" />
             Open map
           </span>

@@ -76,7 +76,7 @@ export function TimePicker({ value, onChange }) {
           })}
         </SelectContent>
       </Select>
-      <span className="text-gray-500 font-bold">:</span>
+      <span className="text-muted-foreground font-bold">:</span>
       <Select value={minutes} onValueChange={handleMinutesChange}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="MM" />

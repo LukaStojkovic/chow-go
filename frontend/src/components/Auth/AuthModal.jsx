@@ -105,7 +105,7 @@ export default function AuthModal({
           type="submit"
           form="auth-form"
           disabled={isLoading}
-          className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/20"
+          className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg "
         >
           {isLoading ? (
             <>
@@ -156,13 +156,13 @@ export default function AuthModal({
               onForgotPassword={() => setStep(STEPS.FORGOT)}
             />
           </form>
-          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 pt-4">
+          <div className="text-center text-xs sm:text-sm text-muted-foreground pt-4">
             Don't have an account?{" "}
             <button
               type="button"
               onClick={() => setStep(STEPS.REGISTER)}
               disabled={isLoading}
-              className="text-emerald-600 cursor-pointer dark:text-emerald-400 font-medium hover:underline transition-colors"
+              className="text-primary cursor-pointer font-medium hover:underline transition-colors"
             >
               Sign up
             </button>
@@ -186,13 +186,13 @@ export default function AuthModal({
               onNext={handleNext}
             />
           </form>
-          <div className="text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 pt-4">
+          <div className="text-center text-xs sm:text-sm text-muted-foreground pt-4">
             Already have an account?{" "}
             <button
               type="button"
               onClick={() => setStep(STEPS.LOGIN)}
               disabled={isLoading}
-              className="text-emerald-600 cursor-pointer dark:text-emerald-400 font-medium hover:underline transition-colors"
+              className="text-primary cursor-pointer font-medium hover:underline transition-colors"
             >
               Log in
             </button>
@@ -251,7 +251,7 @@ export default function AuthModal({
             <button
               type="button"
               onClick={() => setStep(STEPS.LOGIN)}
-              className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer transition-colors"
+              className="text-xs sm:text-sm text-primary hover:underline cursor-pointer transition-colors"
             >
               Back to login
             </button>
@@ -281,14 +281,14 @@ export default function AuthModal({
                 const nextStep = await passwordReset.sendCode(data);
                 if (nextStep) setStep(STEPS.OTP);
               })}
-              className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer transition-colors"
+              className="text-xs sm:text-sm text-primary hover:underline cursor-pointer transition-colors"
             >
               Resend code
             </button>
           </div>
           <Button
             type="submit"
-            className="w-full h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-sm sm:text-base"
+            className="w-full h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg  text-sm sm:text-base"
           >
             Verify Code
           </Button>
@@ -317,7 +317,7 @@ export default function AuthModal({
           />
           <Button
             type="submit"
-            className="w-full h-10 sm:h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg shadow-emerald-600/20 text-sm sm:text-base"
+            className="w-full h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg  text-sm sm:text-base"
           >
             Set New Password
           </Button>

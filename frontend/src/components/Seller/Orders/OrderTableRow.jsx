@@ -53,7 +53,7 @@ export function OrderTableRow({
 
   return (
     <TableRow>
-      <TableCell className="font-mono text-emerald-600">
+      <TableCell className="font-mono text-primary">
         {order.orderNumber}
       </TableCell>
       <TableCell>

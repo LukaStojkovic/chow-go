@@ -82,15 +82,15 @@ export function ImageUploadField({
   if (multiple) {
     return (
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-muted-foreground ">
           {label}
         </label>
         <div className="space-y-4">
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
               isDragOver
-                ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
-                : "border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-500"
+                ? "border-primary bg-primary-subtle "
+                : "border-border hover:border-primary "
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -100,22 +100,22 @@ export function ImageUploadField({
             <Upload
               className={`w-8 h-8 mx-auto mb-2 ${
                 isDragOver
-                  ? "text-emerald-500"
-                  : "text-gray-400 dark:text-gray-500"
+                  ? "text-primary"
+                  : "text-muted-foreground "
               }`}
             />
             <p
               className={`text-sm ${
                 isDragOver
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-gray-600 dark:text-gray-400"
+                  ? "text-primary "
+                  : "text-muted-foreground "
               }`}
             >
               {isDragOver
                 ? "Drop images here"
                 : "Drag & drop images or click to select"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Maximum {maxImages} images
             </p>
           </div>
@@ -128,24 +128,24 @@ export function ImageUploadField({
             className="hidden"
           />
           {error && (
-            <p className="text-red-500 dark:text-red-400 text-xs">
+            <p className="text-destructive text-xs">
               {error.message}
             </p>
           )}
           {previews.length > 0 && (
-            <div className="max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="max-h-60 overflow-y-auto border border-border rounded-lg p-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {previews.map((preview, index) => (
                   <div key={index} className="relative group">
                     <img
                       src={preview}
                       alt={`Preview ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                      className="w-full h-24 object-cover rounded-lg border border-border "
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -161,8 +161,8 @@ export function ImageUploadField({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Profile Image {required && <span className="text-red-500">*</span>}
+      <label className="text-sm font-medium text-muted-foreground ">
+        Profile Image {required && <span className="text-destructive">*</span>}
       </label>
       <div className="flex items-center gap-4">
         {previews[0] ? (
@@ -170,19 +170,19 @@ export function ImageUploadField({
             <img
               src={previews[0]}
               alt="Preview"
-              className="w-20 h-20 rounded-full object-cover border-2 border-green-500 dark:border-green-400"
+              className="w-20 h-20 rounded-full object-cover border-2 border-primary "
             />
             <button
               type="button"
               onClick={() => removeImage(0)}
-              className="absolute -top-1 -right-1 bg-red-500 dark:bg-red-600 text-white rounded-full p-1 hover:bg-red-600 dark:hover:bg-red-700"
+              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive "
             >
               <X className="w-3 h-3" />
             </button>
           </div>
         ) : (
-          <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-800 border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center">
-            <Upload className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+          <div className="w-20 h-20 rounded-full bg-secondary border-2 border-dashed border-border flex items-center justify-center">
+            <Upload className="w-6 h-6 text-muted-foreground " />
           </div>
         )}
         <Controller
@@ -198,7 +198,7 @@ export function ImageUploadField({
                 }
                 className="hidden"
               />
-              <span className="px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition">
+              <span className="px-4 py-2 bg-primary-subtle text-primary rounded-lg hover:bg-primary-subtle transition">
                 Choose Image
               </span>
             </label>
@@ -206,7 +206,7 @@ export function ImageUploadField({
         />
       </div>
       {error && (
-        <p className="text-red-500 dark:text-red-400 text-xs">
+        <p className="text-destructive text-xs">
           {error.message}
         </p>
       )}

@@ -2,6 +2,7 @@ import MenuItem from "../models/MenuItem.js";
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
 import * as imageService from "./image.service.js";
+import { normalizePromotionInput, withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
 
 export async function validateMenuItemInput(name, price, category) {
@@ -40,9 +41,13 @@ export async function createNewMenuItem({
   category,
   available,
   imageUrls,
+  promotion,
 }) {
   await validateRestaurantOwnership(restaurantId, userId);
   const numericPrice = await validateMenuItemInput(name, price, category);
+  // Validated against the item's own price, so a promotion can never be saved
+  // that would sell the dish for less than it is allowed to go for.
+  const normalizedPromotion = normalizePromotionInput(promotion, numericPrice);
 
   const newMenuItem = await MenuItem.create({
     name: name.trim(),
@@ -51,6 +56,7 @@ export async function createNewMenuItem({
     category: category.trim(),
     available: available === true || available === "true",
     imageUrls: imageUrls || [],
+    promotion: normalizedPromotion,
     restaurant: restaurantId,
     owner: userId,
   });
@@ -83,6 +89,7 @@ export async function getMenuByCategories(restaurantId) {
             price: "$price",
             available: "$available",
             imageUrls: "$imageUrls",
+            promotion: "$promotion",
           },
         },
       },
@@ -92,9 +99,11 @@ export async function getMenuByCategories(restaurantId) {
     },
   ]);
 
+  const now = new Date();
+
   return menuByCategories.map((group) => ({
     category: group._id || "Uncategorized",
-    items: group.items,
+    items: group.items.map((item) => withPromotion(item, now)),
   }));
 }
 
@@ -173,9 +182,11 @@ export async function updateMenuItem({
   available,
   existingImages,
   newFiles,
+  promotion,
 }) {
   await validateRestaurantOwnership(restaurantId, userId);
   const numericPrice = await validateMenuItemInput(name, price, category);
+  const normalizedPromotion = normalizePromotionInput(promotion, numericPrice);
 
   const menuItem = await MenuItem.findOne({
     _id: menuItemId,
@@ -202,6 +213,9 @@ export async function updateMenuItem({
   menuItem.category = category.trim();
   menuItem.available = available !== "false";
   menuItem.imageUrls = imageUrls;
+  // Replaced wholesale rather than merged: the form always submits the whole
+  // promotion block, so a merge would make "turn this deal off" impossible.
+  menuItem.promotion = normalizedPromotion;
 
   await menuItem.save();
 

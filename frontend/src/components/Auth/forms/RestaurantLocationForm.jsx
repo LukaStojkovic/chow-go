@@ -21,26 +21,26 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
       className="space-y-5"
     >
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-          <MapPin className="w-4 h-4 text-emerald-600" />
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground ">
+          <MapPin className="w-4 h-4 text-primary" />
           Select Restaurant Location
         </label>
 
         <LocationMapSelector onLocationChange={handleLocationChange} />
 
         {errors.restaurantLat && (
-          <p className="text-xs text-red-500">{errors.restaurantLat.message}</p>
+          <p className="text-xs text-destructive">{errors.restaurantLat.message}</p>
         )}
       </div>
 
-      <div className="space-y-3 border-t border-gray-200 dark:border-zinc-800 pt-5">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-          <Clock className="w-4 h-4 text-emerald-600" />
+      <div className="space-y-3 border-t border-border pt-5">
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground ">
+          <Clock className="w-4 h-4 text-primary" />
           Operating Hours
         </label>
         <div className=" flex-col flex grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Opening time
             </label>
             <TimePicker
@@ -53,13 +53,13 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
               }
             />
             {errors.openingTime && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-destructive mt-1">
                 {errors.openingTime.message}
               </p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Closing time
             </label>
             <TimePicker
@@ -72,7 +72,7 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
               }
             />
             {errors.closingTime && (
-              <p className="text-xs text-red-500 mt-1">
+              <p className="text-xs text-destructive mt-1">
                 {errors.closingTime.message}
               </p>
             )}

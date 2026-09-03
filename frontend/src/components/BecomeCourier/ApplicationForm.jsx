@@ -30,11 +30,11 @@ export default function ApplicationForm({ openAuthModal }) {
       transition={{ duration: 0.6, delay: 0.4 }}
       className="w-full max-w-md lg:w-1/2"
     >
-      <div className="rounded-2xl border border-gray-200 bg-white/60 p-6 shadow-xl backdrop-blur-xl sm:p-8 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
+      <div className="rounded-2xl border border-border bg-card/60 p-6 shadow-xl backdrop-blur-xl sm:p-8 ">
+        <h2 className="mb-2 text-2xl font-bold text-foreground ">
           {submitSuccess ? "Application Submitted" : "Become a Courier"}
         </h2>
-        <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mb-6 text-sm text-muted-foreground ">
           {submitSuccess ? "" : `Complete all ${totalSteps} steps to apply`}
         </p>
 
@@ -62,7 +62,7 @@ export default function ApplicationForm({ openAuthModal }) {
               )}
 
               {apiError && (
-                <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600 darkck:bg-red-900/20 dark:text-red-400">
+                <p className="rounded-lg bg-destructive-subtle px-4 py-2.5 text-sm text-destructive darkck:bg-destructive/20 ">
                   {apiError}
                 </p>
               )}
@@ -75,12 +75,12 @@ export default function ApplicationForm({ openAuthModal }) {
                 isLoading={isLoading}
               />
 
-              <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-center text-xs text-muted-foreground ">
                 Already have a courier account?{" "}
                 <button
                   type="button"
                   onClick={() => openAuthModal(true)}
-                  className="font-medium cursor-pointer text-emerald-600 hover:underline dark:text-emerald-400"
+                  className="font-medium cursor-pointer text-primary hover:underline "
                 >
                   Sign in here
                 </button>

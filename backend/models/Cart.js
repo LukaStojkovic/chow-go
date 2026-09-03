@@ -8,8 +8,18 @@ const cartItemSchema = new mongoose.Schema(
       required: true,
     },
     name: { type: String, required: true },
+    /** What this line is charged at - already includes any promotion. */
     price: { type: Number, required: true, min: 0 },
+    /**
+     * The undiscounted price, recorded only when a promotion was applied. Lets
+     * the basket show what was struck through without re-reading the menu item,
+     * whose promotion may have ended in the meantime.
+     */
+    basePrice: { type: Number, min: 0 },
     quantity: { type: Number, required: true, min: 1, default: 1 },
+    // Carried through to Order.items.specialInstructions on checkout. Notes are
+    // per menu item, matching how the cart identifies a line.
+    specialInstructions: { type: String, trim: true, maxlength: 200 },
   },
   { _id: false }
 );
