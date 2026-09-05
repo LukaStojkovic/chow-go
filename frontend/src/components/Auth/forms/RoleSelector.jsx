@@ -10,7 +10,7 @@ export function RoleSelector({ role, setRole }) {
         className={`flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all ${
           role === "customer"
             ? "bg-primary hover:bg-primary text-primary-foreground shadow-lg "
-            : "bg-card/50 hover:bg-white text-foreground border border-border "
+            : "bg-card/50 hover:bg-card text-foreground border border-border "
         }`}
       >
         <User className="w-4 h-4 mr-2" />
@@ -22,7 +22,7 @@ export function RoleSelector({ role, setRole }) {
         className={`flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all ${
           role === "seller"
             ? "bg-primary hover:bg-primary text-primary-foreground shadow-lg "
-            : "bg-card/50 hover:bg-white text-foreground border border-border "
+            : "bg-card/50 hover:bg-card text-foreground border border-border "
         }`}
       >
         <Store className="w-4 h-4 mr-2" />

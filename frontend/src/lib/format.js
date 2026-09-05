@@ -1,20 +1,3 @@
-/**
- * Presentation formatting.
- *
- * Every price, distance, delivery estimate and date the customer sees goes
- * through this module. Nothing else in the app should call `toFixed(2)` or
- * concatenate a currency symbol by hand - that is how basket, checkout and
- * confirmation drift apart from each other.
- */
-
-/**
- * The single place currency is decided.
- *
- * Menu prices are stored as bare `Number`s with no currency on the document,
- * and the seed data uses USD-style values (14.99). Switching the whole product
- * to RSD is a change to these three lines plus a data migration - not a
- * find-and-replace across components.
- */
 export const CURRENCY = {
   code: "USD",
   locale: "en-US",
@@ -39,39 +22,18 @@ export function formatPrice(amount, { fallback = "-" } = {}) {
   return priceFormatter.format(amount);
 }
 
-/**
- * Format a fee, where zero is a selling point rather than a number.
- *
- * @param {number | null | undefined} amount
- * @param {{ freeLabel?: string }} [options]
- * @returns {string}
- */
 export function formatFee(amount, { freeLabel = "Free" } = {}) {
   if (typeof amount !== "number" || Number.isNaN(amount)) return "-";
   if (amount === 0) return freeLabel;
   return priceFormatter.format(amount);
 }
 
-/**
- * Distances arrive from the API in metres.
- *
- * @param {number | null | undefined} metres
- * @returns {string | null}
- */
 export function formatDistance(metres) {
   if (typeof metres !== "number" || Number.isNaN(metres)) return null;
   if (metres < 1000) return `${Math.round(metres / 50) * 50} m`;
   return `${(metres / 1000).toFixed(metres < 10000 ? 1 : 0)} km`;
 }
 
-/**
- * `estimatedDeliveryTime` is a free-text string on the Restaurant document
- * ("30-45 min"). Normalise the shapes sellers actually type so the card always
- * reads the same way.
- *
- * @param {string | null | undefined} value
- * @returns {string}
- */
 export function formatDeliveryEstimate(value) {
   if (!value || typeof value !== "string") return "30-45 min";
   const trimmed = value.trim();

@@ -359,6 +359,11 @@
     @apply outline-ring outline-2 outline-offset-2;
   }
 
+  /* Tailwind v4 preflight sets `cursor: default` on buttons. */
+  :where(button, [role="button"], summary):not(:disabled, [aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   ::-webkit-scrollbar {
     @apply h-2 w-2;
   }

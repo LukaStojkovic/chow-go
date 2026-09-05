@@ -45,7 +45,7 @@ export default function UserMenu({ user, onLogout }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full border border-border/20 bg-card/60 px-2 py-1.5 outline-none ring-2 ring-transparent backdrop-blur-md transition-all duration-200 hover:bg-white hover:ring-ring/30 sm:px-4 sm:py-2">
+        <button className="flex items-center gap-2 rounded-full border border-border/20 bg-card/60 px-2 py-1.5 outline-none ring-2 ring-transparent backdrop-blur-md transition-all duration-200 hover:bg-card hover:ring-ring/30 sm:px-4 sm:py-2">
           <img
             src={user.profilePicture || "/defaultProfilePicture.png"}
             referrerPolicy="no-referrer"
