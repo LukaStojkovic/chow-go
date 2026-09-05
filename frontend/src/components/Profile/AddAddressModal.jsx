@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -23,10 +23,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { LocationMapSelector } from "../Location/LocationMapSelector";
+import { lazyNamed } from "@/lib/lazyNamed";
 import { cn } from "@/lib/utils";
 import useReverseGeocoding from "@/hooks/Location/useReverseGeocoding";
 import Spinner from "../Spinner";
+
+const LocationMapSelector = lazyNamed(
+  () => import("../Location/LocationMapSelector"),
+  "LocationMapSelector",
+);
 
 const LABEL_OPTIONS = [
   { id: "home", label: "Home", icon: Home },
@@ -148,10 +153,14 @@ export default function AddAddressModal({
             className="flex-1 flex flex-col"
           >
             <div className="flex-1">
-              <LocationMapSelector
-                onLocationChange={handleLocationChange}
-                className="h-full w-full"
-              />
+              <Suspense
+                fallback={<div className="h-full w-full animate-pulse bg-muted" />}
+              >
+                <LocationMapSelector
+                  onLocationChange={handleLocationChange}
+                  className="h-full w-full"
+                />
+              </Suspense>
             </div>
 
             <div className="p-4 sm:p-5 border-t border-border ">

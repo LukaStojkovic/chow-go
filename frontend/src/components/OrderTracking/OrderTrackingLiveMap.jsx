@@ -1,8 +1,14 @@
+import { Suspense } from "react";
 import { Bike, MapPin, UtensilsCrossed } from "lucide-react";
-import { NavigationMap } from "@/components/Map/NavigationMap";
+import { lazyNamed } from "@/lib/lazyNamed";
 import { useOrderCourierLocation } from "@/hooks/Map/useOrderCourierLocation";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
 import { formatDistance, formatDuration, toLatLng } from "@/utils/mapUtils";
+
+const NavigationMap = lazyNamed(
+  () => import("@/components/Map/NavigationMap"),
+  "NavigationMap",
+);
 
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
@@ -71,14 +77,18 @@ export function OrderTrackingLiveMap({ orderId, order }) {
       </div>
 
       <div className="relative h-56 w-full sm:h-72">
-        <NavigationMap
-          restaurantCoords={restaurantCoords}
-          deliveryCoords={deliveryCoords}
-          courierCoords={showLive ? courierCoords : null}
-          routeCoords={showLive ? route?.coordinates : null}
-          followCourier={false}
-          className="absolute inset-0"
-        />
+        <Suspense
+          fallback={<div className="absolute inset-0 animate-pulse bg-muted" />}
+        >
+          <NavigationMap
+            restaurantCoords={restaurantCoords}
+            deliveryCoords={deliveryCoords}
+            courierCoords={showLive ? courierCoords : null}
+            routeCoords={showLive ? route?.coordinates : null}
+            followCourier={false}
+            className="absolute inset-0"
+          />
+        </Suspense>
       </div>
 
       <div className="flex items-center gap-4 border-t border-border px-5 py-3 text-xs text-muted-foreground ">

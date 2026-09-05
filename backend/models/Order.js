@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { randomBytes } from "crypto";
 
 const orderItemSchema = new mongoose.Schema(
   {
@@ -160,20 +161,13 @@ orderSchema.index({ courier: 1, status: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ "deliveryAddressSnapshot.location": "2dsphere" });
 
-orderSchema.pre("validate", async function (next) {
+orderSchema.pre("validate", function (next) {
   if (this.isNew && !this.orderNumber) {
-    try {
-      const count = await this.constructor.countDocuments();
-      const timestamp = Date.now();
-      const orderNum = String(count + 1).padStart(5, "0");
-      this.orderNumber = `ORD-${timestamp}-${orderNum}`;
-      next();
-    } catch (error) {
-      next(error);
-    }
-  } else {
-    next();
+    this.orderNumber = `ORD-${Date.now()}-${randomBytes(4)
+      .toString("hex")
+      .toUpperCase()}`;
   }
+  next();
 });
 
 orderSchema.virtual("totalItems").get(function () {

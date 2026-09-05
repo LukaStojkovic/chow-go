@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,13 +10,18 @@ import {
 } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import Spinner from "@/components/Spinner";
-import { CourierOrderMap } from "./CourierOrderMap";
+import { lazyNamed } from "@/lib/lazyNamed";
 import { CourierOrderRoute } from "./CourierOrderRoute";
 import { CourierOrderEarnings } from "./CourierOrderEarningsCard";
 import { CourierOrderItems } from "./CourierOrderItemsCard";
 import { CourierOrderNotes } from "./CourierOrderNoteCard";
 import { CourierOrderPayment } from "./CourierOrderPaymentCard";
 import { toLatLng } from "@/utils/mapUtils";
+
+const CourierOrderMap = lazyNamed(
+  () => import("./CourierOrderMap"),
+  "CourierOrderMap",
+);
 
 export function SectionLabel({ children }) {
   return (
@@ -86,12 +92,16 @@ export function CourierOrderDetailSheet({
 
           <div className="overflow-y-auto flex-1 min-h-0">
             {hasMap && (
-              <CourierOrderMap
-                restaurantCoords={restaurantCoords}
-                deliveryCoords={deliveryCoords}
-                distanceKm={distanceKm}
-                deliveryDistance={order.deliveryDistance}
-              />
+              <Suspense
+                fallback={<div className="h-52 w-full animate-pulse bg-muted" />}
+              >
+                <CourierOrderMap
+                  restaurantCoords={restaurantCoords}
+                  deliveryCoords={deliveryCoords}
+                  distanceKm={distanceKm}
+                  deliveryDistance={order.deliveryDistance}
+                />
+              </Suspense>
             )}
 
             <div className="divide-y divide-border">

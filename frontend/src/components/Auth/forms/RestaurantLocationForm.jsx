@@ -1,8 +1,13 @@
 import { motion } from "framer-motion";
 import { MapPin, Clock } from "lucide-react";
-import { LocationMapSelector } from "@/components/Location/LocationMapSelector";
+import { lazyNamed } from "@/lib/lazyNamed";
 import { InputField } from "../fields/InputField";
-import { useCallback } from "react";
+import { Suspense, useCallback } from "react";
+
+const LocationMapSelector = lazyNamed(
+  () => import("@/components/Location/LocationMapSelector"),
+  "LocationMapSelector",
+);
 import { TimePicker } from "@/components/ui/TimePicker";
 
 export function RestaurantLocationForm({ register, errors, setValue, watch }) {
@@ -26,7 +31,13 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
           Select Restaurant Location
         </label>
 
-        <LocationMapSelector onLocationChange={handleLocationChange} />
+        <Suspense
+          fallback={
+            <div className="h-80 w-full animate-pulse rounded-lg border border-border bg-muted" />
+          }
+        >
+          <LocationMapSelector onLocationChange={handleLocationChange} />
+        </Suspense>
 
         {errors.restaurantLat && (
           <p className="text-xs text-destructive">{errors.restaurantLat.message}</p>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
@@ -13,6 +13,7 @@ import ScrollToTop from "./hooks/ScrollToTop";
 import Spinner from "./components/Spinner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { CustomerShell } from "./components/shell/CustomerShell";
+import { lazyNamed } from "./lib/lazyNamed";
 
 import LandingPage from "./pages/LandingPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -32,19 +33,41 @@ import AuthModal from "./components/Auth/AuthModal";
 import PublicRoute from "./components/Auth/components/PublicRoute";
 import CustomerRoute from "./components/Auth/components/CustomerRoute";
 import SellerRoute from "./components/Auth/components/SellerRoute";
-import SellerLayout from "./components/Auth/components/SellerLayout";
-import { SellerDashboard } from "./pages/seller/dashboard/SellerDashboard";
-import { SellerOrders } from "./pages/seller/SellerOrders";
-import { SellerMenu } from "./pages/seller/SellerMenu";
-import { SellerAnalytics } from "./pages/seller/SellerAnalytics";
-import { SellerSettings } from "./pages/seller/SellerSettings";
-
 import CourierRoute from "./pages/courier/CourierRoute";
-import CourierLayout from "./pages/courier/CourierLayout";
-import CourierDashboard from "./pages/courier/CourierDashboard";
-import { CourierOrders } from "./pages/courier/CourierOrders";
-import CourierActiveDelivery from "./pages/courier/CourierActiveDelivery";
-import { CourierProfile } from "./pages/courier/CourierProfile";
+const SellerLayout = lazy(
+  () => import("./components/Auth/components/SellerLayout"),
+);
+const SellerDashboard = lazyNamed(
+  () => import("./pages/seller/dashboard/SellerDashboard"),
+  "SellerDashboard",
+);
+const SellerOrders = lazyNamed(
+  () => import("./pages/seller/SellerOrders"),
+  "SellerOrders",
+);
+const SellerMenu = lazyNamed(() => import("./pages/seller/SellerMenu"), "SellerMenu");
+const SellerAnalytics = lazyNamed(
+  () => import("./pages/seller/SellerAnalytics"),
+  "SellerAnalytics",
+);
+const SellerSettings = lazyNamed(
+  () => import("./pages/seller/SellerSettings"),
+  "SellerSettings",
+);
+
+const CourierLayout = lazy(() => import("./pages/courier/CourierLayout"));
+const CourierDashboard = lazy(() => import("./pages/courier/CourierDashboard"));
+const CourierOrders = lazyNamed(
+  () => import("./pages/courier/CourierOrders"),
+  "CourierOrders",
+);
+const CourierActiveDelivery = lazy(
+  () => import("./pages/courier/CourierActiveDelivery"),
+);
+const CourierProfile = lazyNamed(
+  () => import("./pages/courier/CourierProfile"),
+  "CourierProfile",
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,102 +98,104 @@ function AppContent() {
     <>
       <ScrollToTop />
 
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth/google/callback" element={<GoogleAuthCallbackPage />} />
+      <Suspense fallback={<Spinner fullScreen />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth/google/callback" element={<GoogleAuthCallbackPage />} />
 
-        {/* Browsable without an account. Signing in is required at the point
-            it actually matters - adding to the basket. */}
-        <Route element={<PublicRoute />}>
-          <Route element={<CustomerShell />}>
-            <Route path="/discovery" element={<DiscoverPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/restaurant/:restaurantId" element={<RestaurantPage />} />
-          </Route>
-          <Route path="/become-courier" element={<BecomeCourierPage />} />
-        </Route>
-
-        <Route element={<CustomerRoute />}>
-          <Route element={<CustomerShell />}>
-            <Route path="/favourites" element={<FavouritesPage />} />
+          {/* Browsable without an account. Signing in is required at the point
+              it actually matters - adding to the basket. */}
+          <Route element={<PublicRoute />}>
+            <Route element={<CustomerShell />}>
+              <Route path="/discovery" element={<DiscoverPage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/restaurant/:restaurantId" element={<RestaurantPage />} />
+            </Route>
+            <Route path="/become-courier" element={<BecomeCourierPage />} />
           </Route>
 
-          {/* Focused screens: a back-and-title header, and no basket trigger
-              competing with the task at hand. */}
-          <Route
-            element={<CustomerShell variant="detail" title="Your orders" backTo="/discovery" />}
-          >
-            <Route path="/orders" element={<MyOrdersPage />} />
-          </Route>
-          <Route element={<CustomerShell variant="detail" title="Order" backTo="/orders" />}>
-            <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
-          </Route>
-          <Route
-            element={
-              <CustomerShell
-                variant="detail"
-                title="Order confirmed"
-                showBasket={false}
-                showBottomNav={false}
-                backTo="/discovery"
-              />
-            }
-          >
+          <Route element={<CustomerRoute />}>
+            <Route element={<CustomerShell />}>
+              <Route path="/favourites" element={<FavouritesPage />} />
+            </Route>
+
+            {/* Focused screens: a back-and-title header, and no basket trigger
+                competing with the task at hand. */}
             <Route
-              path="/orders/:orderId/confirmed"
-              element={<OrderConfirmationPage />}
-            />
-          </Route>
-          <Route
-            element={
-              <CustomerShell
-                variant="detail"
-                title="Checkout"
-                showBasket={false}
-                showBottomNav={false}
+              element={<CustomerShell variant="detail" title="Your orders" backTo="/discovery" />}
+            >
+              <Route path="/orders" element={<MyOrdersPage />} />
+            </Route>
+            <Route element={<CustomerShell variant="detail" title="Order" backTo="/orders" />}>
+              <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
+            </Route>
+            <Route
+              element={
+                <CustomerShell
+                  variant="detail"
+                  title="Order confirmed"
+                  showBasket={false}
+                  showBottomNav={false}
+                  backTo="/discovery"
+                />
+              }
+            >
+              <Route
+                path="/orders/:orderId/confirmed"
+                element={<OrderConfirmationPage />}
               />
+            </Route>
+            <Route
+              element={
+                <CustomerShell
+                  variant="detail"
+                  title="Checkout"
+                  showBasket={false}
+                  showBottomNav={false}
+                />
+              }
+            >
+              <Route path="/checkout" element={<CheckoutPage />} />
+            </Route>
+            <Route element={<CustomerShell variant="detail" title="Profile" backTo="/discovery" />}>
+              <Route path="/profile" element={<ProfilePage />} />
+            </Route>
+          </Route>
+
+          <Route
+            path="/seller"
+            element={
+              <SellerRoute>
+                <SellerLayout />
+              </SellerRoute>
             }
           >
-            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<SellerDashboard />} />
+            <Route path="orders" element={<SellerOrders />} />
+            <Route path="menu" element={<SellerMenu />} />
+            <Route path="analytics" element={<SellerAnalytics />} />
+            <Route path="settings" element={<SellerSettings />} />
           </Route>
-          <Route element={<CustomerShell variant="detail" title="Profile" backTo="/discovery" />}>
-            <Route path="/profile" element={<ProfilePage />} />
+
+          <Route
+            path="/courier"
+            element={
+              <CourierRoute>
+                <CourierLayout />
+              </CourierRoute>
+            }
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<CourierDashboard />} />
+            <Route path="orders" element={<CourierOrders />} />
+            <Route path="delivery/:orderId" element={<CourierActiveDelivery />} />
+            <Route path="profile" element={<CourierProfile />} />
           </Route>
-        </Route>
 
-        <Route
-          path="/seller"
-          element={
-            <SellerRoute>
-              <SellerLayout />
-            </SellerRoute>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<SellerDashboard />} />
-          <Route path="orders" element={<SellerOrders />} />
-          <Route path="menu" element={<SellerMenu />} />
-          <Route path="analytics" element={<SellerAnalytics />} />
-          <Route path="settings" element={<SellerSettings />} />
-        </Route>
-
-        <Route
-          path="/courier"
-          element={
-            <CourierRoute>
-              <CourierLayout />
-            </CourierRoute>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<CourierDashboard />} />
-          <Route path="orders" element={<CourierOrders />} />
-          <Route path="delivery/:orderId" element={<CourierActiveDelivery />} />
-          <Route path="profile" element={<CourierProfile />} />
-        </Route>
-
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
 
       {/* Toasts inherit the app surface and the semantic status tokens rather
           than painting their own gradients. */}

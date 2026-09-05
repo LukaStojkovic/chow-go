@@ -1,7 +1,12 @@
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Bike, MapPin, UtensilsCrossed } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { NavigationMap } from "@/components/Map/NavigationMap";
+import { lazyNamed } from "@/lib/lazyNamed";
+
+const NavigationMap = lazyNamed(
+  () => import("@/components/Map/NavigationMap"),
+  "NavigationMap",
+);
 import { useOrderCourierLocation } from "@/hooks/Map/useOrderCourierLocation";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
 import { formatDistance, formatDuration, toLatLng } from "@/utils/mapUtils";
@@ -124,14 +129,18 @@ function SellerDeliveryMap({ order, restaurantCoordinates }) {
       </div>
 
       <div className="relative h-56 w-full overflow-hidden rounded-lg border border-border sm:h-72">
-        <NavigationMap
-          restaurantCoords={restaurantCoords}
-          deliveryCoords={deliveryCoords}
-          courierCoords={courierCoords}
-          routeCoords={route?.coordinates}
-          followCourier={false}
-          className="absolute inset-0"
-        />
+        <Suspense
+          fallback={<div className="absolute inset-0 animate-pulse bg-muted" />}
+        >
+          <NavigationMap
+            restaurantCoords={restaurantCoords}
+            deliveryCoords={deliveryCoords}
+            courierCoords={courierCoords}
+            routeCoords={route?.coordinates}
+            followCourier={false}
+            className="absolute inset-0"
+          />
+        </Suspense>
       </div>
 
       <div className="flex items-center gap-4 text-xs text-muted-foreground">

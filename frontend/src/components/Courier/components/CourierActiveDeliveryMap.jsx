@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Loader2, MapPinOff } from "lucide-react";
-import { NavigationMap } from "@/components/Map/NavigationMap";
+import { lazyNamed } from "@/lib/lazyNamed";
+
+const NavigationMap = lazyNamed(
+  () => import("@/components/Map/NavigationMap"),
+  "NavigationMap",
+);
 import { NavigationBanner } from "@/components/Map/NavigationBanner";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
 import { useCourierLocation } from "@/contexts/CourierLocationContext";
@@ -56,14 +61,18 @@ export function CourierActiveDeliveryMap({
 
   return (
     <>
-      <NavigationMap
-        className={className}
-        restaurantCoords={restaurantCoords}
-        deliveryCoords={deliveryCoords}
-        courierCoords={courierCoords}
-        routeCoords={route?.coordinates}
-        followCourier={followMode && Boolean(courierCoords)}
-      />
+      <Suspense
+        fallback={<div className={`${className} animate-pulse bg-muted`} />}
+      >
+        <NavigationMap
+          className={className}
+          restaurantCoords={restaurantCoords}
+          deliveryCoords={deliveryCoords}
+          courierCoords={courierCoords}
+          routeCoords={route?.coordinates}
+          followCourier={followMode && Boolean(courierCoords)}
+        />
+      </Suspense>
 
       <div className="absolute left-4 right-4 top-16 z-1000 space-y-2">
         <NavigationBanner
