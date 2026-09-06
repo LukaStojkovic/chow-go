@@ -27,6 +27,7 @@ export default function SellerLayout() {
           options={{ presentation: "fullScreenModal", headerShown: false }}
         />
         <Stack.Screen name="order/[orderId]" options={{ title: "Order" }} />
+        <Stack.Screen name="menu-item/[menuItemId]" options={{ title: "Dish" }} />
       </Stack>
 
       <SellerAlert />
