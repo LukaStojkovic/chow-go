@@ -21,9 +21,12 @@ export function useToggleFavourite() {
 
       queryClient.setQueryData(KEY, (current) => {
         if (!Array.isArray(current)) return current;
-        return current.some((entry) => String(entry._id) === String(restaurantId))
+        const saved = current.some((entry) => String(entry._id) === String(restaurantId));
+        // Adding inserts a stub: the card that triggered this already has the
+        // restaurant on screen, and the refetch replaces it moments later.
+        return saved
           ? current.filter((entry) => String(entry._id) !== String(restaurantId))
-          : current;
+          : [...current, { _id: restaurantId }];
       });
 
       return { previous };

@@ -34,3 +34,8 @@ export async function resetPassword(email, newPassword) {
   const { data } = await api.post("/auth/reset-password", { email, newPassword });
   return data;
 }
+
+export async function updateProfile(payload) {
+  const { data } = await api.put("/auth/update-profile", payload);
+  return data;
+}

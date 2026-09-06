@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
-import { RefreshControl, View } from "react-native";
+import { Pressable, RefreshControl, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { toDishViews } from "@chowgo/shared/adapters/menu";
+import { toOrderView } from "@chowgo/shared/adapters/order";
 import { toRestaurantViews } from "@chowgo/shared/adapters/restaurant";
 import { CategoryRail } from "@/components/discovery/CategoryRail";
 import { DishCard } from "@/components/discovery/DishCard";
@@ -13,16 +14,33 @@ import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { LocationGate } from "@/features/discover/LocationGate";
 import { Rail } from "@/features/discover/Rail";
-import { useDiscoverFeed, usePopularItems, usePromotions } from "@/hooks/Discover/useDiscover";
+import {
+  useDiscoverFeed,
+  useNearbyRestaurants,
+  usePopularItems,
+  usePromotions,
+} from "@/hooks/Discover/useDiscover";
+import { useCustomerOrders } from "@/hooks/Orders/useOrders";
+import { useReorder } from "@/hooks/Orders/useReorder";
+import { ReplaceBasketPrompt } from "@/features/basket/ReplaceBasketPrompt";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 
 export default function Discover() {
   const { address, coordinates } = useDeliveryStore();
   const [category, setCategory] = useState("All");
 
+  const { isFavourite, toggleFavourite } = useFavouriteToggle();
   const feed = useDiscoverFeed(category);
   const popular = usePopularItems();
   const promotions = usePromotions();
+  const nearby = useNearbyRestaurants();
+
+  // Past orders only mean something once there is an account behind them.
+  const authUser = useAuthStore((state) => state.authUser);
+  const pastOrders = useCustomerOrders(authUser ? { status: "delivered", limit: 5 } : undefined);
+  const { reorder, conflict, confirmReplace, cancelReplace } = useReorder();
 
   const dishes = toDishViews(feed.data?.pages.flatMap((page) => page.items) ?? []);
 
@@ -30,7 +48,8 @@ export default function Discover() {
     feed.refetch();
     popular.refetch();
     promotions.refetch();
-  }, [feed, popular, promotions]);
+    nearby.refetch();
+  }, [feed, popular, promotions, nearby]);
 
   if (!coordinates) return <LocationGate />;
 
@@ -80,6 +99,31 @@ export default function Discover() {
                 <View className="w-64">
                   <RestaurantCard
                     restaurant={item}
+                    isFavourite={isFavourite(item.id)}
+                    onToggleFavourite={() => toggleFavourite(item.id)}
+                    onPress={() => router.push(`/(customer)/restaurant/${item.id}`)}
+                  />
+                </View>
+              )}
+            />
+
+            <Rail
+              title="Order again"
+              data={authUser ? (pastOrders.data?.orders ?? []) : []}
+              keyExtractor={(item) => String(item._id)}
+              renderItem={({ item }) => <ReorderCard order={item} onPress={() => reorder(item)} />}
+            />
+
+            <Rail
+              title="Restaurants near you"
+              data={toRestaurantViews(nearby.data ?? [])}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View className="w-64">
+                  <RestaurantCard
+                    restaurant={item}
+                    isFavourite={isFavourite(item.id)}
+                    onToggleFavourite={() => toggleFavourite(item.id)}
                     onPress={() => router.push(`/(customer)/restaurant/${item.id}`)}
                   />
                 </View>
@@ -149,6 +193,35 @@ export default function Discover() {
           ) : null
         }
       />
+
+      <ReplaceBasketPrompt
+        visible={Boolean(conflict)}
+        currentRestaurantName={conflict?.currentRestaurantName}
+        onConfirm={confirmReplace}
+        onCancel={cancelReplace}
+      />
     </Screen>
+  );
+}
+
+function ReorderCard({ order, onPress }) {
+  const view = toOrderView(order);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Order again from ${view.restaurant?.name}`}
+      onPress={onPress}
+      className="w-56 gap-2 rounded-md border border-border bg-card p-3 active:opacity-70"
+    >
+      <Text variant="label" numberOfLines={1}>
+        {view.restaurant?.name}
+      </Text>
+      <Text variant="caption" tone="muted" numberOfLines={1}>
+        {view.itemCount} {view.itemCount === 1 ? "item" : "items"} · {view.placedAtLabel}
+      </Text>
+      <Text variant="body-sm" tone="primary">
+        Order again
+      </Text>
+    </Pressable>
   );
 }

@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Phone } from "lucide-react-native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { toOrderView } from "@chowgo/shared/adapters/order";
 import { formatPrice } from "@chowgo/shared/format";
 import { errorMessage } from "@/api/client";
@@ -12,6 +13,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
 import { OrderTrackingMap } from "@/features/orders/OrderTrackingMap";
+import { CancelOrderPrompt } from "@/features/orders/CancelOrderPrompt";
 import { useCancelOrder, useOrder } from "@/hooks/Orders/useOrders";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
@@ -22,6 +24,7 @@ export default function OrderTracking() {
   const { orderId } = useLocalSearchParams();
   const { data, isLoading, isError, refetch } = useOrder(orderId);
   const cancel = useCancelOrder(orderId);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const { color } = useTokens();
 
   if (isLoading) {
@@ -109,23 +112,33 @@ export default function OrderTracking() {
           </Text>
         </Card>
 
+        {order.canRate ? (
+          <Button onPress={() => router.push(`/(customer)/order/${orderId}/rate`)}>
+            Rate your order
+          </Button>
+        ) : null}
+
         {order.canCancel ? (
-          <Button
-            variant="outline"
-            loading={cancel.isPending}
-            onPress={async () => {
-              try {
-                await cancel.mutateAsync("Changed my mind");
-                toast.success("Order cancelled");
-              } catch (error) {
-                toast.error("Could not cancel", { description: errorMessage(error) });
-              }
-            }}
-          >
+          <Button variant="outline" onPress={() => setCancelOpen(true)}>
             Cancel order
           </Button>
         ) : null}
       </ScrollView>
+
+      <CancelOrderPrompt
+        visible={cancelOpen}
+        isPending={cancel.isPending}
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={async (reason) => {
+          try {
+            await cancel.mutateAsync(reason);
+            setCancelOpen(false);
+            toast.success("Order cancelled");
+          } catch (error) {
+            toast.error("Could not cancel", { description: errorMessage(error) });
+          }
+        }}
+      />
     </Screen>
   );
 }

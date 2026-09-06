@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { Star, Trash2 } from "lucide-react-native";
+import { router } from "expo-router";
+import { Pencil, Star, Trash2 } from "lucide-react-native";
 import { MAX_SAVED_ADDRESSES } from "@chowgo/shared/constants";
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -79,6 +80,14 @@ export default function Addresses() {
                     }
                   />
                 </View>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  accessibilityLabel={`Edit ${entry.label ?? "address"}`}
+                  onPress={() => router.push(`/(customer)/address/${entry._id}`)}
+                >
+                  <Pencil size={16} color={color["muted-foreground"]} />
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

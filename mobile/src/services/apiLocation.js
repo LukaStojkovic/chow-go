@@ -22,3 +22,10 @@ export async function getLocationPredictions(query) {
   const { data } = await api.get("/location/location-prediction", { params: { query } });
   return data;
 }
+
+export async function getNearbyRestaurants({ lat, lon, maxDistanceMeters = 20000 }) {
+  const { data } = await api.get("/location/get-near-restaurants", {
+    params: { lat, lon, maxDistanceMeters },
+  });
+  return data.data ?? data.restaurants ?? [];
+}

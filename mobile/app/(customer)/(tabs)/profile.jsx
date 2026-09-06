@@ -1,7 +1,7 @@
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { Image } from "expo-image";
-import { ChevronRight, LogOut, MapPin, Moon, Receipt } from "lucide-react-native";
+import { ChevronRight, LogOut, MapPin, Moon, Receipt, UserRound } from "lucide-react-native";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -86,6 +86,12 @@ export default function Profile() {
         </View>
 
         <Card className="gap-1">
+          <Row
+            icon={UserRound}
+            label="Your details"
+            onPress={() => router.push("/(customer)/settings/profile")}
+          />
+          <View className="h-px bg-border" />
           <Row
             icon={Receipt}
             label="Your orders"

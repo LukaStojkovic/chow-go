@@ -9,12 +9,15 @@ import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { OrderCard } from "@/features/orders/OrderCard";
 import { useCustomerOrders } from "@/hooks/Orders/useOrders";
+import { useReorder } from "@/hooks/Orders/useReorder";
+import { ReplaceBasketPrompt } from "@/features/basket/ReplaceBasketPrompt";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Orders() {
   const authUser = useAuthStore((state) => state.authUser);
   const [tab, setTab] = useState("active");
 
+  const { reorder, reorderingId, conflict, confirmReplace, cancelReplace } = useReorder();
   const query = useCustomerOrders(
     tab === "active" ? { status: ACTIVE_STATUS_FILTER } : { limit: 20 },
   );
@@ -60,7 +63,16 @@ export default function Orders() {
           <RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />
         }
         renderItem={({ item }) => (
-          <OrderCard order={item} onPress={() => router.push(`/(customer)/order/${item.id}`)} />
+          <OrderCard
+            order={item}
+            onPress={() => router.push(`/(customer)/order/${item.id}`)}
+            onReorder={
+              item.canReorder
+                ? () => reorder(query.data.orders.find((o) => String(o._id) === item.id))
+                : undefined
+            }
+            isReordering={reorderingId === item.id}
+          />
         )}
         ListEmptyComponent={
           query.isLoading ? (
@@ -80,6 +92,13 @@ export default function Orders() {
             />
           )
         }
+      />
+
+      <ReplaceBasketPrompt
+        visible={Boolean(conflict)}
+        currentRestaurantName={conflict?.currentRestaurantName}
+        onConfirm={confirmReplace}
+        onCancel={cancelReplace}
       />
     </Screen>
   );

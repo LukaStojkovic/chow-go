@@ -5,6 +5,7 @@ import {
   getPromotions,
   searchDiscover,
 } from "@/services/apiDiscover";
+import { getNearbyRestaurants } from "@/services/apiLocation";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 
 // Every discovery read is geo-scoped, so each hook is disabled until there are
@@ -57,5 +58,15 @@ export function useDiscoverSearch(query) {
     // Search is the tightest-limited endpoint on the backend; a short cache
     // stops back-navigation re-spending the budget.
     staleTime: 30_000,
+  });
+}
+
+export function useNearbyRestaurants() {
+  const { coordinates, enabled } = useCoordinates();
+
+  return useQuery({
+    queryKey: ["nearbyRestaurants", coordinates?.lat, coordinates?.lon],
+    enabled,
+    queryFn: () => getNearbyRestaurants(coordinates),
   });
 }

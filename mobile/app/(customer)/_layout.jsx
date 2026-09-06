@@ -43,6 +43,12 @@ export default function CustomerLayout() {
         <Stack.Screen name="address/index" options={{ title: "Delivery addresses" }} />
         <Stack.Screen name="order/[orderId]/index" options={{ title: "Order" }} />
         <Stack.Screen
+          name="order/[orderId]/rate"
+          options={{ presentation: "formSheet", sheetAllowedDetents: [0.9], title: "Rate" }}
+        />
+        <Stack.Screen name="address/[addressId]" options={{ title: "Edit address" }} />
+        <Stack.Screen name="settings/profile" options={{ title: "Your details" }} />
+        <Stack.Screen
           name="order/[orderId]/confirmed"
           options={{ presentation: "fullScreenModal", headerShown: false }}
         />

@@ -11,6 +11,7 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { OfflineBanner } from "@/components/feedback/OfflineBanner";
 import { Toaster } from "@/components/feedback/Toaster";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -66,6 +67,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <SocketProvider>
             <AppContent />
+            <OfflineBanner />
             <Toaster />
           </SocketProvider>
         </ThemeProvider>

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
-import { SectionList, View } from "react-native";
+import { Pressable, SectionList, View } from "react-native";
+import { Heart, Info } from "lucide-react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { toDishViews } from "@chowgo/shared/adapters/menu";
@@ -11,7 +12,10 @@ import { Text } from "@/components/ui/Text";
 import { CategoryTabs } from "@/features/restaurant/CategoryTabs";
 import { HERO_HEIGHT, ParallaxHero } from "@/features/restaurant/ParallaxHero";
 import { MenuItemRow } from "@/features/restaurant/MenuItemRow";
+import { RestaurantInfoSheet } from "@/features/restaurant/RestaurantInfoSheet";
+import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
 import { useRestaurant } from "@/hooks/Restaurants/useRestaurant";
+import { useTokens } from "@/theme/useTokens";
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
@@ -19,6 +23,9 @@ export default function RestaurantPage() {
   const { restaurantId } = useLocalSearchParams();
   const { info, menu } = useRestaurant(restaurantId);
 
+  const { isFavourite, toggleFavourite } = useFavouriteToggle();
+  const { color } = useTokens();
+  const [infoOpen, setInfoOpen] = useState(false);
   const listRef = useRef(null);
   const scrollY = useSharedValue(0);
   const [active, setActive] = useState(null);
@@ -68,7 +75,39 @@ export default function RestaurantPage() {
   return (
     <>
       <Stack.Screen
-        options={{ title: restaurant?.name ?? "", headerTransparent: true, headerTitle: "" }}
+        options={{
+          title: restaurant?.name ?? "",
+          headerTransparent: true,
+          headerTitle: "",
+          headerRight: () => (
+            <View className="flex-row gap-1">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Restaurant information"
+                hitSlop={8}
+                onPress={() => setInfoOpen(true)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-black/45"
+              >
+                <Info size={17} color={color["scrim-foreground"]} />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isFavourite(restaurantId) ? "Remove from favourites" : "Save to favourites"
+                }
+                hitSlop={8}
+                onPress={() => toggleFavourite(restaurantId)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-black/45"
+              >
+                <Heart
+                  size={17}
+                  color={color["scrim-foreground"]}
+                  fill={isFavourite(restaurantId) ? color["scrim-foreground"] : "transparent"}
+                />
+              </Pressable>
+            </View>
+          ),
+        }}
       />
       <Screen edges={[]}>
         <AnimatedSectionList
@@ -134,6 +173,12 @@ export default function RestaurantPage() {
               <EmptyState title="No menu yet" description="This restaurant hasn't added dishes." />
             )
           }
+        />
+
+        <RestaurantInfoSheet
+          visible={infoOpen}
+          restaurant={restaurant}
+          onClose={() => setInfoOpen(false)}
         />
       </Screen>
     </>

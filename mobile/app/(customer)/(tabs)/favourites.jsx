@@ -6,13 +6,14 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { RestaurantCard } from "@/components/discovery/RestaurantCard";
 import { Screen } from "@/components/ui/Screen";
-import { useFavourites, useToggleFavourite } from "@/hooks/Favourites/useFavourites";
+import { useFavourites } from "@/hooks/Favourites/useFavourites";
+import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Favourites() {
   const authUser = useAuthStore((state) => state.authUser);
   const query = useFavourites();
-  const toggle = useToggleFavourite();
+  const { toggleFavourite } = useFavouriteToggle();
 
   if (!authUser) {
     return (
@@ -43,7 +44,7 @@ export default function Favourites() {
           <RestaurantCard
             restaurant={item}
             isFavourite
-            onToggleFavourite={() => toggle.mutate(item.id)}
+            onToggleFavourite={() => toggleFavourite(item.id)}
             onPress={() => router.push(`/(customer)/restaurant/${item.id}`)}
           />
         )}

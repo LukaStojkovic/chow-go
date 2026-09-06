@@ -1,10 +1,12 @@
 import { Pressable, View } from "react-native";
+import { RotateCcw } from "lucide-react-native";
+import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@chowgo/shared/format";
 import { Text } from "@/components/ui/Text";
 
 const TONES = { warning: "warning", info: "info", success: "success", destructive: "destructive" };
 
-export function OrderCard({ order, onPress }) {
+export function OrderCard({ order, onPress, onReorder, isReordering }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,6 +34,21 @@ export function OrderCard({ order, onPress }) {
           {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
         </Text>
       </View>
+
+      {onReorder ? (
+        <Button
+          variant="outline"
+          size="sm"
+          loading={isReordering}
+          onPress={onReorder}
+          className="mt-1"
+        >
+          <View className="flex-row items-center gap-2">
+            <RotateCcw size={14} className="text-foreground" />
+            <Text variant="body-sm">Order again</Text>
+          </View>
+        </Button>
+      ) : null}
     </Pressable>
   );
 }
