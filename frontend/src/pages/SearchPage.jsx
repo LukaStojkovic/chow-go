@@ -30,7 +30,7 @@ import {
   DEFAULT_SEARCH_FILTERS,
   applyRestaurantFilters,
   countActiveFilters,
-} from "@/features/search/filters";
+} from "@chowgo/shared/searchFilters";
 
 const MIN_QUERY_LENGTH = 2;
 
