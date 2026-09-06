@@ -9,6 +9,7 @@
     "./dates": "./src/dates.js",
     "./format": "./src/format.js",
     "./geo": "./src/geo.js",
+    "./menuItemSchema": "./src/menuItemSchema.js",
     "./promotion": "./src/promotion.js",
     "./schedule": "./src/schedule.js",
     "./searchFilters": "./src/searchFilters.js",

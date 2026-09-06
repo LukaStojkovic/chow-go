@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   editMenuItemSchema,
   promotionToFormValues,
-} from "../schemas/menuItemSchema";
+} from "@chowgo/shared/menuItemSchema";
 import { useUpdateMenuItem } from "../hooks/useUpdateMenuItem";
 import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";

@@ -1,6 +1,19 @@
 import { z } from "zod";
 
-import { PROMOTION_LIMITS } from "@chowgo/shared/promotion";
+
+import { PROMOTION_LIMITS } from "./promotion.js";
+
+/**
+ * An image the client is uploading. A browser supplies a File; React Native
+ * supplies { uri, name, type }. This package cannot reference either global, so
+ * it accepts anything that could plausibly be appended to FormData.
+ */
+const uploadableImage = z.custom(
+  (value) =>
+    (typeof value === "object" && value !== null && typeof value.uri === "string") ||
+    (typeof File !== "undefined" && value instanceof File),
+  { message: "Unsupported image" },
+);
 
 const priceField = z
   .string()
@@ -90,9 +103,9 @@ export const menuItemSchema = z
     category: z.string().min(1, "Please select a category"),
     price: priceField,
     available: z.boolean(),
-    description: z.string().optional(),
+    description: z.string().trim().min(1, "Description is required"),
     images: z
-      .array(z.instanceof(File))
+      .array(uploadableImage)
       .min(1, "At least one image is required")
       .max(6, "Maximum 6 images allowed")
       .default([]),
@@ -106,9 +119,9 @@ export const editMenuItemSchema = z
     category: z.string().min(1, "Please select a category"),
     price: priceField,
     available: z.boolean(),
-    description: z.string().optional(),
+    description: z.string().trim().min(1, "Description is required"),
     images: z
-      .array(z.instanceof(File))
+      .array(uploadableImage)
       .max(6, "Maximum 6 images allowed")
       .default([]),
     existingImages: z.array(z.string()).optional().default([]),
@@ -126,6 +139,7 @@ export const editMenuItemSchema = z
   });
 
 /** The empty promotion a new dish starts with. */
+
 export const EMPTY_PROMOTION = {
   isActive: false,
   type: "percentage",
