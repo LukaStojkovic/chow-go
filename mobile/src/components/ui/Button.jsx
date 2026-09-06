@@ -6,7 +6,10 @@ import { Text } from "./Text";
 const VARIANTS = {
   primary: { view: "bg-primary active:bg-primary-hover", label: "text-primary-foreground" },
   secondary: { view: "bg-secondary active:opacity-80", label: "text-secondary-foreground" },
-  outline: { view: "border border-border-strong bg-transparent active:bg-accent", label: "text-foreground" },
+  outline: {
+    view: "border border-border-strong bg-transparent active:bg-accent",
+    label: "text-foreground",
+  },
   ghost: { view: "bg-transparent active:bg-accent", label: "text-foreground" },
   destructive: { view: "bg-destructive active:opacity-90", label: "text-destructive-foreground" },
 };

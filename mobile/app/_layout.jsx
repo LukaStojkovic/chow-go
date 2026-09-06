@@ -11,11 +11,20 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Toaster } from "@/components/feedback/Toaster";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { SocketProvider } from "@/realtime/SocketProvider";
+import { useGlobalSocketEvents } from "@/realtime/useGlobalSocketEvents";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 
 SplashScreen.preventAutoHideAsync();
+
+function AppContent() {
+  useGlobalSocketEvents();
+  return <Stack screenOptions={{ headerShown: false }} />;
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -25,10 +34,17 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
+
   // Theme preference is read from AsyncStorage asynchronously; holding the
   // splash until it lands avoids a flash of the wrong theme on cold start.
   const themeHydrated = useThemeStore.persist.hasHydrated();
-  const ready = fontsLoaded && themeHydrated;
+  const ready = fontsLoaded && themeHydrated && !isCheckingAuth;
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -40,7 +56,10 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryProvider>
         <ThemeProvider>
-          <Stack screenOptions={{ headerShown: false }} />
+          <SocketProvider>
+            <AppContent />
+            <Toaster />
+          </SocketProvider>
         </ThemeProvider>
       </QueryProvider>
     </GestureHandlerRootView>

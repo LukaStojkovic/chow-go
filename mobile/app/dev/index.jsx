@@ -11,12 +11,24 @@ import { PRICING } from "@chowgo/shared/adapters/pricing";
 import { api, errorMessage } from "@/api/client";
 import { API_URL, SOCKET_URL } from "@/lib/config";
 import { getToken } from "@/lib/secureToken";
+import { useSocket } from "@/realtime/SocketProvider";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "@/store/useToastStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useTokens } from "@/theme/useTokens";
 
 const TYPE_ROLES = [
-  "display", "h1", "h2", "h3", "body-lg", "body",
-  "body-sm", "label", "caption", "price", "price-lg",
+  "display",
+  "h1",
+  "h2",
+  "h3",
+  "body-lg",
+  "body",
+  "body-sm",
+  "label",
+  "caption",
+  "price",
+  "price-lg",
 ];
 
 const SWATCHES = [
@@ -33,7 +45,9 @@ const SWATCHES = [
 function Section({ title, children }) {
   return (
     <View className="gap-3">
-      <Text variant="h3" tone="muted">{title}</Text>
+      <Text variant="h3" tone="muted">
+        {title}
+      </Text>
       {children}
     </View>
   );
@@ -93,7 +107,9 @@ export default function KitchenSink() {
           <View className="flex-row flex-wrap gap-2">
             {SWATCHES.map(([bg, fg, name]) => (
               <View key={name} className={`${bg} min-w-[46%] flex-1 rounded-sm p-3`}>
-                <Text variant="caption" className={fg}>{name}</Text>
+                <Text variant="caption" className={fg}>
+                  {name}
+                </Text>
               </View>
             ))}
           </View>
@@ -120,7 +136,9 @@ export default function KitchenSink() {
         <Section title="Buttons">
           <View className="gap-2">
             {["primary", "secondary", "outline", "ghost", "destructive"].map((variant) => (
-              <Button key={variant} variant={variant}>{variant}</Button>
+              <Button key={variant} variant={variant}>
+                {variant}
+              </Button>
             ))}
             <Button loading>loading</Button>
             <Button disabled>disabled</Button>
@@ -131,6 +149,25 @@ export default function KitchenSink() {
           <View className="flex-row gap-2">
             {["rounded-xs", "rounded-sm", "rounded-md", "rounded-lg", "rounded-full"].map((r) => (
               <View key={r} className={`h-14 flex-1 border border-border-strong bg-card ${r}`} />
+            ))}
+          </View>
+        </Section>
+
+        <Section title="Realtime">
+          <SocketState />
+        </Section>
+
+        <Section title="Toast">
+          <View className="flex-row flex-wrap gap-2">
+            {["success", "error", "info", "warning"].map((tone) => (
+              <Button
+                key={tone}
+                size="sm"
+                variant="outline"
+                onPress={() => toast[tone](`${tone} toast`, { description: "Order #1042" })}
+              >
+                {tone}
+              </Button>
             ))}
           </View>
         </Section>
@@ -156,11 +193,17 @@ export default function KitchenSink() {
             </Card>
           ) : null}
           <Card className="gap-1">
-            <Text variant="caption" tone="muted">API_URL</Text>
+            <Text variant="caption" tone="muted">
+              API_URL
+            </Text>
             <Text variant="body-sm">{API_URL}</Text>
-            <Text variant="caption" tone="muted" className="mt-2">SOCKET_URL</Text>
+            <Text variant="caption" tone="muted" className="mt-2">
+              SOCKET_URL
+            </Text>
             <Text variant="body-sm">{SOCKET_URL}</Text>
-            <Text variant="caption" tone="muted" className="mt-2">stored token</Text>
+            <Text variant="caption" tone="muted" className="mt-2">
+              stored token
+            </Text>
             <TokenState />
           </Card>
         </Section>
@@ -175,4 +218,24 @@ function TokenState() {
     getToken().then((value) => setToken(value ? `present (${value.length} chars)` : "none"));
   }, []);
   return <Text variant="body-sm">{token}</Text>;
+}
+
+function SocketState() {
+  const { isConnected, isRegistered, connectionEpoch } = useSocket();
+  const authUser = useAuthStore((state) => state.authUser);
+
+  return (
+    <Card className="gap-1">
+      <Text variant="body-sm">
+        session: {authUser ? `${authUser.email} (${authUser.role})` : "signed out"}
+      </Text>
+      <Text variant="body-sm" tone={isConnected ? "success" : "muted"}>
+        socket: {isConnected ? "connected" : "not connected"}
+        {isRegistered ? " · registered" : ""}
+      </Text>
+      <Text variant="caption" tone="muted">
+        connections this session: {connectionEpoch}
+      </Text>
+    </Card>
+  );
 }

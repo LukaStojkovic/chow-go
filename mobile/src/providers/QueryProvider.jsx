@@ -1,5 +1,10 @@
 import NetInfo from "@react-native-community/netinfo";
-import { QueryClient, QueryClientProvider, focusManager, onlineManager } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  focusManager,
+  onlineManager,
+} from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
 
