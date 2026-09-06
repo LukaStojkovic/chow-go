@@ -147,14 +147,17 @@ export async function searchDiscover(req, res, next) {
     if (!lat || !lon) {
       return res.status(400).json({ message: "Location required" });
     }
-    if (!query) return res.status(200).json({ restaurants: [], items: [] });
+    const term = String(query ?? "")
+      .trim()
+      .slice(0, 80);
+    if (!term) return res.status(200).json({ restaurants: [], items: [] });
 
     const restaurantIds = await getNearbyRestaurantIds(lat, lon);
     if (!restaurantIds.length) {
       return res.status(200).json({ restaurants: [], items: [] });
     }
 
-    const regex = new RegExp(query, "i");
+    const regex = new RegExp(escapeRegex(term), "i");
 
     const matchedRestaurants = await Restaurant.find({
       _id: { $in: restaurantIds },

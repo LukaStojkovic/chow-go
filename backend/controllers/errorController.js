@@ -1,6 +1,16 @@
 export function handleError(err, req, res, next) {
   console.error("ERROR", err);
 
+  // express.json rejects oversized bodies with a typed error that would
+  // otherwise surface as an opaque 500.
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      status: "fail",
+      message: "Request body is too large",
+    });
+  }
+
   let error = { ...err };
   error.message = err.message || "Internal Server Error";
 

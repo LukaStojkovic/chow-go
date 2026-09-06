@@ -14,7 +14,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { rateLimit } from "express-rate-limit";
+import { apiLimiter } from "./middlewares/rateLimit.js";
 import { handleError } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
 import { startCronJobs } from "./services/cron.service.js";
@@ -30,15 +30,16 @@ const __dirname = path.resolve();
 dotenv.config();
 configurePassport();
 
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: "Too many requests from this IP, please try again in an hour!",
-});
+// Rate limiting keys off req.ip. Behind a reverse proxy (nginx, Render, Fly)
+// that is the proxy's address unless Express is told how many hops to trust,
+// which would put every user in one shared bucket. Set TRUST_PROXY to the
+// number of proxies in front of this process; leave it unset when there are
+// none, so a forged X-Forwarded-For cannot dodge the limits.
+app.set("trust proxy", Number(process.env.TRUST_PROXY) || 0);
 
 // MIDDLEWARES
-// app.use("/api", limiter); TO-DO: find better approach
-app.use(express.json({ limit: "50mb" }));
+app.use("/api", apiLimiter);
+app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(
   cors({
