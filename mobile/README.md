@@ -31,6 +31,10 @@ with `npm install -g eas-cli`.
 `getExpoPushTokenAsync` refuses to issue a token without it, so push stays off
 until that step has run.
 
+Maps need no setup at all. MapLibre renders OpenFreeMap tiles — free, no account,
+no API key, no billing — and both platforms get identical cartography, unlike
+Apple Maps on iOS next to Google Maps on Android.
+
 Rebuild only when native code changes — a new package with native modules, or an
 edit to app.json. JavaScript-only changes reach the existing dev client through
 `npm start`.

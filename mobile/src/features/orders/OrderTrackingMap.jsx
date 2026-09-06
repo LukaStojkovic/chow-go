@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useMemo } from "react";
 import { View } from "react-native";
 import { Bike, MapPin, Store } from "lucide-react-native";
 import { formatDistance, formatDuration, toLatLng } from "@chowgo/shared/geo";
-import { Map, MapMarker, RouteLine, toCoordinate, toRegion } from "@/components/map/Map";
+import { Map, MapMarker, RouteLine, toRegion } from "@/components/map/Map";
 import { Text } from "@/components/ui/Text";
 import { useCourierLocation } from "@/hooks/Map/useCourierLocation";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
@@ -25,7 +25,6 @@ function Pin({ icon: Icon, color, background }) {
 // drops coordinates, and every position here is GeoJSON [lng, lat].
 export function OrderTrackingMap({ order }) {
   const { color } = useTokens();
-  const mapRef = useRef(null);
 
   const restaurant = toLatLng(order?.restaurant?.location?.coordinates);
   const destination = toLatLng(order?.deliveryAddressSnapshot?.location?.coordinates);
@@ -39,20 +38,16 @@ export function OrderTrackingMap({ order }) {
   const target = order?.status === "assigned" ? restaurant : destination;
   const route = useRouteDirections(courier, target);
 
-  useEffect(() => {
-    const points = [courier, restaurant, destination].filter(Boolean).map(toCoordinate);
-    if (points.length < 2) return;
-    mapRef.current?.fitToCoordinates(points, {
-      edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
-      animated: true,
-    });
-  }, [courier, restaurant, destination]);
+  const framed = useMemo(
+    () => [courier, restaurant, destination].filter(Boolean),
+    [courier, restaurant, destination],
+  );
 
   if (!LIVE_STATUSES.includes(order?.status) || !courier) return null;
 
   return (
     <View className="h-64 overflow-hidden rounded-md border border-border">
-      <Map ref={mapRef} initialRegion={toRegion(courier)}>
+      <Map initialRegion={toRegion(courier)} fitTo={framed}>
         <RouteLine coordinates={route?.coordinates} color={color.primary} />
         <MapMarker position={restaurant} title={order?.restaurant?.name}>
           <Pin icon={Store} color={color["primary-foreground"]} background={color.primary} />

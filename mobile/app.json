@@ -31,12 +31,7 @@
         "ACCESS_FINE_LOCATION",
         "READ_MEDIA_IMAGES",
         "INTERNET"
-      ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "$EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY"
-        }
-      }
+      ]
     },
     "web": {
       "output": "static",
@@ -67,7 +62,8 @@
         }
       ],
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": false

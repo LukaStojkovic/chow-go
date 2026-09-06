@@ -157,6 +157,7 @@ Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else li
 - Anything needing a colour *value* rather than a className (maps, bottom sheets, StatusBar, charts) reads `src/theme/tokens.js` via `useTokens()`. Nothing else may hardcode a hex.
 - `src/api/client.js` sends `X-Client: mobile`, without which the backend omits the token from login/register bodies and every later request is silently unauthenticated.
 - `src/lib/config.js` derives the dev host from Expo's packager (`10.0.2.2` on the Android emulator), so `EXPO_PUBLIC_API_URL` only needs setting for a tunnel, staging or production.
+- Maps are MapLibre against OpenFreeMap: no key, no billing, identical cartography on both platforms. `src/components/map/Map.jsx` is the only file importing the SDK, and its public API speaks `[lat, lng]` like the rest of the app — MapLibre wants GeoJSON `[lng, lat]`, and that flip happens there and nowhere else.
 - `.npmrc` sets `legacy-peer-deps=true`; the RN dependency graph has genuinely conflicting peer ranges and installs fail without it.
 - `metro.config.js` enables `unstable_enablePackageExports` and watches `../shared` — both are required to consume `@chowgo/shared`.
 

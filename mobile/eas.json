@@ -12,9 +12,6 @@
       },
       "ios": {
         "simulator": false
-      },
-      "env": {
-        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": ""
       }
     },
     "development-simulator": {
@@ -27,18 +24,12 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": ""
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      },
-      "env": {
-        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": ""
       }
     }
   },
