@@ -20,6 +20,7 @@ export default function AuthLayout() {
       <Stack.Screen name="forgot-password" options={{ title: "Reset password" }} />
       <Stack.Screen name="verify-otp" options={{ title: "Check your email" }} />
       <Stack.Screen name="reset-password" options={{ title: "New password" }} />
+      <Stack.Screen name="google-complete" options={{ title: "Finish signing up" }} />
     </Stack>
   );
 }

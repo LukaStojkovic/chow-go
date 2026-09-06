@@ -2,6 +2,10 @@ import { create } from "zustand";
 import { setUnauthorizedHandler } from "@/api/client";
 import { clearToken, setToken } from "@/lib/secureToken";
 import {
+  completeGoogleProfile as googleComplete,
+  signInWithGoogle as googleSignIn,
+} from "@/services/apiGoogle";
+import {
   checkAuth,
   loginUser,
   logoutUser,
@@ -50,6 +54,31 @@ export const useAuthStore = create((set) => {
       set({ isSubmitting: true });
       try {
         const user = await persistSession(await loginUser(credentials));
+        set({ authUser: user });
+        return user;
+      } finally {
+        set({ isSubmitting: false });
+      }
+    },
+
+    signInWithGoogle: async () => {
+      set({ isSubmitting: true });
+      try {
+        const result = await googleSignIn();
+        if (result.status === "authenticated") {
+          const user = await persistSession({ ...result.user, token: result.token });
+          set({ authUser: user });
+        }
+        return result;
+      } finally {
+        set({ isSubmitting: false });
+      }
+    },
+
+    completeGoogleProfile: async (payload) => {
+      set({ isSubmitting: true });
+      try {
+        const user = await persistSession(await googleComplete(payload));
         set({ authUser: user });
         return user;
       } finally {

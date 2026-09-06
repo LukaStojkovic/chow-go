@@ -1,11 +1,13 @@
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { View } from "react-native";
 import { Link, router } from "expo-router";
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { AuthScreen } from "@/features/auth/AuthScreen";
+import { GoogleButton } from "@/features/auth/GoogleButton";
 import { loginSchema } from "@/features/auth/schemas";
 import { homeForRole } from "@/navigation/homeForRole";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -87,6 +89,16 @@ export default function Login() {
       <Button size="lg" loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
         Sign in
       </Button>
+
+      <View className="flex-row items-center gap-3">
+        <View className="h-px flex-1 bg-border" />
+        <Text variant="caption" tone="muted">
+          or
+        </Text>
+        <View className="h-px flex-1 bg-border" />
+      </View>
+
+      <GoogleButton />
     </AuthScreen>
   );
 }
