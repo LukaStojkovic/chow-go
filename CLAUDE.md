@@ -9,7 +9,7 @@ Independent npm projects (not workspaces — each has its own `package.json` and
 - `backend/` — Express 5 + Mongoose API, Socket.IO server, node-cron jobs. ESM (`"type": "module"`), so all imports need file extensions.
 - `frontend/` — Vite + React 19 SPA (plain JS, no TypeScript).
 - `shared/` — `@chowgo/shared`, platform-neutral business logic consumed by `frontend/` (and, in time, `mobile/`) via a `file:../shared` dependency. See below.
-- `mobile/` — Expo SDK 57 / React Native 0.86 app, plain JS, Expo Router, NativeWind. Foundation only so far (theme, primitives, API client, providers); no product screens yet. Two earlier abandoned attempts are parked in `git stash` on `feature/mobile-migration` — inspect with `git stash show -p 'stash@{N}'` rather than popping.
+- `mobile/` — Expo SDK 57 / React Native 0.86 app, plain JS, Expo Router, NativeWind. All three roles are built and at feature parity with the web. Two earlier abandoned attempts are parked in `git stash` on `feature/mobile-migration` — inspect with `git stash show -p 'stash@{N}'` rather than popping.
 
 The root `package.json` exists only for single-service deploys: `npm run build` installs both sides and builds the frontend, `npm start` runs the backend. In production (`NODE_ENV=production`) the backend serves `../frontend/dist` as static files with an SPA fallback.
 
@@ -28,6 +28,7 @@ node backend/scripts/checkGoogleAuth.js     # web + native Google flow (no serve
 node backend/scripts/checkMenuCrud.js       # seller menu CRUD + multipart promotions
 node backend/scripts/checkSellerSettings.js # partial restaurant update + schedule merge
 node backend/scripts/checkSellerStats.js    # dashboard + analytics payload shapes
+node backend/scripts/checkCourierFlow.js    # pool, atomic claim, delivery lifecycle
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
