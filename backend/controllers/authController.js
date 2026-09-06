@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
+import { isMobileClient, withAuthToken } from "../utils/clientType.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -31,7 +32,11 @@ export async function login(req, res, next) {
     return next(new AppError("Invalid credentials", 400));
   }
 
-  generateToken(user._id, res, !!rememberMe);
+  const token = generateToken(
+    user._id,
+    res,
+    !!rememberMe || isMobileClient(req),
+  );
 
   if (user.role === "seller") {
     await user.populate("restaurant");
@@ -58,7 +63,7 @@ export async function login(req, res, next) {
     }
   }
 
-  res.status(200).json(response);
+  res.status(200).json(withAuthToken(req, response, token));
 }
 
 export const register = async (req, res, next) => {
@@ -234,21 +239,27 @@ export const register = async (req, res, next) => {
       isAvailable: true,
     });
 
-    generateToken(user._id, res);
+    const courierToken = generateToken(user._id, res, isMobileClient(req));
 
-    return res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      phoneNumber: user.phoneNumber,
-      profilePicture: user.profilePicture,
-      createdAt: user.createdAt,
-      courier: courierProfile,
-    });
+    return res.status(201).json(
+      withAuthToken(
+        req,
+        {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phoneNumber: user.phoneNumber,
+          profilePicture: user.profilePicture,
+          createdAt: user.createdAt,
+          courier: courierProfile,
+        },
+        courierToken,
+      ),
+    );
   }
 
-  generateToken(user._id, res);
+  const token = generateToken(user._id, res, isMobileClient(req));
 
   const response = {
     _id: user._id,
@@ -264,7 +275,7 @@ export const register = async (req, res, next) => {
     response.restaurant = user.restaurant;
   }
 
-  return res.status(201).json(response);
+  return res.status(201).json(withAuthToken(req, response, token));
 };
 
 export function logout(req, res) {

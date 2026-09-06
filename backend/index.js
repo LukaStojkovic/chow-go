@@ -15,6 +15,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { apiLimiter } from "./middlewares/rateLimit.js";
+import { corsOrigin } from "./config/cors.js";
 import { handleError } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
 import { startCronJobs } from "./services/cron.service.js";
@@ -43,8 +44,9 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: corsOrigin,
     credentials: true,
+    exposedHeaders: ["X-Refreshed-Token"],
   }),
 );
 

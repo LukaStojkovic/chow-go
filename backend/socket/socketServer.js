@@ -9,6 +9,7 @@ import {
   updateCourierLocation,
 } from "../services/locationTracking.service.js";
 import { emitCourierLocationUpdated } from "../services/orderSocket.service.js";
+import { corsOrigin } from "../config/cors.js";
 
 export const COURIER_POOL_ROOM = "couriers:pool";
 
@@ -20,11 +21,24 @@ const DELIVERY_MISS_TTL_MS = 5_000;
 
 const isEmpty = (set) => !set || set.size === 0;
 
+function tokenFromHandshake(handshake) {
+  if (handshake.auth?.token) return handshake.auth.token;
+
+  const header = handshake.headers?.authorization;
+  if (header?.startsWith("Bearer ")) return header.slice(7).trim();
+
+  const cookies = handshake.headers?.cookie;
+  if (!cookies) return null;
+
+  const jwtCookie = cookies.split(";").find((c) => c.trim().startsWith("jwt="));
+  return jwtCookie ? jwtCookie.trim().slice(4) : null;
+}
+
 class SocketServer {
   constructor(httpServer) {
     this.io = new Server(httpServer, {
       cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin: corsOrigin,
         credentials: true,
         methods: ["GET", "POST"],
       },
@@ -45,23 +59,18 @@ class SocketServer {
   setupMiddleware() {
     this.io.use(async (socket, next) => {
       try {
-        const cookies = socket.handshake.headers.cookie;
+        const token = tokenFromHandshake(socket.handshake);
 
-        if (!cookies) {
-          return next(new Error("Authentication error: No cookies"));
-        }
-
-        const tokenCookie = cookies
-          .split(";")
-          .find((c) => c.trim().startsWith("jwt="));
-
-        if (!tokenCookie) {
+        if (!token) {
           return next(new Error("Authentication error: No token provided"));
         }
 
-        const token = tokenCookie.split("=")[1];
-
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.typ && decoded.typ !== "access") {
+          return next(new Error("Authentication error: Invalid token"));
+        }
+
         const user = await User.findById(decoded.userId);
 
         if (!user) {
