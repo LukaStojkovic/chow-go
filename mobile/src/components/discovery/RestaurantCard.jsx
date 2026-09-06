@@ -1,11 +1,12 @@
 import { Pressable, View } from "react-native";
 import { Image } from "expo-image";
-import { Star } from "lucide-react-native";
+import { Heart, Star } from "lucide-react-native";
+import { Pressable as RNPressable } from "react-native";
 import { formatDistance } from "@chowgo/shared/format";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
 
-export function RestaurantCard({ restaurant, onPress }) {
+export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavourite }) {
   const { color } = useTokens();
   const distance = formatDistance(restaurant.distance);
 
@@ -26,6 +27,22 @@ export function RestaurantCard({ restaurant, onPress }) {
             cachePolicy="memory-disk"
           />
         ) : null}
+        {onToggleFavourite ? (
+          <RNPressable
+            accessibilityRole="button"
+            accessibilityLabel={isFavourite ? "Remove from favourites" : "Save to favourites"}
+            onPress={onToggleFavourite}
+            hitSlop={10}
+            className="absolute right-2 top-2 h-9 w-9 items-center justify-center rounded-full bg-black/45"
+          >
+            <Heart
+              size={17}
+              color={color["scrim-foreground"]}
+              fill={isFavourite ? color["scrim-foreground"] : "transparent"}
+            />
+          </RNPressable>
+        ) : null}
+
         {restaurant.isOpen === false ? (
           <View className="absolute inset-0 items-center justify-center bg-black/55">
             <Text variant="label" tone="scrim">

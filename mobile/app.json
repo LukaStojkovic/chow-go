@@ -31,7 +31,12 @@
         "ACCESS_FINE_LOCATION",
         "READ_MEDIA_IMAGES",
         "INTERNET"
-      ]
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "$EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY"
+        }
+      }
     },
     "web": {
       "output": "static",

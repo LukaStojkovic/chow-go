@@ -2,7 +2,8 @@ import { api } from "@/api/client";
 
 export async function getDeliveryAddresses() {
   const { data } = await api.get("/delivery-address");
-  return data.data ?? data.addresses ?? data;
+  // { status, data: [...] } - flat, unlike /favourites.
+  return data.data ?? [];
 }
 
 export async function addDeliveryAddress(payload) {

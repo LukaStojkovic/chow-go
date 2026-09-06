@@ -12,7 +12,9 @@ export async function getCustomerOrders({ status, page = 1, limit = 10 } = {}) {
 
 export async function getOrderById(orderId) {
   const { data } = await api.get(`/orders/${orderId}`);
-  return data.data?.order ?? data.data;
+  // Populated with restaurant.location and courier.currentLocation, which the
+  // tracking map reads directly - the view adapter drops coordinates.
+  return data.data.order;
 }
 
 export async function cancelOrder(orderId, reason) {

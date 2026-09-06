@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
+import { OrderTrackingMap } from "@/features/orders/OrderTrackingMap";
 import { useCancelOrder, useOrder } from "@/hooks/Orders/useOrders";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
@@ -55,6 +56,9 @@ export default function OrderTracking() {
             Order #{order.number} · {order.restaurant?.name}
           </Text>
         </View>
+
+        {/* Renders itself away unless a courier is assigned and moving. */}
+        <OrderTrackingMap order={data} />
 
         {order.lifecycle === "cancelled" ? (
           <Card className="border-destructive">
