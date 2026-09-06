@@ -62,3 +62,31 @@ export async function deleteMenuItem(restaurantId, menuItemId) {
   const { data } = await api.delete(`/restaurants/${restaurantId}/menu/${menuItemId}`);
   return data;
 }
+
+export async function getOwnRestaurant(restaurantId) {
+  const { data } = await api.get(`/restaurants/${restaurantId}`);
+  return data.data;
+}
+
+/**
+ * Partial update. Every field is optional server-side and the schedule merges
+ * day by day, so an autosave can send only what changed without wiping the rest.
+ */
+export async function updateRestaurant({ profilePicture, schedule, address, ...fields }) {
+  const flat = { ...fields };
+
+  // multer's append-field rebuilds schedule[monday][isOpen] into a real object;
+  // sending JSON would arrive as a string the service then has to parse.
+  for (const [day, entry] of Object.entries(schedule ?? {})) {
+    for (const [key, value] of Object.entries(entry)) {
+      flat[`schedule[${day}][${key}]`] = String(value);
+    }
+  }
+  for (const [key, value] of Object.entries(address ?? {})) {
+    flat[`address[${key}]`] = String(value);
+  }
+
+  const form = toFormData(flat, profilePicture ? { profilePicture: [profilePicture] } : {});
+  const { data } = await api.put("/restaurants/update", form);
+  return data;
+}
