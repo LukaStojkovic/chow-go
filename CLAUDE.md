@@ -27,6 +27,7 @@ node backend/scripts/checkPushFallback.js   # push-vs-socket delivery (needs --k
 node backend/scripts/checkGoogleAuth.js     # web + native Google flow (no server needed)
 node backend/scripts/checkMenuCrud.js       # seller menu CRUD + multipart promotions
 node backend/scripts/checkSellerSettings.js # partial restaurant update + schedule merge
+node backend/scripts/checkSellerStats.js    # dashboard + analytics payload shapes
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)

@@ -1,4 +1,5 @@
 import { api } from "@/api/client";
+import { toFormData } from "@/api/uploads";
 
 export async function checkAuth() {
   const { data } = await api.get("/auth/check");
@@ -37,5 +38,16 @@ export async function resetPassword(email, newPassword) {
 
 export async function updateProfile(payload) {
   const { data } = await api.put("/auth/update-profile", payload);
+  return data;
+}
+
+/**
+ * Seller signup is one multipart request, not a staged one: the backend creates
+ * the user and the restaurant together and deletes the user again if any part
+ * of the restaurant is missing. The wizard collects everything first.
+ */
+export async function registerSeller({ images, ...fields }) {
+  const form = toFormData(fields, { restaurantImages: images });
+  const { data } = await api.post("/auth/register", form);
   return data;
 }

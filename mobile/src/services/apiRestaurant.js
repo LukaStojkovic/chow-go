@@ -90,3 +90,15 @@ export async function updateRestaurant({ profilePicture, schedule, address, ...f
   const { data } = await api.put("/restaurants/update", form);
   return data;
 }
+
+export async function getRestaurantStats(restaurantId) {
+  const { data } = await api.get(`/restaurants/${restaurantId}/stats`);
+  // Deliberately not data.data: this endpoint returns its payload at the top
+  // level, unlike the analytics one next to it.
+  return data;
+}
+
+export async function getRestaurantAnalytics(restaurantId) {
+  const { data } = await api.get(`/restaurants/${restaurantId}/analytics`);
+  return data.data;
+}

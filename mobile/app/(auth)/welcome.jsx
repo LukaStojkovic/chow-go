@@ -27,6 +27,9 @@ export default function Welcome() {
         <Button size="lg" variant="outline" onPress={() => router.push("/(auth)/login")}>
           I already have an account
         </Button>
+        <Button size="lg" variant="ghost" onPress={() => router.push("/(auth)/seller")}>
+          List your restaurant
+        </Button>
         <Link href="/(customer)" asChild>
           <Button size="lg" variant="ghost">
             Browse without signing in
