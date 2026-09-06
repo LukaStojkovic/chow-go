@@ -23,7 +23,11 @@ async function persistSession(user) {
 }
 
 export const useAuthStore = create((set) => {
-  setUnauthorizedHandler(() => set({ authUser: null }));
+  setUnauthorizedHandler(() => {
+    set({ authUser: null });
+    // Imported lazily: the cart store imports this one.
+    import("./useCartStore").then((m) => m.useCartStore.getState().clearLocalCart());
+  });
 
   return {
     authUser: null,
