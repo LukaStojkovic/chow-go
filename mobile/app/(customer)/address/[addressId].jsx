@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, errorMessage } from "@/api/client";
+import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { useAddresses } from "@/hooks/Address/useAddresses";
+import { useAddresses, useUpdateAddress } from "@/hooks/Address/useAddresses";
+import { AddressAutocomplete } from "@/features/location/AddressAutocomplete";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { toast } from "@/store/useToastStore";
@@ -15,9 +15,9 @@ import { toast } from "@/store/useToastStore";
 export default function EditAddress() {
   const { addressId } = useLocalSearchParams();
   const { data } = useAddresses();
-  const queryClient = useQueryClient();
   const { detect, isDetecting } = useDetectLocation();
   const coordinates = useDeliveryStore((state) => state.coordinates);
+  const setLocation = useDeliveryStore((state) => state.setLocation);
 
   const existing = (data ?? []).find((entry) => String(entry._id) === String(addressId));
 
@@ -32,9 +32,12 @@ export default function EditAddress() {
     setNotes(existing.notes ?? "");
   }, [existing]);
 
-  const save = useMutation({
-    mutationFn: () =>
-      api.put(`/delivery-address/${addressId}`, {
+  const save = useUpdateAddress();
+
+  async function persist() {
+    try {
+      await save.mutateAsync({
+        addressId,
         address: fullAddress.trim(),
         label: label.trim() || "Home",
         type: existing?.addressType ?? "apartment",
@@ -42,15 +45,13 @@ export default function EditAddress() {
         // Only sent when the pin was actually moved; otherwise the stored
         // coordinates stay as they are.
         ...(coordinates ? { location: { lat: coordinates.lat, lng: coordinates.lon } } : {}),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["deliveryAddresses"] });
+      });
       toast.success("Address updated");
       router.back();
-    },
-    onError: (error) =>
-      toast.error("Could not update the address", { description: errorMessage(error) }),
-  });
+    } catch (error) {
+      toast.error("Could not update the address", { description: errorMessage(error) });
+    }
+  }
 
   if (!existing) {
     return (
@@ -83,16 +84,29 @@ export default function EditAddress() {
           style={{ textAlignVertical: "top" }}
         />
 
-        <Button variant="outline" loading={isDetecting} onPress={detect}>
-          Update pin to my current location
-        </Button>
+        <View className="gap-3 rounded-md border border-border bg-card p-4">
+          <Text variant="label">Move the pin</Text>
+          <Text variant="caption" tone="muted">
+            The pin decides which restaurants can deliver here.
+          </Text>
+          <Button variant="outline" loading={isDetecting} onPress={detect}>
+            Use my current location
+          </Button>
+          <AddressAutocomplete
+            label="Or search for it"
+            onSelect={({ address, lat, lon }) => {
+              setFullAddress(address);
+              setLocation({ address, coordinates: { lat, lon } });
+            }}
+          />
+        </View>
 
         <View className="pt-2">
           <Button
             size="lg"
             loading={save.isPending}
             disabled={!fullAddress.trim()}
-            onPress={() => save.mutate()}
+            onPress={persist}
           >
             Save changes
           </Button>

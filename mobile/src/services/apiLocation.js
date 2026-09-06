@@ -20,7 +20,7 @@ export async function reverseGeocode({ lat, lon }) {
 
 export async function getLocationPredictions(query) {
   const { data } = await api.get("/location/location-prediction", { params: { query } });
-  return data;
+  return data.data ?? [];
 }
 
 export async function getNearbyRestaurants({ lat, lon, maxDistanceMeters = 20000 }) {

@@ -51,3 +51,9 @@ export async function registerSeller({ images, ...fields }) {
   const { data } = await api.post("/auth/register", form);
   return data;
 }
+
+/** Courier signup is plain JSON — no images, unlike the seller path. */
+export async function registerCourier(payload) {
+  const { data } = await api.post("/auth/register/courier", { ...payload, role: "courier" });
+  return data;
+}

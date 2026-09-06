@@ -11,6 +11,11 @@ export async function addDeliveryAddress(payload) {
   return data;
 }
 
+export async function updateDeliveryAddress(addressId, payload) {
+  const { data } = await api.put(`/delivery-address/${addressId}`, payload);
+  return data;
+}
+
 export async function setDefaultAddress(addressId) {
   const { data } = await api.patch(`/delivery-address/${addressId}/default`);
   return data;

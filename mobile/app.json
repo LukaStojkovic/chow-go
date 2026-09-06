@@ -67,6 +67,13 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1b988611-4f1b-4c3a-a8a6-5c77bebc6f88"
+      }
+    },
+    "owner": "lukastojkovic"
   }
 }

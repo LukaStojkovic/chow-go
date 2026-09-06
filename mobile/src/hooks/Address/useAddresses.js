@@ -4,6 +4,7 @@ import {
   deleteDeliveryAddress,
   getDeliveryAddresses,
   setDefaultAddress,
+  updateDeliveryAddress,
 } from "@/services/apiAddress";
 
 const KEY = ["deliveryAddresses"];
@@ -16,6 +17,14 @@ export function useAddAddress() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: addDeliveryAddress,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+export function useUpdateAddress() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ addressId, ...payload }) => updateDeliveryAddress(addressId, payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
   });
 }

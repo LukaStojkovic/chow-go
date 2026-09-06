@@ -16,6 +16,7 @@ import {
   useDeleteAddress,
   useSetDefaultAddress,
 } from "@/hooks/Address/useAddresses";
+import { AddressAutocomplete } from "@/features/location/AddressAutocomplete";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { toast } from "@/store/useToastStore";
@@ -29,6 +30,7 @@ export default function Addresses() {
   const { detect, isDetecting } = useDetectLocation();
   const coordinates = useDeliveryStore((state) => state.coordinates);
   const storedAddress = useDeliveryStore((state) => state.address);
+  const setLocation = useDeliveryStore((state) => state.setLocation);
   const { color } = useTokens();
 
   const [label, setLabel] = useState("Home");
@@ -122,12 +124,13 @@ export default function Addresses() {
               </Text>
             ) : null}
             <Input label="Label" value={label} onChangeText={setLabel} placeholder="Home" />
-            <Input
+            <AddressAutocomplete
               label="Address"
-              value={fullAddress}
-              onChangeText={setFullAddress}
-              placeholder={storedAddress ?? "Street and number"}
-              hint="Leave blank to use the detected address."
+              hint="Or leave blank to use the detected one."
+              onSelect={({ address, lat, lon }) => {
+                setFullAddress(address);
+                setLocation({ address, coordinates: { lat, lon } });
+              }}
             />
             <Button loading={addAddress.isPending} onPress={save}>
               Save address

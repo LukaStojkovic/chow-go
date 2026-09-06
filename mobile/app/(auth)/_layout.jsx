@@ -22,6 +22,7 @@ export default function AuthLayout() {
       <Stack.Screen name="reset-password" options={{ title: "New password" }} />
       <Stack.Screen name="google-complete" options={{ title: "Finish signing up" }} />
       <Stack.Screen name="seller" options={{ title: "List your restaurant" }} />
+      <Stack.Screen name="courier" options={{ title: "Deliver with Chow & Go" }} />
     </Stack>
   );
 }
