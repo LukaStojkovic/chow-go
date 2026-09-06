@@ -6,6 +6,7 @@ import { AppError } from "../utils/AppError.js";
 import Notification from "../models/OrderNotification.js";
 import { getSocketServer } from "../socket/socketServer.js";
 import { rateOrderOperation } from "../services/orderRating.service.js";
+import * as orderStatus from "../utils/orderStatus.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -164,7 +165,10 @@ export async function getCustomerOrders(req, res, next) {
     const userId = req.user._id;
 
     const query = { customer: userId };
-    if (status) query.status = status;
+    // parseStatusFilter turns "active" or a comma-separated list into an $in.
+    // Assigning the raw string matched a literal "pending,confirmed,..." status
+    // that no order has, so every multi-status filter returned nothing.
+    if (status) query.status = orderStatus.parseStatusFilter(status);
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
