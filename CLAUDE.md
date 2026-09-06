@@ -24,6 +24,7 @@ cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
 cd mobile && npm run sync-theme  # regenerate the theme from frontend/src/index.css
 node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
 node backend/scripts/checkPushFallback.js   # push-vs-socket delivery (needs --keep fixtures)
+node backend/scripts/checkGoogleAuth.js     # web + native Google flow (no server needed)
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
@@ -114,6 +115,10 @@ Tokens carry `typ: "access"`. `protectedRoute` and the socket middleware reject 
 Browser origins live in `config/cors.js` (`CORS_ORIGINS`, comma-separated) and are shared by Express and the socket server; keep them one list or Expo Web sockets fail while native ones work.
 
 Google OAuth is two-phase and easy to misread: the passport callback does **not** create a user for a new email. It stashes the profile in `req.session.googleProfile` and redirects to `${FRONTEND_URL}/auth/google/callback?newUser=true`; the frontend then POSTs `/api/auth/google/complete-profile` with the chosen role and role-specific fields to actually create the account.
+
+Native cannot use that session: the OAuth leg runs in the system browser, a separate cookie jar the app's fetch never sees. `GET /api/auth/google?client=mobile` signs the client into the OAuth `state`, and `googleCallback` reads it back to redirect to `chowgo://auth/google?code=…` instead — the **same URL shape for new and returning users**, so the deep link is one opaque parameter. That code is a 90-second `google_handoff` token, deliberately not the session: on Android any app can claim a custom scheme. `POST /api/auth/google/exchange` trades it for either a real token or a 15-minute `google_signup` token that replaces the session in `complete-profile`. All of these are signed with `JWT_SECRET`, which is why the `typ` guard in `protectedRoute` matters. An unsigned or tampered `state` falls back to the web redirect.
+
+**The app never talks to Google directly** — it opens the *backend's* route in a browser — so there are no iOS/Android OAuth client ids and `chowgo://` never appears in Google's console. The one sharp edge is development: Google rejects private-network redirect URIs, so a LAN IP cannot complete sign-in and a stable HTTPS tunnel must be registered as a second authorized redirect URI.
 
 Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload(folder)`; the resulting `req.file.path` **is** the Cloudinary URL and is stored directly on the document. `services/image.service.js` handles deletes and add/remove diffing by parsing the public id back out of the URL.
 

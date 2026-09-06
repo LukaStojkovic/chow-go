@@ -2,6 +2,12 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { isMobileClient, withAuthToken } from "../utils/clientType.js";
+import {
+  readOAuthState,
+  signHandoff,
+  signSignupState,
+  verifyTyped,
+} from "../utils/googleHandoff.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -455,27 +461,104 @@ export const checkAuth = (req, res) => {
 
 export const googleCallback = async (req, res, next) => {
   const data = req.user;
+  const isMobile = readOAuthState(req.query.state) === "mobile";
+  const base = isMobile
+    ? process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google"
+    : `${process.env.FRONTEND_URL}/auth/google/callback`;
 
   if (!data) {
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/auth/google/callback?error=auth_failed`,
-    );
+    return res.redirect(`${base}?error=auth_failed`);
+  }
+
+  if (isMobile) {
+    // One opaque parameter for both cases: the app does not branch until after
+    // the exchange, which keeps the deep-link surface as small as possible.
+    const code = data.isNewUser
+      ? signHandoff({ newUser: true, googleProfile: data.googleProfile })
+      : signHandoff({ newUser: false, userId: String(data._id) });
+
+    return res.redirect(`${base}?code=${encodeURIComponent(code)}`);
   }
 
   if (data.isNewUser) {
     req.session.googleProfile = data.googleProfile;
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/auth/google/callback?newUser=true`,
-    );
+    return res.redirect(`${base}?newUser=true`);
   }
   generateToken(data._id, res);
-  return res.redirect(
-    `${process.env.FRONTEND_URL}/auth/google/callback?success=true`,
-  );
+  return res.redirect(`${base}?success=true`);
+};
+
+/**
+ * Trades the 90-second deep-link code for either a session or a signup token.
+ * Native only; the web never calls this.
+ */
+export const googleExchange = async (req, res, next) => {
+  const { code } = req.body;
+  if (!code) return next(new AppError("Missing code", 400));
+
+  let payload;
+  try {
+    payload = verifyTyped(code, "google_handoff");
+  } catch {
+    return next(new AppError("Sign-in link expired. Please try again.", 400));
+  }
+
+  if (payload.newUser) {
+    return res.status(200).json({
+      status: "newUser",
+      signupToken: signSignupState(payload.googleProfile),
+      profile: {
+        name: payload.googleProfile?.name,
+        email: payload.googleProfile?.email,
+        profilePicture: payload.googleProfile?.profilePicture,
+      },
+    });
+  }
+
+  const user = await User.findById(payload.userId).select("-password");
+  if (!user) return next(new AppError("User not found", 404));
+  if (user.role === "seller") await user.populate("restaurant");
+
+  const token = generateToken(user._id, res, true, { skipCookie: true });
+
+  const response = {
+    _id: user._id,
+    email: user.email,
+    name: user.name,
+    profilePicture: user.profilePicture,
+    phoneNumber: user.phoneNumber,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+
+  if (user.role === "seller" && user.restaurant) {
+    response.restaurant = user.restaurant;
+  }
+  if (user.role === "courier") {
+    const courierProfile = await Courier.findOne({ userId: user._id });
+    if (courierProfile) response.courier = courierProfile;
+  }
+
+  return res.status(200).json({ status: "authenticated", token, user: response });
 };
 
 export const googleCompleteProfile = async (req, res, next) => {
-  const googleProfile = req.session?.googleProfile;
+  let googleProfile = req.session?.googleProfile;
+  // Only the web has a session to clear; native carries the profile in a token.
+  const fromSession = Boolean(googleProfile);
+
+  if (!googleProfile && req.body.signupToken) {
+    try {
+      googleProfile = verifyTyped(req.body.signupToken, "google_signup").googleProfile;
+    } catch {
+      return next(
+        new AppError(
+          "Signup session expired. Please try signing in with Google again.",
+          400,
+        ),
+      );
+    }
+  }
 
   if (!googleProfile) {
     return next(
@@ -494,7 +577,7 @@ export const googleCompleteProfile = async (req, res, next) => {
   }
 
   if (await User.exists({ email: googleProfile.email })) {
-    delete req.session.googleProfile;
+    if (fromSession) delete req.session.googleProfile;
     return next(new AppError("An account with this email already exists", 400));
   }
 
@@ -609,7 +692,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     await user.populate("restaurant");
 
     generateToken(user._id, res);
-    delete req.session.googleProfile;
+    if (fromSession) delete req.session.googleProfile;
 
     return res.status(201).json({
       _id: user._id,
@@ -667,7 +750,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     });
 
     generateToken(user._id, res);
-    delete req.session.googleProfile;
+    if (fromSession) delete req.session.googleProfile;
 
     return res.status(201).json({
       _id: user._id,
@@ -682,7 +765,7 @@ export const googleCompleteProfile = async (req, res, next) => {
   }
 
   generateToken(user._id, res);
-  delete req.session.googleProfile;
+  if (fromSession) delete req.session.googleProfile;
 
   return res.status(201).json({
     _id: user._id,
