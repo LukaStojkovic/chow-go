@@ -39,6 +39,13 @@ export default function CustomerLayout() {
           name="basket"
           options={{ presentation: "formSheet", sheetAllowedDetents: [0.9], title: "Basket" }}
         />
+        <Stack.Screen name="checkout" options={{ title: "Checkout" }} />
+        <Stack.Screen name="address/index" options={{ title: "Delivery addresses" }} />
+        <Stack.Screen name="order/[orderId]/index" options={{ title: "Order" }} />
+        <Stack.Screen
+          name="order/[orderId]/confirmed"
+          options={{ presentation: "fullScreenModal", headerShown: false }}
+        />
       </Stack>
 
       <BasketMiniBar />

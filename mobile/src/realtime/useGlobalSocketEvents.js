@@ -37,13 +37,14 @@ export function useGlobalSocketEvents() {
       keys.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
 
     // The socket payload already carries a fully populated order, so write it
-    // straight into the detail cache instead of triggering a refetch. Only when
-    // an entry already exists - seeding one would cache a partial shape.
+    // straight into the detail cache instead of triggering a refetch. The shape
+    // must match apiOrder.getOrderById, which unwraps to a bare order - writing
+    // the API's {data:{order}} envelope would leave the screen reading fields
+    // that are not where it looks. Only when an entry already exists: seeding
+    // one would cache a shape the detail query never produced.
     const upsertOrder = (order) => {
       if (!order?._id) return;
-      queryClient.setQueryData(["order", order._id], (previous) =>
-        previous ? { ...previous, data: { ...previous.data, order } } : previous,
-      );
+      queryClient.setQueryData(["order", order._id], (previous) => (previous ? order : previous));
       queryClient.invalidateQueries({ queryKey: ["customerOrders"] });
     };
 
