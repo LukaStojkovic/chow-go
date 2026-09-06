@@ -12,10 +12,10 @@ import { motion } from "framer-motion";
 import { ArrowRight, UtensilsCrossed } from "lucide-react";
 
 import { staggerContainer } from "@/lib/motion";
-import { formatPrice } from "@/lib/format";
-import { filterMenuSections } from "@/lib/adapters/menu";
-import { unavailableReason } from "@/lib/adapters/restaurant";
-import { buildPriceBreakdown } from "@/lib/adapters/pricing";
+import { formatPrice } from "@chowgo/shared/format";
+import { filterMenuSections } from "@chowgo/shared/adapters/menu";
+import { unavailableReason } from "@chowgo/shared/adapters/restaurant";
+import { buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import { useRestaurant } from "@/hooks/Restaurants/useRestaurant";
 import { useFavourites } from "@/hooks/Favourites/useFavourites";
 import useCartStore from "@/store/useCartStore";

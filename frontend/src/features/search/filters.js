@@ -55,9 +55,9 @@ function upperBoundMinutes(estimate) {
 /**
  * Apply the filters and sort to a set of restaurants.
  *
- * @param {import("@/lib/adapters/types").RestaurantView[]} restaurants
+ * @param {import("@chowgo/shared/adapters/types").RestaurantView[]} restaurants
  * @param {SearchFilterState} filters
- * @returns {import("@/lib/adapters/types").RestaurantView[]}
+ * @returns {import("@chowgo/shared/adapters/types").RestaurantView[]}
  */
 export function applyRestaurantFilters(restaurants, filters) {
   let result = restaurants;

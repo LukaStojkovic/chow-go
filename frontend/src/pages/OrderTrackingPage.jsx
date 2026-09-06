@@ -19,8 +19,8 @@ import {
   Store,
 } from "lucide-react";
 
-import { formatOrderDate } from "@/lib/format";
-import { toOrderView } from "@/lib/adapters/order";
+import { formatOrderDate } from "@chowgo/shared/format";
+import { toOrderView } from "@chowgo/shared/adapters/order";
 import { useGetOrderById } from "@/hooks/Orders/useGetOrderById";
 import { useCancelOrder } from "@/hooks/Orders/useCancelOrder";
 import { useReorder } from "@/hooks/Orders/useReorder";

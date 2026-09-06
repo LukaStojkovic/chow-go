@@ -7,9 +7,9 @@
  * provide is resolved here, once, and labelled.
  */
 
-import { CUISINE_LABELS } from "@/lib/constants";
-import { PRICING } from "./pricing";
-import { WEEK_DAYS, getTodayKey, normalizeSchedule } from "@/utils/scheduleUtils";
+import { CUISINE_LABELS } from "../constants.js";
+import { PRICING } from "./pricing.js";
+import { WEEK_DAYS, getTodayKey, normalizeSchedule } from "../schedule.js";
 
 /** @typedef {import("./types").RestaurantView} RestaurantView */
 /** @typedef {import("./types").AddressView} AddressView */

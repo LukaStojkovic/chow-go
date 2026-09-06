@@ -3,7 +3,7 @@ import { Bike, MapPin, UtensilsCrossed } from "lucide-react";
 import { lazyNamed } from "@/lib/lazyNamed";
 import { useOrderCourierLocation } from "@/hooks/Map/useOrderCourierLocation";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
-import { formatDistance, formatDuration, toLatLng } from "@/utils/mapUtils";
+import { formatDistance, formatDuration, toLatLng } from "@chowgo/shared/geo";
 
 const NavigationMap = lazyNamed(
   () => import("@/components/Map/NavigationMap"),

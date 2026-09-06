@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
 import { listItem } from "@/lib/motion";
-import { formatOrderDate, formatPrice } from "@/lib/format";
+import { formatOrderDate, formatPrice } from "@chowgo/shared/format";
 import { Avatar } from "@/components/common/SmartImage";
 import { OrderStatusBadge } from "@/components/common/StatusBadges";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").OrderView} props.order
+ * @param {import("@chowgo/shared/adapters/types").OrderView} props.order
  * @param {() => void} [props.onReorder]
  * @param {boolean} [props.isReordering]
  */

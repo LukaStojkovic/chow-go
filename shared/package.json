@@ -1,0 +1,25 @@
+{
+  "name": "@chowgo/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Platform-neutral business logic shared by the web and mobile clients.",
+  "exports": {
+    "./format": "./src/format.js",
+    "./promotion": "./src/promotion.js",
+    "./constants": "./src/constants.js",
+    "./validation": "./src/validation.js",
+    "./dates": "./src/dates.js",
+    "./geo": "./src/geo.js",
+    "./schedule": "./src/schedule.js",
+    "./strings": "./src/strings.js",
+    "./adapters/menu": "./src/adapters/menu.js",
+    "./adapters/order": "./src/adapters/order.js",
+    "./adapters/pricing": "./src/adapters/pricing.js",
+    "./adapters/restaurant": "./src/adapters/restaurant.js",
+    "./adapters/types": "./src/adapters/types.js"
+  },
+  "dependencies": {
+    "zod": "^4.1.11"
+  }
+}

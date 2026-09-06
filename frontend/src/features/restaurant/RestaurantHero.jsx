@@ -10,7 +10,7 @@
 
 import { ChevronRight, Info, UtensilsCrossed } from "lucide-react";
 
-import { unavailableReason } from "@/lib/adapters/restaurant";
+import { unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { SmartImage } from "@/components/common/SmartImage";
 import { FavoriteButton } from "@/components/common/FavoriteButton";
 import {
@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").RestaurantView} props.restaurant
+ * @param {import("@chowgo/shared/adapters/types").RestaurantView} props.restaurant
  * @param {boolean} props.isFavourite
  * @param {() => void} props.onToggleFavourite
  * @param {boolean} props.isTogglingFavourite

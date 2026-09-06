@@ -82,7 +82,7 @@ function StarRating({ name, value, onChange, label, readOnly = false }) {
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").OrderView} props.order
+ * @param {import("@chowgo/shared/adapters/types").OrderView} props.order
  */
 export function OrderRating({ order }) {
   const { rateOrder, isRating } = useRateOrder(order.id);

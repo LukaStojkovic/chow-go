@@ -15,10 +15,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { ShoppingBag } from "lucide-react";
 
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@chowgo/shared/format";
 import { DELIVERY_TYPES, MAX_ORDER_NOTES, PAYMENT_METHODS } from "@/lib/constants";
-import { toBasketLines } from "@/lib/adapters/menu";
-import { PRICING, buildPriceBreakdown } from "@/lib/adapters/pricing";
+import { toBasketLines } from "@chowgo/shared/adapters/menu";
+import { PRICING, buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import useCartStore from "@/store/useCartStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useCreateOrder } from "@/hooks/Orders/useCreateOrder";

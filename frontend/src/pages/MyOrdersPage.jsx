@@ -14,7 +14,7 @@ import { Package } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { staggerContainer } from "@/lib/motion";
-import { ACTIVE_STATUS_FILTER, toOrderViews } from "@/lib/adapters/order";
+import { ACTIVE_STATUS_FILTER, toOrderViews } from "@chowgo/shared/adapters/order";
 import { useGetCustomerOrders } from "@/hooks/Orders/useGetCustomerOrders";
 import { useReorder } from "@/hooks/Orders/useReorder";
 

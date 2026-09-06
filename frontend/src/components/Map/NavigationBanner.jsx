@@ -1,5 +1,5 @@
 import { Clock, Navigation } from "lucide-react";
-import { formatDistance, formatDuration } from "@/utils/mapUtils";
+import { formatDistance, formatDuration } from "@chowgo/shared/geo";
 import Spinner from "@/components/Spinner";
 
 export function NavigationBanner({

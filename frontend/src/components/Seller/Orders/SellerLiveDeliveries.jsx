@@ -9,7 +9,7 @@ const NavigationMap = lazyNamed(
 );
 import { useOrderCourierLocation } from "@/hooks/Map/useOrderCourierLocation";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
-import { formatDistance, formatDuration, toLatLng } from "@/utils/mapUtils";
+import { formatDistance, formatDuration, toLatLng } from "@chowgo/shared/geo";
 
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 

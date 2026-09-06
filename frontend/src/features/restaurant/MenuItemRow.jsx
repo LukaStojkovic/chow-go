@@ -15,7 +15,7 @@ import { Plus, UtensilsCrossed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { listItem } from "@/lib/motion";
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@chowgo/shared/format";
 import { SmartImage } from "@/components/common/SmartImage";
 import { PromoPrice } from "@/components/common/Meta";
 import { PromoBadge, SoldOutBadge } from "@/components/common/StatusBadges";
@@ -23,8 +23,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").DishView} props.dish
- * @param {(dish: import("@/lib/adapters/types").DishView) => void} props.onSelect
+ * @param {import("@chowgo/shared/adapters/types").DishView} props.dish
+ * @param {(dish: import("@chowgo/shared/adapters/types").DishView) => void} props.onSelect
  * @param {boolean} [props.isOrderingDisabled] The restaurant is closed.
  * @param {number} [props.inBasketCount] Shown so a repeat add is obvious.
  */

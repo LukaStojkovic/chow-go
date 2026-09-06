@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { axiosInstance } from "@/lib/axios";
 
-import { toDishViews } from "@/lib/adapters/menu";
-import { toRestaurantViews } from "@/lib/adapters/restaurant";
+import { toDishViews } from "@chowgo/shared/adapters/menu";
+import { toRestaurantViews } from "@chowgo/shared/adapters/restaurant";
 
 /**
  * Discovery feed, popular items and search.

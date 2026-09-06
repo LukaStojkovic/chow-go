@@ -13,13 +13,13 @@ import { cn } from "@/lib/utils";
 import { transitions } from "@/lib/motion";
 import { SmartImage } from "@/components/common/SmartImage";
 import { Price } from "@/components/common/Meta";
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@chowgo/shared/format";
 import { Badge } from "@/components/ui/badge";
 import { QuantityStepper } from "@/components/common/QuantityStepper";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").BasketLineView} props.line
+ * @param {import("@chowgo/shared/adapters/types").BasketLineView} props.line
  * @param {"edit"|"summary"} [props.mode]
  * @param {(quantity: number) => void} [props.onQuantityChange]
  * @param {() => void} [props.onRemove]

@@ -21,8 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").DishView} props.dish
- * @param {(dish: import("@/lib/adapters/types").DishView) => void} [props.onAdd]
+ * @param {import("@chowgo/shared/adapters/types").DishView} props.dish
+ * @param {(dish: import("@chowgo/shared/adapters/types").DishView) => void} [props.onAdd]
  *   Opens the customisation sheet. Omit to make the card navigation-only.
  * @param {"default"|"compact"} [props.variant]
  * @param {boolean} [props.animate]

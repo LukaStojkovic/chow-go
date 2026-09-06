@@ -17,9 +17,9 @@ import { useDebouncedCallback } from "use-debounce";
 import { toast } from "sonner";
 import { ArrowRight, Clock, ShoppingBag, Store } from "lucide-react";
 
-import { formatPrice } from "@/lib/format";
-import { toBasketLines } from "@/lib/adapters/menu";
-import { buildPriceBreakdown } from "@/lib/adapters/pricing";
+import { formatPrice } from "@chowgo/shared/format";
+import { toBasketLines } from "@chowgo/shared/adapters/menu";
+import { buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import useCartStore from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import {

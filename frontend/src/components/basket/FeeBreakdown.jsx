@@ -10,7 +10,7 @@
 import { Info } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { formatFee, formatPrice } from "@/lib/format";
+import { formatFee, formatPrice } from "@chowgo/shared/format";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
@@ -64,7 +64,7 @@ function Row({ label, value, hint, tone = "default" }) {
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").PriceBreakdownView} props.pricing
+ * @param {import("@chowgo/shared/adapters/types").PriceBreakdownView} props.pricing
  * @param {boolean} [props.showTotal]
  * @param {string} [props.totalLabel]
  */

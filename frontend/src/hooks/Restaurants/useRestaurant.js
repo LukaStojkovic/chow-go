@@ -4,8 +4,8 @@ import {
   getRestaurantInformations,
   getRestaurantMenuByCategories,
 } from "@/services/apiRestaurant";
-import { toRestaurantView } from "@/lib/adapters/restaurant";
-import { toMenuSections } from "@/lib/adapters/menu";
+import { toRestaurantView } from "@chowgo/shared/adapters/restaurant";
+import { toMenuSections } from "@chowgo/shared/adapters/menu";
 
 /**
  * A restaurant and its menu, as view models.

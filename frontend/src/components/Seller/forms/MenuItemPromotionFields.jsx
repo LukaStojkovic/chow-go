@@ -12,8 +12,8 @@
 
 import { CalendarClock } from "lucide-react";
 
-import { formatPrice } from "@/lib/format";
-import { PROMOTION_LIMITS, PROMOTION_TYPES, previewPromotion } from "@/lib/promotion";
+import { formatPrice } from "@chowgo/shared/format";
+import { PROMOTION_LIMITS, PROMOTION_TYPES, previewPromotion } from "@chowgo/shared/promotion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {

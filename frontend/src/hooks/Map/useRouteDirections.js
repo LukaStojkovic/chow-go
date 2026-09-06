@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchDrivingRoute } from "@/services/routingService";
-import { haversineMeters } from "@/utils/mapUtils";
+import { haversineMeters } from "@chowgo/shared/geo";
 
 const ROUTE_REFRESH_MS = 45000;
 const REROUTE_DEVIATION_M = 120;

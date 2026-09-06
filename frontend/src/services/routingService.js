@@ -1,5 +1,5 @@
 import axios from "axios";
-import { toOsrmCoord } from "@/utils/mapUtils";
+import { toOsrmCoord } from "@chowgo/shared/geo";
 
 const OSRM_BASE = "https://router.project-osrm.org/route/v1/driving";
 

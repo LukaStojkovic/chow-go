@@ -24,7 +24,7 @@ import {
   haversineMeters,
   isSamePosition,
   lerpLatLng,
-} from "@/utils/mapUtils";
+} from "@chowgo/shared/geo";
 
 const FALLBACK_CENTER = [44.8176, 20.4633];
 

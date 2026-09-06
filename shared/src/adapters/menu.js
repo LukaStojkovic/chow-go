@@ -2,7 +2,7 @@
  * Menu item and menu section adapters.
  */
 
-import { titleCase } from "@/lib/format";
+import { titleCase } from "../format.js";
 
 /** @typedef {import("./types").DishView} DishView */
 /** @typedef {import("./types").MenuSectionView} MenuSectionView */

@@ -31,7 +31,7 @@ import {
   getTodayKey,
   isOvernight,
   normalizeSchedule,
-} from "@/utils/scheduleUtils";
+} from "@chowgo/shared/schedule";
 
 export const SellerSettings = () => {
   const { authUser, apiUpdateRestaurant, isUpdatingProfile } = useAuthStore();

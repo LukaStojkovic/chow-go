@@ -10,7 +10,7 @@ import { CircleCheck, CircleX, Clock, Tag, Truck, UtensilsCrossed } from "lucide
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { ORDER_STATUS } from "@/lib/adapters/order";
+import { ORDER_STATUS } from "@chowgo/shared/adapters/order";
 
 /** Order status -> badge variant. Tones come from the adapter, not from here. */
 const TONE_TO_VARIANT = {
@@ -56,7 +56,7 @@ export function OrderStatusBadge({ status, size = "md", withIcon = true, classNa
  * Whether a restaurant can be ordered from right now.
  *
  * @param {Object} props
- * @param {import("@/lib/adapters/types").RestaurantAvailability} props.availability
+ * @param {import("@chowgo/shared/adapters/types").RestaurantAvailability} props.availability
  * @param {"onCard"|"inline"} [props.placement] `onCard` sits over a photo.
  */
 export function AvailabilityBadge({ availability, placement = "inline", size = "md", className }) {

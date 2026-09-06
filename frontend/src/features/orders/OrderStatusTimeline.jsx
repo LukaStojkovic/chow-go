@@ -16,11 +16,11 @@ import { Check } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { transitions } from "@/lib/motion";
-import { formatTime } from "@/lib/format";
+import { formatTime } from "@chowgo/shared/format";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").OrderView} props.order
+ * @param {import("@chowgo/shared/adapters/types").OrderView} props.order
  */
 export function OrderStatusTimeline({ order }) {
   return (

@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 
 import { staggerContainer } from "@/lib/motion";
-import { toRestaurantViews } from "@/lib/adapters/restaurant";
+import { toRestaurantViews } from "@chowgo/shared/adapters/restaurant";
 import { useFavourites } from "@/hooks/Favourites/useFavourites";
 
 import { PageContainer, ResponsiveGrid, Stack } from "@/components/layout/primitives";

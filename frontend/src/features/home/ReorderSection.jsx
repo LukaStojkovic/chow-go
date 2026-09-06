@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { useGetCustomerOrders } from "@/hooks/Orders/useGetCustomerOrders";
-import { formatOrderDate, formatPrice } from "@/lib/format";
+import { formatOrderDate, formatPrice } from "@chowgo/shared/format";
 import { Section, Rail } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

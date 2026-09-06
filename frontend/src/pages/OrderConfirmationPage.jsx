@@ -11,8 +11,8 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { Check, LifeBuoy, MapPin, Navigation } from "lucide-react";
 
 import { transitions } from "@/lib/motion";
-import { formatOrderDate } from "@/lib/format";
-import { toOrderView } from "@/lib/adapters/order";
+import { formatOrderDate } from "@chowgo/shared/format";
+import { toOrderView } from "@chowgo/shared/adapters/order";
 import { useGetOrderById } from "@/hooks/Orders/useGetOrderById";
 
 import { PageContainer, Stack } from "@/components/layout/primitives";

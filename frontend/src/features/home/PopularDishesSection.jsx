@@ -17,7 +17,7 @@ import { DishCard, DishCardSkeleton } from "@/components/discovery/DishCard";
 
 /**
  * @param {Object} props
- * @param {(dish: import("@/lib/adapters/types").DishView) => void} props.onAddDish
+ * @param {(dish: import("@chowgo/shared/adapters/types").DishView) => void} props.onAddDish
  */
 export function PopularDishesSection({ onAddDish }) {
   const { popularItems, isLoadingPopular, popularError, fetchPopular } = useDiscoverStore();

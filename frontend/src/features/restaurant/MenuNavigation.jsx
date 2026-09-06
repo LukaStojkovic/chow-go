@@ -20,7 +20,7 @@ export const HEADER_OFFSET = "top-14 sm:top-16";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").MenuSectionView[]} props.sections
+ * @param {import("@chowgo/shared/adapters/types").MenuSectionView[]} props.sections
  * @param {string} props.activeSection
  * @param {(id: string) => void} props.onSelectSection
  * @param {string} props.query

@@ -10,7 +10,7 @@ import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Plus } from "lucide-react";
 
-import { titleCase } from "@/lib/format";
+import { titleCase } from "@chowgo/shared/format";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
 import { Button } from "@/components/ui/button";

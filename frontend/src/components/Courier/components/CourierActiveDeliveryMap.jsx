@@ -9,7 +9,7 @@ const NavigationMap = lazyNamed(
 import { NavigationBanner } from "@/components/Map/NavigationBanner";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
 import { useCourierLocation } from "@/contexts/CourierLocationContext";
-import { haversineMeters, toLatLng } from "@/utils/mapUtils";
+import { haversineMeters, toLatLng } from "@chowgo/shared/geo";
 
 export function CourierActiveDeliveryMap({
   order,

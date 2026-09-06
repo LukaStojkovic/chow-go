@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { PROMOTION_LIMITS } from "@/lib/promotion";
+import { PROMOTION_LIMITS } from "@chowgo/shared/promotion";
 
 const priceField = z
   .string()

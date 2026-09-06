@@ -16,14 +16,14 @@ import { UtensilsCrossed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { hoverLift, listItem } from "@/lib/motion";
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@chowgo/shared/format";
 import { SmartImage } from "@/components/common/SmartImage";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").DishView} props.deal A dish with a
+ * @param {import("@chowgo/shared/adapters/types").DishView} props.deal A dish with a
  *   live promotion. `discountPercent` is guaranteed non-zero by the endpoint.
  */
 export function PromoCard({ deal }) {

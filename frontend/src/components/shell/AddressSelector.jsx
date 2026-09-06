@@ -18,7 +18,7 @@ import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddre
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { titleCase } from "@/lib/format";
+import { titleCase } from "@chowgo/shared/format";
 
 /**
  * @param {Object} props

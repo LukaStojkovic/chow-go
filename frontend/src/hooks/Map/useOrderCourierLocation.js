@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSocket } from "@/contexts/SocketContext";
-import { toLatLng } from "@/utils/mapUtils";
+import { toLatLng } from "@chowgo/shared/geo";
 
 const STALE_AFTER_MS = 90_000;
 

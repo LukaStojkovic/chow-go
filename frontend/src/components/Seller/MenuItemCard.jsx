@@ -3,8 +3,8 @@ import { Edit2, Trash2, CheckCircle2, XCircle, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
-import { formatPrice } from "@/lib/format";
-import { isPromotionLive, resolvePromotion } from "@/lib/promotion";
+import { formatPrice } from "@chowgo/shared/format";
+import { isPromotionLive, resolvePromotion } from "@chowgo/shared/promotion";
 
 export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
   // This screen reads raw MenuItem documents, so the promoted price is resolved

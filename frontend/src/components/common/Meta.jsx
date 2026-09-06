@@ -16,7 +16,7 @@ import {
   formatPrice,
   formatRating,
   formatReviewCount,
-} from "@/lib/format";
+} from "@chowgo/shared/format";
 
 /**
  * One piece of metadata: an icon and a value. The icon is always decorative -

@@ -13,7 +13,7 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, UtensilsCrossed } from "lucide-react";
 
-import { formatPrice } from "@/lib/format";
+import { formatPrice } from "@chowgo/shared/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/common/SmartImage";
@@ -22,9 +22,9 @@ import { FeeBreakdown } from "@/components/basket/FeeBreakdown";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").BasketLineView[]} props.lines
+ * @param {import("@chowgo/shared/adapters/types").BasketLineView[]} props.lines
  * @param {Object | null} props.restaurant Raw cart restaurant document.
- * @param {import("@/lib/adapters/types").PriceBreakdownView} props.pricing
+ * @param {import("@chowgo/shared/adapters/types").PriceBreakdownView} props.pricing
  * @param {string[]} props.blockers Human-readable reasons the order cannot be
  *   placed. Empty means ready.
  * @param {boolean} props.isPlacing

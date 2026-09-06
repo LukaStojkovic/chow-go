@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { getNearbyRestaurants } from "@/services/apiLocation";
-import { toRestaurantViews } from "@/lib/adapters/restaurant";
+import { toRestaurantViews } from "@chowgo/shared/adapters/restaurant";
 
 /**
  * Restaurants within `radius` metres of the customer.

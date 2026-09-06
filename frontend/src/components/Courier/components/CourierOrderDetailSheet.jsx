@@ -16,7 +16,7 @@ import { CourierOrderEarnings } from "./CourierOrderEarningsCard";
 import { CourierOrderItems } from "./CourierOrderItemsCard";
 import { CourierOrderNotes } from "./CourierOrderNoteCard";
 import { CourierOrderPayment } from "./CourierOrderPaymentCard";
-import { toLatLng } from "@/utils/mapUtils";
+import { toLatLng } from "@chowgo/shared/geo";
 
 const CourierOrderMap = lazyNamed(
   () => import("./CourierOrderMap"),

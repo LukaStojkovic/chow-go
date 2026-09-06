@@ -10,7 +10,7 @@ import { useState } from "react";
 import { MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { titleCase } from "@/lib/format";
+import { titleCase } from "@chowgo/shared/format";
 import { MAX_SAVED_ADDRESSES } from "@/lib/constants";
 import useGetDeliveryAddresses from "@/hooks/DeliveryAddress/useGetDeliveryAddresses";
 import useAddDeliveryAddress from "@/hooks/DeliveryAddress/useAddDeliveryAddress";

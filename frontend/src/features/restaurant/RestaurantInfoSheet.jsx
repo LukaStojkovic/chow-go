@@ -13,10 +13,10 @@ import { Clock, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ResponsiveSheet } from "@/components/basket/ResponsiveSheet";
 import { AvailabilityBadge } from "@/components/common/StatusBadges";
-import { formatFee } from "@/lib/format";
+import { formatFee } from "@chowgo/shared/format";
 
 /**
- * @param {import("@/lib/adapters/types").DayScheduleView} day
+ * @param {import("@chowgo/shared/adapters/types").DayScheduleView} day
  * @returns {string}
  */
 function describeHours(day) {
@@ -30,7 +30,7 @@ function describeHours(day) {
  * @param {Object} props
  * @param {boolean} props.open
  * @param {() => void} props.onClose
- * @param {import("@/lib/adapters/types").RestaurantView} props.restaurant
+ * @param {import("@chowgo/shared/adapters/types").RestaurantView} props.restaurant
  */
 export function RestaurantInfoSheet({ open, onClose, restaurant }) {
   return (

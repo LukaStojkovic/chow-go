@@ -9,8 +9,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
-import { generateNameInitials } from "@/utils/stringUtils";
-import { formatDateAgo } from "@/utils/dateUtils";
+import { generateNameInitials } from "@chowgo/shared/strings";
+import { formatDateAgo } from "@chowgo/shared/dates";
 
 export function EarningsOverview({ chartData = [], recentOrders = [] }) {
   return (

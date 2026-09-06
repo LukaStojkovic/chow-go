@@ -7,10 +7,10 @@
  * screen-reader announcement can never describe the same order differently.
  */
 
-import { formatOrderDate } from "@/lib/format";
-import { toRestaurantView } from "./restaurant";
-import { toBasketLines } from "./menu";
-import { breakdownFromOrder } from "./pricing";
+import { formatOrderDate } from "../format.js";
+import { toRestaurantView } from "./restaurant.js";
+import { toBasketLines } from "./menu.js";
+import { breakdownFromOrder } from "./pricing.js";
 
 /** @typedef {import("./types").OrderView} OrderView */
 /** @typedef {import("./types").OrderStepView} OrderStepView */

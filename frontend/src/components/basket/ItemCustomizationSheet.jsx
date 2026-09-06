@@ -14,8 +14,8 @@
 import { useState } from "react";
 import { UtensilsCrossed } from "lucide-react";
 
-import { formatPrice } from "@/lib/format";
-import { toMoney } from "@/lib/adapters/pricing";
+import { formatPrice } from "@chowgo/shared/format";
+import { toMoney } from "@chowgo/shared/adapters/pricing";
 import useCartStore from "@/store/useCartStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +30,7 @@ const MAX_NOTE = 200;
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").DishView | null} props.dish
+ * @param {import("@chowgo/shared/adapters/types").DishView | null} props.dish
  *   `null` closes the sheet. Passing the dish itself as the open signal keeps
  *   the sheet stateless between openings.
  * @param {() => void} props.onClose

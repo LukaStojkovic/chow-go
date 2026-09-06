@@ -32,7 +32,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * @param {Object} props
- * @param {import("@/lib/adapters/types").RestaurantView} props.restaurant
+ * @param {import("@chowgo/shared/adapters/types").RestaurantView} props.restaurant
  * @param {boolean} [props.isFavourite]
  * @param {(id: string) => void} [props.onToggleFavourite]
  * @param {boolean} [props.isTogglingFavourite]
