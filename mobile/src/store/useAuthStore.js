@@ -1,7 +1,15 @@
 import { create } from "zustand";
 import { setUnauthorizedHandler } from "@/api/client";
 import { clearToken, setToken } from "@/lib/secureToken";
-import { checkAuth, loginUser, logoutUser } from "@/services/apiAuth";
+import {
+  checkAuth,
+  loginUser,
+  logoutUser,
+  registerCustomer,
+  requestPasswordReset,
+  resetPassword,
+  verifyOtp,
+} from "@/services/apiAuth";
 
 // The backend returns the token in the body only for X-Client: mobile callers.
 // Strip it before it reaches component state - it belongs in SecureStore.
@@ -20,14 +28,13 @@ export const useAuthStore = create((set) => {
   return {
     authUser: null,
     isCheckingAuth: true,
-    isLoggingIn: false,
+    isSubmitting: false,
 
     setAuthUser: (authUser) => set({ authUser }),
 
     checkAuth: async () => {
       try {
-        const user = await checkAuth();
-        set({ authUser: user });
+        set({ authUser: await checkAuth() });
       } catch {
         set({ authUser: null });
       } finally {
@@ -36,13 +43,24 @@ export const useAuthStore = create((set) => {
     },
 
     login: async (credentials) => {
-      set({ isLoggingIn: true });
+      set({ isSubmitting: true });
       try {
         const user = await persistSession(await loginUser(credentials));
         set({ authUser: user });
         return user;
       } finally {
-        set({ isLoggingIn: false });
+        set({ isSubmitting: false });
+      }
+    },
+
+    register: async (payload) => {
+      set({ isSubmitting: true });
+      try {
+        const user = await persistSession(await registerCustomer(payload));
+        set({ authUser: user });
+        return user;
+      } finally {
+        set({ isSubmitting: false });
       }
     },
 
@@ -56,5 +74,9 @@ export const useAuthStore = create((set) => {
       await clearToken();
       set({ authUser: null });
     },
+
+    requestPasswordReset,
+    verifyOtp,
+    resetPassword,
   };
 });
