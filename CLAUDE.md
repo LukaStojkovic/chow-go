@@ -22,12 +22,15 @@ cd frontend && npm run lint    # eslint (the only automated check in the repo)
 cd frontend && npm run build   # vite build -> frontend/dist
 cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
 cd mobile && npm run sync-theme  # regenerate the theme from frontend/src/index.css
+node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
 ```
 
-There is **no test framework, no test files, and no CI** anywhere in the repo. Do not invent a `npm test` invocation; verify changes by running both dev servers.
+There is **no test framework and no CI** anywhere in the repo. Do not invent a `npm test` invocation; verify changes by running the dev servers.
+
+The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
 `shared/` has no build step and no lint. It does need its own `npm install` (it depends on `zod`): Vite resolves the linked package through its real path, so a missing `shared/node_modules` breaks the frontend build rather than the shared package alone.
 
