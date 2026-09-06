@@ -23,6 +23,7 @@ cd frontend && npm run build   # vite build -> frontend/dist
 cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
 cd mobile && npm run sync-theme  # regenerate the theme from frontend/src/index.css
 node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
+node backend/scripts/checkPushFallback.js   # push-vs-socket delivery (needs --keep fixtures)
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
@@ -70,7 +71,9 @@ Order creation snapshots data deliberately — item name/price are copied into `
 
 Courier GPS: the client emits `courier:location_update`, throttled to one DB write per 3s per courier in `locationTracking.service.js`, which then re-broadcasts `courier:location` to the customer, restaurant, and courier on that order.
 
-Persisted notifications (`models/OrderNotification.js`, registered as model `"Notification"`, templated in `orderNotification.service.js`) are written on every transition but **no endpoint reads them back** — the UI is driven entirely by sockets and toasts.
+Persisted notifications (`models/OrderNotification.js`, registered as model `"Notification"`, templated in `orderNotification.service.js`) are written on every transition but **no endpoint reads them back** — the in-app UI is driven entirely by sockets and toasts.
+
+Those same templates are the source of push copy via `pushPayloadFor`, so the two can't drift. `services/orderSocket.service.js#deliverToCustomer` emits, and sends an Expo push only when `emitToCustomer` returns false — an empty room. iOS suspends the socket ~30s after backgrounding, which makes that a good proxy for "the app isn't in front of them"; Android can hold a socket open while hidden, so a notification is occasionally skipped there. Making it exact needs the client to leave its rooms on background. `courier:location` deliberately never pushes — that would be thousands of notifications per delivery. Device tokens live on `User.pushTokens` with `select: false`, because `toJSON` runs with virtuals on and they would otherwise ride along in every `checkAuth` response.
 
 ## Opening hours and `isOpenNow`
 

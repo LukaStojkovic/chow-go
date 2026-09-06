@@ -1,5 +1,7 @@
 import Order from "../models/Order.js";
 import { getSocketServer } from "../socket/socketServer.js";
+import { pushPayloadFor } from "./orderNotification.service.js";
+import { sendPushToUser } from "./push.service.js";
 
 async function getPopulatedOrder(orderId) {
   const order = await Order.findById(orderId)
@@ -12,16 +14,32 @@ async function getPopulatedOrder(orderId) {
   }
   return order;
 }
+/**
+ * Emits to the customer, falling back to a push when nobody is listening.
+ *
+ * emitToCustomer already returns false for an empty room, so "not connected" is
+ * information we are handed rather than something to compute. iOS suspends the
+ * socket within ~30s of backgrounding, which makes that a good proxy for "the
+ * app is not in front of them". Android can hold a socket open while hidden, so
+ * a notification is occasionally skipped there; making it exact needs the client
+ * to leave its rooms on background, which is a later change.
+ */
+async function deliverToCustomer(socketServer, customerId, event, payload, pushType) {
+  const live = socketServer.emitToCustomer(customerId, event, payload);
+  if (live || !pushType) return;
+  await sendPushToUser(customerId, pushPayloadFor(pushType, payload.order));
+}
+
 export async function emitOrderConfirmed(customerId, order, estimatedTime) {
   try {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(customerId, "order:confirmed", {
+    await deliverToCustomer(socketServer, customerId, "order:confirmed", {
       order: populatedOrder,
       estimatedTime,
       message: "Your order has been confirmed!",
-    });
+    }, "order_confirmed");
   } catch (error) {
     console.error("Socket emit error (order:confirmed):", error);
   }
@@ -32,11 +50,11 @@ export async function emitOrderRejected(customerId, order, reason) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(customerId, "order:rejected", {
+    await deliverToCustomer(socketServer, customerId, "order:rejected", {
       order: populatedOrder,
       reason,
       message: "Sorry, your order was rejected by the restaurant",
-    });
+    }, "order_rejected");
   } catch (error) {
     console.error("Socket emit error (order:rejected):", error);
   }
@@ -57,10 +75,13 @@ export async function emitOrderStatusChanged(customerId, order, newStatus) {
     const message =
       statusMessages[newStatus] || `Order status updated to ${newStatus}`;
 
-    socketServer.emitToCustomer(customerId, eventName, {
-      order: populatedOrder,
-      message,
-    });
+    await deliverToCustomer(
+      socketServer,
+      customerId,
+      eventName,
+      { order: populatedOrder, message },
+      newStatus === "preparing" ? "order_preparing" : "order_ready",
+    );
   } catch (error) {
     console.error(`Socket emit error (order:${newStatus}):`, error);
   }
@@ -71,7 +92,7 @@ export async function emitOrderCancelled(customerId, order, reason) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(customerId, "order:cancelled", {
+    await deliverToCustomer(socketServer, customerId, "order:cancelled", {
       order: populatedOrder,
       reason,
       message: "Your order was cancelled by the restaurant",
@@ -86,10 +107,13 @@ export async function emitOrderAssigned(order) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(populatedOrder.customer._id, "order:assigned", {
-      order: populatedOrder,
-      message: "A courier has been assigned to your order",
-    });
+    await deliverToCustomer(
+      socketServer,
+      populatedOrder.customer._id,
+      "order:assigned",
+      { order: populatedOrder, message: "A courier has been assigned to your order" },
+      "order_assigned",
+    );
 
     socketServer.emitToRestaurant(
       populatedOrder.restaurant._id,
@@ -135,13 +159,12 @@ export async function emitOrderPickedUp(order) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(
+    await deliverToCustomer(
+      socketServer,
       populatedOrder.customer._id,
       "order:picked_up",
-      {
-        order: populatedOrder,
-        message: "Courier picked up your order",
-      },
+      { order: populatedOrder, message: "Courier picked up your order", },
+      "order_picked_up",
     );
     socketServer.emitToRestaurant(
       populatedOrder.restaurant._id,
@@ -171,13 +194,12 @@ export async function emitOrderInTransit(order) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(
+    await deliverToCustomer(
+      socketServer,
       populatedOrder.customer._id,
       "order:in_transit",
-      {
-        order: populatedOrder,
-        message: "Courier is on the way",
-      },
+      { order: populatedOrder, message: "Courier is on the way", },
+      "order_in_transit",
     );
     socketServer.emitToRestaurant(
       populatedOrder.restaurant._id,
@@ -207,13 +229,12 @@ export async function emitOrderDelivered(order) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    socketServer.emitToCustomer(
+    await deliverToCustomer(
+      socketServer,
       populatedOrder.customer._id,
       "order:delivered",
-      {
-        order: populatedOrder,
-        message: "Order delivered",
-      },
+      { order: populatedOrder, message: "Order delivered", },
+      "order_delivered",
     );
     socketServer.emitToRestaurant(
       populatedOrder.restaurant._id,

@@ -64,6 +64,28 @@ userSchema.pre("save", function (next) {
   next();
 });
 
+// select: false matters - toJSON runs with virtuals on, so without it every
+// device token would ride along in checkAuth and login responses.
+userSchema.add({
+  pushTokens: {
+    type: [
+      new mongoose.Schema(
+        {
+          token: { type: String, required: true },
+          platform: { type: String, enum: ["ios", "android"], required: true },
+          deviceId: String,
+          lastSeenAt: { type: Date, default: Date.now },
+        },
+        { _id: false },
+      ),
+    ],
+    default: [],
+    select: false,
+  },
+});
+
+userSchema.index({ "pushTokens.token": 1 });
+
 userSchema.virtual("restaurant", {
   ref: "Restaurant",
   localField: "_id",

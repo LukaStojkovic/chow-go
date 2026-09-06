@@ -35,7 +35,50 @@ const NOTIFICATION_TEMPLATES = {
     type: "order_cancelled",
     priority: "high",
   },
+
+  // courierOrder.service.js has always passed these four to
+  // createOrderStatusNotification, which returned null on a missing template -
+  // so the entire courier half of the lifecycle silently persisted nothing.
+  order_assigned: {
+    title: "Courier Assigned",
+    messageTemplate: (orderNumber) =>
+      `A courier is picking up order #${orderNumber}`,
+    type: "order_assigned",
+    priority: "medium",
+  },
+  order_picked_up: {
+    title: "Order Picked Up",
+    messageTemplate: (orderNumber) =>
+      `Order #${orderNumber} is on its way from the restaurant`,
+    type: "order_picked_up",
+    priority: "medium",
+  },
+  order_in_transit: {
+    title: "On The Way",
+    messageTemplate: (orderNumber) =>
+      `Order #${orderNumber} is out for delivery`,
+    type: "order_in_transit",
+    priority: "high",
+  },
+  order_delivered: {
+    title: "Delivered",
+    messageTemplate: (orderNumber) => `Order #${orderNumber} has been delivered`,
+    type: "order_delivered",
+    priority: "high",
+  },
 };
+
+/** Push copy comes from the same templates, so the two never drift apart. */
+export function pushPayloadFor(type, order) {
+  const template = NOTIFICATION_TEMPLATES[type];
+  if (!template) return null;
+
+  return {
+    title: template.title,
+    body: template.messageTemplate(order?.orderNumber ?? ""),
+    data: { type, orderId: String(order?._id ?? "") },
+  };
+}
 
 export async function createOrderConfirmedNotification(order) {
   const template = NOTIFICATION_TEMPLATES.order_confirmed;
