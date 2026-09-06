@@ -53,7 +53,11 @@ export const getFavourites = async (req, res, next) => {
     
     const user = await User.findById(userId).populate({
       path: "favouriteRestaurants",
-      select: "name profilePicture cuisineType averageRating totalReviews"
+      // isActive/isOpenNow drive the card's availability state, images[0] is the
+      // cover shot and estimatedDeliveryTime the subtitle. Without them every
+      // favourite renders as closed with a placeholder image.
+      select:
+        "name profilePicture images cuisineType averageRating totalReviews isActive isOpenNow estimatedDeliveryTime address"
     });
     
     res.status(200).json({
