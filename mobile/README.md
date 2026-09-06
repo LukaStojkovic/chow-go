@@ -17,9 +17,23 @@ background location, custom permission strings or remote push — on Android,
 
 ```bash
 npm install
-eas build --profile development --platform android   # once per native change
-npm start                                            # then open in the dev client
+npx eas-cli login          # an Expo account is required
+npx eas-cli init           # links this app and writes extra.eas.projectId
+npx eas-cli build --profile development --platform android
+npm start                  # then open the build in the dev client
 ```
+
+`npx eas` does not work — the package is `eas-cli` and npx cannot resolve the
+binary from that name. Either use `npx eas-cli` as above or install it globally
+with `npm install -g eas-cli`.
+
+`eas init` is not optional: it writes `extra.eas.projectId` into app.json, and
+`getExpoPushTokenAsync` refuses to issue a token without it, so push stays off
+until that step has run.
+
+Rebuild only when native code changes — a new package with native modules, or an
+edit to app.json. JavaScript-only changes reach the existing dev client through
+`npm start`.
 
 Point it at a backend by leaving `EXPO_PUBLIC_API_URL` unset — `src/lib/config.js`
 derives the host from Expo's packager, and falls back to `10.0.2.2` on the Android

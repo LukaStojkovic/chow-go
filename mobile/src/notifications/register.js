@@ -27,10 +27,16 @@ export async function registerForPush() {
     }
     if (status !== "granted") return null;
 
+    // `eas init` writes this into app.json. Without it getExpoPushTokenAsync
+    // fails on SDK 49+, and the cause is a missing setup step rather than
+    // anything the running app did, so it is named rather than swallowed below.
     const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-    const { data: token } = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined,
-    );
+    if (!projectId) {
+      console.warn("[push] no EAS projectId - run `eas init`; push stays off until then");
+      return null;
+    }
+
+    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
 
     await api.post("/notifications/register-device", {
       token,
