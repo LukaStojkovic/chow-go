@@ -15,6 +15,7 @@ import { Toaster } from "@/components/feedback/Toaster";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { SocketProvider } from "@/realtime/SocketProvider";
+import { usePushNotifications } from "@/notifications/usePushNotifications";
 import { useGlobalSocketEvents } from "@/realtime/useGlobalSocketEvents";
 import { useAuthStore } from "@/store/useAuthStore";
 import { watchReduceMotion } from "@/store/useMotionStore";
@@ -24,6 +25,7 @@ SplashScreen.preventAutoHideAsync();
 
 function AppContent() {
   useGlobalSocketEvents();
+  usePushNotifications();
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 

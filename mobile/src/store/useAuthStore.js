@@ -69,6 +69,8 @@ export const useAuthStore = create((set) => {
     },
 
     logout: async () => {
+      // Before the token is dropped: unregistering needs an authenticated call.
+      await import("@/notifications/register").then((m) => m.unregisterPush());
       try {
         await logoutUser();
       } catch {
