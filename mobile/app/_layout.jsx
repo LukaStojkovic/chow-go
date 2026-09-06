@@ -17,6 +17,7 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { SocketProvider } from "@/realtime/SocketProvider";
 import { useGlobalSocketEvents } from "@/realtime/useGlobalSocketEvents";
 import { useAuthStore } from "@/store/useAuthStore";
+import { watchReduceMotion } from "@/store/useMotionStore";
 import { useThemeStore } from "@/store/useThemeStore";
 
 SplashScreen.preventAutoHideAsync();
@@ -45,6 +46,11 @@ export default function RootLayout() {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    const subscription = watchReduceMotion();
+    return () => subscription?.remove?.();
+  }, []);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
