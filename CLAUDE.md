@@ -21,7 +21,7 @@ cd frontend && npm run dev     # vite --host
 cd frontend && npm run lint    # eslint (the only automated check in the repo)
 cd frontend && npm run build   # vite build -> frontend/dist
 cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
-cd mobile && npm run sync-theme  # regenerate the theme from frontend/src/index.css
+cd mobile && npm run sync-theme  # regenerate the theme from mobile/src/theme/palette.js
 node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
 node backend/scripts/checkPushFallback.js   # push-vs-socket delivery (needs --keep fixtures)
 node backend/scripts/checkGoogleAuth.js     # web + native Google flow (no server needed)
@@ -151,9 +151,11 @@ Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload
 Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else lives in `src/`.
 
 - **A development build is required from day one** — `react-native-maps`, background location, custom permission strings and remote push all fail in Expo Go, and `expo-notifications` remote push does not work in Expo Go on Android at all. Do not plan an Expo Go phase.
-- **The theme is generated, not written.** `npm run sync-theme` derives `global.css` and `src/theme/tokens.js` from `frontend/src/index.css`, converting hex to space-separated RGB channels so Tailwind's `<alpha-value>` resolves and `bg-primary/10` compiles. It fails the build if a web token has no `tailwind.config.js` mapping. Never hand-edit those two files.
-- Token *names* match the web exactly, so utility classes are copy-pasteable. NativeWind v4 needs **Tailwind 3**, not the web's Tailwind 4 — that divergence is deliberate and documented at the top of `tailwind.config.js`.
-- Inter has no static 550/650 face, so the web's `label` and `h2`/`h3`/`price` weights collapse onto 600. Use the `<Text variant>` primitive rather than raw type classes.
+- **The design language is the app's own, and no longer derived from the web.** `mobile/` runs *Fast Casual Velocity*: blue-cast off-white surfaces, one kelly green for every action and positive state, a citrus orange held back for promotion and urgency, generous curvature (cards at `rounded-lg`/20, sheets at `rounded-xl`/24, anything pressable a full pill), and elevation instead of borders. The web keeps its zinc theme; the two palettes are now independent by design.
+- **The theme is generated, not written.** `npm run sync-theme` derives `global.css` and `src/theme/tokens.js` from **`src/theme/palette.js`** — which is the single source of truth and the only one of the three you edit. Colours become space-separated RGB channels so Tailwind's `<alpha-value>` resolves and `bg-primary/10` compiles; hex does not. The script fails if a token has no `tailwind.config.js` mapping, or if a token exists in one theme but not the other.
+- Token *names* are still mostly shared with the web, so most utility classes remain copy-pasteable, but `primary-bright` and the whole `tertiary-*` family are native-only. NativeWind v4 needs **Tailwind 3**, not the web's Tailwind 4 — that divergence is deliberate and documented at the top of `tailwind.config.js`.
+- **Two type families.** Plus Jakarta Sans (600/700/800) carries headings, labels, prices and CTAs — everything scanned at a glance. Inter (400/500) carries body copy. Both are loaded in `app/_layout.jsx`; a missing face renders as the system font, not as an error. Use the `<Text variant>` primitive rather than raw type classes.
+- Tailwind's opacity modifiers only accept its own scale (multiples of 5). `bg-white/12` silently generates nothing and the element renders unstyled — use `bg-white/10` or bracket syntax.
 - Anything needing a colour *value* rather than a className (maps, bottom sheets, StatusBar, charts) reads `src/theme/tokens.js` via `useTokens()`. Nothing else may hardcode a hex.
 - `src/api/client.js` sends `X-Client: mobile`, without which the backend omits the token from login/register bodies and every later request is silently unauthenticated.
 - `src/lib/config.js` derives the dev host from Expo's packager (`10.0.2.2` on the Android emulator), so `EXPO_PUBLIC_API_URL` only needs setting for a tunnel, staging or production.

@@ -10,6 +10,25 @@ import {
 import { useAuthStore } from "./useAuthStore";
 import { toast } from "./useToastStore";
 
+/**
+ * Reconcile one cart response into the store.
+ *
+ * The restaurant needs care. Every cart endpoint now populates it, but an
+ * unpopulated response is still a bare ObjectId string, and the previous
+ * version of this dropped that on the floor - which left `restaurant` null
+ * after the first add of a session and sent checkout to the API with no
+ * `restaurantId`, where it came back as a flat 400. Whatever arrives, the id
+ * survives; the populated object is only preferred because the basket shows
+ * the name.
+ */
+function mergeRestaurant(incoming, known, hasItems) {
+  if (!incoming) return hasItems ? known : null;
+  if (typeof incoming === "object") return incoming;
+
+  // A bare id. Keep the populated document only if it is the same restaurant.
+  return known?._id && String(known._id) === String(incoming) ? known : { _id: incoming };
+}
+
 // The server is authoritative: every mutation replaces local state with the
 // whole cart it returns, so quantities can never drift from the backend's view.
 function applyCart(set, payload) {
@@ -19,15 +38,7 @@ function applyCart(set, payload) {
   set((state) => ({
     items,
     totalPrice: cart?.totalPrice ?? 0,
-    // GET /cart populates the restaurant; POST /cart/items returns a bare
-    // ObjectId. Overwriting blindly would drop the name the basket displays,
-    // so an unpopulated value keeps whatever is already known.
-    restaurant:
-      cart?.restaurant && typeof cart.restaurant === "object"
-        ? cart.restaurant
-        : items.length === 0
-          ? null
-          : state.restaurant,
+    restaurant: mergeRestaurant(cart?.restaurant, state.restaurant, items.length > 0),
   }));
 }
 

@@ -122,7 +122,7 @@ export const useAuthStore = create((set) => ({
     set({ isUpdatingProfile: true });
     try {
       const response = await updateProfile(data);
-      if (response.data) {
+      if (response?.data) {
         set({ authUser: response.data });
       }
 

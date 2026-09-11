@@ -3,11 +3,15 @@ import { ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
-import { CircleCheck } from "lucide-react-native";
+
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { DockedBar } from "@/components/ui/FloatingBar";
+import { Inset } from "@/components/ui/Card";
+
 import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import {
   VEHICLE_TYPES,
@@ -19,7 +23,6 @@ import { registerCourier } from "@/services/apiAuth";
 import { setToken } from "@/lib/secureToken";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
-import { useTokens } from "@/theme/useTokens";
 
 const STEPS = [
   { key: "account", title: "Your details", schema: courierAccountStep },
@@ -31,7 +34,6 @@ export default function CourierSignup() {
   const [collected, setCollected] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const setAuthUser = useAuthStore((state) => state.setAuthUser);
-  const { color } = useTokens();
 
   const step = STEPS[index];
   const { control, handleSubmit, formState, reset } = useForm({
@@ -82,20 +84,32 @@ export default function CourierSignup() {
   );
 
   return (
-    <Screen edges={["bottom"]}>
-      <View className="gap-3 px-5 pt-3">
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader
+        onBack={() => (index > 0 ? setIndex((current) => current - 1) : router.back())}
+      />
+
+      <View className="gap-4 px-5 pb-1">
         <View className="flex-row gap-1.5">
           {STEPS.map((entry, position) => (
             <View
               key={entry.key}
-              className={`h-1 flex-1 rounded-full ${position <= index ? "bg-primary" : "bg-muted"}`}
+              className={`h-1.5 flex-1 rounded-full ${position <= index ? "bg-primary" : "bg-muted"}`}
             />
           ))}
         </View>
-        <Text variant="h1">{step.title}</Text>
+        <View className="gap-1.5">
+          <Text variant="overline" tone="muted">
+            Deliver with Chow · Step {index + 1} of {STEPS.length}
+          </Text>
+          <Text variant="h1">{step.title}</Text>
+        </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerClassName="gap-4 px-5 pb-6 pt-4"
+        keyboardShouldPersistTaps="handled"
+      >
         {step.key === "account" ? (
           <>
             {field("name", "Your name", { autoComplete: "name" })}
@@ -119,21 +133,20 @@ export default function CourierSignup() {
               render={({ field: input }) => (
                 <View className="gap-2">
                   <Text
-                    variant="label"
-                    tone={formState.errors.vehicleType ? "destructive" : "foreground"}
+                    variant="label-sm"
+                    tone={formState.errors.vehicleType ? "destructive" : "muted"}
                   >
                     What do you deliver on?
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
                     {VEHICLE_TYPES.map((entry) => (
-                      <Button
+                      <Chip
                         key={entry.value}
-                        size="sm"
-                        variant={input.value === entry.value ? "primary" : "outline"}
+                        label={entry.label}
+                        active={input.value === entry.value}
+                        showCheck
                         onPress={() => input.onChange(entry.value)}
-                      >
-                        {entry.label}
-                      </Button>
+                      />
                     ))}
                   </View>
                   {formState.errors.vehicleType ? (
@@ -144,21 +157,26 @@ export default function CourierSignup() {
                 </View>
               )}
             />
+
             {field("vehicleModel", "Model", { placeholder: "Optional" })}
             {field("vehicleNumber", "Registration", { placeholder: "Optional" })}
 
-            <View className="flex-row items-start gap-2.5 rounded-md bg-info-subtle p-3">
-              <CircleCheck size={16} color={color.info} style={{ marginTop: 1 }} />
-              <Text variant="caption" className="flex-1 text-info">
-                You can start once we've verified your details. Licence and insurance documents are
-                checked separately — your profile shows where that has got to.
-              </Text>
-            </View>
+            <Inset tone="info" className="flex-row items-start gap-3 p-4">
+              <View className="flex-1 gap-1">
+                <Text variant="caption" tone="info">
+                  What happens next
+                </Text>
+                <Text variant="body-sm">
+                  You can start once we have verified your details. Licence and insurance documents
+                  are checked separately - your profile shows where that has got to.
+                </Text>
+              </View>
+            </Inset>
           </>
         )}
       </ScrollView>
 
-      <View className="flex-row gap-2 border-t border-border bg-card p-4">
+      <DockedBar className="flex-row items-center gap-2.5">
         {index > 0 ? (
           <Button variant="outline" size="lg" onPress={() => setIndex((current) => current - 1)}>
             Back
@@ -179,7 +197,7 @@ export default function CourierSignup() {
         >
           {index < STEPS.length - 1 ? "Continue" : "Apply to deliver"}
         </Button>
-      </View>
+      </DockedBar>
     </Screen>
   );
 }

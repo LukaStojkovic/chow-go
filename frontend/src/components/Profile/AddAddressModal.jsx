@@ -1,16 +1,6 @@
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MapPin,
-  ChevronLeft,
-  Home,
-  Building,
-  Hotel,
-  Briefcase,
-  House,
-  MapPin as MapPinIcon,
-  Heart,
-} from "lucide-react";
+import { MapPin, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { ADDRESS_LABELS, ADDRESS_TYPES, matchAddressLabel } from "@/lib/constants";
 import { lazyNamed } from "@/lib/lazyNamed";
 import { cn } from "@/lib/utils";
 import useReverseGeocoding from "@/hooks/Location/useReverseGeocoding";
@@ -32,21 +23,6 @@ const LocationMapSelector = lazyNamed(
   () => import("../Location/LocationMapSelector"),
   "LocationMapSelector",
 );
-
-const LABEL_OPTIONS = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "work", label: "Work", icon: Briefcase },
-  { id: "partner", label: "Partner", icon: Heart },
-  { id: "other", label: "Other", icon: MapPin },
-];
-
-const ADDRESS_TYPES = [
-  { value: "apartment", label: "Apartment", icon: Building },
-  { value: "house", label: "House", icon: House },
-  { value: "office", label: "Office", icon: Briefcase },
-  { value: "hotel", label: "Hotel", icon: Hotel },
-  { value: "other", label: "Other", icon: MapPinIcon },
-];
 
 export default function AddAddressModal({
   isOpen,
@@ -73,7 +49,7 @@ export default function AddAddressModal({
     doorCode: initialData?.doorCode || "",
     buildingName: initialData?.buildingName || "",
     notes: initialData?.notes || "",
-    label: initialData?.label || "home",
+    label: matchAddressLabel(initialData?.label),
   });
 
   const { data: addressData, isLoading: isAddressLoading } =
@@ -95,7 +71,7 @@ export default function AddAddressModal({
           doorCode: initialData.doorCode || "",
           buildingName: initialData.buildingName || "",
           notes: initialData.notes || "",
-          label: initialData.label || "home",
+          label: matchAddressLabel(initialData.label),
         });
       } else {
         setView("map");
@@ -108,7 +84,7 @@ export default function AddAddressModal({
           doorCode: "",
           buildingName: "",
           notes: "",
-          label: "home",
+          label: "Home",
         });
       }
     }
@@ -324,20 +300,20 @@ export default function AddAddressModal({
                   Save as
                 </Label>
                 <div className="flex flex-wrap gap-2">
-                  {LABEL_OPTIONS.map((opt) => (
+                  {ADDRESS_LABELS.map((opt) => (
                     <button
-                      key={opt.id}
+                      key={opt.value}
                       type="button"
-                      onClick={() => updateForm("label", opt.id)}
+                      onClick={() => updateForm("label", opt.value)}
                       className={cn(
                         "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all",
-                        form.label === opt.id
+                        form.label === opt.value
                           ? "border-primary bg-primary-subtle text-primary "
                           : "border-border hover:bg-muted ",
                       )}
                     >
                       <opt.icon className="w-4 h-4" />
-                      {opt.label}
+                      {opt.value}
                     </button>
                   ))}
                 </div>

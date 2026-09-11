@@ -20,36 +20,37 @@ export function CategoryTabs({ sections, active, onSelect }) {
       ref={scrollRef}
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="border-b border-border bg-background"
+      className="bg-background"
       contentContainerClassName="gap-2 px-5 py-3"
     >
-      {sections.map((section) => (
-        <Pressable
-          key={section.title}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: active === section.title }}
-          onLayout={(event) => {
-            offsets.current[section.title] = event.nativeEvent.layout.x;
-          }}
-          onPress={() => {
-            Haptics.selectionAsync();
-            onSelect(section.title);
-          }}
-          className={cn(
-            "rounded-full px-3.5 py-1.5",
-            active === section.title ? "bg-primary" : "bg-secondary",
-          )}
-        >
-          <Text
-            variant="label"
-            className={
-              active === section.title ? "text-primary-foreground" : "text-secondary-foreground"
-            }
+      {sections.map((section) => {
+        const selected = active === section.title;
+        return (
+          <Pressable
+            key={section.title}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            onLayout={(event) => {
+              offsets.current[section.title] = event.nativeEvent.layout.x;
+            }}
+            onPress={() => {
+              Haptics.selectionAsync();
+              onSelect(section.title);
+            }}
+            className={cn(
+              "h-10 justify-center rounded-full border px-4 active:opacity-70",
+              selected ? "border-primary bg-primary" : "border-border bg-card",
+            )}
           >
-            {section.title}
-          </Text>
-        </Pressable>
-      ))}
+            <Text
+              variant="label"
+              className={selected ? "text-primary-foreground" : "text-foreground"}
+            >
+              {section.title}
+            </Text>
+          </Pressable>
+        );
+      })}
     </ScrollView>
   );
 }

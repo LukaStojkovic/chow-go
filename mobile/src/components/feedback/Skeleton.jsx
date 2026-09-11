@@ -25,7 +25,7 @@ export function Skeleton({ className }) {
 
   return (
     <Animated.View style={style}>
-      <View className={cn("rounded-sm bg-muted", className)} />
+      <View className={cn("rounded-md bg-muted", className)} />
     </Animated.View>
   );
 }

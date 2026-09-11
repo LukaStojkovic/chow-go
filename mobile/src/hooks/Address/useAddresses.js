@@ -6,11 +6,15 @@ import {
   setDefaultAddress,
   updateDeliveryAddress,
 } from "@/services/apiAddress";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const KEY = ["deliveryAddresses"];
 
+// Guarded on the session the way useFavourites is: the profile tab renders for
+// guests too, and an unguarded query fires a 401 the moment they open it.
 export function useAddresses() {
-  return useQuery({ queryKey: KEY, queryFn: getDeliveryAddresses });
+  const authUser = useAuthStore((state) => state.authUser);
+  return useQuery({ queryKey: KEY, queryFn: getDeliveryAddresses, enabled: Boolean(authUser) });
 }
 
 export function useAddAddress() {

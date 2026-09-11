@@ -9,9 +9,10 @@ import { DishCard } from "@/components/discovery/DishCard";
 import { RestaurantCard } from "@/components/discovery/RestaurantCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { IconButton } from "@/components/ui/Button";
+import { SearchInput } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
+import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { LocationGate } from "@/features/discover/LocationGate";
 import { Rail } from "@/features/discover/Rail";
@@ -62,15 +63,30 @@ export default function Search() {
   return (
     <Screen edges={["top"]}>
       <View className="gap-3 pb-3 pt-2">
-        <View className="px-5">
-          <Input
+        <View className="gap-3 px-5">
+          <SectionHeader
+            title="Browse"
+            size="lg"
+            subtitle="Restaurants and dishes delivering to you"
+          />
+          <SearchInput
             value={text}
             onChangeText={setText}
-            placeholder="Restaurants or dishes"
+            placeholder="Search dishes, restaurants…"
             autoCorrect={false}
-            returnKeyType="search"
             clearButtonMode="while-editing"
             accessibilityLabel="Search restaurants and dishes"
+            right={
+              text ? (
+                <IconButton
+                  icon={X}
+                  variant="muted"
+                  size={30}
+                  label="Clear search"
+                  onPress={() => setText("")}
+                />
+              ) : null
+            }
           />
         </View>
         {searching ? <SearchFilterBar filters={filters} onChange={setFilters} /> : null}
@@ -79,31 +95,32 @@ export default function Search() {
       <FlatList
         data={restaurants}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="gap-5 pb-28"
+        contentContainerClassName="gap-4 pb-44"
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           dishes.length ? (
-            <View className="pb-1">
-              <Rail
-                title="Dishes"
-                data={dishes}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <DishCard
-                    dish={item}
-                    onPress={() => router.push(`/(customer)/restaurant/${item.restaurantId}`)}
-                  />
-                )}
-              />
-            </View>
+            <Rail
+              title="Dishes"
+              subtitle={`${dishes.length} matching ${dishes.length === 1 ? "dish" : "dishes"}`}
+              data={dishes}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <DishCard
+                  dish={item}
+                  onPress={() => router.push(`/(customer)/restaurant/${item.restaurantId}`)}
+                />
+              )}
+            />
           ) : null
         }
         renderItem={({ item, index }) => (
-          <View className="px-5">
+          <View className="gap-3 px-5">
             {index === 0 ? (
-              <Text variant="h2" className="pb-3">
-                Restaurants
-              </Text>
+              <SectionHeader
+                title="Restaurants"
+                subtitle={`${restaurants.length} ${restaurants.length === 1 ? "place" : "places"} match`}
+              />
             ) : null}
             <RestaurantCard
               restaurant={item}
@@ -115,12 +132,9 @@ export default function Search() {
         )}
         ListEmptyComponent={
           query.isFetching ? (
-            <View className="gap-5 px-5">
+            <View className="gap-4 px-5">
               {Array.from({ length: 3 }).map((_, index) => (
-                <View key={index} className="gap-2">
-                  <Skeleton className="aspect-[16/9] w-full" />
-                  <Skeleton className="h-4 w-1/2" />
-                </View>
+                <Skeleton key={index} className="h-64 w-full rounded-lg" />
               ))}
             </View>
           ) : nothingFound ? (
@@ -128,29 +142,39 @@ export default function Search() {
               icon={SearchIcon}
               title={`Nothing for "${term}"`}
               description="Try a different dish or restaurant name, or clear your filters."
+              actionLabel="Clear filters"
+              onAction={() => setFilters(DEFAULT_SEARCH_FILTERS)}
             />
           ) : !searching && recent.length ? (
-            <View className="gap-2 px-5">
-              <View className="flex-row items-center justify-between">
-                <Text variant="label" tone="muted">
-                  Recent
+            <View className="gap-1 px-5">
+              <View className="flex-row items-center justify-between pb-1">
+                <Text variant="caption" tone="muted">
+                  Recent searches
                 </Text>
-                <Button size="sm" variant="ghost" onPress={clear}>
-                  Clear
-                </Button>
+                <Pressable
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={clear}
+                  className="active:opacity-60"
+                >
+                  <Text variant="label-sm" tone="primary">
+                    Clear
+                  </Text>
+                </Pressable>
               </View>
               {recent.map((entry) => (
                 <Pressable
                   key={entry}
                   accessibilityRole="button"
                   onPress={() => setText(entry)}
-                  className="flex-row items-center gap-3 py-2.5 active:opacity-60"
+                  className="flex-row items-center gap-3 rounded-md px-1 py-3 active:opacity-60"
                 >
-                  <Clock size={15} color={color["muted-foreground"]} />
-                  <Text variant="body" className="flex-1">
+                  <View className="h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <Clock size={16} color={color["muted-foreground"]} />
+                  </View>
+                  <Text variant="body-lg" className="flex-1" numberOfLines={1}>
                     {entry}
                   </Text>
-                  <X size={14} color={color["muted-foreground"]} />
                 </Pressable>
               ))}
             </View>
@@ -158,7 +182,7 @@ export default function Search() {
             <EmptyState
               icon={SearchIcon}
               title="Find something to eat"
-              description="Search restaurants and dishes delivering to you."
+              description="Search restaurants and dishes delivering to your address."
             />
           ) : null
         }

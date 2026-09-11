@@ -1,51 +1,45 @@
-import { useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import { MapPin } from "lucide-react-native";
 import { errorMessage } from "@/api/client";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
-import { Text } from "@/components/ui/Text";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
+import { AddressForm, toAddressForm, toAddressPayload } from "@/features/location/AddressForm";
+import { LocationPicker } from "@/features/location/LocationPicker";
 import { useAddresses, useUpdateAddress } from "@/hooks/Address/useAddresses";
-import { AddressAutocomplete } from "@/features/location/AddressAutocomplete";
-import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
-import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { toast } from "@/store/useToastStore";
 
 export default function EditAddress() {
   const { addressId } = useLocalSearchParams();
   const { data } = useAddresses();
-  const { detect, isDetecting } = useDetectLocation();
-  const coordinates = useDeliveryStore((state) => state.coordinates);
-  const setLocation = useDeliveryStore((state) => state.setLocation);
+  const save = useUpdateAddress();
 
   const existing = (data ?? []).find((entry) => String(entry._id) === String(addressId));
 
-  const [label, setLabel] = useState("");
-  const [fullAddress, setFullAddress] = useState("");
-  const [notes, setNotes] = useState("");
+  const [form, setForm] = useState(() => toAddressForm(existing));
+  const [location, setLocation] = useState(null);
+  // Editing opens on the details, unlike adding: the pin is usually already
+  // right and it is the buzzer code that turned out to be wrong.
+  const [step, setStep] = useState("details");
 
+  // The list can still be in flight on a cold start straight into this screen,
+  // so the form fills in once it lands - and only once, or a background refetch
+  // would throw away whatever is half typed.
+  const hydrated = useRef(false);
   useEffect(() => {
-    if (!existing) return;
-    setLabel(existing.label ?? "");
-    setFullAddress(existing.fullAddress ?? "");
-    setNotes(existing.notes ?? "");
+    if (!existing || hydrated.current) return;
+    hydrated.current = true;
+    setForm(toAddressForm(existing));
+    setLocation({
+      lat: existing.location.coordinates[1],
+      lng: existing.location.coordinates[0],
+      address: existing.fullAddress ?? "",
+    });
   }, [existing]);
-
-  const save = useUpdateAddress();
 
   async function persist() {
     try {
-      await save.mutateAsync({
-        addressId,
-        address: fullAddress.trim(),
-        label: label.trim() || "Home",
-        type: existing?.addressType ?? "apartment",
-        notes: notes.trim() || undefined,
-        // Only sent when the pin was actually moved; otherwise the stored
-        // coordinates stay as they are.
-        ...(coordinates ? { location: { lat: coordinates.lat, lng: coordinates.lon } } : {}),
-      });
+      await save.mutateAsync({ addressId, ...toAddressPayload(form, location) });
       toast.success("Address updated");
       router.back();
     } catch (error) {
@@ -55,63 +49,51 @@ export default function EditAddress() {
 
   if (!existing) {
     return (
-      <Screen className="items-center justify-center p-8">
-        <Text variant="body" tone="muted">
-          This address no longer exists.
-        </Text>
+      <Screen>
+        <ScreenHeader title="Edit address" />
+        <EmptyState
+          icon={MapPin}
+          title="Address not found"
+          description="This address no longer exists."
+          actionLabel="Go back"
+          onAction={() => router.back()}
+        />
+      </Screen>
+    );
+  }
+
+  if (step === "map") {
+    return (
+      <Screen edges={["top", "bottom"]}>
+        <ScreenHeader
+          title="Move the pin"
+          subtitle="It decides which restaurants deliver here"
+          onBack={() => setStep("details")}
+        />
+        <LocationPicker
+          initialPosition={location ? [location.lat, location.lng] : undefined}
+          confirmLabel="Use this location"
+          onConfirm={(picked) => {
+            setLocation(picked);
+            setStep("details");
+          }}
+        />
       </Screen>
     );
   }
 
   return (
-    <Screen edges={["bottom"]}>
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
-        <Input label="Label" value={label} onChangeText={setLabel} placeholder="Home" />
-        <Input
-          label="Address"
-          value={fullAddress}
-          onChangeText={setFullAddress}
-          placeholder="Street and number"
-        />
-        <Input
-          label="Delivery notes"
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Buzzer code, which door, anything else"
-          multiline
-          maxLength={200}
-          className="h-20 py-3"
-          style={{ textAlignVertical: "top" }}
-        />
-
-        <View className="gap-3 rounded-md border border-border bg-card p-4">
-          <Text variant="label">Move the pin</Text>
-          <Text variant="caption" tone="muted">
-            The pin decides which restaurants can deliver here.
-          </Text>
-          <Button variant="outline" loading={isDetecting} onPress={detect}>
-            Use my current location
-          </Button>
-          <AddressAutocomplete
-            label="Or search for it"
-            onSelect={({ address, lat, lon }) => {
-              setFullAddress(address);
-              setLocation({ address, coordinates: { lat, lon } });
-            }}
-          />
-        </View>
-
-        <View className="pt-2">
-          <Button
-            size="lg"
-            loading={save.isPending}
-            disabled={!fullAddress.trim()}
-            onPress={persist}
-          >
-            Save changes
-          </Button>
-        </View>
-      </ScrollView>
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader title="Edit address" subtitle={existing.label ?? undefined} />
+      <AddressForm
+        value={form}
+        onChange={setForm}
+        address={location?.address}
+        onEditLocation={() => setStep("map")}
+        onSubmit={persist}
+        submitLabel="Save changes"
+        isSubmitting={save.isPending}
+      />
     </Screen>
   );
 }

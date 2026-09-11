@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ScrollView, Switch, View } from "react-native";
+import { useEffect } from "react";
+import { ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
@@ -8,10 +8,16 @@ import { formatPrice } from "@chowgo/shared/format";
 import { EMPTY_PROMOTION, editMenuItemSchema, menuItemSchema } from "@chowgo/shared/menuItemSchema";
 import { PROMOTION_LIMITS, PROMOTION_TYPES, previewPromotion } from "@chowgo/shared/promotion";
 import { errorMessage } from "@/api/client";
+import { Trash2 } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
+import { Card, Inset } from "@/components/ui/Card";
+import { Chip } from "@/components/ui/Chip";
+import { DockedBar } from "@/components/ui/FloatingBar";
+
 import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { Toggle } from "@/components/ui/Toggle";
 import { MenuItemImages } from "@/features/seller/MenuItemImages";
 import {
   useCreateMenuItem,
@@ -95,125 +101,152 @@ export default function MenuItemForm() {
   const hasImage = existingImages.length + addedImages.length > 0;
 
   return (
-    <Screen edges={["bottom"]}>
-      <ScrollView contentContainerClassName="gap-5 p-5 pb-8" keyboardShouldPersistTaps="handled">
-        <Controller
-          control={control}
-          name="name"
-          render={({ field }) => (
-            <Input
-              label="Name"
-              value={field.value}
-              onChangeText={field.onChange}
-              onBlur={field.onBlur}
-              error={formState.errors.name?.message}
-              placeholder="Margherita Pizza"
-            />
-          )}
-        />
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader
+        title={isNew ? "Add a dish" : "Edit dish"}
+        subtitle={isNew ? undefined : existingItem?.name}
+      />
 
-        <Controller
-          control={control}
-          name="description"
-          render={({ field }) => (
-            <Input
-              label="Description"
-              value={field.value}
-              onChangeText={field.onChange}
-              onBlur={field.onBlur}
-              error={formState.errors.description?.message}
-              placeholder="What is in it?"
-              multiline
-              className="h-20 py-3"
-              style={{ textAlignVertical: "top" }}
-            />
-          )}
-        />
+      <ScrollView
+        contentContainerClassName="gap-3 px-5 pb-8"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Card className="gap-4">
+          <View className="flex-row items-center gap-3">
+            <Text variant="h3" className="flex-1">
+              The dish
+            </Text>
+          </View>
 
-        <Controller
-          control={control}
-          name="category"
-          render={({ field }) => (
-            <View className="gap-2">
-              <Text variant="label" tone={formState.errors.category ? "destructive" : "foreground"}>
-                Category
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {CATEGORIES.filter((entry) => entry.id !== "all").map((entry) => (
-                  <Button
-                    key={entry.id}
-                    size="sm"
-                    variant={field.value === entry.value ? "primary" : "outline"}
-                    onPress={() => field.onChange(entry.value)}
-                  >
-                    {entry.label}
-                  </Button>
-                ))}
-              </View>
-              {formState.errors.category ? (
-                <Text variant="caption" tone="destructive">
-                  {formState.errors.category.message}
+          <Controller
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <Input
+                label="Name"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={formState.errors.name?.message}
+                placeholder="Margherita Pizza"
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <Input
+                label="Description"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={formState.errors.description?.message}
+                placeholder="What is in it?"
+                multiline
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="category"
+            render={({ field }) => (
+              <View className="gap-2">
+                <Text variant="label-sm" tone={formState.errors.category ? "destructive" : "muted"}>
+                  Category
                 </Text>
-              ) : null}
-            </View>
-          )}
-        />
+                <View className="flex-row flex-wrap gap-2">
+                  {CATEGORIES.filter((entry) => entry.id !== "all").map((entry) => (
+                    <Chip
+                      key={entry.id}
+                      label={entry.label}
+                      active={field.value === entry.value}
+                      showCheck
+                      onPress={() => field.onChange(entry.value)}
+                    />
+                  ))}
+                </View>
+                {formState.errors.category ? (
+                  <Text variant="caption" tone="destructive">
+                    {formState.errors.category.message}
+                  </Text>
+                ) : null}
+              </View>
+            )}
+          />
 
-        <Controller
-          control={control}
-          name="price"
-          render={({ field }) => (
-            <Input
-              label="Price"
-              value={String(field.value ?? "")}
-              onChangeText={field.onChange}
-              onBlur={field.onBlur}
-              error={formState.errors.price?.message}
-              keyboardType="decimal-pad"
-              placeholder="9.99"
-            />
-          )}
-        />
+          <Controller
+            control={control}
+            name="price"
+            render={({ field }) => (
+              <Input
+                label="Price"
+                value={String(field.value ?? "")}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={formState.errors.price?.message}
+                keyboardType="decimal-pad"
+                placeholder="9.99"
+              />
+            )}
+          />
+        </Card>
 
-        <MenuItemImages
-          existing={existingImages}
-          added={addedImages}
-          error={formState.errors.images?.message}
-          onChangeExisting={(next) => setValue("existingImages", next, { shouldValidate: true })}
-          onChangeAdded={(next) => setValue("images", next, { shouldValidate: true })}
-        />
+        <Card className="gap-4">
+          <View className="flex-row items-center gap-3">
+            <Text variant="h3" className="flex-1">
+              Photos
+            </Text>
+          </View>
+
+          <MenuItemImages
+            existing={existingImages}
+            added={addedImages}
+            error={formState.errors.images?.message}
+            onChangeExisting={(next) => setValue("existingImages", next, { shouldValidate: true })}
+            onChangeAdded={(next) => setValue("images", next, { shouldValidate: true })}
+          />
+        </Card>
 
         <Controller
           control={control}
           name="available"
           render={({ field }) => (
-            <View className="flex-row items-center justify-between rounded-md border border-border bg-card p-4">
+            <Card className="flex-row items-center gap-3">
               <View className="flex-1 gap-0.5 pr-3">
-                <Text variant="label">Available</Text>
+                <Text variant="h3">Available to order</Text>
                 <Text variant="caption" tone="muted">
                   Hidden dishes stay on your menu but cannot be ordered.
                 </Text>
               </View>
-              <Switch
+              <Toggle
                 value={field.value}
                 onValueChange={field.onChange}
-                trackColor={{ true: color.primary, false: color.border }}
+                accessibilityLabel="Available to order"
               />
-            </View>
+            </Card>
           )}
         />
 
-        <View className="gap-3 rounded-md border border-border bg-card p-4">
+        <Card className="gap-4">
           <Controller
             control={control}
             name="promotion.isActive"
             render={({ field }) => (
-              <View className="flex-row items-center justify-between">
-                <Text variant="label">Run a promotion</Text>
-                <Switch
+              <View className="flex-row items-center gap-3">
+                <View className="flex-1">
+                  <Text variant="h3">Run a promotion</Text>
+                  <Text variant="caption" tone="muted">
+                    Mark this dish down for a while
+                  </Text>
+                </View>
+                <Toggle
                   value={field.value}
                   onValueChange={field.onChange}
-                  trackColor={{ true: color.primary, false: color.border }}
+                  accessibilityLabel="Run a promotion"
                 />
               </View>
             )}
@@ -227,15 +260,13 @@ export default function MenuItemForm() {
                 render={({ field }) => (
                   <View className="flex-row gap-2">
                     {PROMOTION_TYPES.map((entry) => (
-                      <Button
+                      <Chip
                         key={entry.value}
-                        size="sm"
-                        className="flex-1"
-                        variant={field.value === entry.value ? "primary" : "outline"}
+                        label={entry.label}
+                        active={field.value === entry.value}
                         onPress={() => field.onChange(entry.value)}
-                      >
-                        {entry.label}
-                      </Button>
+                        className="flex-1 justify-center"
+                      />
                     ))}
                   </View>
                 )}
@@ -276,33 +307,39 @@ export default function MenuItemForm() {
               />
 
               {/* The same rules the server applies, so a deal it would reject is
-                  visible before saving rather than after. */}
-              <View className="rounded-sm bg-primary-subtle p-3">
+                visible before saving rather than after. */}
+              <Inset tone="mint" className="gap-1">
+                <Text variant="caption" tone="primary">
+                  What customers will see
+                </Text>
                 {preview.isValid ? (
                   <View className="flex-row items-baseline gap-2">
-                    <Text variant="caption" className="text-primary-subtle-foreground">
-                      Customers pay
-                    </Text>
-                    <Text variant="price" className="text-primary-subtle-foreground">
+                    <Text variant="price-lg" tone="primary">
                       {formatPrice(preview.discounted)}
                     </Text>
-                    <Text variant="caption" className="text-primary-subtle-foreground">
-                      ({preview.percentOff}% off, saving {formatPrice(preview.saving)})
+                    <Text variant="body-sm" tone="muted" className="line-through">
+                      {formatPrice(Number(price) || 0)}
+                    </Text>
+                    <Text variant="label-sm" tone="primary">
+                      {preview.percentOff}% off · saving {formatPrice(preview.saving)}
                     </Text>
                   </View>
                 ) : (
-                  <Text variant="caption" tone="muted">
+                  <Text variant="body-sm" tone="muted">
                     Enter a price and a discount to preview it.
                   </Text>
                 )}
-              </View>
+              </Inset>
             </>
           ) : null}
-        </View>
+        </Card>
 
         {!isNew ? (
           <Button
             variant="ghost"
+            size="lg"
+            fullWidth
+            className="mt-1"
             loading={remove.isPending}
             onPress={async () => {
               try {
@@ -314,23 +351,32 @@ export default function MenuItemForm() {
               }
             }}
           >
-            <Text variant="label" tone="destructive">
-              Delete dish
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Trash2 size={17} color={color.destructive} />
+              <Text variant="label" tone="destructive">
+                Delete dish
+              </Text>
+            </View>
           </Button>
         ) : null}
       </ScrollView>
 
-      <View className="border-t border-border bg-card p-4">
+      <DockedBar>
         {!hasImage ? (
-          <Text variant="caption" tone="muted" className="pb-2 text-center">
+          <Text variant="caption" tone="muted" className="text-center">
             Add at least one photo to save.
           </Text>
         ) : null}
-        <Button size="lg" loading={busy} disabled={!hasImage} onPress={handleSubmit(onSubmit)}>
+        <Button
+          size="lg"
+          fullWidth
+          loading={busy}
+          disabled={!hasImage}
+          onPress={handleSubmit(onSubmit)}
+        >
           {isNew ? "Add dish" : "Save changes"}
         </Button>
-      </View>
+      </DockedBar>
     </Screen>
   );
 }

@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
 import { FlatList, RefreshControl, ScrollView, View } from "react-native";
 import { router } from "expo-router";
-import { Plus } from "lucide-react-native";
+import { Plus, UtensilsCrossed } from "lucide-react-native";
 import { CATEGORIES } from "@chowgo/shared/constants";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Chip } from "@/components/ui/Chip";
+import { SearchInput } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
+import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { SellerMenuItemRow } from "@/features/seller/MenuItemRow";
 import { useMenuItems } from "@/hooks/Restaurants/useMenuItems";
 import { useTokens } from "@/theme/useTokens";
+import { useRefreshTint } from "@/theme/useRefreshTint";
 
 export default function SellerMenu() {
+  const refreshTint = useRefreshTint();
   const { color } = useTokens();
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
@@ -37,20 +41,26 @@ export default function SellerMenu() {
   return (
     <Screen edges={["top"]}>
       <View className="gap-3 pb-3 pt-2">
-        <View className="flex-row items-center justify-between px-5">
-          <Text variant="h1">Menu</Text>
-          <Button size="sm" onPress={() => router.push("/(seller)/menu-item/new")}>
-            <View className="flex-row items-center gap-1.5">
-              <Plus size={15} color={color["primary-foreground"]} />
-              <Text variant="label" className="text-primary-foreground">
-                Add
-              </Text>
-            </View>
-          </Button>
-        </View>
+        <View className="gap-4 px-5">
+          <View className="flex-row items-end justify-between gap-3">
+            <SectionHeader
+              title="Menu"
+              size="lg"
+              subtitle={`${items.length} ${items.length === 1 ? "dish" : "dishes"}`}
+              className="flex-1"
+            />
 
-        <View className="px-5">
-          <Input
+            <Button size="md" onPress={() => router.push("/(seller)/menu-item/new")}>
+              <View className="flex-row items-center gap-1.5">
+                <Plus size={16} strokeWidth={2.6} color={color["primary-foreground"]} />
+                <Text variant="label" className="text-primary-foreground">
+                  Add dish
+                </Text>
+              </View>
+            </Button>
+          </View>
+
+          <SearchInput
             value={text}
             onChangeText={setText}
             placeholder="Search your dishes"
@@ -64,22 +74,20 @@ export default function SellerMenu() {
           showsHorizontalScrollIndicator={false}
           contentContainerClassName="gap-2 px-5"
         >
-          <Button
-            size="sm"
-            variant={availableOnly ? "primary" : "outline"}
+          <Chip
+            label="Available only"
+            active={availableOnly}
+            showCheck
             onPress={() => setAvailableOnly((current) => !current)}
-          >
-            Available only
-          </Button>
+          />
+
           {CATEGORIES.filter((entry) => entry.id !== "all").map((entry) => (
-            <Button
+            <Chip
               key={entry.id}
-              size="sm"
-              variant={category === entry.value ? "primary" : "outline"}
+              label={entry.label}
+              active={category === entry.value}
               onPress={() => setCategory(category === entry.value ? "" : entry.value)}
-            >
-              {entry.label}
-            </Button>
+            />
           ))}
         </ScrollView>
       </View>
@@ -87,9 +95,14 @@ export default function SellerMenu() {
       <FlatList
         data={items}
         keyExtractor={(item) => String(item._id)}
-        contentContainerClassName="gap-2 px-5 pb-28"
+        contentContainerClassName="gap-3 px-5 pb-32"
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />
+          <RefreshControl
+            {...refreshTint}
+            refreshing={query.isRefetching}
+            onRefresh={query.refetch}
+          />
         }
         renderItem={({ item }) => (
           <SellerMenuItemRow
@@ -101,11 +114,12 @@ export default function SellerMenu() {
           query.isLoading ? (
             <View className="gap-2">
               {Array.from({ length: 6 }).map((_, index) => (
-                <Skeleton key={index} className="h-20 w-full" />
+                <Skeleton key={index} className="h-24 w-full rounded-lg" />
               ))}
             </View>
           ) : (
             <EmptyState
+              icon={UtensilsCrossed}
               title={search || category ? "Nothing matches" : "No dishes yet"}
               description={
                 search || category

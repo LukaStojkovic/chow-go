@@ -1,19 +1,27 @@
 import { useState } from "react";
 import { FlatList, RefreshControl, View } from "react-native";
 import { router } from "expo-router";
+import { LogIn, Receipt } from "lucide-react-native";
 import { ACTIVE_STATUS_FILTER, toOrderViews } from "@chowgo/shared/adapters/order";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
-import { Button } from "@/components/ui/Button";
+import { Segmented } from "@/components/ui/Chip";
 import { Screen } from "@/components/ui/Screen";
-import { Text } from "@/components/ui/Text";
+import { SectionHeader } from "@/components/ui/Section";
 import { OrderCard } from "@/features/orders/OrderCard";
 import { useCustomerOrders } from "@/hooks/Orders/useOrders";
 import { useReorder } from "@/hooks/Orders/useReorder";
 import { ReplaceBasketPrompt } from "@/features/basket/ReplaceBasketPrompt";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRefreshTint } from "@/theme/useRefreshTint";
+
+const TABS = [
+  { value: "active", label: "Active" },
+  { value: "past", label: "Past" },
+];
 
 export default function Orders() {
+  const refreshTint = useRefreshTint();
   const authUser = useAuthStore((state) => state.authUser);
   const [tab, setTab] = useState("active");
 
@@ -26,6 +34,7 @@ export default function Orders() {
     return (
       <Screen edges={["top"]} className="justify-center">
         <EmptyState
+          icon={LogIn}
           title="Sign in to see your orders"
           description="Your order history lives with your account."
           actionLabel="Sign in"
@@ -41,26 +50,28 @@ export default function Orders() {
 
   return (
     <Screen edges={["top"]}>
-      <View className="flex-row gap-2 px-5 pb-3 pt-2">
-        {["active", "past"].map((key) => (
-          <Button
-            key={key}
-            size="sm"
-            variant={tab === key ? "primary" : "outline"}
-            className="flex-1"
-            onPress={() => setTab(key)}
-          >
-            {key === "active" ? "Active" : "Past"}
-          </Button>
-        ))}
+      <View className="gap-4 px-5 pb-4 pt-2">
+        <SectionHeader
+          title="Your orders"
+          size="lg"
+          subtitle={
+            tab === "active" ? "Everything on its way to you" : "Delivered and cancelled orders"
+          }
+        />
+        <Segmented options={TABS} value={tab} onChange={setTab} />
       </View>
 
       <FlatList
         data={visible}
         keyExtractor={(order) => order.id}
-        contentContainerClassName="gap-3 px-5 pb-28"
+        contentContainerClassName="gap-3 px-5 pb-44"
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />
+          <RefreshControl
+            {...refreshTint}
+            refreshing={query.isRefetching}
+            onRefresh={query.refetch}
+          />
         }
         renderItem={({ item }) => (
           <OrderCard
@@ -78,17 +89,20 @@ export default function Orders() {
           query.isLoading ? (
             <View className="gap-3">
               {Array.from({ length: 3 }).map((_, index) => (
-                <Skeleton key={index} className="h-24 w-full" />
+                <Skeleton key={index} className="h-32 w-full rounded-lg" />
               ))}
             </View>
           ) : (
             <EmptyState
+              icon={Receipt}
               title={tab === "active" ? "No active orders" : "No past orders"}
               description={
                 tab === "active"
-                  ? "When you order, you can track it here."
+                  ? "When you order, you can follow it here from the kitchen to your door."
                   : "Delivered and cancelled orders show up here."
               }
+              actionLabel={tab === "active" ? "Find something to eat" : undefined}
+              onAction={tab === "active" ? () => router.push("/(customer)/(tabs)") : undefined}
             />
           )
         }

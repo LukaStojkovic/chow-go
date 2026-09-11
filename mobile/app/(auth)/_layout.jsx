@@ -5,24 +5,14 @@ export default function AuthLayout() {
   const { color } = useTokens();
 
   return (
+    // Every screen in this stack draws its own <ScreenHeader>, the same as the
+    // customer, seller and courier stacks. Leaving the native bar on top of
+    // that is what put two back buttons on the seller and courier signups.
     <Stack
       screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: color.background },
-        headerTintColor: color.foreground,
-        headerTitleStyle: { fontFamily: "Inter_600SemiBold", fontSize: 17 },
+        headerShown: false,
         contentStyle: { backgroundColor: color.background },
       }}
-    >
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ title: "Sign in" }} />
-      <Stack.Screen name="register" options={{ title: "Create account" }} />
-      <Stack.Screen name="forgot-password" options={{ title: "Reset password" }} />
-      <Stack.Screen name="verify-otp" options={{ title: "Check your email" }} />
-      <Stack.Screen name="reset-password" options={{ title: "New password" }} />
-      <Stack.Screen name="google-complete" options={{ title: "Finish signing up" }} />
-      <Stack.Screen name="seller" options={{ title: "List your restaurant" }} />
-      <Stack.Screen name="courier" options={{ title: "Deliver with Chow & Go" }} />
-    </Stack>
+    />
   );
 }

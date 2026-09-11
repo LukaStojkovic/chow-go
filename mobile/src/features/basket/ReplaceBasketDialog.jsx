@@ -1,6 +1,6 @@
-import { Modal, View } from "react-native";
+import { ShoppingBag } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
-import { Text } from "@/components/ui/Text";
+import { Sheet, SheetActions } from "@/components/ui/Dialog";
 import { useCartStore } from "@/store/useCartStore";
 
 // The backend refuses items from a second restaurant. That is a choice for the
@@ -10,31 +10,22 @@ export function ReplaceBasketDialog() {
     useCartStore();
 
   return (
-    <Modal
+    <Sheet
       visible={Boolean(pendingConflict)}
-      transparent
-      animationType="fade"
-      onRequestClose={dismissConflict}
+      onClose={dismissConflict}
+      icon={ShoppingBag}
+      tone="warning"
+      title="Start a new basket?"
+      description={`Your basket has items from ${restaurant?.name ?? "another restaurant"}. Adding this dish will empty it.`}
     >
-      <View className="flex-1 items-center justify-center bg-black/50 p-6">
-        <View className="w-full gap-4 rounded-md bg-popover p-5">
-          <View className="gap-1.5">
-            <Text variant="h2">Start a new basket?</Text>
-            <Text variant="body" tone="muted">
-              Your basket has items from {restaurant?.name ?? "another restaurant"}. Adding this
-              dish will empty it.
-            </Text>
-          </View>
-          <View className="gap-2">
-            <Button variant="destructive" onPress={resolveConflictByReplacing}>
-              Empty basket and add
-            </Button>
-            <Button variant="ghost" onPress={dismissConflict}>
-              Keep my basket
-            </Button>
-          </View>
-        </View>
-      </View>
-    </Modal>
+      <SheetActions>
+        <Button variant="destructive" size="lg" fullWidth onPress={resolveConflictByReplacing}>
+          Empty basket and add
+        </Button>
+        <Button variant="ghost" size="lg" fullWidth onPress={dismissConflict}>
+          Keep my basket
+        </Button>
+      </SheetActions>
+    </Sheet>
   );
 }

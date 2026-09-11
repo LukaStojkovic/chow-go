@@ -1,6 +1,4 @@
-import { ScrollView, Pressable } from "react-native";
 import { CATEGORIES } from "@chowgo/shared/constants";
-import * as Haptics from "expo-haptics";
 import {
   Beef,
   CakeSlice,
@@ -14,9 +12,7 @@ import {
   Salad,
   Soup,
 } from "lucide-react-native";
-import { cn } from "@/lib/cn";
-import { Text } from "@/components/ui/Text";
-import { useTokens } from "@/theme/useTokens";
+import { Chip, ChipRow } from "@/components/ui/Chip";
 
 // The shared taxonomy stores icons as string keys so the same data drives the
 // web; this is the native half of that map.
@@ -35,45 +31,18 @@ const ICONS = {
 };
 
 export function CategoryRail({ value, onChange }) {
-  const { color } = useTokens();
-
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerClassName="gap-2 px-5"
-    >
-      {CATEGORIES.map((category) => {
-        const Icon = ICONS[category.icon] ?? LayoutGrid;
-        const active = value === category.value;
-
-        return (
-          <Pressable
-            key={category.id}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-            onPress={() => {
-              Haptics.selectionAsync();
-              onChange(category.value);
-            }}
-            className={cn(
-              "flex-row items-center gap-1.5 rounded-full border px-3.5 py-2",
-              active ? "border-primary bg-primary" : "border-border bg-card",
-            )}
-          >
-            <Icon
-              size={16}
-              color={active ? color["primary-foreground"] : color["muted-foreground"]}
-            />
-            <Text
-              variant="label"
-              className={active ? "text-primary-foreground" : "text-foreground"}
-            >
-              {category.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
+    <ChipRow>
+      {CATEGORIES.map((category) => (
+        <Chip
+          key={category.id}
+          label={category.label}
+          icon={ICONS[category.icon] ?? LayoutGrid}
+          active={value === category.value}
+          showCheck
+          onPress={() => onChange(category.value)}
+        />
+      ))}
+    </ChipRow>
   );
 }

@@ -2,6 +2,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { errorMessage } from "@/api/client";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AuthScreen } from "@/features/auth/AuthScreen";
@@ -27,7 +28,10 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthScreen title="Reset your password" subtitle="We'll email you a six-digit code.">
+    <AuthScreen
+      title="Reset your password"
+      subtitle="Enter your email and we'll send you a six-digit code."
+    >
       <Controller
         control={control}
         name="email"
@@ -49,7 +53,7 @@ export default function ForgotPassword() {
         )}
       />
 
-      <Button size="lg" loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
+      <Button size="lg" fullWidth loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
         Send code
       </Button>
     </AuthScreen>

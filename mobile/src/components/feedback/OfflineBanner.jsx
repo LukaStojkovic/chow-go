@@ -32,9 +32,9 @@ export function OfflineBanner() {
       className="absolute left-0 right-0 z-40"
       style={{ top: insets.top }}
     >
-      <View className="mx-4 flex-row items-center justify-center gap-2 rounded-sm bg-warning px-3 py-2">
-        <WifiOff size={14} color={color["warning-foreground"]} />
-        <Text variant="caption" className="text-warning-foreground">
+      <View className="mx-4 flex-row items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5">
+        <WifiOff size={14} color={color.background} />
+        <Text variant="label-sm" className="text-background">
           You're offline
         </Text>
       </View>

@@ -1,9 +1,14 @@
 import { Tabs } from "expo-router";
-import { Platform } from "react-native";
-import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { BarChart3, LayoutDashboard, Settings, UtensilsCrossed } from "lucide-react-native";
-import { ReceiptText } from "lucide-react-native";
+import {
+  BarChart3,
+  LayoutDashboard,
+  ReceiptText,
+  Settings,
+  UtensilsCrossed,
+} from "lucide-react-native";
+import { tabItemOptions, tabScreenOptions } from "@/navigation/tabBar";
 import { useSellerOrders } from "@/hooks/SellerOrders/useSellerOrders";
 import { useTokens } from "@/theme/useTokens";
 
@@ -17,7 +22,7 @@ const TABS = [
 
 export default function SellerTabs() {
   const { color, isDark } = useTokens();
-  const translucent = Platform.OS === "ios";
+  const insets = useSafeAreaInsets();
 
   // The badge is the whole point of the tab: a seller needs to know an order is
   // waiting without opening the app's second screen.
@@ -26,32 +31,18 @@ export default function SellerTabs() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: color.primary,
-        tabBarInactiveTintColor: color["muted-foreground"],
-        tabBarLabelStyle: { fontFamily: "Inter_500Medium", fontSize: 11 },
-        tabBarStyle: {
-          backgroundColor: translucent ? "transparent" : color.card,
-          borderTopColor: color.border,
-          position: translucent ? "absolute" : "relative",
-        },
-        tabBarBackground: translucent
-          ? () => <BlurView intensity={80} tint={isDark ? "dark" : "light"} style={{ flex: 1 }} />
-          : undefined,
-      }}
+      screenOptions={tabScreenOptions({ color, isDark, insets })}
       screenListeners={{ tabPress: () => Haptics.selectionAsync() }}
     >
-      {TABS.map(({ name, title, icon: Icon, badge }) => (
+      {TABS.map(({ name, title, icon, badge }) => (
         <Tabs.Screen
           key={name}
           name={name}
-          options={{
+          options={tabItemOptions({
+            icon,
             title,
-            tabBarBadge: badge && pending > 0 ? pending : undefined,
-            tabBarBadgeStyle: { backgroundColor: color.destructive, fontSize: 10 },
-            tabBarIcon: ({ color: tint, size }) => <Icon size={size} color={tint} />,
-          }}
+            badge: badge && pending > 0 ? pending : undefined,
+          })}
         />
       ))}
     </Tabs>

@@ -3,9 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { router, useLocalSearchParams } from "expo-router";
 import { errorMessage } from "@/api/client";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Text } from "@/components/ui/Text";
 import { AuthScreen } from "@/features/auth/AuthScreen";
 import { homeForRole } from "@/navigation/homeForRole";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -42,13 +42,9 @@ export default function GoogleComplete() {
 
   return (
     <AuthScreen
-      title="Almost there"
-      subtitle={`Signing in as ${email}. We just need a number for your courier.`}
+      title="One last thing"
+      subtitle={`Signing in as ${name || email}. Your courier needs a number to reach you on.`}
     >
-      <Text variant="body-sm" tone="muted">
-        {name}
-      </Text>
-
       <Controller
         control={control}
         name="phoneNumber"
@@ -68,7 +64,7 @@ export default function GoogleComplete() {
         )}
       />
 
-      <Button size="lg" loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
+      <Button size="lg" fullWidth loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
         Finish signing up
       </Button>
     </AuthScreen>

@@ -1,19 +1,26 @@
-import { useState } from "react";
-import { Linking, ScrollView, View } from "react-native";
+import { useMemo, useRef, useState } from "react";
+import { Linking, View } from "react-native";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useKeepAwake } from "expo-keep-awake";
-import { MapPin, Navigation, Phone, Store } from "lucide-react-native";
+import { ArrowLeft, Banknote, Navigation, Phone } from "lucide-react-native";
 import { toOrderView } from "@chowgo/shared/adapters/order";
 import { formatPrice } from "@chowgo/shared/format";
 import { toLatLng } from "@chowgo/shared/geo";
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
-import { Map, MapMarker, toRegion } from "@/components/map/Map";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Screen } from "@/components/ui/Screen";
+
+import { Badge } from "@/components/ui/Badge";
+import { Button, IconButton } from "@/components/ui/Button";
+import { Card, Inset } from "@/components/ui/Card";
+import { DockedBar } from "@/components/ui/FloatingBar";
+
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
+import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { DeliveryNavigationMap } from "@/features/courier/DeliveryNavigationMap";
 import { SwipeToConfirm } from "@/features/courier/SwipeToConfirm";
 import {
   useCourierOrder,
@@ -24,7 +31,20 @@ import {
 } from "@/hooks/Courier/useCourier";
 import { useCourierLocationBroadcast } from "@/location/useCourierLocationBroadcast";
 import { toast } from "@/store/useToastStore";
+import { radius } from "@/theme/tokens";
 import { useTokens } from "@/theme/useTokens";
+
+/**
+ * How much of the screen the sheet takes.
+ *
+ * The lowest stop keeps the order number, the earnings and the swipe control
+ * on screen and hands the rest to the map - which is the whole reason a
+ * courier opens this screen while moving. The details are still one drag away.
+ */
+const SNAP_POINTS = ["28%", "58%", "92%"];
+
+// Clearance for the docked swipe control, which floats over the sheet.
+const ACTION_BAR_H = 104;
 
 // Each status has exactly one next step and one destination.
 const STEPS = {
@@ -36,31 +56,46 @@ const STEPS = {
 export default function ActiveDelivery() {
   const { orderId } = useLocalSearchParams();
   const { data, isLoading, isError, refetch } = useCourierOrder(orderId);
-  const { color } = useTokens();
+  const { color, elevation, scheme } = useTokens();
+  const insets = useSafeAreaInsets();
 
   const pickedUp = useMarkPickedUp();
   const inTransit = useMarkInTransit();
   const delivered = useMarkDelivered();
   const release = useReleaseOrder();
   const [busy, setBusy] = useState(false);
+  const sheet = useRef(null);
+  const snapPoints = useMemo(() => SNAP_POINTS, []);
 
   // The customer is watching a map; the screen going dark must not stop it.
   useKeepAwake();
-  useCourierLocationBroadcast(data?.status && STEPS[data.status] ? orderId : null);
+  // One GPS watch: the customer follows it over the socket, the map below
+  // draws from the same fix.
+  const fix = useCourierLocationBroadcast(data?.status && STEPS[data.status] ? orderId : null);
 
   if (isLoading) {
     return (
-      <Screen className="gap-4 p-5">
-        <Skeleton className="h-52 w-full" />
-        <Skeleton className="h-24 w-full" />
+      <Screen>
+        <ScreenHeader title="Delivery" />
+        <View className="gap-4 px-5">
+          <Skeleton className="h-56 w-full rounded-lg" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+        </View>
       </Screen>
     );
   }
 
   if (isError || !data) {
     return (
-      <Screen className="justify-center">
-        <EmptyState title="Couldn't load this delivery" actionLabel="Retry" onAction={refetch} />
+      <Screen>
+        <ScreenHeader title="Delivery" />
+        <EmptyState
+          tone="danger"
+          title="Couldn't load this delivery"
+          description="Check your connection and try again."
+          actionLabel="Retry"
+          onAction={refetch}
+        />
       </Screen>
     );
   }
@@ -70,6 +105,11 @@ export default function ActiveDelivery() {
   const restaurant = toLatLng(data.restaurant?.location?.coordinates);
   const destination = toLatLng(data.deliveryAddressSnapshot?.location?.coordinates);
   const target = step?.target === "restaurant" ? restaurant : destination;
+  const destinationLabel =
+    step?.target === "restaurant"
+      ? (data.restaurant?.name ?? "Restaurant")
+      : (data.deliveryAddressSnapshot?.fullAddress ?? data.customer?.name ?? "Customer");
+  const collectsCash = order.paymentMethod === "cash";
 
   async function advance() {
     setBusy(true);
@@ -99,124 +139,212 @@ export default function ActiveDelivery() {
   }
 
   return (
-    <Screen edges={["top", "bottom"]}>
-      <View className="h-56 overflow-hidden">
-        {target ? (
-          <Map initialRegion={toRegion(target, 0.02)}>
-            <MapMarker position={restaurant} title={data.restaurant?.name} />
-            <MapMarker position={destination} title="Delivery address" />
-          </Map>
-        ) : null}
+    <View className="flex-1 bg-background">
+      {/* The map is the screen. Everything else floats over it, and the sheet
+          below can be dragged down to hand almost all of it back. */}
+      <DeliveryNavigationMap
+        status={data.status}
+        restaurant={restaurant}
+        destination={destination}
+        destinationLabel={destinationLabel}
+        courier={fix.position}
+        isTracking={fix.isTracking}
+        isDenied={fix.isDenied}
+        topOffset={insets.top + 58}
+      />
+
+      <View pointerEvents="box-none" style={{ top: insets.top + 6 }} className="absolute left-5">
+        <IconButton
+          icon={ArrowLeft}
+          variant="surface"
+          label="Go back"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(courier)"))}
+          style={elevation.raised[scheme]}
+        />
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5">
-        <View className="gap-1">
-          <Text variant="caption" tone="muted">
-            #{order.number}
-          </Text>
-          <Text variant="h2">{order.statusLabel}</Text>
-        </View>
-
-        <Card className="gap-3">
-          <View className="flex-row items-start gap-3">
-            <Store size={17} color={color["muted-foreground"]} style={{ marginTop: 2 }} />
+      <BottomSheet
+        ref={sheet}
+        index={1}
+        snapPoints={snapPoints}
+        enableDynamicSizing={false}
+        topInset={insets.top}
+        backgroundStyle={{
+          backgroundColor: color.card,
+          borderTopLeftRadius: radius.xl,
+          borderTopRightRadius: radius.xl,
+        }}
+        handleIndicatorStyle={{ backgroundColor: color["muted-foreground"], width: 44 }}
+        style={elevation.overlay[scheme]}
+      >
+        <BottomSheetScrollView
+          contentContainerStyle={{
+            gap: 12,
+            paddingHorizontal: 20,
+            paddingBottom: ACTION_BAR_H + insets.bottom,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="label">{data.restaurant?.name}</Text>
-              <Text variant="body-sm" tone="muted">
-                {data.restaurant?.address?.street}, {data.restaurant?.address?.city}
+              <Text variant="h1" numberOfLines={2}>
+                {order.statusLabel}
+              </Text>
+              <Text variant="caption" tone="muted">
+                #{order.number}
               </Text>
             </View>
+            <Badge tone="mint">{`${formatPrice(data.deliveryFee ?? 0)} earned`}</Badge>
           </View>
 
-          <View className="flex-row items-start gap-3">
-            <MapPin size={17} color={color["muted-foreground"]} style={{ marginTop: 2 }} />
-            <View className="flex-1">
-              <Text variant="label">{data.customer?.name}</Text>
-              <Text variant="body-sm" tone="muted">
-                {data.deliveryAddressSnapshot?.fullAddress}
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-row gap-2">
-            <Button variant="outline" size="sm" className="flex-1" onPress={navigate}>
-              <View className="flex-row items-center gap-2">
-                <Navigation size={14} color={color.foreground} />
-                <Text variant="label">Navigate</Text>
+          {/* The route, as two stops. The one you are heading to now is filled
+                green; the one you are done with sits quiet. */}
+          <Card className="gap-3">
+            <View className="flex-row items-start gap-3">
+              <View className="flex-1">
+                <Text variant="caption" tone="muted">
+                  Collect from
+                </Text>
+                <Text variant="h3" numberOfLines={1}>
+                  {data.restaurant?.name}
+                </Text>
+                <Text variant="body-sm" tone="muted" numberOfLines={2}>
+                  {data.restaurant?.address?.street}, {data.restaurant?.address?.city}
+                </Text>
               </View>
-            </Button>
-            {data.customer?.phoneNumber ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onPress={() => Linking.openURL(`tel:${data.customer.phoneNumber}`)}
-              >
+            </View>
+
+            <Divider />
+
+            <View className="flex-row items-start gap-3">
+              <View className="flex-1">
+                <Text variant="caption" tone="muted">
+                  Deliver to
+                </Text>
+                <Text variant="h3" numberOfLines={1}>
+                  {data.customer?.name}
+                </Text>
+                <Text variant="body-sm" tone="muted" numberOfLines={2}>
+                  {data.deliveryAddressSnapshot?.fullAddress}
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row gap-2.5">
+              <Button variant="secondary" size="md" className="flex-1" onPress={navigate}>
                 <View className="flex-row items-center gap-2">
-                  <Phone size={14} color={color.foreground} />
-                  <Text variant="label">Call</Text>
+                  <Navigation size={15} color={color.foreground} />
+                  <Text variant="label">Navigate</Text>
                 </View>
               </Button>
-            ) : null}
-          </View>
-        </Card>
-
-        <Card className="gap-2">
-          <Text variant="label">Items</Text>
-          {order.items.map((line) => (
-            <Text key={line.id} variant="body-sm" tone="muted">
-              {line.quantity} × {line.name}
-            </Text>
-          ))}
-          <View className="h-px bg-border" />
-          <View className="flex-row justify-between">
-            <Text variant="label">
-              {order.paymentMethod === "cash" ? "Collect from customer" : "Already paid"}
-            </Text>
-            <Text variant="price">
-              {order.paymentMethod === "cash" ? formatPrice(order.pricing?.total ?? 0) : "—"}
-            </Text>
-          </View>
-          <Text variant="caption" tone="muted">
-            You earn {formatPrice(data.deliveryFee ?? 0)}
-          </Text>
-        </Card>
-
-        {data.customerNotes ? (
-          <Card>
-            <Text variant="label">Note from the customer</Text>
-            <Text variant="body-sm" tone="muted">
-              {data.customerNotes}
-            </Text>
+              {data.customer?.phoneNumber ? (
+                <Button
+                  variant="mint"
+                  size="md"
+                  className="flex-1"
+                  onPress={() => Linking.openURL(`tel:${data.customer.phoneNumber}`)}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Phone size={15} color={color.primary} />
+                    <Text variant="label" tone="primary">
+                      Call
+                    </Text>
+                  </View>
+                </Button>
+              ) : null}
+            </View>
           </Card>
-        ) : null}
 
-        {data.status === "assigned" ? (
-          <Button
-            variant="ghost"
-            loading={release.isPending}
-            onPress={async () => {
-              try {
-                await release.mutateAsync({ orderId, reason: "Cannot complete this delivery" });
-                toast.info("Returned to the pool");
-                router.replace("/(courier)/(tabs)");
-              } catch (error) {
-                toast.error("Could not release it", { description: errorMessage(error) });
-              }
-            }}
-          >
-            <Text variant="label" tone="destructive">
-              Return to the pool
-            </Text>
-          </Button>
-        ) : null}
-      </ScrollView>
+          <Card className="gap-3">
+            <View className="flex-row items-center gap-3">
+              <Text variant="h3" className="flex-1">
+                {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+              </Text>
+            </View>
 
+            {order.items.map((line) => (
+              <View key={line.id} className="flex-row items-start gap-3">
+                <View className="rounded-xs bg-muted px-2 py-1">
+                  <Text variant="label-sm" tone="muted">
+                    {line.quantity}×
+                  </Text>
+                </View>
+                <Text variant="body" className="flex-1" numberOfLines={2}>
+                  {line.name}
+                </Text>
+              </View>
+            ))}
+
+            <Divider />
+
+            {/* Cash is the one thing on this screen with money changing hands, so
+                  it gets a tinted block rather than a row of grey text. */}
+            <Inset tone={collectsCash ? "citrus" : "mint"} className="flex-row items-center gap-3">
+              <Banknote size={18} color={collectsCash ? color.tertiary : color.primary} />
+              <View className="flex-1">
+                <Text variant="caption" tone={collectsCash ? "tertiary" : "primary"}>
+                  {collectsCash ? "Collect from the customer" : "Already paid"}
+                </Text>
+                {collectsCash ? (
+                  <Text variant="price-lg" tone="tertiary">
+                    {formatPrice(order.pricing?.total ?? 0)}
+                  </Text>
+                ) : (
+                  <Text variant="body-sm" tone="muted">
+                    Nothing to collect on the doorstep
+                  </Text>
+                )}
+              </View>
+            </Inset>
+          </Card>
+
+          {data.customerNotes ? (
+            <Card className="flex-row items-start gap-3">
+              <View className="flex-1">
+                <Text variant="caption" tone="muted">
+                  Note from the customer
+                </Text>
+                <Text variant="body" numberOfLines={4}>
+                  {data.customerNotes}
+                </Text>
+              </View>
+            </Card>
+          ) : null}
+
+          {data.status === "assigned" ? (
+            <Button
+              variant="ghost"
+              size="lg"
+              fullWidth
+              loading={release.isPending}
+              onPress={async () => {
+                try {
+                  await release.mutateAsync({ orderId, reason: "Cannot complete this delivery" });
+                  toast.info("Returned to the pool");
+                  router.replace("/(courier)/(tabs)");
+                } catch (error) {
+                  toast.error("Could not release it", { description: errorMessage(error) });
+                }
+              }}
+            >
+              <Text variant="label" tone="destructive">
+                Return to the pool
+              </Text>
+            </Button>
+          ) : null}
+        </BottomSheetScrollView>
+      </BottomSheet>
+
+      {/* Docked rather than living in the sheet: the one control that must be
+          reachable at any drag position, including with the sheet pushed all
+          the way down to read the map. */}
       {step ? (
-        <View className="p-4">
-          <SwipeToConfirm label={step.label} busy={busy} onConfirm={advance} />
+        <View pointerEvents="box-none" className="absolute inset-x-0 bottom-0">
+          <DockedBar>
+            <SwipeToConfirm label={step.label} busy={busy} onConfirm={advance} />
+          </DockedBar>
         </View>
       ) : null}
-    </Screen>
+    </View>
   );
 }

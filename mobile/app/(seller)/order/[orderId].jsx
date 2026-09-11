@@ -7,14 +7,20 @@ import { formatPrice } from "@chowgo/shared/format";
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
+import { AlertTriangle } from "lucide-react-native";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Screen } from "@/components/ui/Screen";
+
+import { Card, Inset } from "@/components/ui/Card";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
+import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { shortStatus } from "@/features/orders/orderStatus";
 import { RejectOrderPrompt } from "@/features/seller/RejectOrderPrompt";
 import { useCancelRestaurantOrder } from "@/hooks/SellerOrders/useSellerOrders";
 import { getRestaurantOrderById } from "@/services/apiRestaurantOrder";
 import { toast } from "@/store/useToastStore";
+import { useTokens } from "@/theme/useTokens";
 
 // The restaurant may pull an order until a courier has it.
 const CANCELLABLE = ["confirmed", "preparing", "ready"];
@@ -23,6 +29,7 @@ export default function SellerOrderDetail() {
   const { orderId } = useLocalSearchParams();
   const cancel = useCancelRestaurantOrder();
   const [cancelling, setCancelling] = useState(false);
+  const { color } = useTokens();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["restaurantOrder", orderId],
@@ -32,17 +39,27 @@ export default function SellerOrderDetail() {
 
   if (isLoading) {
     return (
-      <Screen className="gap-4 p-5">
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-40 w-full" />
+      <Screen>
+        <ScreenHeader title="Order" />
+        <View className="gap-4 px-5">
+          <Skeleton className="h-10 w-1/2" />
+          <Skeleton className="h-48 w-full rounded-lg" />
+        </View>
       </Screen>
     );
   }
 
   if (isError || !data) {
     return (
-      <Screen className="justify-center">
-        <EmptyState title="Couldn't load this order" actionLabel="Retry" onAction={refetch} />
+      <Screen>
+        <ScreenHeader title="Order" />
+        <EmptyState
+          tone="danger"
+          title="Couldn't load this order"
+          description="Check your connection and try again."
+          actionLabel="Retry"
+          onAction={refetch}
+        />
       </Screen>
     );
   }
@@ -50,68 +67,114 @@ export default function SellerOrderDetail() {
   const order = toOrderView(data);
 
   return (
-    <Screen edges={["bottom"]}>
-      <ScrollView contentContainerClassName="gap-5 p-5 pb-8">
-        <View className="gap-1">
-          <Text variant="h1">#{order.number}</Text>
-          <Text variant="body" tone="muted">
-            {order.statusLabel} · {order.placedAtLabel}
-          </Text>
-        </View>
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader title={`#${order.number}`} subtitle={order.placedAtLabel} />
 
-        <Card className="gap-2">
-          <Text variant="label">Items</Text>
-          {order.items.map((line) => (
-            <View key={line.id} className="gap-0.5">
-              <View className="flex-row justify-between gap-3">
-                <Text variant="body" className="flex-1">
-                  {line.quantity} × {line.name}
+      <ScrollView contentContainerClassName="gap-3 px-5 pb-8" showsVerticalScrollIndicator={false}>
+        <Card className="flex-row items-center gap-3">
+          <View className="flex-1">
+            <Text variant="h3" numberOfLines={1}>
+              {shortStatus(order)}
+            </Text>
+            <Text variant="caption" tone="muted" numberOfLines={1}>
+              {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+            </Text>
+          </View>
+          <Text variant="price-lg">{formatPrice(order.pricing?.total ?? 0)}</Text>
+        </Card>
+
+        <Card className="gap-3">
+          {order.items.map((line, index) => (
+            <View key={line.id}>
+              {index > 0 ? <Divider className="mb-3" /> : null}
+              <View className="flex-row items-start gap-3">
+                <View className="rounded-xs bg-primary-subtle px-2 py-1">
+                  <Text variant="label-sm" tone="primary">
+                    {line.quantity}×
+                  </Text>
+                </View>
+                <Text variant="body-lg" className="flex-1" numberOfLines={2}>
+                  {line.name}
                 </Text>
-                <Text variant="body-sm" tone="muted">
-                  {formatPrice(line.lineTotal)}
-                </Text>
+                <Text variant="price">{formatPrice(line.lineTotal)}</Text>
               </View>
               {line.notes ? (
-                <Text variant="caption" tone="warning">
-                  {line.notes}
-                </Text>
+                <Inset tone="warning" className="mt-2 flex-row items-center gap-2 p-2.5">
+                  <AlertTriangle size={13} color={color.warning} />
+                  <Text variant="caption" className="flex-1 text-warning">
+                    {line.notes}
+                  </Text>
+                </Inset>
               ) : null}
             </View>
           ))}
-          <View className="h-px bg-border" />
-          <View className="flex-row justify-between">
-            <Text variant="label">Total</Text>
-            <Text variant="price">{formatPrice(order.pricing?.total ?? 0)}</Text>
+
+          <Divider />
+
+          <View className="flex-row items-center justify-between">
+            <Text variant="h3">Total</Text>
+            <View className="flex-row items-center gap-2">
+              <Badge tone="neutral" size="sm">
+                {order.paymentMethodLabel}
+              </Badge>
+              <Text variant="price-lg">{formatPrice(order.pricing?.total ?? 0)}</Text>
+            </View>
           </View>
-          <Text variant="caption" tone="muted">
-            {order.paymentMethodLabel}
-          </Text>
         </Card>
 
         {data.customerNotes ? (
-          <Card>
-            <Text variant="label">Note from the customer</Text>
-            <Text variant="body-sm" tone="muted">
-              {data.customerNotes}
-            </Text>
+          <Card className="flex-row items-start gap-3">
+            <View className="flex-1">
+              <Text variant="caption" tone="muted">
+                Note from the customer
+              </Text>
+              <Text variant="body" numberOfLines={4}>
+                {data.customerNotes}
+              </Text>
+            </View>
           </Card>
         ) : null}
 
-        <Card className="gap-1">
-          <Text variant="label">Delivering to</Text>
-          <Text variant="body-sm" tone="muted">
-            {data.deliveryAddressSnapshot?.fullAddress ?? "—"}
-          </Text>
+        <Card className="gap-3">
+          <View className="flex-row items-start gap-3">
+            <View className="flex-1">
+              <Text variant="caption" tone="muted">
+                Delivering to
+              </Text>
+              <Text variant="body" numberOfLines={3}>
+                {data.deliveryAddressSnapshot?.fullAddress ?? "—"}
+              </Text>
+            </View>
+          </View>
+
           {order.courier ? (
-            <Text variant="caption" tone="muted">
-              Courier: {order.courier.name}
-            </Text>
+            <>
+              <Divider />
+              <View className="flex-row items-center gap-3">
+                <View className="flex-1">
+                  <Text variant="caption" tone="muted">
+                    Courier
+                  </Text>
+                  <Text variant="body" numberOfLines={1}>
+                    {order.courier.name}
+                  </Text>
+                </View>
+              </View>
+            </>
           ) : null}
         </Card>
 
         {CANCELLABLE.includes(order.status) ? (
-          <Button variant="outline" onPress={() => setCancelling(true)}>
-            Cancel order
+          <Button
+            variant="outline"
+            size="lg"
+            fullWidth
+            className="mt-2"
+            onPress={() => setCancelling(true)}
+          >
+            <Text variant="label" tone="destructive">
+              Cancel order
+            </Text>
           </Button>
         ) : null}
       </ScrollView>

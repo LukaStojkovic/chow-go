@@ -36,8 +36,19 @@ export async function resetPassword(email, newPassword) {
   return data;
 }
 
-export async function updateProfile(payload) {
-  const { data } = await api.put("/auth/update-profile", payload);
+/**
+ * A photo makes this multipart; everything else stays JSON. The password
+ * fields never travel alongside a picture, so the common save path is spared
+ * a form-data round trip.
+ */
+export async function updateProfile({ profilePicture, ...fields } = {}) {
+  if (!profilePicture) {
+    const { data } = await api.put("/auth/update-profile", fields);
+    return data;
+  }
+
+  const form = toFormData(fields, { profilePicture: [profilePicture] });
+  const { data } = await api.put("/auth/update-profile", form);
   return data;
 }
 

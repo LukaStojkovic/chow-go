@@ -1,12 +1,19 @@
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { View } from "react-native";
-import { Link, router } from "expo-router";
+import { Pressable, View } from "react-native";
+import { router } from "expo-router";
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
-import { AuthScreen } from "@/features/auth/AuthScreen";
+import {
+  AuthDivider,
+  AuthLegal,
+  AuthOptions,
+  AuthScreen,
+  CREATE_ACCOUNT_OPTION,
+  PARTNER_OPTIONS,
+} from "@/features/auth/AuthScreen";
 import { GoogleButton } from "@/features/auth/GoogleButton";
 import { loginSchema } from "@/features/auth/schemas";
 import { homeForRole } from "@/navigation/homeForRole";
@@ -32,13 +39,14 @@ export default function Login() {
   return (
     <AuthScreen
       title="Welcome back"
-      subtitle="Sign in to track orders and reorder your favourites."
+      subtitle="Sign in to order, deliver, or run your kitchen."
       footer={
-        <Link href="/(auth)/register" asChild>
-          <Text variant="body-sm" tone="primary">
-            No account yet? Create one
-          </Text>
-        </Link>
+        <>
+          <AuthDivider />
+          <GoogleButton />
+          <AuthOptions label="New to Chow" options={[CREATE_ACCOUNT_OPTION, ...PARTNER_OPTIONS]} />
+          <AuthLegal />
+        </>
       }
     >
       <Controller
@@ -80,25 +88,21 @@ export default function Login() {
         )}
       />
 
-      <Link href="/(auth)/forgot-password" asChild>
-        <Text variant="body-sm" tone="primary" className="self-end">
-          Forgot password?
-        </Text>
-      </Link>
-
-      <Button size="lg" loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Sign in
-      </Button>
-
-      <View className="flex-row items-center gap-3">
-        <View className="h-px flex-1 bg-border" />
-        <Text variant="caption" tone="muted">
-          or
-        </Text>
-        <View className="h-px flex-1 bg-border" />
+      <View className="flex-row justify-end">
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push("/(auth)/forgot-password")}
+          className="py-1 active:opacity-60"
+        >
+          <Text variant="label-sm" tone="primary">
+            Forgot password?
+          </Text>
+        </Pressable>
       </View>
 
-      <GoogleButton />
+      <Button size="lg" fullWidth loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
+        Sign in
+      </Button>
     </AuthScreen>
   );
 }

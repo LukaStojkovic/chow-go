@@ -1,6 +1,6 @@
-import { Modal, View } from "react-native";
+import { ShoppingBag } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
-import { Text } from "@/components/ui/Text";
+import { Sheet, SheetActions } from "@/components/ui/Dialog";
 
 /**
  * Confirms discarding a basket. Used by reorder, which knows about the clash
@@ -8,26 +8,22 @@ import { Text } from "@/components/ui/Text";
  */
 export function ReplaceBasketPrompt({ visible, currentRestaurantName, onConfirm, onCancel }) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View className="flex-1 items-center justify-center bg-black/50 p-6">
-        <View className="w-full gap-4 rounded-md bg-popover p-5">
-          <View className="gap-1.5">
-            <Text variant="h2">Start a new basket?</Text>
-            <Text variant="body" tone="muted">
-              Your basket has items from {currentRestaurantName ?? "another restaurant"}. Reordering
-              will empty it.
-            </Text>
-          </View>
-          <View className="gap-2">
-            <Button variant="destructive" onPress={onConfirm}>
-              Empty basket and reorder
-            </Button>
-            <Button variant="ghost" onPress={onCancel}>
-              Keep my basket
-            </Button>
-          </View>
-        </View>
-      </View>
-    </Modal>
+    <Sheet
+      visible={visible}
+      onClose={onCancel}
+      icon={ShoppingBag}
+      tone="warning"
+      title="Start a new basket?"
+      description={`Your basket has items from ${currentRestaurantName ?? "another restaurant"}. Reordering will empty it.`}
+    >
+      <SheetActions>
+        <Button variant="destructive" size="lg" fullWidth onPress={onConfirm}>
+          Empty basket and reorder
+        </Button>
+        <Button variant="ghost" size="lg" fullWidth onPress={onCancel}>
+          Keep my basket
+        </Button>
+      </SheetActions>
+    </Sheet>
   );
 }

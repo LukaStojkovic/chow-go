@@ -83,7 +83,14 @@ export async function apiResetPassword(email, password) {
 
 export async function updateProfile(data) {
   try {
-    const res = await axiosInstance.put("/auth/update-profile", data);
+    const isFormData = data instanceof FormData;
+    const res = await axiosInstance.put(
+      "/auth/update-profile",
+      data,
+      isFormData
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : undefined,
+    );
     toast.success("Profile updated successfully!");
     return res.data;
   } catch (err) {

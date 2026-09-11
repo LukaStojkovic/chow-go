@@ -1,22 +1,14 @@
-import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
-import { Pencil, Star, Trash2 } from "lucide-react-native";
+import { Crosshair, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react-native";
 import { MAX_SAVED_ADDRESSES } from "@chowgo/shared/constants";
-import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
+import { Badge } from "@/components/ui/Badge";
+import { Button, IconButton } from "@/components/ui/Button";
+import { Inset, PressableCard } from "@/components/ui/Card";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { OptionRow } from "@/features/checkout/OptionRow";
-import {
-  useAddAddress,
-  useAddresses,
-  useDeleteAddress,
-  useSetDefaultAddress,
-} from "@/hooks/Address/useAddresses";
-import { AddressAutocomplete } from "@/features/location/AddressAutocomplete";
+import { useAddresses, useDeleteAddress, useSetDefaultAddress } from "@/hooks/Address/useAddresses";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { toast } from "@/store/useToastStore";
@@ -24,119 +16,135 @@ import { useTokens } from "@/theme/useTokens";
 
 export default function Addresses() {
   const addresses = useAddresses();
-  const addAddress = useAddAddress();
   const setDefault = useSetDefaultAddress();
   const removeAddress = useDeleteAddress();
   const { detect, isDetecting } = useDetectLocation();
-  const coordinates = useDeliveryStore((state) => state.coordinates);
-  const storedAddress = useDeliveryStore((state) => state.address);
+  const activeAddress = useDeliveryStore((state) => state.address);
   const setLocation = useDeliveryStore((state) => state.setLocation);
   const { color } = useTokens();
 
-  const [label, setLabel] = useState("Home");
-  const [fullAddress, setFullAddress] = useState("");
+  const saved = addresses.data ?? [];
+  const atLimit = saved.length >= MAX_SAVED_ADDRESSES;
 
-  const atLimit = (addresses.data?.length ?? 0) >= MAX_SAVED_ADDRESSES;
-
-  async function save() {
-    const text = fullAddress.trim() || storedAddress;
-    if (!text || !coordinates) {
-      toast.warning("Set a location first", {
-        description: "Use your current location, then save it.",
-      });
-      return;
-    }
-
-    try {
-      await addAddress.mutateAsync({
-        address: text,
-        label: label.trim() || "Home",
-        type: "apartment",
-        location: { lat: coordinates.lat, lng: coordinates.lon },
-      });
-      setFullAddress("");
-      toast.success("Address saved");
-    } catch (error) {
-      toast.error("Could not save the address", { description: errorMessage(error) });
-    }
+  // Tapping one points the feed at it. Distinct from "default", which is what
+  // checkout preselects next time - this is where you are ordering to now.
+  function deliverTo(entry) {
+    setLocation({
+      address: entry.fullAddress,
+      coordinates: {
+        lat: entry.location.coordinates[1],
+        lon: entry.location.coordinates[0],
+      },
+    });
+    toast.success(`Delivering to ${entry.label ?? "this address"}`);
   }
 
   return (
-    <Screen edges={["bottom"]}>
-      <ScrollView contentContainerClassName="gap-6 p-5" keyboardShouldPersistTaps="handled">
-        <View className="gap-3">
-          <Text variant="h3">Saved addresses</Text>
-          {addresses.data?.length ? (
-            addresses.data.map((entry) => (
-              <View key={entry._id} className="flex-row items-center gap-2">
-                <View className="flex-1">
-                  <OptionRow
-                    label={entry.label ?? "Address"}
-                    description={entry.fullAddress}
-                    selected={entry.isDefault}
-                    onPress={() => setDefault.mutate(entry._id)}
-                    trailing={
-                      entry.isDefault ? (
-                        <Star size={15} color={color.primary} fill={color.primary} />
-                      ) : null
-                    }
-                  />
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader
+        title="Delivery addresses"
+        subtitle={`${saved.length} of ${MAX_SAVED_ADDRESSES} saved`}
+      />
+
+      <ScrollView contentContainerClassName="gap-3 px-5 pb-8" showsVerticalScrollIndicator={false}>
+        {saved.length ? (
+          saved.map((entry) => (
+            <PressableCard
+              key={entry._id}
+              className="flex-row items-center gap-3"
+              onPress={() => deliverTo(entry)}
+            >
+              <View className="flex-1 gap-1">
+                <View className="flex-row items-center gap-2">
+                  <Text variant="h3" numberOfLines={1}>
+                    {entry.label ?? "Address"}
+                  </Text>
+                  {entry.fullAddress === activeAddress ? (
+                    <Badge tone="mint" size="sm" icon={MapPin}>
+                      Delivering here
+                    </Badge>
+                  ) : null}
+                  {entry.isDefault ? (
+                    <Badge tone="neutral" size="sm" icon={Star}>
+                      Default
+                    </Badge>
+                  ) : null}
                 </View>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  accessibilityLabel={`Edit ${entry.label ?? "address"}`}
-                  onPress={() => router.push(`/(customer)/address/${entry._id}`)}
-                >
-                  <Pencil size={16} color={color["muted-foreground"]} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  accessibilityLabel={`Delete ${entry.label ?? "address"}`}
-                  onPress={() => removeAddress.mutate(entry._id)}
-                >
-                  <Trash2 size={16} color={color["muted-foreground"]} />
-                </Button>
+                <Text variant="body-sm" tone="muted" numberOfLines={2}>
+                  {entry.fullAddress}
+                </Text>
+                {!entry.isDefault ? (
+                  <Button
+                    variant="mint"
+                    size="sm"
+                    className="mt-1 self-start"
+                    onPress={() => setDefault.mutate(entry._id)}
+                  >
+                    Make default
+                  </Button>
+                ) : null}
               </View>
-            ))
-          ) : (
-            <EmptyState
-              title="No saved addresses"
-              description="Add one so checkout knows where to send your order."
-            />
-          )}
-        </View>
+
+              <View className="gap-2">
+                <IconButton
+                  icon={Pencil}
+                  variant="muted"
+                  size={36}
+                  label={`Edit ${entry.label ?? "address"}`}
+                  onPress={() => router.push(`/(customer)/address/${entry._id}`)}
+                />
+
+                <IconButton
+                  icon={Trash2}
+                  variant="muted"
+                  size={36}
+                  label={`Delete ${entry.label ?? "address"}`}
+                  onPress={() => removeAddress.mutate(entry._id)}
+                />
+              </View>
+            </PressableCard>
+          ))
+        ) : (
+          <EmptyState
+            icon={MapPin}
+            title="No saved addresses"
+            description="Add one so checkout already knows where to send your order."
+          />
+        )}
 
         {atLimit ? (
-          <Text variant="caption" tone="muted">
-            You've saved the maximum of {MAX_SAVED_ADDRESSES} addresses.
-          </Text>
+          <Inset tone="warning">
+            <Text variant="body-sm" className="text-warning">
+              You have saved the maximum of {MAX_SAVED_ADDRESSES} addresses. Delete one to add
+              another.
+            </Text>
+          </Inset>
         ) : (
-          <View className="gap-3">
-            <Text variant="h3">Add an address</Text>
-            <Button variant="outline" loading={isDetecting} onPress={detect}>
-              Use my current location
-            </Button>
-            {storedAddress ? (
-              <Text variant="caption" tone="muted">
-                Detected: {storedAddress}
+          <Button
+            size="lg"
+            fullWidth
+            className="mt-2"
+            onPress={() => router.push("/(customer)/address/new")}
+          >
+            <View className="flex-row items-center gap-2">
+              <Plus size={18} color={color["primary-foreground"]} />
+              <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+                Add an address
               </Text>
-            ) : null}
-            <Input label="Label" value={label} onChangeText={setLabel} placeholder="Home" />
-            <AddressAutocomplete
-              label="Address"
-              hint="Or leave blank to use the detected one."
-              onSelect={({ address, lat, lon }) => {
-                setFullAddress(address);
-                setLocation({ address, coordinates: { lat, lon } });
-              }}
-            />
-            <Button loading={addAddress.isPending} onPress={save}>
-              Save address
-            </Button>
-          </View>
+            </View>
+          </Button>
         )}
+
+        {/* Ordering from somewhere that is not worth saving - a park, a
+            friend's flat - still needs the feed pointed at it. */}
+        <Button variant="mint" size="lg" loading={isDetecting} onPress={detect}>
+          <View className="flex-row items-center gap-2">
+            <Crosshair size={17} color={color.primary} />
+            <Text variant="label" tone="primary">
+              Deliver to my current location
+            </Text>
+          </View>
+        </Button>
       </ScrollView>
     </Screen>
   );

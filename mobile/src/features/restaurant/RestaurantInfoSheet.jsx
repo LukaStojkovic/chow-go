@@ -1,25 +1,50 @@
 import { Modal, ScrollView, View } from "react-native";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Clock, MapPin, Phone, X } from "lucide-react-native";
-import { WEEK_DAYS, formatDayHours, getTodayKey } from "@chowgo/shared/schedule";
-import { Button } from "@/components/ui/Button";
-import { Text } from "@/components/ui/Text";
-import { useTokens } from "@/theme/useTokens";
+import { Badge } from "@/components/ui/Badge";
+import { IconButton } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
-function Row({ icon: Icon, children }) {
-  const { color } = useTokens();
+import { Divider } from "@/components/ui/Section";
+import { Text } from "@/components/ui/Text";
+
+/**
+ * Opening hours as the view model already resolved them.
+ *
+ * `RestaurantView.schedule` is an ordered array of
+ * `{ day, label, isOpen, opens, closes, isToday }` - not a map keyed by day, and
+ * not the raw `{ openingTime, closingTime }` shape the API returns. Reading it
+ * directly here keeps one normalisation rather than two.
+ */
+function hoursLabel(entry) {
+  if (!entry?.isOpen) return "Closed";
+  if (entry.opens === entry.closes) return "Open 24 hours";
+  return `${entry.opens} – ${entry.closes}`;
+}
+
+function Section({ icon, title, children }) {
   return (
-    <View className="flex-row items-start gap-3">
-      <Icon size={17} color={color["muted-foreground"]} style={{ marginTop: 2 }} />
-      <View className="flex-1 gap-0.5">{children}</View>
-    </View>
+    <Card className="gap-3">
+      <View className="flex-row items-center gap-3">
+        <Text variant="h3" className="flex-1">
+          {title}
+        </Text>
+      </View>
+      {children}
+    </Card>
   );
 }
 
+/**
+ * A `Modal` is its own window, and the insets the rest of the app sees are the
+ * root window's. Inside a `pageSheet` - which already starts below the notch -
+ * they are too large, and on Android, where `presentationStyle` is ignored and
+ * the modal fills an edge-to-edge screen, the header would otherwise sit under
+ * the status bar. Re-providing the context measures the sheet's own frame, so
+ * one set of edges is right on both platforms.
+ */
 export function RestaurantInfoSheet({ visible, restaurant, onClose }) {
-  const { color } = useTokens();
   if (!restaurant) return null;
-
-  const today = getTodayKey();
 
   return (
     <Modal
@@ -28,56 +53,91 @@ export function RestaurantInfoSheet({ visible, restaurant, onClose }) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-background">
-        <View className="flex-row items-center justify-between border-b border-border px-5 py-4">
-          <Text variant="h2" numberOfLines={1} className="flex-1">
+      <SafeAreaProvider>
+        <SheetBody restaurant={restaurant} onClose={onClose} />
+      </SafeAreaProvider>
+    </Modal>
+  );
+}
+
+function SheetBody({ restaurant, onClose }) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <View className="flex-row items-center gap-3 px-5 py-4">
+        <View className="flex-1">
+          <Text variant="h2" numberOfLines={1}>
             {restaurant.name}
           </Text>
-          <Button variant="ghost" size="sm" accessibilityLabel="Close" onPress={onClose}>
-            <X size={20} color={color.foreground} />
-          </Button>
+          <Text variant="body-sm" tone="muted" numberOfLines={1}>
+            {restaurant.cuisine}
+          </Text>
         </View>
+        <IconButton icon={X} variant="muted" label="Close" onPress={onClose} />
+      </View>
 
-        <ScrollView contentContainerClassName="gap-6 p-5">
-          {restaurant.description ? (
+      <ScrollView
+        contentContainerClassName="gap-3 px-5"
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {restaurant.description ? (
+          <Card>
             <Text variant="body" tone="muted">
               {restaurant.description}
             </Text>
-          ) : null}
+          </Card>
+        ) : null}
 
-          <Row icon={MapPin}>
-            <Text variant="label">Address</Text>
-            <Text variant="body-sm" tone="muted">
-              {restaurant.address?.oneLine ?? "Not provided"}
+        <Section icon={MapPin} title="Address">
+          <Text variant="body" tone="muted">
+            {restaurant.address?.oneLine ?? "Not provided"}
+          </Text>
+        </Section>
+
+        {restaurant.phone ? (
+          <Section icon={Phone} title="Phone">
+            <Text variant="body" tone="muted">
+              {restaurant.phone}
             </Text>
-          </Row>
+          </Section>
+        ) : null}
 
-          {restaurant.phone ? (
-            <Row icon={Phone}>
-              <Text variant="label">Phone</Text>
-              <Text variant="body-sm" tone="muted">
-                {restaurant.phone}
-              </Text>
-            </Row>
-          ) : null}
-
-          <Row icon={Clock}>
-            <Text variant="label">Opening hours</Text>
-            <View className="gap-1 pt-1">
-              {WEEK_DAYS.map(({ key, label }) => (
-                <View key={key} className="flex-row justify-between">
-                  <Text variant="body-sm" tone={key === today ? "foreground" : "muted"}>
-                    {label}
-                  </Text>
-                  <Text variant="body-sm" tone={key === today ? "foreground" : "muted"}>
-                    {formatDayHours(restaurant.schedule?.[key])}
+        <Section icon={Clock} title="Opening hours">
+          <View className="gap-0.5">
+            {(restaurant.schedule ?? []).map((entry, index) => (
+              <View key={entry.day}>
+                {index > 0 ? <Divider className="my-1" /> : null}
+                <View className="flex-row items-center justify-between py-1.5">
+                  <View className="flex-row items-center gap-2">
+                    <Text
+                      variant={entry.isToday ? "label" : "body"}
+                      tone={entry.isToday ? "foreground" : "muted"}
+                      numberOfLines={1}
+                    >
+                      {entry.label}
+                    </Text>
+                    {entry.isToday ? (
+                      <Badge tone="mint" size="sm">
+                        Today
+                      </Badge>
+                    ) : null}
+                  </View>
+                  <Text
+                    variant={entry.isToday ? "label" : "body"}
+                    tone={entry.isOpen ? (entry.isToday ? "primary" : "muted") : "muted"}
+                    numberOfLines={1}
+                    className="shrink-0"
+                  >
+                    {hoursLabel(entry)}
                   </Text>
                 </View>
-              ))}
-            </View>
-          </Row>
-        </ScrollView>
-      </View>
-    </Modal>
+              </View>
+            ))}
+          </View>
+        </Section>
+      </ScrollView>
+    </View>
   );
 }

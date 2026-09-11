@@ -1,8 +1,8 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Image } from "expo-image";
-import { Pressable } from "react-native";
-import { ImagePlus, X } from "lucide-react-native";
+import { ImagePlus, Star, X } from "lucide-react-native";
 import { pickImages } from "@/api/uploads";
+import { Badge } from "@/components/ui/Badge";
 import { Text } from "@/components/ui/Text";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
@@ -11,8 +11,12 @@ const MAX_IMAGES = 6;
 
 /**
  * Existing images are Cloudinary URLs; new ones are local files. The update
- * endpoint diffs on `existingImages`, so anything not resent is deleted — which
+ * endpoint diffs on `existingImages`, so anything not resent is deleted - which
  * is why removing one here just drops it from that list.
+ *
+ * The first thumbnail is badged as the main photo, because that is the one that
+ * ends up on every card in the customer app and the ordering is not otherwise
+ * visible.
  */
 export function MenuItemImages({ existing, added, error, onChangeExisting, onChangeAdded }) {
   const { color } = useTokens();
@@ -33,37 +37,51 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
     if (result.images.length) onChangeAdded([...added, ...result.images]);
   }
 
-  const Thumb = ({ uri, onRemove, label }) => (
-    <View className="h-20 w-20 overflow-hidden rounded-sm bg-muted">
+  const Thumb = ({ uri, onRemove, label, isMain }) => (
+    <View className="h-24 w-24 overflow-hidden rounded-md bg-muted">
       <Image source={uri} style={{ flex: 1 }} contentFit="cover" />
+
+      {isMain ? (
+        <View className="absolute bottom-1 left-1">
+          <Badge tone="solid" size="sm" icon={Star}>
+            Main
+          </Badge>
+        </View>
+      ) : null}
+
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={onRemove}
         hitSlop={6}
-        className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-black/60"
+        className="absolute right-1 top-1 h-7 w-7 items-center justify-center rounded-full bg-black/60 active:opacity-70"
       >
-        <X size={13} color={color["scrim-foreground"]} />
+        <X size={14} strokeWidth={2.6} color={color["scrim-foreground"]} />
       </Pressable>
     </View>
   );
 
   return (
     <View className="gap-2">
-      <Text variant="label">Photos</Text>
+      <Text variant="label-sm" tone={error ? "destructive" : "muted"}>
+        Photos
+      </Text>
+
       <View className="flex-row flex-wrap gap-2">
-        {existing.map((url) => (
+        {existing.map((url, index) => (
           <Thumb
             key={url}
             uri={url}
+            isMain={index === 0}
             label="Remove photo"
             onRemove={() => onChangeExisting(existing.filter((entry) => entry !== url))}
           />
         ))}
-        {added.map((file) => (
+        {added.map((file, index) => (
           <Thumb
             key={file.uri}
             uri={file.uri}
+            isMain={existing.length === 0 && index === 0}
             label="Remove photo"
             onRemove={() => onChangeAdded(added.filter((entry) => entry.uri !== file.uri))}
           />
@@ -74,14 +92,18 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
             accessibilityRole="button"
             accessibilityLabel="Add a photo"
             onPress={add}
-            className="h-20 w-20 items-center justify-center rounded-sm border border-dashed border-border-strong active:opacity-60"
+            className="h-24 w-24 items-center justify-center gap-1 rounded-md border-2 border-dashed border-border-strong bg-muted active:opacity-70"
           >
-            <ImagePlus size={20} color={color["muted-foreground"]} />
+            <ImagePlus size={22} color={color.primary} />
+            <Text variant="caption" tone="primary">
+              Add
+            </Text>
           </Pressable>
         ) : null}
       </View>
+
       <Text variant="caption" tone={error ? "destructive" : "muted"}>
-        {error ?? `${total}/${MAX_IMAGES} · the first is used as the main photo`}
+        {error ?? `${total} of ${MAX_IMAGES} · the first is the main photo`}
       </Text>
     </View>
   );

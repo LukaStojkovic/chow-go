@@ -5,14 +5,19 @@ import { ACTIVE_STATUS_FILTER, toOrderViews } from "@chowgo/shared/adapters/orde
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+
+import { StatusDot } from "@/components/ui/Badge";
+import { Chip } from "@/components/ui/Chip";
+import { SearchInput } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
-import { Text } from "@/components/ui/Text";
+import { SectionHeader } from "@/components/ui/Section";
+
+import { ReceiptText } from "lucide-react-native";
 import { SellerOrderCard } from "@/features/seller/SellerOrderCard";
 import { useSellerOrders, useUpdateOrderStatus } from "@/hooks/SellerOrders/useSellerOrders";
 import { useSocket } from "@/realtime/SocketProvider";
 import { toast } from "@/store/useToastStore";
+import { useRefreshTint } from "@/theme/useRefreshTint";
 
 const FILTERS = [
   { key: "active", label: "Active", status: ACTIVE_STATUS_FILTER },
@@ -23,6 +28,7 @@ const FILTERS = [
 ];
 
 export default function SellerOrdersScreen() {
+  const refreshTint = useRefreshTint();
   const [filter, setFilter] = useState("active");
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
@@ -42,27 +48,24 @@ export default function SellerOrdersScreen() {
   return (
     <Screen edges={["top"]}>
       <View className="gap-3 pb-3 pt-2">
-        <View className="flex-row items-center justify-between px-5">
-          <Text variant="h1">Orders</Text>
-          {/* A seller needs to know the live feed is live; a stale console is
-              indistinguishable from a quiet evening. */}
-          <View className="flex-row items-center gap-1.5">
-            <View
-              className={`h-2 w-2 rounded-full ${isConnected ? "bg-success" : "bg-muted-foreground"}`}
-            />
-            <Text variant="caption" tone="muted">
-              {isConnected ? "Live" : "Reconnecting"}
-            </Text>
-          </View>
-        </View>
+        <View className="gap-4 px-5">
+          <SectionHeader
+            title="Orders"
+            size="lg"
+            subtitle={`${orders.length} on the board`}
+            /* A seller needs to know the live feed is live; a stale console is
+               indistinguishable from a quiet evening. */
+            actionLabel={isConnected ? "Live" : "Reconnecting"}
+            onAction={() => query.refetch()}
+          />
 
-        <View className="px-5">
-          <Input
+          <SearchInput
             value={text}
             onChangeText={setText}
             placeholder="Order number or customer"
             autoCorrect={false}
             clearButtonMode="while-editing"
+            right={<StatusDot tone={isConnected ? "success" : "muted"} />}
           />
         </View>
 
@@ -74,14 +77,12 @@ export default function SellerOrdersScreen() {
           {FILTERS.map((entry) => {
             const count = entry.key === "active" ? undefined : counts[entry.key];
             return (
-              <Button
+              <Chip
                 key={entry.key}
-                size="sm"
-                variant={filter === entry.key ? "primary" : "outline"}
+                label={count ? `${entry.label} · ${count}` : entry.label}
+                active={filter === entry.key}
                 onPress={() => setFilter(entry.key)}
-              >
-                {count ? `${entry.label} (${count})` : entry.label}
-              </Button>
+              />
             );
           })}
         </ScrollView>
@@ -90,9 +91,14 @@ export default function SellerOrdersScreen() {
       <FlatList
         data={orders}
         keyExtractor={(order) => order.id}
-        contentContainerClassName="gap-3 px-5 pb-28"
+        contentContainerClassName="gap-3 px-5 pb-32"
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />
+          <RefreshControl
+            {...refreshTint}
+            refreshing={query.isRefetching}
+            onRefresh={query.refetch}
+          />
         }
         renderItem={({ item }) => (
           <SellerOrderCard
@@ -113,11 +119,12 @@ export default function SellerOrdersScreen() {
           query.isLoading ? (
             <View className="gap-3">
               {Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} className="h-28 w-full" />
+                <Skeleton key={index} className="h-36 w-full rounded-lg" />
               ))}
             </View>
           ) : (
             <EmptyState
+              icon={ReceiptText}
               title={search ? `Nothing for "${search}"` : "No orders here"}
               description={
                 filter === "active" ? "New orders appear here the moment they arrive." : undefined

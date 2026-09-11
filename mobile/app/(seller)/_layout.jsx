@@ -14,20 +14,14 @@ export default function SellerLayout() {
     <>
       <Stack
         screenOptions={{
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: color.background },
-          headerTintColor: color.foreground,
-          headerTitleStyle: { fontFamily: "Inter_600SemiBold", fontSize: 17 },
+          headerShown: false,
           contentStyle: { backgroundColor: color.background },
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="incoming/[orderId]"
-          options={{ presentation: "fullScreenModal", headerShown: false }}
-        />
-        <Stack.Screen name="order/[orderId]" options={{ title: "Order" }} />
-        <Stack.Screen name="menu-item/[menuItemId]" options={{ title: "Dish" }} />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="incoming/[orderId]" options={{ presentation: "fullScreenModal" }} />
+        <Stack.Screen name="order/[orderId]" />
+        <Stack.Screen name="menu-item/[menuItemId]" />
       </Stack>
 
       <SellerAlert />

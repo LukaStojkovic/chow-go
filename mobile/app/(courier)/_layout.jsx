@@ -12,15 +12,12 @@ export default function CourierLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: color.background },
-        headerTintColor: color.foreground,
-        headerTitleStyle: { fontFamily: "Inter_600SemiBold", fontSize: 17 },
+        headerShown: false,
         contentStyle: { backgroundColor: color.background },
       }}
     >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="delivery/[orderId]" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="delivery/[orderId]" />
     </Stack>
   );
 }

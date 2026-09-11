@@ -6,11 +6,14 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { RestaurantCard } from "@/components/discovery/RestaurantCard";
 import { Screen } from "@/components/ui/Screen";
+import { SectionHeader } from "@/components/ui/Section";
 import { useFavourites } from "@/hooks/Favourites/useFavourites";
 import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRefreshTint } from "@/theme/useRefreshTint";
 
 export default function Favourites() {
+  const refreshTint = useRefreshTint();
   const authUser = useAuthStore((state) => state.authUser);
   const query = useFavourites();
   const { toggleFavourite } = useFavouriteToggle();
@@ -36,9 +39,22 @@ export default function Favourites() {
       <FlatList
         data={restaurants}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="gap-5 px-5 pb-28 pt-3"
+        contentContainerClassName="gap-4 px-5 pb-44"
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <SectionHeader
+            title="Saved places"
+            size="lg"
+            subtitle={`${restaurants.length} ${restaurants.length === 1 ? "restaurant" : "restaurants"} you come back to`}
+            className="pb-1 pt-2"
+          />
+        }
         refreshControl={
-          <RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />
+          <RefreshControl
+            {...refreshTint}
+            refreshing={query.isRefetching}
+            onRefresh={query.refetch}
+          />
         }
         renderItem={({ item }) => (
           <RestaurantCard
@@ -50,19 +66,18 @@ export default function Favourites() {
         )}
         ListEmptyComponent={
           query.isLoading ? (
-            <View className="gap-5">
+            <View className="gap-4">
               {Array.from({ length: 3 }).map((_, index) => (
-                <View key={index} className="gap-2">
-                  <Skeleton className="aspect-[16/9] w-full" />
-                  <Skeleton className="h-4 w-1/2" />
-                </View>
+                <Skeleton key={index} className="h-64 w-full rounded-lg" />
               ))}
             </View>
           ) : (
             <EmptyState
               icon={Heart}
               title="No favourites yet"
-              description="Tap the heart on a restaurant to save it here."
+              description="Tap the heart on any restaurant and it will wait for you here."
+              actionLabel="Browse restaurants"
+              onAction={() => router.push("/(customer)/(tabs)")}
             />
           )
         }

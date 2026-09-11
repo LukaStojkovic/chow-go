@@ -3,12 +3,16 @@ import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { UtensilsCrossed } from "lucide-react-native";
 import { toDishViews } from "@chowgo/shared/adapters/menu";
 import { formatPrice } from "@chowgo/shared/format";
 import { MAX_ORDER_NOTES } from "@chowgo/shared/constants";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DockedBar } from "@/components/ui/FloatingBar";
 import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { useCartStore } from "@/store/useCartStore";
@@ -53,10 +57,15 @@ export default function ItemCustomization() {
 
   if (!dish) {
     return (
-      <Screen className="items-center justify-center p-8">
-        <Text variant="body" tone="muted">
-          This item is no longer available.
-        </Text>
+      <Screen>
+        <ScreenHeader />
+        <EmptyState
+          icon={UtensilsCrossed}
+          title="Item unavailable"
+          description="This dish is no longer on the menu."
+          actionLabel="Go back"
+          onAction={() => router.back()}
+        />
       </Screen>
     );
   }
@@ -64,51 +73,64 @@ export default function ItemCustomization() {
   const total = dish.price * quantity;
 
   return (
-    <Screen edges={["bottom"]}>
-      <ScrollView contentContainerClassName="gap-5 pb-6" keyboardShouldPersistTaps="handled">
-        {dish.image ? (
-          <View className="aspect-[16/10] bg-muted">
+    <Screen edges={["top", "bottom"]}>
+      <ScrollView
+        contentContainerClassName="pb-6"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="aspect-[16/10] bg-muted">
+          {dish.image ? (
             <Image source={dish.image} style={{ flex: 1 }} contentFit="cover" transition={500} />
-          </View>
-        ) : null}
-
-        <View className="gap-2 px-5">
-          <Text variant="h1">{dish.name}</Text>
-          {dish.description ? (
-            <Text variant="body" tone="muted">
-              {dish.description}
-            </Text>
           ) : null}
-          <View className="flex-row items-baseline gap-2">
-            <Text variant="price-lg">{formatPrice(dish.price)}</Text>
-            {dish.basePrice ? (
-              <Text variant="body-sm" tone="muted" className="line-through">
-                {formatPrice(dish.basePrice)}
-              </Text>
-            ) : null}
-          </View>
+
+          {dish.discountPercent > 0 ? (
+            <View className="absolute left-5 top-5">
+              <Badge tone="solid-citrus">{dish.promoLabel ?? `${dish.discountPercent}% off`}</Badge>
+            </View>
+          ) : null}
         </View>
 
-        <View className="px-5">
+        {/* The white sheet lifts over the photograph, the same move the
+             restaurant hero makes, so the two screens feel continuous. */}
+        <View className="-mt-6 gap-5 rounded-t-3xl bg-background px-5 pt-6">
+          <View className="gap-2">
+            <Text variant="h1">{dish.name}</Text>
+            {dish.description ? (
+              <Text variant="body-lg" tone="muted">
+                {dish.description}
+              </Text>
+            ) : null}
+            <View className="flex-row items-baseline gap-2 pt-1">
+              <Text variant="price-lg" tone="primary">
+                {formatPrice(dish.price)}
+              </Text>
+              {dish.basePrice ? (
+                <Text variant="body" tone="muted" className="line-through">
+                  {formatPrice(dish.basePrice)}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
           <Input
             label="Special instructions"
-            hint="Optional — allergies, preferences, anything the kitchen should know."
+            hint="Optional - allergies, preferences, anything the kitchen should know."
             value={notes}
             onChangeText={setNotes}
             maxLength={MAX_ORDER_NOTES}
             multiline
-            className="h-24 py-3"
-            style={{ textAlignVertical: "top" }}
+            placeholder="No pickles, extra spicy…"
           />
         </View>
       </ScrollView>
 
-      <View className="flex-row items-center gap-3 border-t border-border bg-card p-4">
+      <DockedBar className="flex-row items-center gap-3">
         <Stepper value={quantity} onChange={setQuantity} />
         <Button className="flex-1" size="lg" loading={busy} onPress={add}>
-          {`Add to basket · ${formatPrice(total)}`}
+          {`Add · ${formatPrice(total)}`}
         </Button>
-      </View>
+      </DockedBar>
     </Screen>
   );
 }

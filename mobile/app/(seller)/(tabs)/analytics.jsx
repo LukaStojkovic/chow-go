@@ -1,14 +1,24 @@
 import { RefreshControl, ScrollView, View } from "react-native";
-import { Star } from "lucide-react-native";
+import {
+  Clock,
+  CreditCard,
+  MessageSquareQuote,
+  PieChart,
+  Star,
+  TrendingUp,
+} from "lucide-react-native";
 import { formatPrice } from "@chowgo/shared/format";
 import { BarChart, ProportionRow } from "@/components/charts/BarChart";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Card } from "@/components/ui/Card";
+
 import { Screen } from "@/components/ui/Screen";
+import { Divider, SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { useRestaurantAnalytics } from "@/hooks/Restaurants/useRestaurantStats";
 import { useTokens } from "@/theme/useTokens";
+import { useRefreshTint } from "@/theme/useRefreshTint";
 
 const STATUS_TONES = {
   delivered: "success",
@@ -17,18 +27,45 @@ const STATUS_TONES = {
   pending: "warning",
 };
 
-function Kpi({ label, value }) {
+function Kpi({ label, value, icon, tone = "mint" }) {
   return (
-    <Card className="flex-1 gap-1">
-      <Text variant="caption" tone="muted">
-        {label}
+    <Card className="flex-1 gap-2 p-4">
+      <View className="flex-row items-start justify-between gap-2">
+        <Text variant="caption" tone="muted" numberOfLines={2} className="flex-1">
+          {label}
+        </Text>
+      </View>
+      <Text variant="price-lg" numberOfLines={1}>
+        {value}
       </Text>
-      <Text variant="h3">{value}</Text>
+    </Card>
+  );
+}
+
+// A card whose heading carries an icon tile, matching the dashboard so the two
+// screens read as one console rather than two.
+function Panel({ title, subtitle, icon, tone = "mint", children }) {
+  return (
+    <Card className="gap-3">
+      <View className="flex-row items-center gap-3">
+        <View className="flex-1">
+          <Text variant="h3" numberOfLines={1}>
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text variant="caption" tone="muted" numberOfLines={1}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+      {children}
     </Card>
   );
 }
 
 export default function SellerAnalytics() {
+  const refreshTint = useRefreshTint();
   const query = useRestaurantAnalytics();
   const { color } = useTokens();
   const data = query.data;
@@ -36,9 +73,9 @@ export default function SellerAnalytics() {
   if (query.isLoading) {
     return (
       <Screen edges={["top"]} className="gap-4 p-5">
-        <Skeleton className="h-8 w-1/2" />
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-10 w-1/2" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-56 w-full rounded-lg" />
       </Screen>
     );
   }
@@ -50,37 +87,48 @@ export default function SellerAnalytics() {
   return (
     <Screen edges={["top"]}>
       <ScrollView
-        contentContainerClassName="gap-5 p-5 pb-28"
+        contentContainerClassName="gap-3 px-5 pb-32 pt-2"
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />
+          <RefreshControl
+            {...refreshTint}
+            refreshing={query.isRefetching}
+            onRefresh={query.refetch}
+          />
         }
       >
-        <Text variant="h1">Analytics</Text>
+        <SectionHeader
+          title="Analytics"
+          size="lg"
+          subtitle="How the kitchen is trading"
+          className="pb-1"
+        />
 
         <View className="flex-row gap-3">
-          <Kpi label="Today" value={formatPrice(kpis.todayRevenue ?? 0)} />
+          <Kpi label="Revenue today" value={formatPrice(kpis.todayRevenue ?? 0)} />
+
           <Kpi label="Orders today" value={String(kpis.todayOrders ?? 0)} />
         </View>
         <View className="flex-row gap-3">
           <Kpi label="Average order" value={formatPrice(kpis.avgOrderValue ?? 0)} />
+
           <Kpi label="This month" value={formatPrice(kpis.monthlyRevenue ?? 0)} />
         </View>
 
-        <Card className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text variant="h3">Rating</Text>
-            <View className="flex-row items-center gap-1.5">
-              <Star size={15} color={color.rating} fill={color.rating} />
-              <Text variant="price">{(kpis.averageRating ?? 0).toFixed(1)}</Text>
-              <Text variant="caption" tone="muted">
-                ({kpis.totalReviews ?? 0})
-              </Text>
-            </View>
+        <Card className="flex-row items-center gap-3">
+          <View className="flex-1">
+            <Text variant="h3">Store rating</Text>
+            <Text variant="caption" tone="muted">
+              {kpis.totalReviews ?? 0} reviews
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-1.5">
+            <Star size={17} color={color.rating} fill={color.rating} />
+            <Text variant="price-lg">{(kpis.averageRating ?? 0).toFixed(1)}</Text>
           </View>
         </Card>
 
-        <Card className="gap-3">
-          <Text variant="h3">Revenue this week</Text>
+        <Panel title="Revenue this week" subtitle="Tap a bar for that day" icon={TrendingUp}>
           <BarChart
             data={(data?.dailyRevenue ?? []).map((entry) => ({
               label: entry.date,
@@ -88,11 +136,11 @@ export default function SellerAnalytics() {
               value: entry.revenue ?? 0,
             }))}
             formatValue={(value) => formatPrice(value)}
+            peakLabel="Best day"
           />
-        </Card>
+        </Panel>
 
-        <Card className="gap-3">
-          <Text variant="h3">Busiest hours</Text>
+        <Panel title="Busiest hours" subtitle="When the tickets land" icon={Clock} tone="citrus">
           <BarChart
             // A tick every six hours: twenty-four labels on a phone is noise.
             data={(data?.peakHours ?? []).map((entry, index) => ({
@@ -100,13 +148,12 @@ export default function SellerAnalytics() {
               tick: index % 6 === 0 ? entry.hour : "",
               value: entry.orders ?? 0,
             }))}
-            barClassName="bg-info"
             formatValue={(value) => `${value} orders`}
+            peakLabel="Rush hour"
           />
-        </Card>
+        </Panel>
 
-        <Card className="gap-3">
-          <Text variant="h3">Order outcomes</Text>
+        <Panel title="Order outcomes" icon={PieChart} tone="info">
           {statusTotal ? (
             (data?.orderStatusBreakdown ?? []).map((entry) => (
               <ProportionRow
@@ -122,10 +169,9 @@ export default function SellerAnalytics() {
               No orders yet.
             </Text>
           )}
-        </Card>
+        </Panel>
 
-        <Card className="gap-3">
-          <Text variant="h3">How customers pay</Text>
+        <Panel title="How customers pay" icon={CreditCard} tone="info">
           {paymentTotal ? (
             (data?.paymentMethodSplit ?? []).map((entry) => (
               <ProportionRow
@@ -141,22 +187,29 @@ export default function SellerAnalytics() {
               No payments yet.
             </Text>
           )}
-        </Card>
+        </Panel>
 
-        <Card className="gap-3">
-          <Text variant="h3">Top items</Text>
+        <Panel title="Top items" subtitle="Best sellers over the period" tone="warning">
           {(data?.topItems ?? []).length ? (
-            data.topItems.map((item) => (
-              <View key={item._id} className="flex-row items-center justify-between gap-3">
-                <View className="flex-1">
-                  <Text variant="label" numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text variant="caption" tone="muted">
-                    {item.totalQuantity} sold
-                  </Text>
+            data.topItems.map((item, index) => (
+              <View key={item._id}>
+                {index > 0 ? <Divider className="mb-3" /> : null}
+                <View className="flex-row items-center gap-3">
+                  <View className="h-7 w-7 items-center justify-center rounded-full bg-primary-subtle">
+                    <Text variant="label-sm" tone="primary">
+                      {index + 1}
+                    </Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text variant="h3" numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <Text variant="caption" tone="muted">
+                      {item.totalQuantity} sold
+                    </Text>
+                  </View>
+                  <Text variant="price">{formatPrice(item.totalRevenue ?? 0)}</Text>
                 </View>
-                <Text variant="price">{formatPrice(item.totalRevenue ?? 0)}</Text>
               </View>
             ))
           ) : (
@@ -164,32 +217,36 @@ export default function SellerAnalytics() {
               Nothing sold yet.
             </Text>
           )}
-        </Card>
+        </Panel>
 
-        <View className="gap-3">
-          <Text variant="h3">Recent reviews</Text>
+        <View className="gap-3 pt-2">
+          <SectionHeader title="Recent reviews" subtitle="What customers said" />
           {(data?.recentRatings ?? []).length ? (
             data.recentRatings.map((rating, index) => (
-              <Card key={rating._id ?? index} className="gap-1">
+              <Card key={rating._id ?? index} className="gap-2">
                 <View className="flex-row items-center gap-1">
                   {Array.from({ length: 5 }).map((_, star) => (
                     <Star
                       key={star}
-                      size={13}
-                      color={color.rating}
+                      size={15}
+                      color={star < (rating.rating ?? 0) ? color.rating : color["border-strong"]}
                       fill={star < (rating.rating ?? 0) ? color.rating : "transparent"}
                     />
                   ))}
                 </View>
                 {rating.review ? (
-                  <Text variant="body-sm" tone="muted">
+                  <Text variant="body" tone="muted">
                     {rating.review}
                   </Text>
                 ) : null}
               </Card>
             ))
           ) : (
-            <EmptyState title="No reviews yet" description="Ratings appear here after delivery." />
+            <EmptyState
+              icon={MessageSquareQuote}
+              title="No reviews yet"
+              description="Ratings appear here once orders start being delivered."
+            />
           )}
         </View>
       </ScrollView>

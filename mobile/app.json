@@ -19,7 +19,7 @@
     "android": {
       "package": "com.chowngo.app",
       "adaptiveIcon": {
-        "backgroundColor": "#00875c",
+        "backgroundColor": "#009966",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -48,9 +48,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#fafafa",
+          "backgroundColor": "#f6f6f7",
           "dark": {
-            "backgroundColor": "#09090b"
+            "backgroundColor": "#0e0e11"
           }
         }
       ],
@@ -58,7 +58,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/android-icon-monochrome.png",
-          "color": "#00875c"
+          "color": "#009966"
         }
       ],
       "expo-web-browser",

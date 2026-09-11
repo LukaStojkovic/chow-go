@@ -1,16 +1,20 @@
 import { useMemo, useRef, useState } from "react";
-import { Pressable, SectionList, View } from "react-native";
-import { Heart, Info } from "lucide-react-native";
+import { SectionList, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ArrowLeft, Heart, Info, UtensilsCrossed } from "lucide-react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { toDishViews } from "@chowgo/shared/adapters/menu";
-import { toRestaurantView } from "@chowgo/shared/adapters/restaurant";
+import { toRestaurantView, unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
+import { IconButton } from "@/components/ui/Button";
+import { Inset } from "@/components/ui/Card";
+
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { CategoryTabs } from "@/features/restaurant/CategoryTabs";
-import { HERO_HEIGHT, ParallaxHero } from "@/features/restaurant/ParallaxHero";
+import { ParallaxHero } from "@/features/restaurant/ParallaxHero";
 import { MenuItemRow } from "@/features/restaurant/MenuItemRow";
 import { RestaurantInfoSheet } from "@/features/restaurant/RestaurantInfoSheet";
 import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
@@ -25,12 +29,15 @@ export default function RestaurantPage() {
 
   const { isFavourite, toggleFavourite } = useFavouriteToggle();
   const { color } = useTokens();
+  const insets = useSafeAreaInsets();
   const [infoOpen, setInfoOpen] = useState(false);
   const listRef = useRef(null);
   const scrollY = useSharedValue(0);
   const [active, setActive] = useState(null);
 
   const restaurant = info.data ? toRestaurantView(info.data) : null;
+  const closedReason = unavailableReason(restaurant);
+  const saved = isFavourite(restaurantId);
 
   const sections = useMemo(
     () =>
@@ -63,6 +70,7 @@ export default function RestaurantPage() {
     return (
       <Screen className="justify-center">
         <EmptyState
+          tone="danger"
           title="Couldn't load this restaurant"
           description="Check your connection and try again."
           actionLabel="Retry"
@@ -74,41 +82,8 @@ export default function RestaurantPage() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: restaurant?.name ?? "",
-          headerTransparent: true,
-          headerTitle: "",
-          headerRight: () => (
-            <View className="flex-row gap-1">
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Restaurant information"
-                hitSlop={8}
-                onPress={() => setInfoOpen(true)}
-                className="h-9 w-9 items-center justify-center rounded-full bg-black/45"
-              >
-                <Info size={17} color={color["scrim-foreground"]} />
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isFavourite(restaurantId) ? "Remove from favourites" : "Save to favourites"
-                }
-                hitSlop={8}
-                onPress={() => toggleFavourite(restaurantId)}
-                className="h-9 w-9 items-center justify-center rounded-full bg-black/45"
-              >
-                <Heart
-                  size={17}
-                  color={color["scrim-foreground"]}
-                  fill={isFavourite(restaurantId) ? color["scrim-foreground"] : "transparent"}
-                />
-              </Pressable>
-            </View>
-          ),
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
+
       <Screen edges={[]}>
         <AnimatedSectionList
           ref={listRef}
@@ -117,10 +92,19 @@ export default function RestaurantPage() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           stickySectionHeadersEnabled={false}
-          contentContainerClassName="pb-32"
+          contentContainerClassName="pb-36"
           ListHeaderComponent={
             <>
               <ParallaxHero restaurant={restaurant} scrollY={scrollY} />
+
+              {closedReason ? (
+                <Inset tone="warning" className="mx-5 mb-1 mt-3 flex-row items-center gap-3">
+                  <Text variant="body-sm" className="flex-1 text-warning">
+                    {closedReason}
+                  </Text>
+                </Inset>
+              ) : null}
+
               {sections.length > 0 ? (
                 <CategoryTabs
                   sections={sections}
@@ -140,10 +124,16 @@ export default function RestaurantPage() {
           }
           viewabilityConfig={useRef({ itemVisiblePercentThreshold: 40 }).current}
           renderSectionHeader={({ section }) => (
-            <View className="bg-background px-5 pb-1 pt-5">
-              <Text variant="h2">{section.title}</Text>
+            <View className="flex-row items-center gap-2 bg-background px-5 pb-3 pt-6">
+              <Text variant="h1" className="flex-1" numberOfLines={1}>
+                {section.title}
+              </Text>
+              <Text variant="label-sm" tone="muted">
+                {section.data.length} {section.data.length === 1 ? "dish" : "dishes"}
+              </Text>
             </View>
           )}
+          ItemSeparatorComponent={() => <View className="h-3" />}
           renderItem={({ item }) => (
             <MenuItemRow
               dish={item}
@@ -157,23 +147,60 @@ export default function RestaurantPage() {
           )}
           ListEmptyComponent={
             menu.isLoading ? (
-              <View className="gap-4 p-5">
+              <View className="gap-3 p-5">
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <View key={index} className="flex-row gap-3">
+                  <View key={index} className="flex-row gap-3 rounded-lg bg-card p-3">
                     <View className="flex-1 gap-2">
-                      <Skeleton className="h-3.5 w-2/3" />
+                      <Skeleton className="h-4 w-2/3" />
                       <Skeleton className="h-3 w-full" />
                       <Skeleton className="h-3 w-1/4" />
                     </View>
-                    <Skeleton className="h-20 w-20" />
+                    <Skeleton className="h-24 w-24" />
                   </View>
                 ))}
               </View>
             ) : (
-              <EmptyState title="No menu yet" description="This restaurant hasn't added dishes." />
+              <EmptyState
+                icon={UtensilsCrossed}
+                title="No menu yet"
+                description="This restaurant hasn't added any dishes."
+              />
             )
           }
         />
+
+        {/* Header chrome floats over the photograph rather than sitting in a
+             bar: there is no title to show until the hero has scrolled away, and
+             a solid bar over the hero would waste the image. */}
+        <View
+          pointerEvents="box-none"
+          style={{ top: insets.top + 6 }}
+          className="absolute left-5 right-5 flex-row items-center justify-between"
+        >
+          <IconButton
+            icon={ArrowLeft}
+            variant="scrim"
+            label="Go back"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/(customer)"))}
+          />
+
+          <View className="flex-row gap-2">
+            <IconButton
+              icon={Info}
+              variant="scrim"
+              label="Restaurant information"
+              onPress={() => setInfoOpen(true)}
+            />
+
+            <IconButton
+              icon={Heart}
+              variant="scrim"
+              label={saved ? "Remove from favourites" : "Save to favourites"}
+              onPress={() => toggleFavourite(restaurantId)}
+              className={saved ? "bg-primary" : undefined}
+            />
+          </View>
+        </View>
 
         <RestaurantInfoSheet
           visible={infoOpen}

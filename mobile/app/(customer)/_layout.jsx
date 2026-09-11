@@ -20,37 +20,39 @@ export default function CustomerLayout() {
 
   return (
     <View className="flex-1 bg-background">
+      {/* Every screen draws its own <ScreenHeader>: the design's header is a
+          circular back button with a two-line centred title, which the native
+          bar cannot produce, and mixing the two would give the stack two
+          different headers depending on which screen you were on. */}
       <Stack
         screenOptions={{
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: color.background },
-          headerTintColor: color.foreground,
-          headerTitleStyle: { fontFamily: "Inter_600SemiBold", fontSize: 17 },
+          headerShown: false,
           contentStyle: { backgroundColor: color.background },
         }}
       >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="restaurant/[restaurantId]" options={{ title: "" }} />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="restaurant/[restaurantId]" />
         <Stack.Screen
           name="item/[menuItemId]"
-          options={{ presentation: "formSheet", sheetAllowedDetents: [0.85], title: "" }}
+          options={{ presentation: "formSheet", sheetAllowedDetents: [0.85] }}
         />
         <Stack.Screen
           name="basket"
-          options={{ presentation: "formSheet", sheetAllowedDetents: [0.9], title: "Basket" }}
+          options={{ presentation: "formSheet", sheetAllowedDetents: [0.9] }}
         />
-        <Stack.Screen name="checkout" options={{ title: "Checkout" }} />
-        <Stack.Screen name="address/index" options={{ title: "Delivery addresses" }} />
-        <Stack.Screen name="order/[orderId]/index" options={{ title: "Order" }} />
+        <Stack.Screen name="checkout" />
+        <Stack.Screen name="address/index" />
+        <Stack.Screen name="address/new" />
+        <Stack.Screen name="order/[orderId]/index" />
         <Stack.Screen
           name="order/[orderId]/rate"
-          options={{ presentation: "formSheet", sheetAllowedDetents: [0.9], title: "Rate" }}
+          options={{ presentation: "formSheet", sheetAllowedDetents: [0.9] }}
         />
-        <Stack.Screen name="address/[addressId]" options={{ title: "Edit address" }} />
-        <Stack.Screen name="settings/profile" options={{ title: "Your details" }} />
+        <Stack.Screen name="address/[addressId]" />
+        <Stack.Screen name="settings/profile" />
         <Stack.Screen
           name="order/[orderId]/confirmed"
-          options={{ presentation: "fullScreenModal", headerShown: false }}
+          options={{ presentation: "fullScreenModal" }}
         />
       </Stack>
 

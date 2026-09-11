@@ -4,6 +4,13 @@ import { cn } from "@/lib/cn";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
 
+/**
+ * A single-choice row.
+ *
+ * Selection is carried by three things at once - a mint fill, a green outline
+ * and a filled tick - because at checkout the cost of getting the wrong one is
+ * a wrong order, and one signal is not enough to be certain at a glance.
+ */
 export function OptionRow({ label, description, selected, onPress, trailing }) {
   const { color } = useTokens();
 
@@ -13,20 +20,33 @@ export function OptionRow({ label, description, selected, onPress, trailing }) {
       accessibilityState={{ selected }}
       onPress={onPress}
       className={cn(
-        "flex-row items-center gap-3 rounded-sm border p-3.5",
-        selected ? "border-primary bg-primary-subtle" : "border-border bg-card",
+        "flex-row items-center gap-3 rounded-md border-2 p-3.5 active:opacity-80",
+        selected ? "border-primary bg-primary-subtle" : "border-transparent bg-muted",
       )}
     >
       <View className="flex-1 gap-0.5">
-        <Text variant="label">{label}</Text>
+        <Text variant="h3" numberOfLines={1}>
+          {label}
+        </Text>
         {description ? (
-          <Text variant="caption" tone="muted">
+          <Text variant="body-sm" tone="muted" numberOfLines={2}>
             {description}
           </Text>
         ) : null}
       </View>
+
       {trailing}
-      {selected ? <Check size={18} color={color.primary} /> : null}
+
+      <View
+        className={cn(
+          "h-6 w-6 items-center justify-center rounded-full border-2",
+          selected ? "border-primary bg-primary" : "border-border-strong",
+        )}
+      >
+        {selected ? (
+          <Check size={13} strokeWidth={3.5} color={color["primary-foreground"]} />
+        ) : null}
+      </View>
     </Pressable>
   );
 }

@@ -5,9 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { CUISINE_LABELS } from "@chowgo/shared/constants";
 import { errorMessage } from "@/api/client";
+import { CheckCircle2 } from "lucide-react-native";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { DockedBar } from "@/components/ui/FloatingBar";
 import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { MenuItemImages } from "@/features/seller/MenuItemImages";
 import { accountStep, locationStep, restaurantStep } from "@/features/auth/sellerSchemas";
@@ -26,13 +30,17 @@ const STEPS = [
 
 function Progress({ index }) {
   return (
-    <View className="flex-row gap-1.5">
-      {STEPS.map((step, position) => (
-        <View
-          key={step.key}
-          className={`h-1 flex-1 rounded-full ${position <= index ? "bg-primary" : "bg-muted"}`}
-        />
-      ))}
+    <View className="flex-row items-center gap-1.5">
+      {STEPS.map((step, position) => {
+        const done = position < index;
+        const live = position === index;
+        return (
+          <View
+            key={step.key}
+            className={`h-1.5 flex-1 rounded-full ${done || live ? "bg-primary" : "bg-muted"}`}
+          />
+        );
+      })}
     </View>
   );
 }
@@ -118,13 +126,25 @@ export default function SellerSignup() {
   );
 
   return (
-    <Screen edges={["bottom"]}>
-      <View className="gap-3 px-5 pt-3">
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader
+        onBack={() => (index > 0 ? setIndex((current) => current - 1) : router.back())}
+      />
+
+      <View className="gap-4 px-5 pb-1">
         <Progress index={index} />
-        <Text variant="h1">{step.title}</Text>
+        <View className="gap-1.5">
+          <Text variant="overline" tone="muted">
+            List your restaurant · Step {index + 1} of {STEPS.length}
+          </Text>
+          <Text variant="h1">{step.title}</Text>
+        </View>
       </View>
 
-      <ScrollView contentContainerClassName="gap-4 p-5" keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerClassName="gap-4 px-5 pb-6 pt-4"
+        keyboardShouldPersistTaps="handled"
+      >
         {step.key === "account" ? (
           <>
             {field("name", "Your name", { autoComplete: "name" })}
@@ -151,21 +171,20 @@ export default function SellerSignup() {
               render={({ field: input }) => (
                 <View className="gap-2">
                   <Text
-                    variant="label"
-                    tone={formState.errors.cuisineType ? "destructive" : "foreground"}
+                    variant="label-sm"
+                    tone={formState.errors.cuisineType ? "destructive" : "muted"}
                   >
                     Cuisine
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
                     {Object.entries(CUISINE_LABELS).map(([value, label]) => (
-                      <Button
+                      <Chip
                         key={value}
-                        size="sm"
-                        variant={input.value === value ? "primary" : "outline"}
+                        label={label}
+                        active={input.value === value}
+                        showCheck
                         onPress={() => input.onChange(value)}
-                      >
-                        {label}
-                      </Button>
+                      />
                     ))}
                   </View>
                   {formState.errors.cuisineType ? (
@@ -179,8 +198,6 @@ export default function SellerSignup() {
             {field("restaurantPhone", "Restaurant phone", { keyboardType: "phone-pad" })}
             {field("restaurantDescription", "Description", {
               multiline: true,
-              className: "h-20 py-3",
-              style: { textAlignVertical: "top" },
             })}
             <View className="flex-row gap-3">
               <View className="flex-1">
@@ -198,13 +215,13 @@ export default function SellerSignup() {
 
         {step.key === "location" ? (
           <>
-            <Button variant="outline" loading={isDetecting} onPress={detect}>
+            <Button variant="mint" size="lg" loading={isDetecting} onPress={detect}>
               Use my current location
             </Button>
             {coordinates ? (
-              <Text variant="caption" tone="success">
-                Pinned{detectedAddress ? `: ${detectedAddress}` : ""}
-              </Text>
+              <Badge tone="mint" icon={CheckCircle2}>
+                {detectedAddress ? `Pinned: ${detectedAddress}` : "Location pinned"}
+              </Badge>
             ) : null}
             {field("restaurantAddress", "Street address")}
             {field("restaurantCity", "City")}
@@ -240,7 +257,7 @@ export default function SellerSignup() {
         ) : null}
       </ScrollView>
 
-      <View className="flex-row gap-2 border-t border-border bg-card p-4">
+      <DockedBar className="flex-row items-center gap-2.5">
         {index > 0 ? (
           <Button variant="outline" size="lg" onPress={() => setIndex((current) => current - 1)}>
             Back
@@ -274,7 +291,7 @@ export default function SellerSignup() {
             Continue
           </Button>
         )}
-      </View>
+      </DockedBar>
     </Screen>
   );
 }

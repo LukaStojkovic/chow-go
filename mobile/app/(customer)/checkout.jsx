@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
+import { ArrowRight, Lock } from "lucide-react-native";
 import { DELIVERY_TYPES, MAX_ORDER_NOTES, PAYMENT_METHODS } from "@chowgo/shared/constants";
 import { PRICING, buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import { formatPrice } from "@chowgo/shared/format";
 import { errorMessage } from "@/api/client";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Chip } from "@/components/ui/Chip";
+import { DockedBar } from "@/components/ui/FloatingBar";
 import { Input } from "@/components/ui/Input";
-import { Screen } from "@/components/ui/Screen";
+import { Screen, ScreenHeader } from "@/components/ui/Screen";
+import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { OptionRow } from "@/features/checkout/OptionRow";
 import { Section } from "@/features/checkout/Section";
@@ -15,17 +22,26 @@ import { useAddresses } from "@/hooks/Address/useAddresses";
 import { useCreateOrder } from "@/hooks/Orders/useOrders";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "@/store/useToastStore";
+import { useTokens } from "@/theme/useTokens";
 
 export default function Checkout() {
-  const { items, totalPrice, clearLocalCart } = useCartStore();
+  const { items, totalPrice, clearLocalCart, restaurant, fetchCart } = useCartStore();
   const addresses = useAddresses();
   const createOrder = useCreateOrder();
+  const { color } = useTokens();
 
   const [addressId, setAddressId] = useState(null);
   const [deliveryType, setDeliveryType] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [tip, setTip] = useState(0);
   const [notes, setNotes] = useState("");
+
+  // The basket in memory can be a mutation response older than the server's
+  // view - notably one that carried the restaurant as a bare id. Re-reading it
+  // here is cheap and makes the screen self-healing.
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   // Default to the address the customer already marked as default, so the
   // common case needs no interaction at all.
@@ -43,9 +59,18 @@ export default function Checkout() {
       return;
     }
 
+    const restaurantId = restaurant?._id ?? useCartStore.getState().restaurant?._id;
+    if (!restaurantId) {
+      toast.error("We lost track of the restaurant", {
+        description: "Pull up your basket again and retry.",
+      });
+      fetchCart();
+      return;
+    }
+
     try {
       const order = await createOrder.mutateAsync({
-        restaurantId: useCartStore.getState().restaurant?._id,
+        restaurantId,
         deliveryAddressId: addressId,
         paymentMethod,
         deliveryType,
@@ -62,21 +87,39 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <Screen className="items-center justify-center p-8">
-        <Text variant="body" tone="muted">
-          Your basket is empty.
-        </Text>
+      <Screen>
+        <ScreenHeader title="Checkout" />
+        <EmptyState
+          title="Your basket is empty"
+          description="There is nothing to check out yet."
+          actionLabel="Browse restaurants"
+          onAction={() => router.replace("/(customer)/(tabs)")}
+        />
       </Screen>
     );
   }
 
+  const ROWS = [
+    ["Subtotal", breakdown.subtotal],
+    ["Delivery fee", breakdown.deliveryFee],
+    ["Service fee", breakdown.serviceFee],
+    ...(breakdown.priorityFee ? [["Priority delivery", breakdown.priorityFee]] : []),
+    ...(tip ? [["Courier tip", tip]] : []),
+  ];
+
   return (
-    <Screen edges={["bottom"]}>
-      <ScrollView contentContainerClassName="gap-6 p-5 pb-6" keyboardShouldPersistTaps="handled">
+    <Screen edges={["top", "bottom"]}>
+      <ScreenHeader title="Checkout" subtitle={restaurant?.name} />
+
+      <ScrollView
+        contentContainerClassName="gap-3 px-5 pb-6"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Section
           title="Deliver to"
           action={
-            <Button variant="ghost" size="sm" onPress={() => router.push("/(customer)/address")}>
+            <Button variant="mint" size="sm" onPress={() => router.push("/(customer)/address")}>
               Manage
             </Button>
           }
@@ -98,13 +141,13 @@ export default function Checkout() {
               ))}
             </View>
           ) : (
-            <Button variant="outline" onPress={() => router.push("/(customer)/address")}>
+            <Button variant="mint" size="lg" onPress={() => router.push("/(customer)/address/new")}>
               Add a delivery address
             </Button>
           )}
         </Section>
 
-        <Section title="Delivery">
+        <Section title="Delivery speed">
           <View className="gap-2">
             {DELIVERY_TYPES.map((option) => (
               <OptionRow
@@ -115,9 +158,9 @@ export default function Checkout() {
                 onPress={() => setDeliveryType(option.value)}
                 trailing={
                   option.value === "priority" ? (
-                    <Text variant="body-sm" tone="muted">
-                      +{formatPrice(PRICING.priorityFee)}
-                    </Text>
+                    <Badge tone="citrus" size="sm">
+                      {`+${formatPrice(PRICING.priorityFee)}`}
+                    </Badge>
                   ) : null
                 }
               />
@@ -139,18 +182,16 @@ export default function Checkout() {
           </View>
         </Section>
 
-        <Section title="Tip your courier">
+        <Section title="Tip your courier" subtitle="100% goes to the person who brings it">
           <View className="flex-row gap-2">
             {PRICING.tipPresets.map((preset) => (
-              <Button
+              <Chip
                 key={preset}
-                size="sm"
-                variant={tip === preset ? "primary" : "outline"}
-                className="flex-1"
+                label={preset === 0 ? "None" : formatPrice(preset)}
+                active={tip === preset}
                 onPress={() => setTip(preset)}
-              >
-                {preset === 0 ? "None" : formatPrice(preset)}
-              </Button>
+                className="flex-1 justify-center"
+              />
             ))}
           </View>
         </Section>
@@ -162,41 +203,56 @@ export default function Checkout() {
             maxLength={MAX_ORDER_NOTES}
             multiline
             placeholder="Allergies, buzzer code, anything else"
-            className="h-24 py-3"
-            style={{ textAlignVertical: "top" }}
           />
         </Section>
 
-        <View className="gap-1.5 rounded-md border border-border bg-card p-4">
-          {[
-            ["Subtotal", breakdown.subtotal],
-            ["Delivery", breakdown.deliveryFee],
-            ["Service", breakdown.serviceFee],
-            ...(breakdown.priorityFee ? [["Priority", breakdown.priorityFee]] : []),
-            ...(tip ? [["Tip", tip]] : []),
-          ].map(([label, value]) => (
-            <View key={label} className="flex-row justify-between">
-              <Text variant="body-sm" tone="muted">
+        <Card>
+          <Text variant="h3" className="mb-2">
+            Price breakdown
+          </Text>
+          {ROWS.map(([label, value]) => (
+            <View key={label} className="flex-row items-center justify-between py-1">
+              <Text variant="body" tone="muted" numberOfLines={1} className="flex-1">
                 {label}
               </Text>
-              <Text variant="body-sm" tone="muted">
+              <Text variant="price" tone="muted">
                 {formatPrice(value)}
               </Text>
             </View>
           ))}
-          <View className="h-px bg-border" />
-          <View className="flex-row justify-between">
-            <Text variant="label">Total</Text>
-            <Text variant="price">{formatPrice(breakdown.total)}</Text>
+          <Divider className="my-2" />
+          <View className="flex-row items-end justify-between">
+            <View>
+              <Text variant="h3">Total</Text>
+              <Text variant="caption" tone="muted">
+                Includes all fees
+              </Text>
+            </View>
+            <Text variant="price-lg">{formatPrice(breakdown.total)}</Text>
           </View>
-        </View>
+        </Card>
       </ScrollView>
 
-      <View className="border-t border-border bg-card p-4">
-        <Button size="lg" loading={createOrder.isPending} onPress={placeOrder}>
-          {`Place order · ${formatPrice(breakdown.total)}`}
+      <DockedBar>
+        <Button size="lg" fullWidth loading={createOrder.isPending} onPress={placeOrder}>
+          <View className="w-full flex-row items-center justify-center gap-2">
+            <Lock size={17} color={color["primary-foreground"]} />
+            <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+              Place order
+            </Text>
+            <Text
+              variant="body-lg"
+              className="font-jakarta-bold text-primary-foreground opacity-70"
+            >
+              ·
+            </Text>
+            <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+              {formatPrice(breakdown.total)}
+            </Text>
+            <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
+          </View>
         </Button>
-      </View>
+      </DockedBar>
     </Screen>
   );
 }

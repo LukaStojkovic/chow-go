@@ -2,6 +2,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
 import { errorMessage } from "@/api/client";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AuthScreen } from "@/features/auth/AuthScreen";
@@ -53,7 +54,7 @@ export default function ResetPassword() {
         />
       ))}
 
-      <Button size="lg" loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
+      <Button size="lg" fullWidth loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
         Update password
       </Button>
     </AuthScreen>

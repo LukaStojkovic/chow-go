@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { Platform, Pressable, Switch, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Moon } from "lucide-react-native";
 import { WEEK_DAYS, formatDayHours, getTodayKey } from "@chowgo/shared/schedule";
+import { Badge } from "@/components/ui/Badge";
+import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
-import { useTokens } from "@/theme/useTokens";
+import { Toggle } from "@/components/ui/Toggle";
 
 const toDate = (value) => {
   const [hours, minutes] = String(value ?? "09:00")
@@ -21,55 +24,78 @@ const toTime = (date) =>
  * Per-day hours. Two conventions the backend enforces and this surfaces:
  * an opening time equal to the closing time means open around the clock, and a
  * closing time earlier than the opening one is an overnight window.
+ *
+ * A closed day collapses to a single row. Seven days of time pickers is a wall
+ * of controls, and most of them are for hours that never change.
  */
 export function ScheduleEditor({ schedule, onChangeDay }) {
-  const { color } = useTokens();
   const [editing, setEditing] = useState(null);
   const today = getTodayKey();
 
   const entryFor = (key) => schedule?.[key] ?? { isOpen: false };
 
   return (
-    <View className="gap-1">
-      {WEEK_DAYS.map(({ key, label }) => {
+    <View className="gap-0">
+      {WEEK_DAYS.map(({ key, label }, index) => {
         const entry = entryFor(key);
+        const overnight = entry.isOpen && entry.closingTime < entry.openingTime;
 
         return (
-          <View key={key} className="gap-1.5 py-2">
-            <View className="flex-row items-center justify-between">
-              <Text variant="label" tone={key === today ? "primary" : "foreground"}>
-                {label}
-              </Text>
-              <Switch
-                value={Boolean(entry.isOpen)}
-                onValueChange={(isOpen) => onChangeDay(key, { ...entry, isOpen })}
-                trackColor={{ true: color.primary, false: color.border }}
-              />
-            </View>
+          <View key={key}>
+            {index > 0 ? <Divider /> : null}
 
-            {entry.isOpen ? (
+            <View className="gap-2.5 py-3">
               <View className="flex-row items-center gap-2">
-                {["openingTime", "closingTime"].map((field) => (
-                  <Pressable
-                    key={field}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${label} ${field === "openingTime" ? "opens" : "closes"}`}
-                    onPress={() => setEditing({ day: key, field })}
-                    className="flex-1 rounded-sm border border-border bg-background px-3 py-2 active:opacity-60"
-                  >
-                    <Text variant="caption" tone="muted">
-                      {field === "openingTime" ? "Opens" : "Closes"}
-                    </Text>
-                    <Text variant="body">{entry[field] ?? "09:00"}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
+                <Text
+                  variant="h3"
+                  tone={key === today ? "primary" : "foreground"}
+                  numberOfLines={1}
+                >
+                  {label}
+                </Text>
+                {key === today ? (
+                  <Badge tone="mint" size="sm">
+                    Today
+                  </Badge>
+                ) : null}
+                {overnight ? (
+                  <Badge tone="info" size="sm" icon={Moon}>
+                    Overnight
+                  </Badge>
+                ) : null}
 
-            <Text variant="caption" tone="muted">
-              {formatDayHours(entry)}
-              {entry.isOpen && entry.closingTime < entry.openingTime ? " · overnight" : ""}
-            </Text>
+                <View className="flex-1 items-end">
+                  <Toggle
+                    value={entry.isOpen}
+                    onValueChange={(isOpen) => onChangeDay(key, { ...entry, isOpen })}
+                    accessibilityLabel={`Open on ${label}`}
+                  />
+                </View>
+              </View>
+
+              {entry.isOpen ? (
+                <View className="flex-row items-center gap-2">
+                  {["openingTime", "closingTime"].map((field) => (
+                    <Pressable
+                      key={field}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${label} ${field === "openingTime" ? "opens" : "closes"}`}
+                      onPress={() => setEditing({ day: key, field })}
+                      className="flex-1 gap-0.5 rounded-md bg-muted px-3.5 py-2.5 active:opacity-70"
+                    >
+                      <Text variant="caption" tone="muted">
+                        {field === "openingTime" ? "Opens" : "Closes"}
+                      </Text>
+                      <Text variant="price">{entry[field] ?? "09:00"}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : (
+                <Text variant="body-sm" tone="muted">
+                  {formatDayHours(entry)}
+                </Text>
+              )}
+            </View>
           </View>
         );
       })}
@@ -96,7 +122,7 @@ export function ScheduleEditor({ schedule, onChangeDay }) {
         <Pressable
           accessibilityRole="button"
           onPress={() => setEditing(null)}
-          className="items-center py-2"
+          className="items-center rounded-full bg-primary-subtle py-3 active:opacity-70"
         >
           <Text variant="label" tone="primary">
             Done

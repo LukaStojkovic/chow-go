@@ -9,7 +9,7 @@
  * survive a failed save.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Pencil } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -22,6 +22,14 @@ import { Avatar } from "@/components/common/SmartImage";
 
 /** Loose on purpose: international formats vary and a strict rule locks people out. */
 const PHONE_PATTERN = /^[+()\d\s-]{6,20}$/;
+
+/**
+ * Cloudinary's allowed_formats rejects anything else with a 400 that reaches
+ * the browser as a generic failure, so an unsupported pick is caught here
+ * where it can be explained. HEIC is the common one, straight off an iPhone.
+ */
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export function PersonalDetailsCard() {
   const { authUser, apiUpdateProfile, isUpdatingProfile } = useAuthStore();
@@ -38,8 +46,37 @@ export function PersonalDetailsCard() {
 
   const [errors, setErrors] = useState({});
 
+  // The photo rides along with the form rather than uploading on pick, so
+  // Cancel discards it like any other unsaved edit.
+  const [photo, setPhoto] = useState(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!photo) return;
+    return () => URL.revokeObjectURL(photo.preview);
+  }, [photo]);
+
   const startEditing = () =>
     setEditing({ name: authUser?.name ?? "", phone: authUser?.phoneNumber ?? "" });
+
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0];
+    // Reset the input so re-picking the same file still fires a change event.
+    event.target.value = "";
+    if (!file) return;
+
+    if (!IMAGE_TYPES.includes(file.type)) {
+      setErrors((current) => ({ ...current, photo: "Use a JPEG, PNG or WebP image." }));
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setErrors((current) => ({ ...current, photo: "That image is over 5 MB." }));
+      return;
+    }
+
+    setErrors((current) => ({ ...current, photo: undefined }));
+    setPhoto({ file, preview: URL.createObjectURL(file) });
+  };
 
   const validate = () => {
     const next = {};
@@ -47,7 +84,7 @@ export function PersonalDetailsCard() {
     if (phone.trim() && !PHONE_PATTERN.test(phone.trim())) {
       next.phone = "Use digits, spaces, and + ( ) - only.";
     }
-    setErrors(next);
+    setErrors((current) => ({ ...next, photo: current.photo }));
     return Object.keys(next).length === 0;
   };
 
@@ -55,13 +92,27 @@ export function PersonalDetailsCard() {
     event.preventDefault();
     if (!validate()) return;
 
+    // `phone` is the key the backend reads; `phoneNumber` is what it stores.
+    const fields = { name: name.trim(), phone: phone.trim() };
+
+    let payload = fields;
+    if (photo) {
+      payload = new FormData();
+      for (const [key, value] of Object.entries(fields)) payload.append(key, value);
+      payload.append("profilePicture", photo.file);
+    }
+
     // Values stay in local state, so a failed request leaves the form as typed.
-    await apiUpdateProfile({ name: name.trim(), phoneNumber: phone.trim() });
+    const response = await apiUpdateProfile(payload);
+    if (!response) return;
+
+    setPhoto(null);
     setEditing(null);
   };
 
   const cancel = () => {
     setErrors({});
+    setPhoto(null);
     setEditing(null);
   };
 
@@ -79,19 +130,44 @@ export function PersonalDetailsCard() {
 
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Avatar size="lg" src={authUser?.profilePicture} name={authUser?.name || "You"} />
+          <Avatar
+            size="lg"
+            src={photo?.preview || authUser?.profilePicture}
+            name={authUser?.name || "You"}
+          />
           {isEditing && (
-            <span
-              className="bg-muted text-muted-foreground border-card absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border-2"
-              title="Photo changes are not available yet"
-            >
-              <Camera className="size-3" aria-hidden="true" />
-            </span>
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-primary text-primary-foreground border-card hover:bg-primary/90 focus-visible:ring-ring absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border-2 focus-visible:ring-2 focus-visible:outline-none"
+                aria-label="Change profile photo"
+              >
+                <Camera className="size-3" aria-hidden="true" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoChange}
+                className="hidden"
+              />
+            </>
           )}
         </div>
         <div className="min-w-0">
           <p className="text-label truncate">{authUser?.name || "Your account"}</p>
           <p className="text-body-sm text-muted-foreground truncate">{authUser?.email}</p>
+          {isEditing &&
+            (errors.photo ? (
+              <p className="text-body-sm text-destructive">{errors.photo}</p>
+            ) : (
+              photo && (
+                <p className="text-caption text-muted-foreground">
+                  New photo - saves with your changes.
+                </p>
+              )
+            ))}
         </div>
       </div>
 

@@ -1,57 +1,21 @@
-import { Pressable, View } from "react-native";
-import { Image } from "expo-image";
-import { formatPrice } from "@chowgo/shared/format";
-import { Text } from "@/components/ui/Text";
+import { DishRow } from "@/components/discovery/DishCard";
 
-export function MenuItemRow({ dish, onPress }) {
-  const unavailable = !dish.isAvailable;
-
+/**
+ * A dish inside a restaurant's own menu.
+ *
+ * The same row the discovery feed uses, so a dish looks identical wherever you
+ * meet it. The only difference here is the promo label: on a restaurant page
+ * the deal is worth calling out as a tag, because everything around it is from
+ * the same kitchen and the marked-down one should stand out.
+ */
+export function MenuItemRow({ dish, onPress, onAdd }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: unavailable }}
-      accessibilityLabel={`${dish.name}, ${formatPrice(dish.price)}`}
-      disabled={unavailable}
+    <DishRow
+      dish={dish}
       onPress={onPress}
-      className="flex-row gap-3 px-5 py-3 active:bg-accent"
-    >
-      <View className="flex-1 gap-1">
-        <Text variant="label" numberOfLines={1} tone={unavailable ? "muted" : "foreground"}>
-          {dish.name}
-        </Text>
-        {dish.description ? (
-          <Text variant="body-sm" tone="muted" numberOfLines={2}>
-            {dish.description}
-          </Text>
-        ) : null}
-        <View className="flex-row items-baseline gap-1.5 pt-0.5">
-          <Text variant="price" tone={unavailable ? "muted" : "foreground"}>
-            {formatPrice(dish.price)}
-          </Text>
-          {dish.basePrice ? (
-            <Text variant="caption" tone="muted" className="line-through">
-              {formatPrice(dish.basePrice)}
-            </Text>
-          ) : null}
-          {unavailable ? (
-            <Text variant="caption" tone="muted">
-              · Unavailable
-            </Text>
-          ) : null}
-        </View>
-      </View>
-
-      {dish.image ? (
-        <View className="h-20 w-20 overflow-hidden rounded-sm bg-muted">
-          <Image
-            source={dish.image}
-            style={{ flex: 1, opacity: unavailable ? 0.5 : 1 }}
-            contentFit="cover"
-            transition={500}
-            cachePolicy="memory-disk"
-          />
-        </View>
-      ) : null}
-    </Pressable>
+      onAdd={onAdd}
+      tag={dish.promoLabel ?? (dish.discountPercent > 0 ? `${dish.discountPercent}% off` : null)}
+      className="mx-5"
+    />
   );
 }

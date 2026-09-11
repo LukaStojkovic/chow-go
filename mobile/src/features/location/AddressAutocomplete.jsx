@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react-native";
+import { cn } from "@/lib/cn";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { getLocationPredictions } from "@/services/apiLocation";
@@ -15,7 +16,13 @@ import { useTokens } from "@/theme/useTokens";
  * before opening it, needs search. Predictions carry lat/lon, so choosing one
  * sets the coordinates the geo-scoped endpoints require.
  */
-export function AddressAutocomplete({ label = "Search for an address", onSelect, hint }) {
+export function AddressAutocomplete({
+  label = "Search for an address",
+  placeholder = "Street and number",
+  onSelect,
+  hint,
+  className,
+}) {
   const [text, setText] = useState("");
   const [term, setTerm] = useState("");
   const [dismissed, setDismissed] = useState(false);
@@ -36,7 +43,7 @@ export function AddressAutocomplete({ label = "Search for an address", onSelect,
   const visible = !dismissed && term.length >= 3 && data.length > 0;
 
   return (
-    <View className="gap-2">
+    <View className={cn("gap-2", className)}>
       <Input
         label={label}
         value={text}
@@ -44,13 +51,13 @@ export function AddressAutocomplete({ label = "Search for an address", onSelect,
           setText(next);
           setDismissed(false);
         }}
-        placeholder="Street and number"
+        placeholder={placeholder}
         autoCorrect={false}
         hint={isFetching && term.length >= 3 ? "Searching…" : hint}
       />
 
       {visible ? (
-        <View className="overflow-hidden rounded-sm border border-border bg-card">
+        <View className="overflow-hidden rounded-md border border-border bg-card">
           {data.slice(0, 5).map((prediction, index) => (
             <Pressable
               key={`${prediction.display_name}-${index}`}
@@ -64,10 +71,12 @@ export function AddressAutocomplete({ label = "Search for an address", onSelect,
                   lon: parseFloat(prediction.lon),
                 });
               }}
-              className="flex-row items-start gap-2.5 border-b border-border p-3 last:border-b-0 active:bg-accent"
+              className="flex-row items-center gap-3 border-b border-border p-3.5 last:border-b-0 active:bg-accent"
             >
-              <MapPin size={15} color={color["muted-foreground"]} style={{ marginTop: 2 }} />
-              <Text variant="body-sm" className="flex-1" numberOfLines={2}>
+              <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
+                <MapPin size={15} color={color.primary} />
+              </View>
+              <Text variant="body" className="flex-1" numberOfLines={2}>
                 {prediction.display_name}
               </Text>
             </Pressable>

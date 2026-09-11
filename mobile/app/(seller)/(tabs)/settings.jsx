@@ -2,14 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Check, ImagePlus, Loader, LogOut } from "lucide-react-native";
+import { Check, ImagePlus, Loader, LogOut, Store } from "lucide-react-native";
 import { normalizeSchedule } from "@chowgo/shared/schedule";
 import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
 import { Skeleton } from "@/components/feedback/Skeleton";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
+import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { ScheduleEditor } from "@/features/seller/ScheduleEditor";
 import { useOwnRestaurant, useUpdateRestaurant } from "@/hooks/Restaurants/useOwnRestaurant";
@@ -87,71 +91,96 @@ export default function SellerSettings() {
   if (isLoading || !draft) {
     return (
       <Screen edges={["top"]} className="gap-4 p-5">
-        <Skeleton className="h-8 w-1/2" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-10 w-1/2" />
+        <Skeleton className="h-28 w-full rounded-lg" />
+        <Skeleton className="h-72 w-full rounded-lg" />
       </Screen>
     );
   }
 
   return (
     <Screen edges={["top"]}>
-      <ScrollView contentContainerClassName="gap-6 p-5 pb-28" keyboardShouldPersistTaps="handled">
-        <View className="flex-row items-center justify-between">
-          <Text variant="h1">Settings</Text>
-          <View className="h-5 flex-row items-center gap-1.5">
-            {update.isPending ? (
-              <>
-                <Loader size={13} color={color["muted-foreground"]} />
-                <Text variant="caption" tone="muted">
-                  Saving
-                </Text>
-              </>
-            ) : saved ? (
-              <>
-                <Check size={13} color={color.success} />
-                <Text variant="caption" tone="success">
-                  Saved
-                </Text>
-              </>
-            ) : null}
-          </View>
+      <ScrollView
+        contentContainerClassName="gap-3 px-5 pb-32 pt-2"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* There is no save button - the form autosaves - so this badge is the
+              only thing telling the seller their edit landed. */}
+        <View className="flex-row items-end justify-between gap-3 pb-1">
+          <SectionHeader
+            title="Settings"
+            size="lg"
+            subtitle="Your storefront and hours"
+            className="flex-1"
+          />
+
+          {update.isPending ? (
+            <Badge tone="neutral" icon={Loader} size="sm">
+              Saving
+            </Badge>
+          ) : saved ? (
+            <Badge tone="mint" icon={Check} size="sm">
+              Saved
+            </Badge>
+          ) : null}
         </View>
 
-        <View className="flex-row items-center gap-3">
+        <Card className="flex-row items-center gap-4">
           <View className="h-16 w-16 overflow-hidden rounded-md bg-muted">
             {data?.profilePicture ? (
               <Image source={data.profilePicture} style={{ flex: 1 }} contentFit="cover" />
-            ) : null}
+            ) : (
+              <View className="flex-1 items-center justify-center">
+                <Store size={22} color={color["muted-foreground"]} />
+              </View>
+            )}
           </View>
-          <Button variant="outline" size="sm" onPress={changeLogo}>
-            <View className="flex-row items-center gap-2">
-              <ImagePlus size={15} color={color.foreground} />
-              <Text variant="label">Change logo</Text>
+          <View className="flex-1 gap-1">
+            <Text variant="h3" numberOfLines={1}>
+              {draft.name || "Your restaurant"}
+            </Text>
+            <Text variant="caption" tone="muted">
+              Shown on every card and order
+            </Text>
+          </View>
+          <Button variant="mint" size="sm" onPress={changeLogo}>
+            <View className="flex-row items-center gap-1.5">
+              <ImagePlus size={15} color={color.primary} />
+              <Text variant="label-sm" tone="primary">
+                Logo
+              </Text>
             </View>
           </Button>
-        </View>
+        </Card>
 
-        <View className="gap-4">
+        <Card className="gap-4">
+          <View className="flex-row items-center gap-3">
+            <Text variant="h3" className="flex-1">
+              Storefront
+            </Text>
+          </View>
+
           <Input
             label="Restaurant name"
             value={draft.name}
             onChangeText={(name) => edit({ name })}
           />
+
           <Input
             label="Description"
             value={draft.description}
             onChangeText={(description) => edit({ description })}
             multiline
-            className="h-20 py-3"
-            style={{ textAlignVertical: "top" }}
           />
+
           <Input
             label="Phone"
             value={draft.phone}
             onChangeText={(phone) => edit({ phone })}
             keyboardType="phone-pad"
           />
+
           <Input
             label="Email"
             value={draft.email}
@@ -159,6 +188,7 @@ export default function SellerSettings() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+
           <Input
             label="Delivery estimate"
             value={draft.estimatedDeliveryTime}
@@ -166,29 +196,38 @@ export default function SellerSettings() {
             placeholder="30-45 min"
             hint="Shown on your restaurant card."
           />
-        </View>
+        </Card>
 
-        <View className="gap-2">
-          <Text variant="h3">Opening hours</Text>
-          <Text variant="caption" tone="muted">
-            Set the same opening and closing time to stay open around the clock.
-          </Text>
+        <Card className="gap-3">
+          <View className="flex-row items-center gap-3">
+            <View className="flex-1">
+              <Text variant="h3">Opening hours</Text>
+              <Text variant="caption" tone="muted">
+                Same opening and closing time means open around the clock
+              </Text>
+            </View>
+          </View>
           <ScheduleEditor
             schedule={draft.schedule}
             onChangeDay={(day, entry) => edit({ schedule: { ...draft.schedule, [day]: entry } })}
           />
-        </View>
+        </Card>
 
         <Button
           variant="outline"
+          size="lg"
+          fullWidth
+          className="mt-2"
           onPress={async () => {
             await logout();
             router.replace("/(auth)/welcome");
           }}
         >
           <View className="flex-row items-center gap-2">
-            <LogOut size={16} color={color.foreground} />
-            <Text variant="label">Sign out</Text>
+            <LogOut size={17} color={color.destructive} />
+            <Text variant="label" tone="destructive">
+              Sign out
+            </Text>
           </View>
         </Button>
       </ScrollView>

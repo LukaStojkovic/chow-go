@@ -104,3 +104,39 @@ export const MAX_SAVED_ADDRESSES = 5;
 
 /** Longest a delivery instruction may be, matching the checkout textarea. */
 export const MAX_ORDER_NOTES = 500;
+
+/**
+ * Address type enum on the Addresses model, with the extra fields each type
+ * asks for. `fields` is what a client renders under the type picker - a house
+ * has a gate number and no apartment, a flat has a floor and no gate.
+ *
+ * Icons are string keys, like CATEGORIES: each client owns its own map.
+ *
+ * @type {{ value: string, label: string, icon: string, fields: string[] }[]}
+ */
+export const ADDRESS_TYPES = [
+  {
+    value: "apartment",
+    label: "Apartment",
+    icon: "apartment",
+    fields: ["buildingName", "floor", "apartment", "entrance"],
+  },
+  { value: "house", label: "House", icon: "house", fields: ["entrance", "doorCode"] },
+  { value: "office", label: "Office", icon: "office", fields: ["buildingName"] },
+  { value: "hotel", label: "Hotel", icon: "hotel", fields: ["buildingName"] },
+  { value: "other", label: "Other", icon: "other", fields: ["buildingName"] },
+];
+
+/**
+ * What an address is saved as. `Addresses.label` is a free string, so `value`
+ * is stored verbatim and shown verbatim - clients match it case-insensitively
+ * because rows written before this list existed carry lowercase labels.
+ *
+ * @type {{ value: string, icon: string }[]}
+ */
+export const ADDRESS_LABELS = [
+  { value: "Home", icon: "home" },
+  { value: "Work", icon: "work" },
+  { value: "Partner", icon: "partner" },
+  { value: "Other", icon: "other" },
+];

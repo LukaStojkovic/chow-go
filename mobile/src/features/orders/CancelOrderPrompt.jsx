@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Modal, View } from "react-native";
+import { View } from "react-native";
+import { Ban } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { Sheet, SheetActions } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
-import { Text } from "@/components/ui/Text";
 
 const REASONS = ["Changed my mind", "Ordered by mistake", "Taking too long", "Something else"];
 
@@ -15,54 +17,51 @@ export function CancelOrderPrompt({ visible, isPending, onConfirm, onCancel }) {
   const reason = choice === "Something else" ? other.trim() : choice;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <View className="flex-1 justify-end bg-black/50">
-        <View className="gap-4 rounded-t-lg bg-popover p-5 pb-8">
-          <View className="gap-1">
-            <Text variant="h2">Cancel this order?</Text>
-            <Text variant="body-sm" tone="muted">
-              Let the restaurant know why.
-            </Text>
-          </View>
-
-          <View className="gap-2">
-            {REASONS.map((option) => (
-              <Button
-                key={option}
-                variant={choice === option ? "primary" : "outline"}
-                size="sm"
-                onPress={() => setChoice(option)}
-              >
-                {option}
-              </Button>
-            ))}
-          </View>
-
-          {choice === "Something else" ? (
-            <Input
-              value={other}
-              onChangeText={setOther}
-              placeholder="Tell them why"
-              maxLength={200}
-              autoFocus
-            />
-          ) : null}
-
-          <View className="gap-2">
-            <Button
-              variant="destructive"
-              loading={isPending}
-              disabled={!reason}
-              onPress={() => onConfirm(reason)}
-            >
-              Cancel order
-            </Button>
-            <Button variant="ghost" onPress={onCancel}>
-              Keep it
-            </Button>
-          </View>
-        </View>
+    <Sheet
+      visible={visible}
+      onClose={onCancel}
+      icon={Ban}
+      tone="danger"
+      title="Cancel this order?"
+      description="Let the restaurant know why - it reaches their kitchen screen."
+    >
+      <View className="flex-row flex-wrap justify-center gap-2">
+        {REASONS.map((option) => (
+          <Chip
+            key={option}
+            label={option}
+            active={choice === option}
+            showCheck
+            onPress={() => setChoice(option)}
+          />
+        ))}
       </View>
-    </Modal>
+
+      {choice === "Something else" ? (
+        <Input
+          value={other}
+          onChangeText={setOther}
+          placeholder="Tell them why"
+          maxLength={200}
+          autoFocus
+        />
+      ) : null}
+
+      <SheetActions>
+        <Button
+          variant="destructive"
+          size="lg"
+          fullWidth
+          loading={isPending}
+          disabled={!reason}
+          onPress={() => onConfirm(reason)}
+        >
+          Cancel order
+        </Button>
+        <Button variant="ghost" size="lg" fullWidth onPress={onCancel}>
+          Keep it
+        </Button>
+      </SheetActions>
+    </Sheet>
   );
 }

@@ -1,5 +1,6 @@
 import { View } from "react-native";
-import { MapPin } from "lucide-react-native";
+import { Crosshair, MapPin } from "lucide-react-native";
+import { IconTile } from "@/components/ui/IconTile";
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
@@ -16,18 +17,24 @@ export function LocationGate() {
   const { color } = useTokens();
 
   return (
-    <Screen className="items-center justify-center gap-5 p-8">
-      <MapPin size={40} strokeWidth={1.5} color={color["muted-foreground"]} />
+    <Screen className="items-center justify-center gap-6 p-6">
+      <IconTile icon={MapPin} tone="mint" size={80} round />
       <View className="items-center gap-2">
-        <Text variant="h2" className="text-center">
+        <Text variant="h1" className="text-center">
           Where are we delivering?
         </Text>
-        <Text variant="body" tone="muted" className="text-center">
-          We use your location to show restaurants that deliver to you.
+        <Text variant="body-lg" tone="muted" className="text-center">
+          Every kitchen on Chow delivers to a radius, so we need a point on the map before we can
+          show you anything.
         </Text>
       </View>
-      <Button size="lg" loading={isDetecting} onPress={detect} className="self-stretch">
-        Use my current location
+      <Button size="lg" fullWidth loading={isDetecting} onPress={detect}>
+        <View className="flex-row items-center gap-2">
+          <Crosshair size={18} color={color["primary-foreground"]} />
+          <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+            Use my current location
+          </Text>
+        </View>
       </Button>
 
       <View className="w-full flex-row items-center gap-3">
