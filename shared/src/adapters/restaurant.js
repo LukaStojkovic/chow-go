@@ -7,9 +7,10 @@
  * provide is resolved here, once, and labelled.
  */
 
-import { CUISINE_LABELS } from "../constants.js";
+import { cuisineLabel } from "../constants.js";
+import { t } from "../i18n/index.js";
 import { PRICING } from "./pricing.js";
-import { WEEK_DAYS, getTodayKey, normalizeSchedule } from "../schedule.js";
+import { WEEK_DAYS, dayLabel, getTodayKey, normalizeSchedule } from "../schedule.js";
 
 /** @typedef {import("./types").RestaurantView} RestaurantView */
 /** @typedef {import("./types").AddressView} AddressView */
@@ -39,9 +40,9 @@ function toSchedule(raw) {
   const normalised = normalizeSchedule(raw);
   const today = getTodayKey();
 
-  return WEEK_DAYS.map(({ key, label }) => ({
+  return WEEK_DAYS.map(({ key }) => ({
     day: key,
-    label,
+    label: dayLabel(key),
     isOpen: normalised[key].isOpen,
     opens: normalised[key].openingTime,
     closes: normalised[key].closingTime,
@@ -71,8 +72,8 @@ export function toRestaurantView(raw) {
 
   return {
     id: String(raw._id),
-    name: raw.name || "Restaurant",
-    cuisine: CUISINE_LABELS[raw.cuisineType] || raw.cuisineType || "Restaurant",
+    name: raw.name || t("common:taxonomy.cuisine.fallback"),
+    cuisine: cuisineLabel(t, raw.cuisineType),
     cuisineSlug: raw.cuisineType || "",
     description: raw.description || "",
     // `profilePicture` is the logo; `images[0]` is the cover shot. Older
@@ -123,14 +124,14 @@ export function toRestaurantViews(list) {
 export function unavailableReason(restaurant) {
   if (!restaurant) return null;
   if (restaurant.availability === "unavailable") {
-    return "This restaurant is not accepting orders at the moment.";
+    return t("restaurant:availability.notAccepting");
   }
   if (restaurant.availability === "closed") {
     const todayEntry = restaurant.schedule?.find((day) => day.isToday);
     if (todayEntry?.isOpen) {
-      return `Closed right now. Opens again at ${todayEntry.opens}.`;
+      return t("restaurant:availability.closedUntil", { time: todayEntry.opens });
     }
-    return "Closed right now. Check the opening hours for the next slot.";
+    return t("restaurant:availability.closedNoSlot");
   }
   return null;
 }

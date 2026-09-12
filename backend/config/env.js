@@ -77,4 +77,8 @@ export const env = {
   trustProxy: Number(process.env.TRUST_PROXY) || 0,
   logLevel: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
   sentryDsn: process.env.SENTRY_DSN || "",
+  // What to answer in when a request names no language and the user has no
+  // stored preference. Only ever a fallback: `attachLocale` prefers the
+  // client's `X-Locale`, then `User.locale`, then `Accept-Language`.
+  defaultLocale: process.env.DEFAULT_LOCALE || "en",
 };

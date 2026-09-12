@@ -21,18 +21,20 @@ export const PROMOTION_LIMITS = {
   maxLabelLength: 40,
 };
 
-export const PROMOTION_TYPES = [
-  {
-    value: "percentage",
-    label: "Percentage off",
-    hint: "A share of the price, e.g. 25% off",
-  },
-  {
-    value: "fixed",
-    label: "Fixed amount off",
-    hint: "A flat reduction, e.g. 2.00 off",
-  },
-];
+/** The two shapes a discount can take. Labels live in the catalog. */
+export const PROMOTION_TYPE_VALUES = ["percentage", "fixed"];
+
+/**
+ * @param {(key: string, options?: Object) => string} t
+ * @returns {{ value: string, label: string, hint: string }[]}
+ */
+export function promotionTypes(t) {
+  return PROMOTION_TYPE_VALUES.map((value) => ({
+    value,
+    label: t(`common:taxonomy.promotionType.${value}.label`),
+    hint: t(`common:taxonomy.promotionType.${value}.hint`),
+  }));
+}
 
 function round2(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;

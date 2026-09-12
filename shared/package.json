@@ -9,6 +9,9 @@
     "./dates": "./src/dates.js",
     "./format": "./src/format.js",
     "./geo": "./src/geo.js",
+    "./i18n": "./src/i18n/index.js",
+    "./i18n/config": "./src/i18n/config.js",
+    "./i18n/fieldErrors": "./src/i18n/fieldErrors.js",
     "./menuItemSchema": "./src/menuItemSchema.js",
     "./promotion": "./src/promotion.js",
     "./schedule": "./src/schedule.js",
@@ -22,6 +25,12 @@
     "./adapters/types": "./src/adapters/types.js"
   },
   "dependencies": {
+    "i18next": "^25.10.10",
     "zod": "^4.1.11"
+  },
+  "scripts": {
+    "check:locales": "node scripts/check-locales.mjs",
+    "check:imports": "node scripts/check-imports.mjs",
+    "check": "npm run check:locales && npm run check:imports"
   }
 }

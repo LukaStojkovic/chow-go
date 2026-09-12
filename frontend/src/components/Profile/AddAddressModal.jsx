@@ -13,7 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { ADDRESS_LABELS, ADDRESS_TYPES, matchAddressLabel } from "@/lib/constants";
+import {
+  matchAddressLabelValue,
+  useAddressLabels,
+  useAddressTypes,
+} from "@/lib/constants";
+import { useTranslation } from "react-i18next";
+
 import { lazyNamed } from "@/lib/lazyNamed";
 import { cn } from "@/lib/utils";
 import useReverseGeocoding from "@/hooks/Location/useReverseGeocoding";
@@ -49,7 +55,7 @@ export default function AddAddressModal({
     doorCode: initialData?.doorCode || "",
     buildingName: initialData?.buildingName || "",
     notes: initialData?.notes || "",
-    label: matchAddressLabel(initialData?.label),
+    label: matchAddressLabelValue(initialData?.label),
   });
 
   const { data: addressData, isLoading: isAddressLoading } =
@@ -71,7 +77,7 @@ export default function AddAddressModal({
           doorCode: initialData.doorCode || "",
           buildingName: initialData.buildingName || "",
           notes: initialData.notes || "",
-          label: matchAddressLabel(initialData.label),
+          label: matchAddressLabelValue(initialData.label),
         });
       } else {
         setView("map");
@@ -93,6 +99,10 @@ export default function AddAddressModal({
   const handleConfirmLocation = () => {
     if (selectedLocation) setView("details");
   };
+
+  const { t } = useTranslation(["profile", "common"]);
+  const addressTypes = useAddressTypes();
+  const addressLabels = useAddressLabels();
 
   const updateForm = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -145,7 +155,7 @@ export default function AddAddressModal({
                 disabled={!selectedLocation}
                 className="w-full h-12 bg-primary hover:bg-primary text-primary-foreground rounded-xl font-bold transition-all active:scale-95"
               >
-                Confirm location
+                {t("address.confirmLocation")}
               </Button>
             </div>
           </motion.div>
@@ -163,7 +173,7 @@ export default function AddAddressModal({
                 className="flex items-center gap-1.5 text-primary font-medium hover:opacity-80 transition-opacity"
               >
                 <ChevronLeft className="w-5 h-5" />
-                Change location
+                {t("address.changeLocation")}
               </button>
 
               <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card/50 ">
@@ -172,13 +182,13 @@ export default function AddAddressModal({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs text-muted-foreground ">
-                    Selected Location
+                    {t("address.selectedLocation")}
                   </div>
                   <p className="text-sm font-medium text-foreground line-clamp-2">
                     {isAddressLoading ? (
                       <Spinner size={16} />
                     ) : (
-                      addressData?.address || "Location selected"
+                      addressData?.address || t("address.locationSelected")
                     )}
                   </p>
                 </div>
@@ -186,17 +196,17 @@ export default function AddAddressModal({
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                  Address Type
+                  {t("address.typeLabel")}
                 </Label>
                 <Select
                   value={form.type}
                   onValueChange={(val) => updateForm("type", val)}
                 >
                   <SelectTrigger className="h-11 border-border focus:ring-ring">
-                    <SelectValue placeholder="Select type..." />
+                    <SelectValue placeholder={t("address.typePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {ADDRESS_TYPES.map((type) => (
+                    {addressTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         <div className="flex items-center gap-2">
                           <type.icon className="h-4 w-4" />
@@ -214,10 +224,10 @@ export default function AddAddressModal({
                 currentType === "other") && (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                    Building name
+                    {t("address.buildingName")}
                   </Label>
                   <Input
-                    placeholder="e.g. Green Life Residence"
+                    placeholder={t("address.buildingNamePlaceholder")}
                     value={form.buildingName}
                     onChange={(e) => updateForm("buildingName", e.target.value)}
                     className="h-11 border-border focus-visible:ring-ring"
@@ -230,10 +240,10 @@ export default function AddAddressModal({
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                        Floor
+                        {t("address.floor")}
                       </Label>
                       <Input
-                        placeholder="e.g. 4"
+                        placeholder={t("address.floorPlaceholder")}
                         value={form.floor}
                         onChange={(e) => updateForm("floor", e.target.value)}
                         className="h-11 border-border focus-visible:ring-ring"
@@ -241,10 +251,10 @@ export default function AddAddressModal({
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                        Apartment
+                        {t("address.apartment")}
                       </Label>
                       <Input
-                        placeholder="e.g. 12A"
+                        placeholder={t("address.apartmentPlaceholder")}
                         value={form.apartment}
                         onChange={(e) =>
                           updateForm("apartment", e.target.value)
@@ -256,10 +266,10 @@ export default function AddAddressModal({
 
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                      Entrance / Staircase
+                      {t("address.entrance")}
                     </Label>
                     <Input
-                      placeholder="e.g. A, B, Left"
+                      placeholder={t("address.entrancePlaceholder")}
                       value={form.entrance}
                       onChange={(e) => updateForm("entrance", e.target.value)}
                       className="h-11 border-border focus-visible:ring-ring"
@@ -272,10 +282,10 @@ export default function AddAddressModal({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                      Entrance / Staircase
+                      {t("address.entrance")}
                     </Label>
                     <Input
-                      placeholder="e.g. Main entrance"
+                      placeholder={t("address.entranceHousePlaceholder")}
                       value={form.entrance}
                       onChange={(e) => updateForm("entrance", e.target.value)}
                       className="h-11 border-border focus-visible:ring-ring"
@@ -283,10 +293,10 @@ export default function AddAddressModal({
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                      Door / Gate number
+                      {t("address.doorCode")}
                     </Label>
                     <Input
-                      placeholder="e.g. 42B"
+                      placeholder={t("address.doorCodePlaceholder")}
                       value={form.doorCode}
                       onChange={(e) => updateForm("doorCode", e.target.value)}
                       className="h-11 border-border focus-visible:ring-ring"
@@ -297,10 +307,10 @@ export default function AddAddressModal({
 
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                  Save as
+                  {t("address.saveAs")}
                 </Label>
                 <div className="flex flex-wrap gap-2">
-                  {ADDRESS_LABELS.map((opt) => (
+                  {addressLabels.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
@@ -313,7 +323,7 @@ export default function AddAddressModal({
                       )}
                     >
                       <opt.icon className="w-4 h-4" />
-                      {opt.value}
+                      {opt.label}
                     </button>
                   ))}
                 </div>
@@ -321,10 +331,10 @@ export default function AddAddressModal({
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                  Delivery notes
+                  {t("address.notes")}
                 </Label>
                 <Textarea
-                  placeholder="Gate code, landmarks, call before delivery..."
+                  placeholder={t("address.notesPlaceholder")}
                   value={form.notes}
                   onChange={(e) => updateForm("notes", e.target.value)}
                   className="min-h-[100px] border-border focus-visible:ring-ring resize-none"
@@ -341,12 +351,12 @@ export default function AddAddressModal({
                 {isLoading ? (
                   <>
                     <Spinner size={16} />
-                    Saving...
+                    {t("common:state.saving")}
                   </>
                 ) : initialData ? (
-                  "Update address"
+                  t("address.update")
                 ) : (
-                  "Save address"
+                  t("address.save")
                 )}
               </Button>
             </div>

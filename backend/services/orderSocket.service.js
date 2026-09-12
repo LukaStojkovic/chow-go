@@ -29,7 +29,11 @@ async function getPopulatedOrder(orderId) {
 async function deliverToCustomer(socketServer, customerId, event, payload, pushType) {
   const live = socketServer.emitToCustomer(customerId, event, payload);
   if (live || !pushType) return;
-  await sendPushToUser(customerId, pushPayloadFor(pushType, payload.order));
+  // A builder, not a payload: sendPushToUser knows the recipient's locale
+  // because it loads their user document anyway.
+  await sendPushToUser(customerId, (locale) =>
+    pushPayloadFor(pushType, payload.order, locale),
+  );
 }
 
 export async function emitOrderConfirmed(customerId, order, estimatedTime) {
@@ -135,7 +139,9 @@ export async function emitOrderPlaced(order) {
         .select("ownerId")
         .lean();
       if (restaurant?.ownerId) {
-        await sendPushToUser(restaurant.ownerId, pushPayloadFor("order_placed", populatedOrder));
+        await sendPushToUser(restaurant.ownerId, (locale) =>
+          pushPayloadFor("order_placed", populatedOrder, locale),
+        );
       }
     }
   } catch (error) {
@@ -169,7 +175,9 @@ export async function emitOrderCancelledByCustomer(order, reason) {
         // here instead.
         const courierDoc = await Courier.findById(courierId, { userId: 1 }).lean();
         if (courierDoc?.userId) {
-          await sendPushToUser(courierDoc.userId, pushPayloadFor("order_cancelled", populatedOrder));
+          await sendPushToUser(courierDoc.userId, (locale) =>
+            pushPayloadFor("order_cancelled", populatedOrder, locale),
+          );
         }
       }
     }
@@ -403,12 +411,15 @@ export async function emitNewOrderAvailable(order) {
     if (recipients.length === 0) return;
 
     const populatedOrder = await getPopulatedOrder(order._id);
-    const payload = pushPayloadFor("order_available", populatedOrder);
 
     // Sequential rather than Promise.all: this fans out across the whole
-    // on-duty fleet and each call is itself a batched Expo request.
+    // on-duty fleet and each call is itself a batched Expo request. The
+    // builder is shared but renders per courier, so a fleet reading two
+    // languages each gets their own.
     for (const userId of recipients) {
-      await sendPushToUser(userId, payload);
+      await sendPushToUser(userId, (locale) =>
+        pushPayloadFor("order_available", populatedOrder, locale),
+      );
     }
   } catch (error) {
     console.error("Socket emit error (order:available):", error);

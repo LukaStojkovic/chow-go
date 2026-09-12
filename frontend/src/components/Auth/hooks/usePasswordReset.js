@@ -2,24 +2,26 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { msg } from "@chowgo/shared/i18n/fieldErrors";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/apiError";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const forgotEmailSchema = z.object({
-  email: z.string().email("Invalid email"),
+  email: z.string().email(msg("validation:auth.emailInvalid")),
 });
 
 const otpSchema = z.object({
-  code: z.string().length(6, "Code must be 6 digits"),
+  code: z.string().length(6, msg("validation:auth.codeLength", { count: 6 })),
 });
 
 const resetSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z.string().min(8, msg("validation:auth.passwordMin", { count: 8 })),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
-    message: "Passwords do not match",
+    message: msg("validation:auth.passwordsMismatch"),
     path: ["confirmPassword"],
   });
 
@@ -53,7 +55,7 @@ export function usePasswordReset(onComplete) {
       setResetEmail(data.email);
       return "otp";
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to send code");
+      toast.error(apiErrorMessage(err, { fallbackKey: "auth:reset.sendFailed" }));
       return null;
     }
   };
@@ -65,7 +67,7 @@ export function usePasswordReset(onComplete) {
       toast.success(res.message);
       return "reset";
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to verify code");
+      toast.error(apiErrorMessage(err, { fallbackKey: "auth:reset.verifyFailed" }));
       return null;
     }
   };
@@ -82,7 +84,7 @@ export function usePasswordReset(onComplete) {
       onComplete?.();
       return "login";
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to reset password");
+      toast.error(apiErrorMessage(err, { fallbackKey: "auth:reset.resetFailed" }));
       return null;
     }
   };

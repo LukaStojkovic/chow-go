@@ -8,6 +8,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { MapPinned } from "lucide-react";
 
@@ -27,6 +28,7 @@ import {
 const RAIL_LIMIT = 10;
 
 export function NearbyRestaurantsSection() {
+  const { t } = useTranslation(["restaurant", "common"]);
   const { coordinates } = useDeliveryStore();
   const { restaurants, isLoading, error, refetch } = useGetNearbyRestaurants(
     coordinates?.lat,
@@ -38,9 +40,9 @@ export function NearbyRestaurantsSection() {
 
   if (error) {
     return (
-      <Section title="Restaurants near you">
+      <Section title={t("nearby.heading")}>
         <InlineError
-          message="We could not load restaurants near you."
+          message={t("nearby.loadError")}
           onRetry={() => refetch()}
         />
       </Section>
@@ -49,7 +51,7 @@ export function NearbyRestaurantsSection() {
 
   if (isLoading) {
     return (
-      <Section title="Restaurants near you">
+      <Section title={t("nearby.heading")}>
         <div
           aria-busy="true"
           className="rail-bleed scrollbar-hide flex gap-4 overflow-x-auto lg:mx-0 lg:grid lg:grid-cols-3 lg:px-0 xl:grid-cols-4"
@@ -64,12 +66,12 @@ export function NearbyRestaurantsSection() {
 
   if (visible.length === 0) {
     return (
-      <Section title="Restaurants near you">
+      <Section title={t("nearby.heading")}>
         <EmptyState
           icon={MapPinned}
           size="sm"
-          title="Nothing delivering here yet"
-          description="No restaurant covers this address right now. Try another saved address, or check back a little later."
+          title={t("nearby.empty.title")}
+          description={t("nearby.empty.description")}
         />
       </Section>
     );
@@ -77,12 +79,12 @@ export function NearbyRestaurantsSection() {
 
   return (
     <Section
-      title="Restaurants near you"
-      description={`${restaurants.length} delivering to your address`}
+      title={t("nearby.heading")}
+      description={t("nearby.count", { count: restaurants.length })}
       action={
         restaurants.length > RAIL_LIMIT ? (
           <Button variant="link" size="sm" asChild>
-            <Link to="/search">See all</Link>
+            <Link to="/search">{t("common:actions.viewAll")}</Link>
           </Button>
         ) : null
       }

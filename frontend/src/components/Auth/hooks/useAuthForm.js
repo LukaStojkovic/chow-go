@@ -2,59 +2,62 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { msg } from "@chowgo/shared/i18n/fieldErrors";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
+
 import { useAuthStore } from "@/store/useAuthStore";
 
 const LOGIN_SCHEMA = z.object({
-  email: z.string().email("Invalid email"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email(msg("validation:auth.emailInvalid")),
+  password: z.string().min(1, msg("validation:auth.passwordRequired")),
   rememberMe: z.boolean().optional().default(false),
 });
 
 const REGISTER_CUSTOMER_SCHEMA = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Min 8 characters"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
+  name: z.string().min(1, msg("validation:auth.nameRequired")),
+  email: z.string().email(msg("validation:auth.emailInvalid")),
+  password: z.string().min(8, msg("validation:auth.passwordMin", { count: 8 })),
+  phoneNumber: z.string().min(1, msg("validation:auth.phoneRequired")),
   profilePicture: z.instanceof(File).optional(),
 });
 
 const REGISTER_SELLER_SCHEMA = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Min 8 characters"),
-  profilePicture: z.instanceof(File, "Profile image is required"),
+  name: z.string().min(1, msg("validation:auth.nameRequired")),
+  email: z.string().email(msg("validation:auth.emailInvalid")),
+  password: z.string().min(8, msg("validation:auth.passwordMin", { count: 8 })),
+  profilePicture: z.instanceof(File, msg("validation:profile.imageRequired")),
 });
 
 const RESTAURANT_INFO_SCHEMA = z.object({
-  restaurantName: z.string().min(1, "Restaurant name is required"),
-  restaurantPhone: z.string().min(1, "Phone number is required"),
-  restaurantAddress: z.string().min(1, "Address is required"),
-  restaurantCity: z.string().min(1, "City is required"),
+  restaurantName: z.string().min(1, msg("validation:restaurant.nameRequired")),
+  restaurantPhone: z.string().min(1, msg("validation:auth.phoneRequired")),
+  restaurantAddress: z.string().min(1, msg("validation:restaurant.addressRequired")),
+  restaurantCity: z.string().min(1, msg("validation:restaurant.cityRequired")),
   restaurantState: z.string().optional(),
-  restaurantZipCode: z.string().min(1, "Zip code is required"),
-  cuisineType: z.string().min(1, "Cuisine type is required"),
+  restaurantZipCode: z.string().min(1, msg("validation:restaurant.zipRequired")),
+  cuisineType: z.string().min(1, msg("validation:restaurant.cuisineRequired")),
 });
 
 const RESTAURANT_LOCATION_SCHEMA = z.object({
   restaurantLat: z
     .number()
-    .refine((val) => val !== 0, "Please select a location on the map"),
+    .refine((val) => val !== 0, msg("validation:restaurant.locationRequired")),
   restaurantLng: z
     .number()
-    .refine((val) => val !== 0, "Please select a location on the map"),
-  openingTime: z.string().min(1, "Opening time is required"),
-  closingTime: z.string().min(1, "Closing time is required"),
+    .refine((val) => val !== 0, msg("validation:restaurant.locationRequired")),
+  openingTime: z.string().min(1, msg("validation:restaurant.openingRequired")),
+  closingTime: z.string().min(1, msg("validation:restaurant.closingRequired")),
 });
 
 const RESTAURANT_IMAGES_SCHEMA = z.object({
   restaurantDescription: z
     .string()
-    .min(10, "Description must be at least 10 characters"),
+    .min(10, msg("validation:restaurant.descriptionMin", { count: 10 })),
   restaurantImages: z
     .array(z.instanceof(File))
-    .min(1, "At least one image is required")
-    .max(10, "Maximum 10 images"),
+    .min(1, msg("validation:restaurant.imagesRequired"))
+    .max(10, msg("validation:restaurant.imagesMax", { count: 10 })),
 });
 
 const STEPS = {
@@ -167,11 +170,11 @@ export function useAuthForm(currentStep, onStepSuccess) {
     (file) => {
       if (!file) return;
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image");
+        toast.error(t("validation:profile.imageType"));
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image must be under 5MB");
+        toast.error(t("validation:profile.imageSize", { size: 5 }));
         return;
       }
 

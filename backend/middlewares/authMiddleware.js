@@ -3,6 +3,7 @@ import Courier from "../models/Courier.js";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/AppError.js";
 import { isTokenVersionCurrent } from "../utils/generateToken.js";
+import { refineLocaleFromUser } from "./locale.js";
 
 export function extractToken(req) {
   const header = req.headers.authorization;
@@ -14,7 +15,7 @@ export async function protectedRoute(req, res, next) {
   const token = extractToken(req);
 
   if (!token) {
-    return next(new AppError("You need to be signed in", 401, "NO_TOKEN"));
+    return next(new AppError("errors:auth.noToken", 401, "NO_TOKEN"));
   }
 
   // Own catch: an expired token used to surface as a 500, which a native client
@@ -26,7 +27,7 @@ export async function protectedRoute(req, res, next) {
     const expired = err.name === "TokenExpiredError";
     return next(
       new AppError(
-        expired ? "Your session has expired" : "Your session is not valid",
+        expired ? "errors:auth.sessionInvalid" : "errors:auth.invalidToken",
         401,
         expired ? "TOKEN_EXPIRED" : "INVALID_TOKEN",
       ),
@@ -34,7 +35,7 @@ export async function protectedRoute(req, res, next) {
   }
 
   if (decoded.typ && decoded.typ !== "access") {
-    return next(new AppError("Your session is not valid", 401, "INVALID_TOKEN"));
+    return next(new AppError("errors:auth.invalidToken", 401, "INVALID_TOKEN"));
   }
 
   // Express 5 forwards async rejections, so a genuine database fault reaches the
@@ -42,14 +43,14 @@ export async function protectedRoute(req, res, next) {
   const user = await User.findById(decoded.userId).select("-password");
 
   if (!user || user.isDeleted) {
-    return next(new AppError("Your account no longer exists", 401, "USER_GONE"));
+    return next(new AppError("errors:auth.userGone", 401, "USER_GONE"));
   }
 
   // A password reset or change bumps tokenVersion, so every credential minted
   // before it stops working here.
   if (!isTokenVersionCurrent(decoded, user)) {
     return next(
-      new AppError("Your session ended because the password changed", 401, "TOKEN_REVOKED"),
+      new AppError("errors:auth.tokenRevoked", 401, "TOKEN_REVOKED"),
     );
   }
 
@@ -66,5 +67,8 @@ export async function protectedRoute(req, res, next) {
 
   req.user = user;
   req.tokenExp = decoded.exp;
+  // A stored preference now beats Accept-Language; an explicit X-Locale still
+  // wins, because that is the language on screen right now.
+  refineLocaleFromUser(req);
   next();
 }

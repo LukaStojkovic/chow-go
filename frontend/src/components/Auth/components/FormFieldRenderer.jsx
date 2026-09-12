@@ -1,5 +1,6 @@
 import { InputField } from "../fields/InputField";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { FORM_FIELDS } from "../config/formFields";
 
 export const FormFieldRenderer = ({
@@ -8,6 +9,8 @@ export const FormFieldRenderer = ({
   errors,
   extraProps = {},
 }) => {
+  const { t } = useTranslation(["auth", "common"]);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -25,7 +28,7 @@ export const FormFieldRenderer = ({
             key={fieldName}
             register={register(fieldName)}
             type={fieldConfig.type}
-            placeholder={fieldConfig.placeholder}
+            placeholder={t(fieldConfig.placeholder)}
             error={fieldError}
             maxLength={fieldConfig.maxLength}
           />

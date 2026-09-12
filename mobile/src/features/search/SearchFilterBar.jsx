@@ -1,6 +1,8 @@
 import { ScrollView, View } from "react-native";
 import { Clock, SlidersHorizontal, X } from "lucide-react-native";
-import { SORT_OPTIONS } from "@chowgo/shared/constants";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { sortOptions } from "@chowgo/shared/constants";
 import { DEFAULT_SEARCH_FILTERS, countActiveFilters } from "@chowgo/shared/searchFilters";
 import { Chip } from "@/components/ui/Chip";
 import { Text } from "@/components/ui/Text";
@@ -14,6 +16,8 @@ import { useTokens } from "@/theme/useTokens";
  * makes the two look interchangeable.
  */
 export function SearchFilterBar({ filters, onChange }) {
+  const { t, i18n } = useTranslation(["discover", "common"]);
+  const sorts = useMemo(() => sortOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
   const active = countActiveFilters(filters);
   const set = (patch) => onChange({ ...filters, ...patch });
   const { color } = useTokens();
@@ -26,7 +30,7 @@ export function SearchFilterBar({ filters, onChange }) {
         contentContainerClassName="gap-2 px-5"
       >
         <Chip
-          label="Open now"
+          label={t("discover:filters.openNow")}
           icon={Clock}
           active={filters.openNow}
           onPress={() => set({ openNow: !filters.openNow })}
@@ -34,7 +38,7 @@ export function SearchFilterBar({ filters, onChange }) {
         {["30", "45", "60"].map((minutes) => (
           <Chip
             key={minutes}
-            label={`Under ${minutes} min`}
+            label={t(`common:taxonomy.deliveryTimeFilter.${minutes}`)}
             active={filters.maxDeliveryTime === minutes}
             onPress={() =>
               set({ maxDeliveryTime: filters.maxDeliveryTime === minutes ? "any" : minutes })
@@ -43,7 +47,7 @@ export function SearchFilterBar({ filters, onChange }) {
         ))}
         {active > 0 ? (
           <Chip
-            label={`Clear ${active}`}
+            label={t("discover:filters.clear", { count: active })}
             icon={X}
             active={false}
             onPress={() => onChange(DEFAULT_SEARCH_FILTERS)}
@@ -59,10 +63,10 @@ export function SearchFilterBar({ filters, onChange }) {
         <View className="flex-row items-center gap-1.5 pr-1">
           <SlidersHorizontal size={13} color={color["muted-foreground"]} />
           <Text variant="caption" tone="muted">
-            Sort
+            {t("discover:filters.sortBy")}
           </Text>
         </View>
-        {SORT_OPTIONS.map((option) => (
+        {sorts.map((option) => (
           <Chip
             key={option.value}
             label={option.label}

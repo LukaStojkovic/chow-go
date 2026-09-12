@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
@@ -17,6 +18,7 @@ import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { lazyNamed } from "./lib/lazyNamed";
 import { routeChunks } from "./lib/routeChunks";
 import { PortalShellSkeleton } from "./components/skeletons/PortalShellSkeleton";
+import { registerQueryClient } from "./lib/i18n";
 
 import LandingPage from "./pages/LandingPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -83,10 +85,16 @@ const queryClient = new QueryClient({
   },
 });
 
+// Lets the language switcher drop cached view models: the shared adapters
+// resolve their copy when they run, and React Query would otherwise keep
+// serving labels built in the previous language.
+registerQueryClient(queryClient);
+
 function AppContent() {
   const { checkAuth, isCheckingAuth, isAuthOpen, isLoginModal, closeAuthModal } =
     useAuthStore();
   const { isDark } = useDarkMode();
+  const { t } = useTranslation(["common", "order", "basket", "profile"]);
 
   useGlobalSocketEvents();
 
@@ -124,28 +132,30 @@ function AppContent() {
             {/* Focused screens: a back-and-title header, and no basket trigger
                 competing with the task at hand. */}
             <Route
-              element={<CustomerShell variant="detail" title="Your orders" backTo="/discovery" />}
+              element={<CustomerShell variant="detail" title={t("order:list.title")} backTo="/discovery" />}
             >
               <Route
                 path="/orders"
                 element={
-                  <ErrorBoundary
-                    name="my-orders"
-                    title="We could not load your orders"
-                  >
+                  <ErrorBoundary name="my-orders" titleKey="order:list.error.title">
                     <MyOrdersPage />
                   </ErrorBoundary>
                 }
               />
             </Route>
-            <Route element={<CustomerShell variant="detail" title="Order" backTo="/orders" />}>
+            <Route
+              element={
+                <CustomerShell
+                  variant="detail"
+                  title={t("order:detail.title")}
+                  backTo="/orders"
+                />
+              }
+            >
               <Route
                 path="/orders/:orderId"
                 element={
-                  <ErrorBoundary
-                    name="order-tracking"
-                    title="We could not show this order"
-                  >
+                  <ErrorBoundary name="order-tracking" titleKey="order:detail.error.title">
                     <OrderTrackingPage />
                   </ErrorBoundary>
                 }
@@ -155,7 +165,7 @@ function AppContent() {
               element={
                 <CustomerShell
                   variant="detail"
-                  title="Order confirmed"
+                  title={t("order:confirmed.title")}
                   showBasket={false}
                   showBottomNav={false}
                   backTo="/discovery"
@@ -171,7 +181,7 @@ function AppContent() {
               element={
                 <CustomerShell
                   variant="detail"
-                  title="Checkout"
+                  title={t("basket:checkout.title")}
                   showBasket={false}
                   showBottomNav={false}
                 />
@@ -182,15 +192,23 @@ function AppContent() {
                 element={
                   <ErrorBoundary
                     name="checkout"
-                    title="Checkout hit a problem"
-                    description="Your basket is safe and nothing has been charged. Try again in a moment."
+                    titleKey="basket:checkout.error.title"
+                    descriptionKey="basket:checkout.error.description"
                   >
                     <CheckoutPage />
                   </ErrorBoundary>
                 }
               />
             </Route>
-            <Route element={<CustomerShell variant="detail" title="Profile" backTo="/discovery" />}>
+            <Route
+              element={
+                <CustomerShell
+                  variant="detail"
+                  title={t("common:nav.profile")}
+                  backTo="/discovery"
+                />
+              }
+            >
               <Route path="/profile" element={<ProfilePage />} />
             </Route>
           </Route>

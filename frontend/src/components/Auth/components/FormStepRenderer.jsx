@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import { FormFieldRenderer } from "./FormFieldRenderer";
 import { InputField } from "../fields/InputField";
 import { Button } from "../../ui/button";
@@ -10,6 +12,8 @@ export const FormStepRenderer = ({
   onAction,
   watch,
 }) => {
+  const { t } = useTranslation(["auth", "common"]);
+
   if (step === "login") {
     return (
       <form id="auth-form" onSubmit={onAction} className="space-y-5">
@@ -21,24 +25,24 @@ export const FormStepRenderer = ({
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2">
             <input type="checkbox" className="rounded" />
-            <span>Remember me</span>
+            <span>{t("auth:login.rememberMe")}</span>
           </label>
           <button
             type="button"
             onClick={() => onAction({ type: "goToForgot" })}
             className="text-primary hover:underline cursor-pointer"
           >
-            Forgot password?
+            {t("auth:login.forgotPassword")}
           </button>
         </div>
         <div className="text-center text-sm text-muted-foreground pt-4">
-          Don't have an account?{" "}
+          {t("auth:login.noAccount")}{" "}
           <button
             type="button"
             onClick={() => onAction({ type: "goToRegister" })}
             className="text-primary cursor-pointer font-medium hover:underline"
           >
-            Sign up
+            {t("auth:register.submit")}
           </button>
         </div>
       </form>
@@ -80,7 +84,7 @@ export const FormStepRenderer = ({
         <InputField
           register={register("email")}
           type="email"
-          placeholder="your@email.com"
+          placeholder={t("auth:fields.emailPlaceholder")}
           error={errors.email}
         />
         <div className="text-center">
@@ -89,7 +93,7 @@ export const FormStepRenderer = ({
             onClick={() => onAction({ type: "goToLogin" })}
             className="text-sm text-primary hover:underline cursor-pointer"
           >
-            Back to login
+            {t("auth:reset.backToLogin")}
           </button>
         </div>
       </form>
@@ -112,14 +116,14 @@ export const FormStepRenderer = ({
             onClick={() => onAction({ type: "resendCode" })}
             className="text-sm text-primary hover:underline cursor-pointer"
           >
-            Resend code
+            {t("auth:reset.resendCode")}
           </button>
         </div>
         <Button
           type="submit"
           className="w-full font-medium"
         >
-          Verify Code
+          {t("auth:reset.verifyCode")}
         </Button>
       </form>
     );
@@ -137,7 +141,7 @@ export const FormStepRenderer = ({
           type="submit"
           className="w-full      text-white font-medium"
         >
-          Set New Password
+          {t("auth:reset.setPassword")}
         </Button>
       </form>
     );

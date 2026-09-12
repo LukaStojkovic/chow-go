@@ -4,8 +4,11 @@ import { Button } from"@/components/ui/button";
 import { Card } from"@/components/ui/card";
 import { Home, UtensilsCrossed, Frown } from"lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function NotFoundPage() {
+  const { t } = useTranslation("common");
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background relative overflow-hidden">
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -57,14 +60,13 @@ export default function NotFoundPage() {
 
             <div className="space-y-4">
               <h1 className="text-6xl md:text-8xl font-extrabold">
-                Oops!
+                {t("notFound.exclaim")}
               </h1>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground ">
-                Page Not Found
+                {t("error.notFound")}
               </h2>
               <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                Looks like this page took a wrong turn at the kitchen. Don’t
-                worry — your food is still on the way!
+                {t("notFound.body")}
               </p>
             </div>
 
@@ -76,7 +78,7 @@ export default function NotFoundPage() {
               >
                 <Link to="/">
                   <Home className="w-5 h-5 mr-2" />
-                  Back to Home
+                  {t("actions.goHome")}
                 </Link>
               </Button>
             </div>
@@ -89,10 +91,7 @@ export default function NotFoundPage() {
             >
               <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                 <UtensilsCrossed className="w-4 h-4 text-primary" />
-                <em>
-                  Fun fact: The average pizza delivery is faster than this page
-                  load!
-                </em>
+                <em>{t("notFound.funFact")}</em>
               </p>
             </motion.div>
           </div>
@@ -100,11 +99,11 @@ export default function NotFoundPage() {
 
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()}{""}
-            <span className="font-semibold text-primary">Chow & Go</span>.
-            Still hungry?{""}
+            © {new Date().getFullYear()}{" "}
+            <span className="font-semibold text-primary">{t("app.name")}</span>.{" "}
+            {t("notFound.stillHungry")}{" "}
             <Link to="/" className="underline hover:text-primary">
-              Order now
+              {t("notFound.orderNow")}
             </Link>
             .
           </p>

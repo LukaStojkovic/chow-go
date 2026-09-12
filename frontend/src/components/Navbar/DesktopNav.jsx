@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import AuthButtons from "./AuthButtons";
 import UserMenu from "./UserMenu";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 
 export default function DesktopNav({
   isDark,
@@ -13,16 +16,20 @@ export default function DesktopNav({
   onSignup,
   onLogout,
 }) {
+  const { t } = useTranslation(["profile", "common"]);
+
   return (
     <div className="hidden md:flex items-center gap-6">
       <Link
         to="/become-courier"
         className="font-medium hover:text-primary transition-colors text-sm"
       >
-        Become a Courier
+        {t("profile:becomeCourier.cta")}
       </Link>
 
       <div className="flex items-center gap-4">
+        <LanguageSwitcher className="rounded-full" />
+
         {authUser ? (
           <UserMenu user={authUser} onLogout={onLogout} />
         ) : (

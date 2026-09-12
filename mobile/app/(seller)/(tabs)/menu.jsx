@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { Plus, UtensilsCrossed } from "lucide-react-native";
-import { CATEGORIES } from "@chowgo/shared/constants";
+import { categoryOptions } from "@chowgo/shared/constants";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +20,9 @@ import { useRefreshTint } from "@/theme/useRefreshTint";
 export default function SellerMenu() {
   const refreshTint = useRefreshTint();
   const { color } = useTokens();
+  const { t, i18n } = useTranslation(["seller", "common"]);
+  const categories = useMemo(() => categoryOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -81,7 +85,7 @@ export default function SellerMenu() {
             onPress={() => setAvailableOnly((current) => !current)}
           />
 
-          {CATEGORIES.filter((entry) => entry.id !== "all").map((entry) => (
+          {categories.filter((entry) => entry.id !== "all").map((entry) => (
             <Chip
               key={entry.id}
               label={entry.label}

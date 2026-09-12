@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { InputField } from "../fields/InputField";
 import { GoogleButton } from "./GoogleButton";
 
 export function LoginForm({ register, errors, onForgotPassword }) {
+  const { t } = useTranslation("auth");
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -12,13 +15,13 @@ export function LoginForm({ register, errors, onForgotPassword }) {
       <InputField
         register={register("email")}
         type="email"
-        placeholder="Email"
+        placeholder={t("fields.email")}
         error={errors.email}
       />
       <InputField
         register={register("password")}
         type="password"
-        placeholder="Password"
+        placeholder={t("fields.password")}
         error={errors.password}
       />
       <div className="flex items-center justify-between text-xs sm:text-sm">
@@ -28,14 +31,14 @@ export function LoginForm({ register, errors, onForgotPassword }) {
             {...register("rememberMe")}
             className="rounded border-border text-primary focus:ring-ring"
           />
-          <span className="text-muted-foreground ">Remember me</span>
+          <span className="text-muted-foreground ">{t("login.rememberMe")}</span>
         </label>
         <button
           type="button"
           onClick={onForgotPassword}
           className="text-primary hover:underline font-medium transition-colors"
         >
-          Forgot password?
+          {t("login.forgotPassword")}
         </button>
       </div>
 
@@ -45,7 +48,7 @@ export function LoginForm({ register, errors, onForgotPassword }) {
         </div>
         <div className="relative flex justify-center text-sm">
           <span className="px-2 bg-card rounded-full text-muted-foreground">
-            Or continue with
+            {t("login.orContinueWith")}
           </span>
         </div>
       </div>

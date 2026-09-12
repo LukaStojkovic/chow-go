@@ -23,6 +23,7 @@
     "check:push": "node scripts/checkPushRouting.js"
   },
   "dependencies": {
+    "@chowgo/shared": "file:../shared",
     "@sentry/node": "^10.74.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",

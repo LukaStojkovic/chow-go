@@ -9,7 +9,15 @@ import {
   MapPin,
   Pencil,
 } from "lucide-react-native";
-import { ADDRESS_LABELS, ADDRESS_TYPES } from "@chowgo/shared/constants";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { t } from "@chowgo/shared/i18n";
+import {
+  ADDRESS_TYPE_VALUES,
+  addressLabels,
+  addressTypes,
+  matchAddressLabelValue,
+} from "@chowgo/shared/constants";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
@@ -29,23 +37,25 @@ const TYPE_ICONS = {
 
 const LABEL_ICONS = { home: Home, work: Briefcase, partner: Heart, other: MapPin };
 
-// What each of the shared `fields` keys renders as. The wording is the client's
-// own; which fields a type asks for is not.
+// Which catalog keys each of the shared `fields` keys renders from. Which
+// fields a type asks for is the shared taxonomy's decision; the wording is the
+// product's, and is shared with the web so both clients ask the same question.
 const FIELDS = {
-  buildingName: { label: "Building name", placeholder: "e.g. Green Life Residence" },
-  floor: { label: "Floor", placeholder: "e.g. 4" },
-  apartment: { label: "Apartment", placeholder: "e.g. 12A" },
-  entrance: { label: "Entrance / staircase", placeholder: "e.g. A, B, Left" },
-  doorCode: { label: "Door / gate number", placeholder: "e.g. 42B" },
+  buildingName: ["address.buildingName", "address.buildingNamePlaceholder"],
+  floor: ["address.floor", "address.floorPlaceholder"],
+  apartment: ["address.apartment", "address.apartmentPlaceholder"],
+  entrance: ["address.entrance", "address.entrancePlaceholder"],
+  doorCode: ["address.doorCode", "address.doorCodePlaceholder"],
 };
 
-/** Rows written before the label chips existed carry "home" rather than "Home". */
-export function matchLabel(stored) {
-  const found = ADDRESS_LABELS.find(
-    (option) => option.value.toLowerCase() === String(stored ?? "").toLowerCase(),
-  );
-  return found?.value ?? "Other";
-}
+/**
+ * Rows written before the label chips existed carry "home" rather than "Home".
+ *
+ * The stored value stays English in the database - only the chip's label is
+ * translated - which is what keeps a saved address meaningful to a user who
+ * switches language.
+ */
+export const matchLabel = matchAddressLabelValue;
 
 /**
  * Everything about an address that is not its position: what kind of building
@@ -65,7 +75,14 @@ export function AddressForm({
   isSubmitting = false,
 }) {
   const { color } = useTokens();
-  const type = ADDRESS_TYPES.find((option) => option.value === value.type) ?? ADDRESS_TYPES[0];
+  const { t, i18n } = useTranslation(["profile", "common"]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const types = useMemo(() => addressTypes(t), [i18n.language]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const labels = useMemo(() => addressLabels(t), [i18n.language]);
+
+  const type = types.find((option) => option.value === value.type) ?? types[0];
   const update = (field, next) => onChange({ ...value, [field]: next });
 
   return (
@@ -81,17 +98,17 @@ export function AddressForm({
           </View>
           <View className="flex-1">
             <Text variant="label-sm" tone="muted">
-              Selected location
+              {t("profile:address.selectedLocation")}
             </Text>
             <Text variant="body" numberOfLines={2}>
-              {address || "Dropped pin"}
+              {address || t("profile:address.droppedPin")}
             </Text>
           </View>
           <Button variant="mint" size="sm" onPress={onEditLocation}>
             <View className="flex-row items-center gap-1.5">
               <Pencil size={14} color={color.primary} />
               <Text variant="label-sm" tone="primary">
-                Change
+                {t("common:actions.change")}
               </Text>
             </View>
           </Button>
@@ -99,10 +116,10 @@ export function AddressForm({
 
         <View className="gap-2.5">
           <Text variant="label-sm" tone="muted">
-            Address type
+            {t("profile:address.typeLabel")}
           </Text>
           <View className="flex-row flex-wrap gap-2">
-            {ADDRESS_TYPES.map((option) => (
+            {types.map((option) => (
               <Chip
                 key={option.value}
                 label={option.label}
@@ -117,8 +134,8 @@ export function AddressForm({
         {type.fields.map((field) => (
           <Input
             key={field}
-            label={FIELDS[field].label}
-            placeholder={FIELDS[field].placeholder}
+            label={t(`profile:${FIELDS[field][0]}`)}
+            placeholder={t(`profile:${FIELDS[field][1]}`)}
             value={value[field] ?? ""}
             onChangeText={(next) => update(field, next)}
             maxLength={60}
@@ -127,13 +144,13 @@ export function AddressForm({
 
         <View className="gap-2.5">
           <Text variant="label-sm" tone="muted">
-            Save as
+            {t("profile:address.saveAs")}
           </Text>
           <View className="flex-row flex-wrap gap-2">
-            {ADDRESS_LABELS.map((option) => (
+            {labels.map((option) => (
               <Chip
                 key={option.value}
-                label={option.value}
+                label={option.label}
                 icon={LABEL_ICONS[option.icon] ?? MapPin}
                 active={option.value === value.label}
                 onPress={() => update("label", option.value)}
@@ -142,7 +159,7 @@ export function AddressForm({
           </View>
           {value.label === "Other" ? (
             <Input
-              placeholder="Name this address"
+              placeholder={t("profile:address.customLabelPlaceholder")}
               value={value.customLabel ?? ""}
               onChangeText={(next) => update("customLabel", next)}
               maxLength={30}
@@ -151,8 +168,8 @@ export function AddressForm({
         </View>
 
         <Input
-          label="Delivery notes"
-          placeholder="Buzzer code, landmarks, call before delivery…"
+          label={t("profile:address.notes")}
+          placeholder={t("profile:address.notesPlaceholder")}
           value={value.notes ?? ""}
           onChangeText={(next) => update("notes", next)}
           multiline
@@ -173,7 +190,9 @@ export function AddressForm({
  * does not save a floor nobody entered for it.
  */
 export function toAddressPayload(form, location) {
-  const type = ADDRESS_TYPES.find((option) => option.value === form.type) ?? ADDRESS_TYPES[0];
+  const type =
+    ADDRESS_TYPE_VALUES.find((option) => option.value === form.type) ??
+    ADDRESS_TYPE_VALUES[0];
   const extras = Object.fromEntries(
     Object.keys(FIELDS).map((field) => [
       field,
@@ -197,7 +216,8 @@ export function toAddressPayload(form, location) {
   };
 }
 
-const describePin = ({ lat, lng }) => `Pinned location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+const describePin = ({ lat, lng }) =>
+  t("profile:address.pinnedLocation", { lat: lat.toFixed(5), lng: lng.toFixed(5) });
 
 /** A blank form, or one filled in from a saved address. */
 export function toAddressForm(existing) {

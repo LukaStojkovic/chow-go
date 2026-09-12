@@ -4,6 +4,7 @@
 import { env } from "./config/env.js";
 import { Sentry } from "./config/sentry.js";
 
+import { initI18n } from "@chowgo/shared/i18n";
 import express from "express";
 import http from "http";
 import authRoutes from "./routes/authRoutes.js";
@@ -24,6 +25,7 @@ import helmet from "helmet";
 import { apiLimiter } from "./middlewares/rateLimit.js";
 import { corsOrigin } from "./config/cors.js";
 import { rejectMongoOperators } from "./middlewares/sanitize.js";
+import { attachLocale } from "./middlewares/locale.js";
 import { handleError } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
 import { startCronJobs } from "./services/cron.service.js";
@@ -34,6 +36,11 @@ import path from "path";
 import session from "express-session";
 import passport from "passport";
 import { configurePassport } from "./config/passport.js";
+
+// Boot the catalogs before the first request: `attachLocale` and every
+// `AppError` below resolve copy through them, and a lazy first init inside a
+// request handler would make that request measurably slower than the rest.
+initI18n({ locale: env.defaultLocale });
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -87,6 +94,9 @@ app.use(express.json({ limit: "1mb" }));
 // and every handler that destructures it throws a 500 instead of a 400.
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use(cookieParser());
+// Before the router, so error middleware can read `req.locale` even when a
+// route throws before it has looked at the user.
+app.use(attachLocale);
 app.use(rejectMongoOperators);
 app.use(
   cors({
@@ -137,7 +147,12 @@ app.get("/api/socket/stats", protectedRoute, (req, res) => {
 // otherwise answer it with index.html and HTTP 200, which clients parse as
 // success, and which Google indexes as a soft 404.
 app.use("/api", (req, _res, next) => {
-  next(new AppError(`No API route for ${req.method} ${req.originalUrl}`, 404));
+  next(
+    new AppError("errors:request.notFound", 404, "ROUTE_NOT_FOUND", {
+      method: req.method,
+      path: req.originalUrl,
+    }),
+  );
 });
 
 if (env.isProduction) {

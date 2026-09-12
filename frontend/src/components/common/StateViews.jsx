@@ -8,6 +8,7 @@
 
 import { motion } from "framer-motion";
 import { CircleAlert, Inbox, RefreshCw, WifiOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { fadeIn } from "@/lib/motion";
@@ -111,26 +112,36 @@ export function EmptyState({ icon = Inbox, ...props }) {
  * @param {boolean} [props.isRetrying]
  */
 export function ErrorState({
-  title = "Something went wrong",
-  description = "We could not load this just now. Your details are safe - try again in a moment.",
+  title,
+  description,
   onRetry,
   isRetrying = false,
   size = "md",
   className,
 }) {
+  // Defaults are resolved here rather than in the parameter list: a default
+  // evaluated at call time follows the active language, a literal in the
+  // signature would not.
+  const { t } = useTranslation("common");
+
   return (
     <StateFrame
       icon={CircleAlert}
       tone="danger"
-      title={title}
-      description={description}
+      title={title ?? t("error.generic")}
+      description={description ?? t("error.genericDescription")}
       size={size}
       className={className}
       action={
         onRetry ? (
-          <Button variant="outline" onClick={onRetry} isLoading={isRetrying} loadingLabel="Retrying">
+          <Button
+            variant="outline"
+            onClick={onRetry}
+            isLoading={isRetrying}
+            loadingLabel={t("state.loading")}
+          >
             <RefreshCw aria-hidden="true" />
-            Try again
+            {t("actions.retry")}
           </Button>
         ) : null
       }
@@ -143,16 +154,18 @@ export function ErrorState({
  * because the recovery is different: reconnect, then retry.
  */
 export function OfflineState({ onRetry }) {
+  const { t } = useTranslation("common");
+
   return (
     <StateFrame
       icon={WifiOff}
-      title="You are offline"
-      description="Check your connection and we will pick up where you left off."
+      title={t("state.offline")}
+      description={t("state.offlineDescription")}
       action={
         onRetry ? (
           <Button variant="outline" onClick={onRetry}>
             <RefreshCw aria-hidden="true" />
-            Try again
+            {t("actions.retry")}
           </Button>
         ) : null
       }
@@ -164,7 +177,9 @@ export function OfflineState({ onRetry }) {
  * A compact error for a single failed region inside an otherwise working page,
  * such as one section of the discovery feed.
  */
-export function InlineError({ message = "Could not load this section.", onRetry }) {
+export function InlineError({ message, onRetry }) {
+  const { t } = useTranslation("common");
+
   return (
     <div
       role="alert"
@@ -172,12 +187,12 @@ export function InlineError({ message = "Could not load this section.", onRetry 
     >
       <span className="text-body-sm text-muted-foreground flex items-center gap-2">
         <CircleAlert className="text-destructive size-4 shrink-0" aria-hidden="true" />
-        {message}
+        {message ?? t("error.sectionFailed")}
       </span>
       {onRetry && (
         <Button variant="ghost" size="sm" onClick={onRetry}>
           <RefreshCw aria-hidden="true" />
-          Retry
+          {t("actions.retry")}
         </Button>
       )}
     </div>

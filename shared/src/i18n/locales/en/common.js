@@ -1,0 +1,275 @@
+/**
+ * Copy that belongs to no single screen: actions, shared states, and the
+ * product taxonomies in `constants.js`.
+ *
+ * `taxonomy` mirrors enums the backend stores verbatim ("fast_food",
+ * "apartment"). The *value* stays English in the database; only the label
+ * shown to a person is translated, which is why the keys here are the enum
+ * values rather than slugs of the English words.
+ */
+
+export default {
+  app: {
+    name: "Chow & Go",
+    tagline: "Food from the places near you, delivered.",
+  },
+
+  language: {
+    label: "Language",
+    change: "Change language",
+    changed: "Language set to {{language}}.",
+    en: "English",
+    sr: "Serbian",
+  },
+
+  actions: {
+    save: "Save",
+    saveChanges: "Save changes",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    continue: "Continue",
+    back: "Back",
+    next: "Next",
+    done: "Done",
+    close: "Close",
+    edit: "Edit",
+    delete: "Delete",
+    remove: "Remove",
+    add: "Add",
+    apply: "Apply",
+    clear: "Clear",
+    clearAll: "Clear all",
+    retry: "Try again",
+    refresh: "Refresh",
+    search: "Search",
+    filter: "Filter",
+    filters: "Filters",
+    sort: "Sort",
+    viewAll: "View all",
+    seeMore: "See more",
+    seeLess: "See less",
+    share: "Share",
+    copy: "Copy",
+    copied: "Copied",
+    select: "Select",
+    change: "Change",
+    skip: "Skip",
+    submit: "Submit",
+    goHome: "Back to home",
+    goBack: "Go back",
+    reload: "Reload the page",
+    call: "Call",
+    directions: "Directions",
+    upload: "Upload",
+    replace: "Replace",
+    discard: "Discard",
+    logOut: "Log out",
+  },
+
+  state: {
+    loading: "Loading...",
+    saving: "Saving...",
+    sending: "Sending...",
+    uploading: "Uploading...",
+    searching: "Searching...",
+    updating: "Updating...",
+    deleting: "Deleting...",
+    processing: "Processing...",
+    empty: "Nothing here yet",
+    offline: "You are offline",
+    offlineDescription: "We will reconnect as soon as your connection is back.",
+    reconnecting: "Reconnecting...",
+    live: "Live",
+  },
+
+  error: {
+    generic: "Something went wrong",
+    genericDescription: "Please try again in a moment.",
+    network: "We could not reach the server",
+    networkDescription: "Check your connection and try again.",
+    notFound: "Page not found",
+    notFoundDescription: "The page you were looking for does not exist.",
+    boundaryTitle: "Something broke on this screen",
+    boundaryDescription: "Reloading usually fixes it.",
+    startupTitle: "Chow & Go could not start",
+    startupDescription:
+      "Something broke while loading the app. Reloading usually fixes it.",
+    sectionFailed: "Could not load this section.",
+    unauthorized: "You need to be signed in",
+    forbidden: "You do not have access to this",
+  },
+
+  units: {
+    metres: "{{value}} m",
+    kilometres: "{{value}} km",
+    minutes: "{{value}} min",
+    hoursMinutes: "{{hours}}h {{minutes}}m",
+    minutesRange: "{{from}}-{{to}} min",
+    perKm: "/km",
+    free: "Free",
+    percentOff: "{{value}}% off",
+    amountOff: "{{value}} off",
+  },
+
+  time: {
+    today: "Today",
+    yesterday: "Yesterday",
+    tomorrow: "Tomorrow",
+    now: "Now",
+    justNow: "Just now",
+    am: "AM",
+    pm: "PM",
+  },
+
+  rating: {
+    value: "{{value}}",
+    count_one: "{{count}} review",
+    count_other: "{{count}} reviews",
+    none: "No ratings yet",
+    new: "New",
+  },
+
+  taxonomy: {
+    category: {
+      all: "All",
+      Pizza: "Pizza",
+      Burgers: "Burgers",
+      Pasta: "Pasta",
+      Salads: "Salads",
+      Grill: "Grill",
+      Sushi: "Sushi",
+      Soups: "Soups",
+      Breakfast: "Breakfast",
+      Desserts: "Desserts",
+      Drinks: "Drinks",
+    },
+    cuisine: {
+      fast_food: "Fast food",
+      italian: "Italian",
+      chinese: "Chinese",
+      indian: "Indian",
+      mexican: "Mexican",
+      japanese: "Japanese",
+      thai: "Thai",
+      pizza: "Pizza",
+      burgers: "Burgers",
+      healthy: "Healthy",
+      desserts: "Desserts",
+      serbian: "Serbian",
+      mediterranean: "Mediterranean",
+      fallback: "Restaurant",
+    },
+    sort: {
+      relevance: "Most relevant",
+      rating: "Highest rated",
+      delivery_time: "Fastest delivery",
+      distance: "Closest to me",
+    },
+    deliveryTimeFilter: {
+      any: "Any time",
+      30: "Under 30 min",
+      45: "Under 45 min",
+      60: "Under 1 hour",
+    },
+    deliveryType: {
+      standard: {
+        label: "Standard",
+        description: "Arrives within the restaurant's usual delivery window.",
+      },
+      priority: {
+        label: "Priority",
+        description: "Moved to the front of the courier queue.",
+      },
+    },
+    paymentMethod: {
+      cash: {
+        label: "Cash on delivery",
+        description: "Pay the courier when your order arrives.",
+      },
+      card: {
+        label: "Card",
+        description: "Pay by card when your order arrives.",
+      },
+    },
+    addressType: {
+      apartment: "Apartment",
+      house: "House",
+      office: "Office",
+      hotel: "Hotel",
+      other: "Other",
+    },
+    addressLabel: {
+      Home: "Home",
+      Work: "Work",
+      Partner: "Partner",
+      Other: "Other",
+    },
+    promotionType: {
+      percentage: {
+        label: "Percentage off",
+        hint: "A share of the price, e.g. 25% off",
+      },
+      fixed: {
+        label: "Fixed amount off",
+        hint: "A flat reduction, e.g. 2.00 off",
+      },
+    },
+    vehicle: {
+      bike: "Bicycle",
+      scooter: "Scooter",
+      motorcycle: "Motorcycle",
+      car: "Car",
+    },
+    day: {
+      monday: { label: "Monday", short: "Mon" },
+      tuesday: { label: "Tuesday", short: "Tue" },
+      wednesday: { label: "Wednesday", short: "Wed" },
+      thursday: { label: "Thursday", short: "Thu" },
+      friday: { label: "Friday", short: "Fri" },
+      saturday: { label: "Saturday", short: "Sat" },
+      sunday: { label: "Sunday", short: "Sun" },
+    },
+  },
+
+  notFound: {
+    exclaim: "Oops!",
+    body: "Looks like this page took a wrong turn at the kitchen. Don't worry - your food is still on the way.",
+    funFact: "Fun fact: the average pizza delivery is faster than this page load.",
+    stillHungry: "Still hungry?",
+    orderNow: "Order now",
+  },
+
+  nav: {
+    home: "Home",
+    primary: "Primary",
+    search: "Search",
+    favourites: "Favourites",
+    orders: "Orders",
+    profile: "Profile",
+    restaurants: "Restaurants",
+    help: "Help centre",
+    basket: "Basket",
+    dashboard: "Dashboard",
+    menu: "Menu",
+    analytics: "Analytics",
+    settings: "Settings",
+    deliveries: "Deliveries",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    skipToContent: "Skip to content",
+  },
+
+  account: {
+    fallbackName: "Your account",
+  },
+
+  a11y: {
+    currentPage: "(current page)",
+    loading: "Loading",
+    close: "Close",
+    previous: "Previous",
+    next: "Next",
+    increase: "Increase",
+    decrease: "Decrease",
+  },
+};

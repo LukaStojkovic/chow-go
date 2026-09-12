@@ -8,6 +8,7 @@
  */
 
 import { RotateCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "@/store/useAuthStore";
@@ -36,6 +37,7 @@ function ReorderCardSkeleton() {
 }
 
 export function ReorderSection() {
+  const { t } = useTranslation(["restaurant", "order", "common"]);
   const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.authUser);
   const { orders, isLoadingOrders } = useGetCustomerOrders({
@@ -49,7 +51,7 @@ export function ReorderSection() {
 
   if (isLoadingOrders) {
     return (
-      <Section title="Order again">
+      <Section title={t("reorder.heading")}>
         <Rail aria-busy="true">
           {[0, 1, 2].map((i) => (
             <ReorderCardSkeleton key={i} />
@@ -63,11 +65,11 @@ export function ReorderSection() {
 
   return (
     <Section
-      title="Order again"
-      description="Your recent deliveries, one tap away"
+      title={t("reorder.heading")}
+      description={t("reorder.subtitle")}
       action={
         <Button variant="link" size="sm" onClick={() => navigate("/orders")}>
-          All orders
+          {t("order:list.title")}
         </Button>
       }
     >
@@ -85,11 +87,11 @@ export function ReorderSection() {
               <div className="flex items-center gap-2">
                 <Avatar
                   src={order.restaurant?.profilePicture}
-                  name={order.restaurant?.name || "Restaurant"}
+                  name={order.restaurant?.name || t("common:taxonomy.cuisine.fallback")}
                 />
                 <div className="min-w-0 flex-1">
                   <h3 className="text-label text-foreground truncate">
-                    {order.restaurant?.name || "Restaurant"}
+                    {order.restaurant?.name || t("common:taxonomy.cuisine.fallback")}
                   </h3>
                   <p className="text-caption text-muted-foreground truncate">
                     {formatOrderDate(order.createdAt)}
@@ -106,11 +108,11 @@ export function ReorderSection() {
                   size="sm"
                   className="flex-1"
                   isLoading={isReordering && reorderingId === order._id}
-                  loadingLabel="Adding to basket"
+                  loadingLabel={t("reorder.adding")}
                   onClick={() => reorder(order)}
                 >
                   <RotateCcw aria-hidden="true" />
-                  Order again
+                  {t("order:actions.reorder")}
                 </Button>
                 <span className="text-price text-foreground tabular">
                   {formatPrice(order.total)}

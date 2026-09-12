@@ -7,6 +7,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import { staggerContainer } from "@/lib/motion";
 import { useDiscoverStore } from "@/store/useDiscoverStore";
@@ -20,14 +21,15 @@ import { DishCard, DishCardSkeleton } from "@/components/discovery/DishCard";
  * @param {(dish: import("@chowgo/shared/adapters/types").DishView) => void} props.onAddDish
  */
 export function PopularDishesSection({ onAddDish }) {
+  const { t } = useTranslation("restaurant");
   const { popularItems, isLoadingPopular, popularError, fetchPopular } = useDiscoverStore();
   const { coordinates } = useDeliveryStore();
 
   if (popularError) {
     return (
-      <Section title="Popular right now">
+      <Section title={t("popular.heading")}>
         <InlineError
-          message="We could not load popular dishes."
+          message={t("popular.loadError")}
           onRetry={() => fetchPopular(coordinates?.lat, coordinates?.lon)}
         />
       </Section>
@@ -36,7 +38,7 @@ export function PopularDishesSection({ onAddDish }) {
 
   if (isLoadingPopular && popularItems.length === 0) {
     return (
-      <Section title="Popular right now">
+      <Section title={t("popular.heading")}>
         <Rail aria-busy="true">
           {[0, 1, 2, 3].map((i) => (
             <DishCardSkeleton key={i} variant="compact" />
@@ -52,8 +54,8 @@ export function PopularDishesSection({ onAddDish }) {
 
   return (
     <Section
-      title="Popular right now"
-      description="Most ordered near your address this week"
+      title={t("popular.heading")}
+      description={t("popular.subtitle")}
     >
       <motion.div variants={staggerContainer} initial="hidden" animate="visible">
         <Rail>

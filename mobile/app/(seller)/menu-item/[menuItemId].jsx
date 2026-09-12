@@ -1,12 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
-import { CATEGORIES } from "@chowgo/shared/constants";
+import { categoryOptions } from "@chowgo/shared/constants";
 import { formatPrice } from "@chowgo/shared/format";
 import { EMPTY_PROMOTION, editMenuItemSchema, menuItemSchema } from "@chowgo/shared/menuItemSchema";
-import { PROMOTION_LIMITS, PROMOTION_TYPES, previewPromotion } from "@chowgo/shared/promotion";
+import { PROMOTION_LIMITS, previewPromotion, promotionTypes } from "@chowgo/shared/promotion";
 import { errorMessage } from "@/api/client";
 import { Trash2 } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
@@ -32,6 +33,9 @@ export default function MenuItemForm() {
   const { menuItemId } = useLocalSearchParams();
   const isNew = menuItemId === "new";
   const { color } = useTokens();
+  const { t, i18n } = useTranslation(["seller", "common", "validation"]);
+  const categories = useMemo(() => categoryOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
+  const promoTypes = useMemo(() => promotionTypes(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const create = useCreateMenuItem();
   const update = useUpdateMenuItem();
@@ -159,7 +163,7 @@ export default function MenuItemForm() {
                   Category
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
-                  {CATEGORIES.filter((entry) => entry.id !== "all").map((entry) => (
+                  {categories.filter((entry) => entry.id !== "all").map((entry) => (
                     <Chip
                       key={entry.id}
                       label={entry.label}
@@ -259,7 +263,7 @@ export default function MenuItemForm() {
                 name="promotion.type"
                 render={({ field }) => (
                   <View className="flex-row gap-2">
-                    {PROMOTION_TYPES.map((entry) => (
+                    {promoTypes.map((entry) => (
                       <Chip
                         key={entry.value}
                         label={entry.label}

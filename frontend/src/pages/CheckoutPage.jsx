@@ -14,9 +14,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { ShoppingBag } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { formatPrice } from "@chowgo/shared/format";
-import { DELIVERY_TYPES, MAX_ORDER_NOTES, PAYMENT_METHODS } from "@/lib/constants";
+import { formatDeliveryEstimate, formatPrice } from "@chowgo/shared/format";
+import { MAX_ORDER_NOTES, useDeliveryTypes, usePaymentMethods } from "@/lib/constants";
 import { toBasketLines } from "@chowgo/shared/adapters/menu";
 import { PRICING, buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import useCartStore from "@/store/useCartStore";
@@ -36,6 +37,9 @@ import { OrderSummaryCard } from "@/features/checkout/OrderSummaryCard";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["basket", "common"]);
+  const deliveryTypes = useDeliveryTypes();
+  const paymentMethods = usePaymentMethods();
   const { items, totalPrice, restaurant, isLoading, fetchCart } = useCartStore();
   const { selectedDeliveryAddress } = useDeliveryStore();
   const { createOrder, isCreatingOrder } = useCreateOrder();
@@ -57,9 +61,9 @@ export default function CheckoutPage() {
   );
 
   const blockers = [];
-  if (!selectedDeliveryAddress) blockers.push("Choose a delivery address to continue.");
-  if (!paymentMethod) blockers.push("Choose how you would like to pay.");
-  if (!restaurant?._id) blockers.push("We lost track of the restaurant - reload the page.");
+  if (!selectedDeliveryAddress) blockers.push(t("checkout.blockers.address"));
+  if (!paymentMethod) blockers.push(t("checkout.blockers.payment"));
+  if (!restaurant?._id) blockers.push(t("checkout.blockers.restaurant"));
 
   const handlePlaceOrder = () => {
     if (blockers.length > 0) return;
@@ -78,7 +82,7 @@ export default function CheckoutPage() {
     return (
       <PageContainer width="reading" withBottomNav={false} className="py-6">
         <span className="sr-only" role="status">
-          Loading your order
+          {t("checkout.loading")}
         </span>
         <ContentShell
           main={
@@ -101,9 +105,13 @@ export default function CheckoutPage() {
       <PageContainer width="narrow" withBottomNav={false} className="py-10">
         <EmptyState
           icon={ShoppingBag}
-          title="There is nothing to check out"
-          description="Your basket is empty. Find something you fancy and it will show up here."
-          action={<Button onClick={() => navigate("/discovery")}>Browse restaurants</Button>}
+          title={t("checkout.empty.title")}
+          description={t("checkout.empty.description")}
+          action={
+            <Button onClick={() => navigate("/discovery")}>
+              {t("checkout.empty.action")}
+            </Button>
+          }
         />
       </PageContainer>
     );
@@ -126,13 +134,15 @@ export default function CheckoutPage() {
 
               <CheckoutSection
                 step={2}
-                title="Delivery speed"
+                title={t("checkout.speed.title")}
                 isComplete
-                description={`Usually ${restaurant?.estimatedDeliveryTime || "30-45 min"} from this restaurant.`}
+                description={t("checkout.speed.description", {
+                  estimate: formatDeliveryEstimate(restaurant?.estimatedDeliveryTime),
+                })}
               >
                 <fieldset className="space-y-2">
-                  <legend className="sr-only">Choose a delivery speed</legend>
-                  {DELIVERY_TYPES.map((option) => (
+                  <legend className="sr-only">{t("checkout.speed.legend")}</legend>
+                  {deliveryTypes.map((option) => (
                     <OptionRow
                       key={option.value}
                       id={`delivery-${option.value}`}
@@ -144,7 +154,7 @@ export default function CheckoutPage() {
                       meta={
                         option.value === "priority"
                           ? `+${formatPrice(PRICING.priorityFee)}`
-                          : "Included"
+                          : t("checkout.speed.included")
                       }
                     />
                   ))}
@@ -153,13 +163,13 @@ export default function CheckoutPage() {
 
               <CheckoutSection
                 step={3}
-                title="Payment"
+                title={t("checkout.payment.title")}
                 isComplete={Boolean(paymentMethod)}
-                description="You pay when your order arrives."
+                description={t("checkout.payment.description")}
               >
                 <fieldset className="space-y-2">
-                  <legend className="sr-only">Choose a payment method</legend>
-                  {PAYMENT_METHODS.map((option) => (
+                  <legend className="sr-only">{t("checkout.payment.legend")}</legend>
+                  {paymentMethods.map((option) => (
                     <OptionRow
                       key={option.value}
                       id={`payment-${option.value}`}
@@ -175,8 +185,8 @@ export default function CheckoutPage() {
 
               <CheckoutSection
                 step={4}
-                title="Tip your courier"
-                description="Optional, and it all goes to the person who brings your order."
+                title={t("checkout.tip.title")}
+                description={t("checkout.tip.description")}
                 isComplete
               >
                 <div className="flex flex-wrap items-center gap-2">
@@ -194,14 +204,14 @@ export default function CheckoutPage() {
                           setCustomTip("");
                         }}
                       >
-                        {amount === 0 ? "No tip" : formatPrice(amount)}
+                        {amount === 0 ? t("checkout.tip.none") : formatPrice(amount)}
                       </Button>
                     );
                   })}
 
                   <div className="flex items-center gap-2">
                     <Label htmlFor="custom-tip" className="sr-only">
-                      Custom tip amount
+                      {t("checkout.tip.customLabel")}
                     </Label>
                     <Input
                       id="custom-tip"
@@ -210,7 +220,7 @@ export default function CheckoutPage() {
                       min="0"
                       max="100"
                       step="0.50"
-                      placeholder="Other"
+                      placeholder={t("checkout.tip.customPlaceholder")}
                       value={customTip}
                       onChange={(event) => {
                         const raw = event.target.value;
@@ -226,25 +236,28 @@ export default function CheckoutPage() {
 
               <CheckoutSection
                 step={5}
-                title="Delivery instructions"
-                description="Anything the restaurant or the courier should know."
+                title={t("checkout.notes.title")}
+                description={t("checkout.notes.description")}
                 isComplete
               >
                 <div className="space-y-2">
                   <Label htmlFor="order-notes" className="sr-only">
-                    Delivery instructions
+                    {t("checkout.notes.label")}
                   </Label>
                   <Textarea
                     id="order-notes"
                     rows={3}
                     value={customerNotes}
                     maxLength={MAX_ORDER_NOTES}
-                    placeholder="Buzzer is broken - please call. Leave at the door if there is no answer."
+                    placeholder={t("checkout.notes.placeholder")}
                     onChange={(event) => setCustomerNotes(event.target.value)}
                     aria-describedby="order-notes-count"
                   />
                   <p id="order-notes-count" className="text-caption text-muted-foreground">
-                    {customerNotes.length}/{MAX_ORDER_NOTES} characters
+                    {t("checkout.notes.count", {
+                      used: customerNotes.length,
+                      max: MAX_ORDER_NOTES,
+                    })}
                   </p>
                 </div>
               </CheckoutSection>
@@ -263,8 +276,7 @@ export default function CheckoutPage() {
         />
 
         <p className="text-caption text-muted-foreground mt-6 text-center">
-          Placing an order means you accept our Terms of Service and Privacy Policy. You
-          can cancel free of charge until the courier collects your food.
+          {t("checkout.terms")}
         </p>
       </PageContainer>
 
@@ -276,10 +288,10 @@ export default function CheckoutPage() {
           block
           disabled={blockers.length > 0}
           isLoading={isCreatingOrder}
-          loadingLabel="Placing your order"
+          loadingLabel={t("checkout.placing")}
           onClick={handlePlaceOrder}
         >
-          <span>Place order</span>
+          <span>{t("checkout.placeOrder")}</span>
           <span className="tabular ml-auto">{formatPrice(pricing.total)}</span>
         </Button>
         {blockers.length > 0 && (

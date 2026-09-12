@@ -12,6 +12,7 @@
 
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -19,6 +20,7 @@ import Logo from "@/components/Navbar/Logo";
 import UserMenu from "@/components/Navbar/UserMenu";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/common/IconButton";
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 import { AddressSelector } from "./AddressSelector";
 import { BasketButton } from "./BasketButton";
 
@@ -42,6 +44,7 @@ export function AppHeader({
 }) {
   const navigate = useNavigate();
   const { authUser, logout, openAuthModal } = useAuthStore();
+  const { t } = useTranslation(["common", "auth", "order"]);
 
   const goBack = () => {
     if (backTo) {
@@ -63,7 +66,7 @@ export function AppHeader({
       <div className="mx-auto flex h-14 w-full max-w-[80rem] items-center gap-2 px-4 sm:h-16 sm:gap-3 sm:px-6">
         {variant === "detail" ? (
           <>
-            <IconButton label="Go back" onClick={goBack} showTooltip={false}>
+            <IconButton label={t("common:actions.goBack")} onClick={goBack} showTooltip={false}>
               <ArrowLeft aria-hidden="true" />
             </IconButton>
             <h1 className="text-h2 min-w-0 flex-1 truncate">{title}</h1>
@@ -85,11 +88,11 @@ export function AppHeader({
             <nav aria-label="Secondary" className="hidden items-center gap-1 md:flex">
               <Button variant="ghost" size="sm" onClick={() => navigate("/search")}>
                 <Search aria-hidden="true" />
-                Search
+                {t("common:nav.search")}
               </Button>
               {authUser?.role === "customer" && (
                 <Button variant="ghost" size="sm" onClick={() => navigate("/orders")}>
-                  Orders
+                  {t("common:nav.orders")}
                 </Button>
               )}
             </nav>
@@ -99,11 +102,20 @@ export function AppHeader({
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           {onOpenBasket && <BasketButton onOpen={onOpenBasket} />}
           {authUser ? (
-            <UserMenu user={authUser} onLogout={logout} />
+            // Signed in, the switcher lives inside the account menu - the one
+            // surface every role shares. Signed out, and on the focused detail
+            // screens that have no account menu, it needs its own control.
+            <>
+              {variant === "detail" && <LanguageSwitcher />}
+              <UserMenu user={authUser} onLogout={logout} />
+            </>
           ) : (
-            <Button size="sm" onClick={() => openAuthModal(true)}>
-              Sign in
-            </Button>
+            <>
+              <LanguageSwitcher />
+              <Button size="sm" onClick={() => openAuthModal(true)}>
+                {t("auth:login.submit")}
+              </Button>
+            </>
           )}
         </div>
       </div>

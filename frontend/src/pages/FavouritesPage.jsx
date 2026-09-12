@@ -9,6 +9,7 @@
 
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Heart } from "lucide-react";
 
 import { staggerContainer } from "@/lib/motion";
@@ -24,6 +25,7 @@ import {
 } from "@/components/discovery/RestaurantCard";
 
 export default function FavouritesPage() {
+  const { t } = useTranslation(["restaurant", "common"]);
   const { favourites, isLoading, toggleFavourite, isPending } = useFavourites();
   const restaurants = toRestaurantViews(favourites);
 
@@ -31,13 +33,13 @@ export default function FavouritesPage() {
     <PageContainer className="py-6">
       <Stack gap="lg">
         <div className="space-y-1">
-          <h1 className="text-h1">Favourites</h1>
+          <h1 className="text-h1">{t("restaurant:favourites.title")}</h1>
           <p className="text-body-sm text-muted-foreground">
             {isLoading
-              ? "Loading your saved restaurants"
+              ? t("restaurant:favourites.loading")
               : restaurants.length === 0
-                ? "Restaurants you save appear here"
-                : `${restaurants.length} saved ${restaurants.length === 1 ? "restaurant" : "restaurants"}`}
+                ? t("restaurant:favourites.subtitleEmpty")
+                : t("restaurant:favourites.savedCount", { count: restaurants.length })}
           </p>
         </div>
 
@@ -50,11 +52,11 @@ export default function FavouritesPage() {
         ) : restaurants.length === 0 ? (
           <EmptyState
             icon={Heart}
-            title="No favourites yet"
-            description="Tap the heart on any restaurant to save it here for next time."
+            title={t("restaurant:favourites.empty.title")}
+            description={t("restaurant:favourites.empty.description")}
             action={
               <Button asChild>
-                <Link to="/discovery">Find restaurants</Link>
+                <Link to="/discovery">{t("restaurant:favourites.empty.action")}</Link>
               </Button>
             }
           />

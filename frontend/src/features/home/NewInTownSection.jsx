@@ -8,6 +8,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { staggerContainer } from "@/lib/motion";
@@ -20,12 +21,13 @@ import {
 } from "@/components/discovery/RestaurantCard";
 
 export function NewInTownSection() {
+  const { t } = useTranslation("restaurant");
   const { newRestaurants, isLoadingPromotions, promotionsError } = useDiscoverStore();
   const { isFavourite, toggleFavourite, isPending } = useFavourites();
 
   if (isLoadingPromotions && newRestaurants.length === 0) {
     return (
-      <Section title="New in town">
+      <Section title={t("newInTown.heading")}>
         <div className="rail-bleed scrollbar-hide flex gap-4 overflow-x-auto" aria-busy="true">
           {[0, 1, 2, 3].map((i) => (
             <RestaurantCardSkeleton key={i} variant="compact" className="lg:w-auto lg:shrink" />
@@ -39,8 +41,8 @@ export function NewInTownSection() {
 
   return (
     <Section
-      title="New in town"
-      description="Joined in the last 30 days and delivering to you"
+      title={t("newInTown.heading")}
+      description={t("newInTown.subtitle")}
     >
       {/* Same rail-to-grid switch as "Restaurants near you", so the two read as
           one system rather than two components that happen to sit together. */}

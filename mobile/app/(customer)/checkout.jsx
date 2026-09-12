@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { ArrowRight, Lock } from "lucide-react-native";
-import { DELIVERY_TYPES, MAX_ORDER_NOTES, PAYMENT_METHODS } from "@chowgo/shared/constants";
+import { MAX_ORDER_NOTES, deliveryTypes, paymentMethods } from "@chowgo/shared/constants";
 import { PRICING, buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import { formatPrice } from "@chowgo/shared/format";
 import { errorMessage } from "@/api/client";
@@ -37,6 +38,12 @@ export default function Checkout() {
   const addresses = useAddresses();
   const createOrder = useCreateOrder();
   const { color } = useTokens();
+  const { t, i18n } = useTranslation(["basket", "common"]);
+
+  // Rebuilt only when the language changes: `t` is a new function on every
+  // render, and these lists sit inside a scrolling form.
+  const speeds = useMemo(() => deliveryTypes(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
+  const payments = useMemo(() => paymentMethods(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [addressId, setAddressId] = useState(null);
   const [deliveryType, setDeliveryType] = useState("standard");
@@ -157,7 +164,7 @@ export default function Checkout() {
 
         <Section title="Delivery speed">
           <View className="gap-2">
-            {DELIVERY_TYPES.map((option) => (
+            {speeds.map((option) => (
               <OptionRow
                 key={option.value}
                 label={option.label}
@@ -178,7 +185,7 @@ export default function Checkout() {
 
         <Section title="Payment">
           <View className="gap-2">
-            {PAYMENT_METHODS.map((option) => (
+            {payments.map((option) => (
               <OptionRow
                 key={option.value}
                 label={option.label}

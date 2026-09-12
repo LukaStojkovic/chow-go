@@ -2,6 +2,7 @@ import { z } from "zod";
 
 
 import { PROMOTION_LIMITS } from "./promotion.js";
+import { msg } from "./i18n/fieldErrors.js";
 
 /**
  * An image the client is uploading. A browser supplies a File; React Native
@@ -12,14 +13,14 @@ const uploadableImage = z.custom(
   (value) =>
     (typeof value === "object" && value !== null && typeof value.uri === "string") ||
     (typeof File !== "undefined" && value instanceof File),
-  { message: "Unsupported image" },
+  { message: msg("validation:menuItem.imageUnsupported") },
 );
 
 const priceField = z
   .string()
-  .min(1, "Price is required")
+  .min(1, msg("validation:menuItem.priceRequired"))
   .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
-    message: "Price must be a positive number",
+    message: msg("validation:menuItem.pricePositive"),
   });
 
 /**
@@ -39,7 +40,7 @@ const promotionField = z.object({
     .string()
     .max(
       PROMOTION_LIMITS.maxLabelLength,
-      `Keep the badge text under ${PROMOTION_LIMITS.maxLabelLength} characters`,
+      msg("validation:promotion.labelMax", { max: PROMOTION_LIMITS.maxLabelLength }),
     )
     .default(""),
   startsAt: z.string().default(""),
@@ -68,11 +69,14 @@ function checkPromotion(data, ctx) {
 
   const value = parseFloat(promotion.value);
   if (!promotion.value || Number.isNaN(value) || value <= 0) {
-    return reject("value", "Enter how much is off, or switch the promotion off");
+    return reject("value", msg("validation:promotion.valueRequired"));
   }
 
   if (promotion.type === "percentage" && value > PROMOTION_LIMITS.maxPercentOff) {
-    return reject("value", `At most ${PROMOTION_LIMITS.maxPercentOff}% off`);
+    return reject(
+      "value",
+      msg("validation:promotion.maxPercent", { max: PROMOTION_LIMITS.maxPercentOff }),
+    );
   }
 
   const price = parseFloat(data.price);
@@ -83,7 +87,9 @@ function checkPromotion(data, ctx) {
     if (discounted < PROMOTION_LIMITS.minPrice) {
       return reject(
         "value",
-        `That leaves the price below ${PROMOTION_LIMITS.minPrice.toFixed(2)}. Lower the discount.`,
+        msg("validation:promotion.belowFloor", {
+          min: PROMOTION_LIMITS.minPrice.toFixed(2),
+        }),
       );
     }
   }
@@ -93,21 +99,21 @@ function checkPromotion(data, ctx) {
     promotion.endsAt &&
     new Date(promotion.endsAt) <= new Date(promotion.startsAt)
   ) {
-    reject("endsAt", "The promotion has to end after it starts");
+    reject("endsAt", msg("validation:promotion.endsBeforeStart"));
   }
 }
 
 export const menuItemSchema = z
   .object({
-    name: z.string().min(1, "Dish name is required"),
-    category: z.string().min(1, "Please select a category"),
+    name: z.string().min(1, msg("validation:menuItem.nameRequired")),
+    category: z.string().min(1, msg("validation:menuItem.categoryRequired")),
     price: priceField,
     available: z.boolean(),
-    description: z.string().trim().min(1, "Description is required"),
+    description: z.string().trim().min(1, msg("validation:menuItem.descriptionRequired")),
     images: z
       .array(uploadableImage)
-      .min(1, "At least one image is required")
-      .max(6, "Maximum 6 images allowed")
+      .min(1, msg("validation:menuItem.imagesRequired"))
+      .max(6, msg("validation:menuItem.imagesMax", { count: 6 }))
       .default([]),
     promotion: promotionField.default({}),
   })
@@ -115,14 +121,14 @@ export const menuItemSchema = z
 
 export const editMenuItemSchema = z
   .object({
-    name: z.string().min(1, "Dish name is required"),
-    category: z.string().min(1, "Please select a category"),
+    name: z.string().min(1, msg("validation:menuItem.nameRequired")),
+    category: z.string().min(1, msg("validation:menuItem.categoryRequired")),
     price: priceField,
     available: z.boolean(),
-    description: z.string().trim().min(1, "Description is required"),
+    description: z.string().trim().min(1, msg("validation:menuItem.descriptionRequired")),
     images: z
       .array(uploadableImage)
-      .max(6, "Maximum 6 images allowed")
+      .max(6, msg("validation:menuItem.imagesMax", { count: 6 }))
       .default([]),
     existingImages: z.array(z.string()).optional().default([]),
     promotion: promotionField.default({}),
@@ -132,7 +138,7 @@ export const editMenuItemSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["images"],
-        message: "At least one image is required",
+        message: msg("validation:menuItem.imagesRequired"),
       });
     }
     checkPromotion(data, ctx);

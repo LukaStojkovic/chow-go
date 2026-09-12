@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
@@ -26,6 +27,7 @@ import { PopularDishesSection } from "@/features/home/PopularDishesSection";
 import { DiscoveryFeed } from "@/features/home/DiscoveryFeed";
 
 export default function DiscoverPage() {
+  const { t } = useTranslation(["discover", "common"]);
   const { address, coordinates } = useDeliveryStore();
   const authUser = useAuthStore((state) => state.authUser);
   const fetchCart = useCartStore((state) => state.fetchCart);
@@ -68,10 +70,10 @@ export default function DiscoverPage() {
   return (
     <>
       <PageContainer as="div" className="py-5 sm:py-6">
-        <h1 className="sr-only">Restaurants and dishes delivering to {address}</h1>
+        <h1 className="sr-only">{t("discover:pageHeading", { address })}</h1>
 
         <Stack gap="2xl">
-          <section aria-label="Browse by category">
+          <section aria-label={t("discover:categoryRailLabel")}>
             <CategoryRail value={activeCategory} onChange={setActiveCategory} />
           </section>
 

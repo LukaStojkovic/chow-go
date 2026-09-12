@@ -2,65 +2,66 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { msg } from "@chowgo/shared/i18n/fieldErrors";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
 const CUSTOMER_SCHEMA = z.object({
-  phoneNumber: z.string().min(7, "Phone number is required"),
+  phoneNumber: z.string().min(7, msg("validation:auth.phoneRequired")),
 });
 
 const RESTAURANT_INFO_SCHEMA = z.object({
-  restaurantName: z.string().min(1, "Restaurant name is required"),
-  restaurantPhone: z.string().min(1, "Phone number is required"),
-  restaurantAddress: z.string().min(1, "Address is required"),
-  restaurantCity: z.string().min(1, "City is required"),
+  restaurantName: z.string().min(1, msg("validation:restaurant.nameRequired")),
+  restaurantPhone: z.string().min(1, msg("validation:auth.phoneRequired")),
+  restaurantAddress: z.string().min(1, msg("validation:restaurant.addressRequired")),
+  restaurantCity: z.string().min(1, msg("validation:restaurant.cityRequired")),
   restaurantState: z.string().optional(),
-  restaurantZipCode: z.string().min(1, "Zip code is required"),
-  cuisineType: z.string().min(1, "Cuisine type is required"),
+  restaurantZipCode: z.string().min(1, msg("validation:restaurant.zipRequired")),
+  cuisineType: z.string().min(1, msg("validation:restaurant.cuisineRequired")),
 });
 
 const RESTAURANT_LOCATION_SCHEMA = z.object({
   restaurantLat: z
     .number()
-    .refine((val) => val !== 0, "Please select a location on the map"),
+    .refine((val) => val !== 0, msg("validation:restaurant.locationRequired")),
   restaurantLng: z
     .number()
-    .refine((val) => val !== 0, "Please select a location on the map"),
-  openingTime: z.string().min(1, "Opening time is required"),
-  closingTime: z.string().min(1, "Closing time is required"),
+    .refine((val) => val !== 0, msg("validation:restaurant.locationRequired")),
+  openingTime: z.string().min(1, msg("validation:restaurant.openingRequired")),
+  closingTime: z.string().min(1, msg("validation:restaurant.closingRequired")),
 });
 
 const RESTAURANT_IMAGES_SCHEMA = z.object({
   restaurantDescription: z
     .string()
-    .min(10, "Description must be at least 10 characters"),
+    .min(10, msg("validation:restaurant.descriptionMin", { count: 10 })),
   restaurantImages: z
     .array(z.instanceof(File))
-    .min(1, "At least one image is required")
-    .max(10, "Maximum 10 images"),
+    .min(1, msg("validation:restaurant.imagesRequired"))
+    .max(10, msg("validation:restaurant.imagesMax", { count: 10 })),
 });
 
 const COURIER_INFO_SCHEMA = z.object({
-  phoneNumber: z.string().min(7, "Phone number is required"),
+  phoneNumber: z.string().min(7, msg("validation:auth.phoneRequired")),
   vehicleType: z.enum(["bike", "scooter", "motorcycle", "car"], {
-    errorMap: () => ({ message: "Please select a vehicle type" }),
+    errorMap: () => ({ message: msg("validation:courier.vehicleTypeRequired") }),
   }),
-  vehicleNumber: z.string().min(1, "Vehicle number is required"),
-  vehicleModel: z.string().min(1, "Vehicle model is required"),
+  vehicleNumber: z.string().min(1, msg("validation:courier.vehicleNumberRequired")),
+  vehicleModel: z.string().min(1, msg("validation:courier.vehicleModelRequired")),
 });
 
 const COURIER_DOCUMENTS_SCHEMA = z.object({
   documents: z.object({
     driverLicense: z.object({
-      number: z.string().min(1, "Driver license number is required"),
+      number: z.string().min(1, msg("validation:courier.licenseNumberRequired")),
       expiryDate: z.string().optional(),
     }),
     vehicleRegistration: z.object({
-      number: z.string().min(1, "Registration number is required"),
+      number: z.string().min(1, msg("validation:courier.registrationNumberRequired")),
       expiryDate: z.string().optional(),
     }),
     insurance: z.object({
-      number: z.string().min(1, "Insurance number is required"),
+      number: z.string().min(1, msg("validation:courier.insuranceNumberRequired")),
       expiryDate: z.string().optional(),
     }),
   }),
@@ -68,19 +69,19 @@ const COURIER_DOCUMENTS_SCHEMA = z.object({
 
 const STEP_CONFIG = {
   customer: [
-    { id: "role", title: "Choose your role" },
-    { id: "customer-info", title: "Contact details" },
+    { id: "role", title: "auth:google.stepRole" },
+    { id: "customer-info", title: "auth:google.stepContact" },
   ],
   seller: [
-    { id: "role", title: "Choose your role" },
-    { id: "restaurant-info", title: "Restaurant information" },
-    { id: "restaurant-location", title: "Location & hours" },
-    { id: "restaurant-images", title: "Photos & description" },
+    { id: "role", title: "auth:google.stepRole" },
+    { id: "restaurant-info", title: "auth:restaurant.infoTitle" },
+    { id: "restaurant-location", title: "auth:restaurant.locationTitle" },
+    { id: "restaurant-images", title: "auth:restaurant.imagesTitle" },
   ],
   courier: [
-    { id: "role", title: "Choose your role" },
-    { id: "courier-info", title: "Contact & vehicle" },
-    { id: "courier-documents", title: "Documents" },
+    { id: "role", title: "auth:google.stepRole" },
+    { id: "courier-info", title: "auth:google.stepCourierInfo" },
+    { id: "courier-documents", title: "auth:google.stepDocuments" },
   ],
 };
 

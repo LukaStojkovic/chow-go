@@ -1,3 +1,14 @@
+/**
+ * Map and routing geometry.
+ *
+ * `formatDistance` here deliberately differs from the one in `format.js`:
+ * a route length is a measurement and is shown as measured, while a discovery
+ * card buckets to 50 m so two restaurants on one street do not look ranked by
+ * a metre. The two must never be merged behind a barrel export.
+ */
+
+import { t } from "./i18n/index.js";
+
 export function toLatLng(coordinates) {
   if (!Array.isArray(coordinates) || coordinates.length !== 2) return null;
   const [lng, lat] = coordinates;
@@ -15,14 +26,18 @@ export function toOsrmCoord(latLng) {
 
 export function formatDistance(meters) {
   if (meters == null) return null;
-  if (meters < 1000) return `${Math.round(meters)} m`;
-  return `${(meters / 1000).toFixed(1)} km`;
+  if (meters < 1000) return t("common:units.metres", { value: Math.round(meters) });
+  return t("common:units.kilometres", { value: (meters / 1000).toFixed(1) });
 }
 
 export function formatDuration(seconds) {
   if (seconds == null) return null;
   const mins = Math.max(1, Math.round(seconds / 60));
-  return mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  if (mins < 60) return t("common:units.minutes", { value: mins });
+  return t("common:units.hoursMinutes", {
+    hours: Math.floor(mins / 60),
+    minutes: mins % 60,
+  });
 }
 
 export function haversineMeters(a, b) {

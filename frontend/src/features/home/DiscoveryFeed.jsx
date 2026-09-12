@@ -8,12 +8,13 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { UtensilsCrossed } from "lucide-react";
 
 import { staggerContainer } from "@/lib/motion";
 import { useDiscoverStore } from "@/store/useDiscoverStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
-import { CATEGORIES } from "@/lib/constants";
+import { useCategories } from "@/lib/constants";
 import { Section, ResponsiveGrid } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
 import { EmptyState, InlineError } from "@/components/common/StateViews";
@@ -35,18 +36,21 @@ export function DiscoveryFeed({ onAddDish }) {
     retryFeed,
   } = useDiscoverStore();
   const { coordinates } = useDeliveryStore();
+  const { t } = useTranslation("discover");
+  const categories = useCategories();
 
+  const isAllCategories = activeCategory === "All";
   const categoryLabel =
-    CATEGORIES.find((category) => category.value === activeCategory)?.label ?? activeCategory;
+    categories.find((category) => category.value === activeCategory)?.label ?? activeCategory;
 
-  const title = activeCategory === "All" ? "All dishes near you" : categoryLabel;
+  const title = isAllCategories ? t("feed.allTitle") : categoryLabel;
   const isInitialLoad = isLoadingFeed && feedItems.length === 0;
 
   if (feedError && feedItems.length === 0) {
     return (
       <Section title={title}>
         <InlineError
-          message="We could not load dishes for this category."
+          message={t("feed.loadError")}
           onRetry={() => retryFeed(coordinates?.lat, coordinates?.lon)}
         />
       </Section>
@@ -64,18 +68,20 @@ export function DiscoveryFeed({ onAddDish }) {
       ) : feedItems.length === 0 ? (
         <EmptyState
           icon={UtensilsCrossed}
-          title={`No ${activeCategory === "All" ? "dishes" : categoryLabel.toLowerCase()} nearby`}
+          title={
+            isAllCategories
+              ? t("feed.emptyAllTitle")
+              : t("feed.emptyCategoryTitle", { category: categoryLabel })
+          }
           description={
-            activeCategory === "All"
-              ? "No restaurant is delivering to this address right now. Try a different address."
-              : "Nothing in this category is available at your address right now."
+            isAllCategories ? t("feed.emptyAllBody") : t("feed.emptyCategoryBody")
           }
           action={
-            activeCategory !== "All" ? (
+            isAllCategories ? null : (
               <Button variant="outline" onClick={() => setActiveCategory("All")}>
-                Show all dishes
+                {t("feed.showAll")}
               </Button>
-            ) : null
+            )
           }
         />
       ) : (
@@ -90,7 +96,7 @@ export function DiscoveryFeed({ onAddDish }) {
 
           {feedError && (
             <InlineError
-              message="Could not load more dishes."
+              message={t("feed.loadMoreError")}
               onRetry={() => retryFeed(coordinates?.lat, coordinates?.lon)}
             />
           )}
@@ -101,10 +107,10 @@ export function DiscoveryFeed({ onAddDish }) {
                 variant="outline"
                 size="lg"
                 isLoading={isLoadingFeed}
-                loadingLabel="Loading more dishes"
+                loadingLabel={t("feed.loadingMore")}
                 onClick={() => loadMore(coordinates?.lat, coordinates?.lon)}
               >
-                Load more
+                {t("feed.loadMore")}
               </Button>
             </div>
           )}

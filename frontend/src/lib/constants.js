@@ -1,4 +1,19 @@
-// Resolves the shared taxonomy's string icon keys to Lucide components.
+/**
+ * Web-side taxonomy shim.
+ *
+ * Two jobs. It resolves the shared taxonomy's string icon keys to Lucide
+ * components - the shared package cannot reference an icon library, because
+ * the native client draws from a different one. And it wraps the shared
+ * label builders in hooks, so a list of options is rebuilt when the language
+ * changes rather than frozen at import time.
+ *
+ * The hooks memoise on `i18n.language` rather than on `t`: react-i18next hands
+ * back a new `t` on other re-renders too, and rebuilding eleven category
+ * objects on every keystroke in the search box is wasted work.
+ */
+
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Beef,
   Briefcase,
@@ -20,20 +35,25 @@ import {
   Soup,
 } from "lucide-react";
 import {
-  ADDRESS_LABELS as ADDRESS_LABEL_DATA,
-  ADDRESS_TYPES as ADDRESS_TYPE_DATA,
-  CATEGORIES as CATEGORY_DATA,
+  addressLabels,
+  addressTypes,
+  categoryOptions,
+  cuisineOptions as buildCuisineOptions,
+  deliveryTimeFilters,
+  deliveryTypes,
+  paymentMethods,
+  sortOptions,
+  vehicleOptions,
 } from "@chowgo/shared/constants";
 
 export {
-  CUISINE_LABELS,
-  cuisineOptions,
-  SORT_OPTIONS,
-  DELIVERY_TIME_FILTERS,
-  DELIVERY_TYPES,
-  PAYMENT_METHODS,
   MAX_SAVED_ADDRESSES,
   MAX_ORDER_NOTES,
+  CATEGORY_VALUES,
+  CUISINE_VALUES,
+  cuisineLabel,
+  addressLabelText,
+  matchAddressLabelValue,
 } from "@chowgo/shared/constants";
 
 /** @type {Record<string, import("lucide-react").LucideIcon>} */
@@ -51,12 +71,6 @@ const CATEGORY_ICONS = {
   drinks: CupSoda,
 };
 
-/** @type {{ id: string, label: string, value: string, icon: import("lucide-react").LucideIcon }[]} */
-export const CATEGORIES = CATEGORY_DATA.map((category) => ({
-  ...category,
-  icon: CATEGORY_ICONS[category.icon] ?? LayoutGrid,
-}));
-
 /** @type {Record<string, import("lucide-react").LucideIcon>} */
 const ADDRESS_TYPE_ICONS = {
   apartment: Building,
@@ -69,20 +83,83 @@ const ADDRESS_TYPE_ICONS = {
 /** @type {Record<string, import("lucide-react").LucideIcon>} */
 const ADDRESS_LABEL_ICONS = { home: Home, work: Briefcase, partner: Heart, other: MapPin };
 
-export const ADDRESS_TYPES = ADDRESS_TYPE_DATA.map((type) => ({
-  ...type,
-  icon: ADDRESS_TYPE_ICONS[type.icon] ?? MapPin,
-}));
+/**
+ * Build a translated option list once per language.
+ *
+ * @template T
+ * @param {(t: Function) => T} build
+ * @param {(option: T) => T} [decorate]
+ * @returns {T}
+ */
+function useTaxonomy(build, decorate) {
+  const { t, i18n } = useTranslation("common");
 
-export const ADDRESS_LABELS = ADDRESS_LABEL_DATA.map((option) => ({
-  ...option,
-  icon: ADDRESS_LABEL_ICONS[option.icon] ?? MapPin,
-}));
+  return useMemo(() => {
+    const options = build(t);
+    return decorate ? options.map(decorate) : options;
+    // `t` is intentionally absent: `i18n.language` is what changes the output.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
+}
 
-/** Rows written before the label list existed carry "home" rather than "Home". */
-export function matchAddressLabel(stored) {
-  const found = ADDRESS_LABELS.find(
-    (option) => option.value.toLowerCase() === String(stored ?? "").toLowerCase(),
-  );
-  return found?.value ?? "Other";
+/**
+ * Discovery category rail.
+ *
+ * @returns {{ id: string, label: string, value: string, icon: import("lucide-react").LucideIcon }[]}
+ */
+export function useCategories() {
+  return useTaxonomy(categoryOptions, (category) => ({
+    ...category,
+    icon: CATEGORY_ICONS[category.icon] ?? LayoutGrid,
+  }));
+}
+
+/** @returns {{ value: string, label: string }[]} */
+export function useCuisineOptions() {
+  return useTaxonomy(buildCuisineOptions);
+}
+
+/** @returns {{ value: string, label: string }[]} */
+export function useSortOptions() {
+  return useTaxonomy(sortOptions);
+}
+
+/** @returns {{ value: string, label: string }[]} */
+export function useDeliveryTimeFilters() {
+  return useTaxonomy(deliveryTimeFilters);
+}
+
+/** @returns {{ value: string, label: string, description: string }[]} */
+export function useDeliveryTypes() {
+  return useTaxonomy(deliveryTypes);
+}
+
+/** @returns {{ value: string, label: string, description: string }[]} */
+export function usePaymentMethods() {
+  return useTaxonomy(paymentMethods);
+}
+
+/** @returns {{ value: string, label: string }[]} */
+export function useVehicleOptions() {
+  return useTaxonomy(vehicleOptions);
+}
+
+/**
+ * @returns {{ value: string, label: string, icon: import("lucide-react").LucideIcon, fields: string[] }[]}
+ */
+export function useAddressTypes() {
+  return useTaxonomy(addressTypes, (type) => ({
+    ...type,
+    icon: ADDRESS_TYPE_ICONS[type.icon] ?? MapPin,
+  }));
+}
+
+/**
+ * @returns {{ value: string, label: string, icon: import("lucide-react").LucideIcon }[]}
+ */
+export function useAddressLabels() {
+  return useTaxonomy(addressLabels, (option) => ({
+    ...option,
+    icon: ADDRESS_LABEL_ICONS[option.icon] ?? MapPin,
+  }));
 }

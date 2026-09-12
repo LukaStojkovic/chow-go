@@ -11,9 +11,10 @@
  */
 
 import { SlidersHorizontal, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
-import { DELIVERY_TIME_FILTERS, SORT_OPTIONS } from "@/lib/constants";
+import { useDeliveryTimeFilters, useSortOptions } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -56,6 +57,9 @@ function FilterChip({ isActive, onClick, children }) {
  * @param {() => void} props.onReset
  */
 export function SearchFilters({ filters, onChange, activeCount, onReset }) {
+  const { t } = useTranslation(["discover", "common"]);
+  const deliveryTimeFilters = useDeliveryTimeFilters();
+  const sortOptions = useSortOptions();
   const set = (patch) => onChange({ ...filters, ...patch });
 
   return (
@@ -63,21 +67,23 @@ export function SearchFilters({ filters, onChange, activeCount, onReset }) {
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 text-label">
           <SlidersHorizontal className="size-4" aria-hidden="true" />
-          Filters
+          {t("common:actions.filters")}
         </span>
 
         <FilterChip isActive={filters.openNow} onClick={() => set({ openNow: !filters.openNow })}>
-          Open now
+          {t("discover:filters.openNow")}
         </FilterChip>
 
         <FilterChip
           isActive={filters.freeDelivery}
           onClick={() => set({ freeDelivery: !filters.freeDelivery })}
         >
-          Free delivery
+          {t("discover:filters.freeDelivery")}
         </FilterChip>
 
-        {DELIVERY_TIME_FILTERS.filter((option) => option.value !== "any").map((option) => (
+        {deliveryTimeFilters
+          .filter((option) => option.value !== "any")
+          .map((option) => (
           <FilterChip
             key={option.value}
             isActive={filters.maxDeliveryTime === option.value}
@@ -88,28 +94,28 @@ export function SearchFilters({ filters, onChange, activeCount, onReset }) {
               })
             }
           >
-            {option.label}
-          </FilterChip>
-        ))}
+              {option.label}
+            </FilterChip>
+          ))}
 
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" onClick={onReset}>
             <X aria-hidden="true" />
-            Clear {activeCount === 1 ? "filter" : `${activeCount} filters`}
+            {t("discover:filters.clear", { count: activeCount })}
           </Button>
         )}
       </div>
 
       <div className="flex items-center gap-2">
         <Label htmlFor="search-sort" className="text-muted-foreground shrink-0">
-          Sort by
+          {t("discover:filters.sortBy")}
         </Label>
         <Select value={filters.sort} onValueChange={(value) => set({ sort: value })}>
           <SelectTrigger id="search-sort" className="w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {SORT_OPTIONS.map((option) => (
+            {sortOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>

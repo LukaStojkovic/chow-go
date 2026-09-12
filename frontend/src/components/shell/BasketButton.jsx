@@ -8,6 +8,7 @@
 
 import { motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { transitions } from "@/lib/motion";
@@ -20,6 +21,7 @@ import useCartStore from "@/store/useCartStore";
  * @param {boolean} [props.showLabel] Desktop headers show the word "Basket".
  */
 export function BasketButton({ onOpen, showLabel = false, className }) {
+  const { t } = useTranslation("basket");
   const items = useCartStore((state) => state.items);
   const count = items.reduce((sum, line) => sum + (line.quantity || 0), 0);
 
@@ -30,10 +32,16 @@ export function BasketButton({ onOpen, showLabel = false, className }) {
       size={showLabel ? "md" : "icon"}
       onClick={onOpen}
       className={cn("relative", className)}
-      aria-label={count > 0 ? `Basket, ${count} ${count === 1 ? "item" : "items"}` : "Basket, empty"}
+      // The count is part of the accessible name, and the plural form is the
+      // catalog's job - Serbian needs three where English needs two.
+      aria-label={
+        count > 0
+          ? t("a11yWithCount", { count, items: t("itemCount", { count }) })
+          : t("a11yEmpty")
+      }
     >
       <ShoppingBag aria-hidden="true" />
-      {showLabel && <span aria-hidden="true">Basket</span>}
+      {showLabel && <span aria-hidden="true">{t("title")}</span>}
 
       {count > 0 && (
         <motion.span

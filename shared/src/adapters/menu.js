@@ -2,6 +2,7 @@
  * Menu item and menu section adapters.
  */
 
+import { t } from "../i18n/index.js";
 import { titleCase } from "../format.js";
 
 /** @typedef {import("./types").DishView} DishView */
@@ -46,7 +47,7 @@ export function toDishView(raw) {
 
   return {
     id: String(raw._id),
-    name: raw.name || "Menu item",
+    name: raw.name || t("restaurant:menu.untitledDish"),
     description: raw.description || "",
     /** What the dish costs now. Already includes any live promotion. */
     price,
@@ -56,7 +57,7 @@ export function toDishView(raw) {
     /** Seller-written copy for the badge ("Weekend deal"), when they set one. */
     promoLabel: isDiscounted && promoLabel ? promoLabel : null,
     category: categorySlug(raw.category),
-    categoryLabel: titleCase(raw.category) || "Other",
+    categoryLabel: titleCase(raw.category) || t("restaurant:menu.otherCategory"),
     image: images[0] || null,
     images,
     // `available` defaults to true on the schema; treat a missing value as
@@ -94,7 +95,7 @@ export function toMenuSections(raw) {
       if (items.length === 0) return null;
       return {
         id: categorySlug(group.category),
-        label: titleCase(group.category) || "Other",
+        label: titleCase(group.category) || t("restaurant:menu.otherCategory"),
         items,
         availableCount: items.filter((item) => item.isAvailable).length,
       };
@@ -160,7 +161,7 @@ export function toBasketLines(items) {
 
       return {
         id: String(id),
-        name: line.name || menuItem?.name || "Item",
+        name: line.name || menuItem?.name || t("restaurant:menu.untitledDish"),
         description: menuItem?.description || line.description || "",
         unitPrice,
         baseUnitPrice: isDiscounted ? baseUnitPrice : null,

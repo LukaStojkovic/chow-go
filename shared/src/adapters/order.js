@@ -2,12 +2,14 @@
  * Order view-model adapter.
  *
  * Owns the mapping from the backend's ten-value status enum to the six steps a
- * customer actually understands, and to the copy shown for each. Status text
- * lives here rather than in components so a badge, a timeline node and a
- * screen-reader announcement can never describe the same order differently.
+ * customer actually understands, and to the copy key shown for each. Status
+ * text is resolved here rather than in components so a badge, a timeline node,
+ * a screen-reader announcement and a push notification can never describe the
+ * same order differently.
  */
 
 import { formatOrderDate } from "../format.js";
+import { t } from "../i18n/index.js";
 import { toRestaurantView } from "./restaurant.js";
 import { toBasketLines } from "./menu.js";
 import { breakdownFromOrder } from "./pricing.js";
@@ -15,72 +17,46 @@ import { breakdownFromOrder } from "./pricing.js";
 /** @typedef {import("./types").OrderView} OrderView */
 /** @typedef {import("./types").OrderStepView} OrderStepView */
 
+
 /**
- * Every status the backend can report, with the copy the customer sees.
- * `tone` maps onto the semantic status tokens, never onto a raw colour.
+ * Every status the backend can report, with its presentation metadata.
+ *
+ * The copy itself lives in the `order:status` catalog and is resolved by
+ * `statusMeta()` - baking a label in here would freeze it in whichever
+ * language happened to load first. `tone` maps onto the semantic status
+ * tokens, never onto a raw colour.
  */
-export const ORDER_STATUS = {
-  pending: {
-    label: "Waiting for confirmation",
-    description: "The restaurant has your order and will confirm it shortly.",
-    tone: "warning",
-    lifecycle: "pending",
-  },
-  confirmed: {
-    label: "Order confirmed",
-    description: "The restaurant accepted your order.",
-    tone: "info",
-    lifecycle: "active",
-  },
-  preparing: {
-    label: "Being prepared",
-    description: "Your food is being cooked right now.",
-    tone: "info",
-    lifecycle: "active",
-  },
-  ready: {
-    label: "Ready for pickup",
-    description: "Your order is packed and waiting for a courier.",
-    tone: "info",
-    lifecycle: "active",
-  },
-  assigned: {
-    label: "Courier on the way to the restaurant",
-    description: "A courier has taken your order and is heading to collect it.",
-    tone: "info",
-    lifecycle: "active",
-  },
-  picked_up: {
-    label: "Picked up",
-    description: "The courier has your order and is setting off.",
-    tone: "info",
-    lifecycle: "active",
-  },
-  in_transit: {
-    label: "On the way to you",
-    description: "Your courier is on the way. Follow them on the map below.",
-    tone: "primary",
-    lifecycle: "active",
-  },
-  delivered: {
-    label: "Delivered",
-    description: "Your order arrived. Enjoy.",
-    tone: "success",
-    lifecycle: "delivered",
-  },
-  cancelled: {
-    label: "Cancelled",
-    description: "This order was cancelled.",
-    tone: "destructive",
-    lifecycle: "cancelled",
-  },
-  rejected: {
-    label: "Declined by restaurant",
-    description: "The restaurant could not take this order.",
-    tone: "destructive",
-    lifecycle: "cancelled",
-  },
+export const ORDER_STATUS_META = {
+  pending: { tone: "warning", lifecycle: "pending" },
+  confirmed: { tone: "info", lifecycle: "active" },
+  preparing: { tone: "info", lifecycle: "active" },
+  ready: { tone: "info", lifecycle: "active" },
+  assigned: { tone: "info", lifecycle: "active" },
+  picked_up: { tone: "info", lifecycle: "active" },
+  in_transit: { tone: "primary", lifecycle: "active" },
+  delivered: { tone: "success", lifecycle: "delivered" },
+  cancelled: { tone: "destructive", lifecycle: "cancelled" },
+  rejected: { tone: "destructive", lifecycle: "cancelled" },
 };
+
+/** Every status value the backend can report, in no particular order. */
+export const ORDER_STATUSES = Object.keys(ORDER_STATUS_META);
+
+/**
+ * Tone, lifecycle and copy for a status, in the language active right now.
+ *
+ * @param {string | null | undefined} status
+ * @returns {{ status: string, label: string, description: string, tone: string, lifecycle: string }}
+ */
+export function statusMeta(status) {
+  const known = ORDER_STATUS_META[status] ? status : "pending";
+  return {
+    status: known,
+    label: t(`order:status.${known}.label`),
+    description: t(`order:status.${known}.description`),
+    ...ORDER_STATUS_META[known],
+  };
+}
 
 /** Order of progression, used to decide which timeline steps are complete. */
 const STATUS_SEQUENCE = [
@@ -96,58 +72,17 @@ const STATUS_SEQUENCE = [
 
 /**
  * The six steps shown to the customer, each mapped to the backend statuses and
- * timestamp field that satisfy it.
+ * timestamp field that satisfy it. Copy comes from the `order:step` catalog,
+ * keyed by `id`.
  */
 const TIMELINE_STEPS = [
-  {
-    id: "received",
-    label: "Order placed",
-    description: "We sent your order to the restaurant.",
-    reachedAt: "createdAt",
-    satisfiedBy: "pending",
-  },
-  {
-    id: "confirmed",
-    label: "Confirmed",
-    description: "The restaurant accepted your order.",
-    reachedAt: "confirmedAt",
-    satisfiedBy: "confirmed",
-  },
-  {
-    id: "preparing",
-    label: "Preparing",
-    description: "Your food is being cooked.",
-    reachedAt: "preparingAt",
-    satisfiedBy: "preparing",
-  },
-  {
-    id: "assigned",
-    label: "Courier assigned",
-    description: "A courier is collecting your order.",
-    reachedAt: "assignedAt",
-    satisfiedBy: "assigned",
-  },
-  {
-    id: "on_the_way",
-    label: "On the way",
-    description: "Your order is heading to you.",
-    reachedAt: "pickedUpAt",
-    satisfiedBy: "picked_up",
-  },
-  {
-    id: "delivered",
-    label: "Delivered",
-    description: "Your order arrived.",
-    reachedAt: "deliveredAt",
-    satisfiedBy: "delivered",
-  },
+  { id: "received", reachedAt: "createdAt", satisfiedBy: "pending" },
+  { id: "confirmed", reachedAt: "confirmedAt", satisfiedBy: "confirmed" },
+  { id: "preparing", reachedAt: "preparingAt", satisfiedBy: "preparing" },
+  { id: "assigned", reachedAt: "assignedAt", satisfiedBy: "assigned" },
+  { id: "on_the_way", reachedAt: "pickedUpAt", satisfiedBy: "picked_up" },
+  { id: "delivered", reachedAt: "deliveredAt", satisfiedBy: "delivered" },
 ];
-
-const PAYMENT_LABELS = {
-  cash: "Cash on delivery",
-  card: "Card",
-  wallet: "Wallet",
-};
 
 /**
  * Build the timeline for an order.
@@ -181,7 +116,13 @@ export function toOrderSteps(order) {
     // missed it (e.g. an order that skipped straight to in_transit).
     if (at && state === "upcoming") state = "complete";
 
-    return { id: step.id, label: step.label, description: step.description, state, at };
+    return {
+      id: step.id,
+      label: t(`order:step.${step.id}.label`),
+      description: t(`order:step.${step.id}.description`),
+      state,
+      at,
+    };
   });
 }
 
@@ -197,11 +138,17 @@ function toCourierView(raw) {
 
   return {
     id: String(id),
-    name: user?.name || raw.name || "Your courier",
+    name: user?.name || raw.name || t("order:courier.fallbackName"),
     avatar: user?.profilePicture || raw.profilePicture || null,
     phone: user?.phoneNumber || raw.phoneNumber || null,
     vehicle: raw.vehicleType || null,
-    rating: typeof raw.averageRating === "number" && raw.averageRating > 0 ? raw.averageRating : null,
+    vehicleLabel: raw.vehicleType
+      ? t(`order:courier.vehicle.${raw.vehicleType}`, { defaultValue: raw.vehicleType })
+      : null,
+    rating:
+      typeof raw.averageRating === "number" && raw.averageRating > 0
+        ? raw.averageRating
+        : null,
   };
 }
 
@@ -215,14 +162,15 @@ function toDeliveryAddress(snapshot) {
   if (!snapshot) return null;
   const detail = [
     snapshot.buildingName,
-    snapshot.apartment && `Apt ${snapshot.apartment}`,
-    snapshot.floor && `Floor ${snapshot.floor}`,
+    snapshot.apartment && t("order:address.apartment", { value: snapshot.apartment }),
+    snapshot.floor && t("order:address.floor", { value: snapshot.floor }),
   ]
     .filter(Boolean)
     .join(", ");
 
   return [snapshot.fullAddress, detail].filter(Boolean).join(" - ") || null;
 }
+
 
 /**
  * @param {Object | null | undefined} raw
@@ -232,7 +180,7 @@ export function toOrderView(raw) {
   if (!raw || !raw._id) return null;
 
   const status = raw.status || "pending";
-  const meta = ORDER_STATUS[status] || ORDER_STATUS.pending;
+  const meta = statusMeta(status);
   const items = toBasketLines(raw.items);
   const isTerminal = ["delivered", "cancelled", "rejected"].includes(status);
 
@@ -258,7 +206,9 @@ export function toOrderView(raw) {
     itemCount: items.reduce((sum, line) => sum + line.quantity, 0),
     pricing: breakdownFromOrder(raw),
     paymentMethod: raw.paymentMethod || "cash",
-    paymentMethodLabel: PAYMENT_LABELS[raw.paymentMethod] || "Cash on delivery",
+    paymentMethodLabel: t(`order:payment.${raw.paymentMethod || 'cash'}`, {
+      defaultValue: t('order:payment.cash'),
+    }),
     restaurant: toRestaurantView(raw.restaurant),
     courier: toCourierView(raw.courier),
     deliveryAddress: toDeliveryAddress(raw.deliveryAddressSnapshot),

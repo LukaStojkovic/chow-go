@@ -1,4 +1,5 @@
-import { CATEGORIES } from "@chowgo/shared/constants";
+import { useTranslation } from "react-i18next";
+import { categoryOptions } from "@chowgo/shared/constants";
 import {
   Beef,
   CakeSlice,
@@ -12,6 +13,8 @@ import {
   Salad,
   Soup,
 } from "lucide-react-native";
+import { useMemo } from "react";
+
 import { Chip, ChipRow } from "@/components/ui/Chip";
 
 // The shared taxonomy stores icons as string keys so the same data drives the
@@ -31,9 +34,14 @@ const ICONS = {
 };
 
 export function CategoryRail({ value, onChange }) {
+  const { t, i18n } = useTranslation("common");
+  // Rebuilt only when the language changes: `t` is a new function on every
+  // re-render, and this list is rendered inside a scrolling feed.
+  const categories = useMemo(() => categoryOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <ChipRow>
-      {CATEGORIES.map((category) => (
+      {categories.map((category) => (
         <Chip
           key={category.id}
           label={category.label}

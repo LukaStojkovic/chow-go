@@ -8,6 +8,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import { staggerContainer } from "@/lib/motion";
 import { useDiscoverStore } from "@/store/useDiscoverStore";
@@ -17,13 +18,14 @@ import { InlineError } from "@/components/common/StateViews";
 import { PromoCard, PromoCardSkeleton } from "@/components/discovery/PromoCard";
 
 export function PromotionsSection() {
+  const { t } = useTranslation("restaurant");
   const { deals, isLoadingPromotions, promotionsError, retryPromotions } =
     useDiscoverStore();
   const { coordinates } = useDeliveryStore();
 
   if (isLoadingPromotions && deals.length === 0) {
     return (
-      <Section title="Deals near you">
+      <Section title={t("promotions.heading")}>
         <Rail aria-busy="true">
           {[0, 1, 2].map((i) => (
             <PromoCardSkeleton key={i} />
@@ -40,9 +42,9 @@ export function PromotionsSection() {
   if (promotionsError) {
     if (deals.length === 0) return null;
     return (
-      <Section title="Deals near you">
+      <Section title={t("promotions.heading")}>
         <InlineError
-          message="Could not refresh the current deals."
+          message={t("promotions.loadError")}
           onRetry={() => retryPromotions(coordinates?.lat, coordinates?.lon)}
         />
       </Section>
@@ -53,8 +55,8 @@ export function PromotionsSection() {
 
   return (
     <Section
-      title="Deals near you"
-      description="Reduced by the restaurants delivering to your address"
+      title={t("promotions.heading")}
+      description={t("promotions.subtitle")}
     >
       <motion.div variants={staggerContainer} initial="hidden" animate="visible">
         <Rail>

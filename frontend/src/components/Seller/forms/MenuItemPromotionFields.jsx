@@ -8,12 +8,18 @@
  *
  * Rendered as a real `<fieldset>` with a `<legend>`, so a screen reader
  * announces "Promotion" as the group every one of these controls belongs to.
+ *
+ * The preview sentence is a `<Trans>` rather than four concatenated fragments:
+ * Serbian puts the amounts in a different order from English, and a sentence
+ * assembled from pieces can only ever be built in one language's word order.
  */
 
+import { Trans, useTranslation } from "react-i18next";
 import { CalendarClock } from "lucide-react";
 
 import { formatPrice } from "@chowgo/shared/format";
-import { PROMOTION_LIMITS, PROMOTION_TYPES, previewPromotion } from "@chowgo/shared/promotion";
+import { PROMOTION_LIMITS, previewPromotion, promotionTypes } from "@chowgo/shared/promotion";
+import { translateFieldError } from "@chowgo/shared/i18n/fieldErrors";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -33,6 +39,7 @@ import { Switch } from "@/components/ui/switch";
  * @param {Object} props.errors react-hook-form's `formState.errors`.
  */
 export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
+  const { t } = useTranslation(["seller", "common"]);
   const promotion = watch("promotion") || {};
   const isActive = Boolean(promotion.isActive);
   const type = promotion.type || "percentage";
@@ -42,20 +49,21 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
   const fieldErrors = errors?.promotion || {};
 
   const isPercentage = type === "percentage";
+  const typeOptions = promotionTypes(t);
 
   return (
     <fieldset className="border-border space-y-5 rounded-md border p-4">
-      <legend className="text-label text-foreground px-1">Promotion</legend>
+      <legend className="text-label text-foreground px-1">
+        {t("seller:promotion.legend")}
+      </legend>
 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <Label htmlFor="promotion-active" className="cursor-pointer">
-            Put this dish on sale
+            {t("seller:promotion.enableLabel")}
           </Label>
           <p className="text-body-sm text-muted-foreground mt-1">
-            Reduced dishes are collected into &ldquo;Deals near you&rdquo; on the
-            customer home screen, and carry a discount badge everywhere they
-            appear.
+            {t("seller:promotion.enableHint")}
           </p>
         </div>
         <Switch
@@ -71,7 +79,7 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
         <div className="border-border space-y-5 border-t pt-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <Label htmlFor="promotion-type">Discount type</Label>
+              <Label htmlFor="promotion-type">{t("seller:promotion.typeLabel")}</Label>
               <Select
                 value={type}
                 onValueChange={(value) =>
@@ -82,7 +90,7 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROMOTION_TYPES.map((option) => (
+                  {typeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -93,7 +101,9 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
 
             <div>
               <Label htmlFor="promotion-value">
-                {isPercentage ? "Percent off" : "Amount off"}
+                {isPercentage
+                  ? t("seller:promotion.percentOff")
+                  : t("seller:promotion.amountOff")}
               </Label>
               <Input
                 id="promotion-value"
@@ -110,7 +120,7 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
               />
               {fieldErrors.value && (
                 <p className="text-body-sm text-destructive mt-1">
-                  {fieldErrors.value.message}
+                  {translateFieldError(fieldErrors.value, t)}
                 </p>
               )}
             </div>
@@ -124,45 +134,49 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
             className="text-body-sm text-muted-foreground"
           >
             {preview.isValid ? (
-              <>
-                Customers pay{" "}
-                <span className="text-primary tabular font-semibold">
-                  {formatPrice(preview.discounted)}
-                </span>{" "}
-                instead of{" "}
-                <span className="tabular line-through">{formatPrice(price)}</span>{" "}
-                &mdash; {preview.percentOff}% off, saving{" "}
-                <span className="tabular">{formatPrice(preview.saving)}</span> per
-                dish.
-              </>
+              <Trans
+                t={t}
+                i18nKey="seller:promotion.preview"
+                values={{
+                  discounted: formatPrice(preview.discounted),
+                  original: formatPrice(price),
+                  percent: preview.percentOff,
+                  saving: formatPrice(preview.saving),
+                }}
+                components={[
+                  <span key="new" className="text-primary tabular font-semibold" />,
+                  <span key="old" className="tabular line-through" />,
+                  <span key="saving" className="tabular" />,
+                ]}
+              />
+            ) : isPercentage ? (
+              t("seller:promotion.previewHintPercent", {
+                min: formatPrice(PROMOTION_LIMITS.minPrice),
+                max: PROMOTION_LIMITS.maxPercentOff,
+              })
             ) : (
-              <>
-                Set a price and a discount to see what customers will pay. A
-                promotion cannot take a dish below{" "}
-                {formatPrice(PROMOTION_LIMITS.minPrice)}
-                {isPercentage ? `, or exceed ${PROMOTION_LIMITS.maxPercentOff}%` : ""}
-                .
-              </>
+              t("seller:promotion.previewHint", {
+                min: formatPrice(PROMOTION_LIMITS.minPrice),
+              })
             )}
           </p>
 
           <div>
-            <Label htmlFor="promotion-label">Badge text (optional)</Label>
+            <Label htmlFor="promotion-label">{t("seller:promotion.badgeLabel")}</Label>
             <Input
               id="promotion-label"
-              placeholder="e.g. Weekend deal"
+              placeholder={t("seller:promotion.badgePlaceholder")}
               maxLength={PROMOTION_LIMITS.maxLabelLength}
               className="mt-2 h-12"
               aria-describedby="promotion-label-hint"
               {...register("promotion.label")}
             />
             <p id="promotion-label-hint" className="text-body-sm text-muted-foreground mt-1">
-              Shown next to the discount. Leave empty to show just the
-              percentage.
+              {t("seller:promotion.badgeHint")}
             </p>
             {fieldErrors.label && (
               <p className="text-body-sm text-destructive mt-1">
-                {fieldErrors.label.message}
+                {translateFieldError(fieldErrors.label, t)}
               </p>
             )}
           </div>
@@ -170,15 +184,15 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
           <div className="space-y-3">
             <p className="text-label text-foreground flex items-center gap-2">
               <CalendarClock className="size-4" aria-hidden="true" />
-              Run it for a set period (optional)
+              {t("seller:promotion.scheduleTitle")}
             </p>
             <p className="text-body-sm text-muted-foreground">
-              Leave both empty and the promotion runs until you switch it off.
+              {t("seller:promotion.scheduleHint")}
             </p>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <Label htmlFor="promotion-starts">Starts</Label>
+                <Label htmlFor="promotion-starts">{t("seller:promotion.startsAt")}</Label>
                 <Input
                   id="promotion-starts"
                   type="datetime-local"
@@ -187,13 +201,13 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
                 />
                 {fieldErrors.startsAt && (
                   <p className="text-body-sm text-destructive mt-1">
-                    {fieldErrors.startsAt.message}
+                    {translateFieldError(fieldErrors.startsAt, t)}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="promotion-ends">Ends</Label>
+                <Label htmlFor="promotion-ends">{t("seller:promotion.endsAt")}</Label>
                 <Input
                   id="promotion-ends"
                   type="datetime-local"
@@ -203,7 +217,7 @@ export function MenuItemPromotionFields({ register, watch, setValue, errors }) {
                 />
                 {fieldErrors.endsAt && (
                   <p className="text-body-sm text-destructive mt-1">
-                    {fieldErrors.endsAt.message}
+                    {translateFieldError(fieldErrors.endsAt, t)}
                   </p>
                 )}
               </div>

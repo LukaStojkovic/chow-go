@@ -8,22 +8,28 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { hoverNudge } from "@/lib/motion";
-import { CATEGORIES } from "@/lib/constants";
+import { useCategories } from "@/lib/constants";
 import { Rail } from "@/components/layout/primitives";
 
 /**
  * @param {Object} props
  * @param {string} props.value Currently selected category value.
  * @param {(value: string) => void} props.onChange
- * @param {typeof CATEGORIES} [props.categories]
+ * @param {ReturnType<typeof useCategories>} [props.categories] Defaults to
+ *   the full list; a caller passes a subset only to narrow the rail.
  */
-export function CategoryRail({ value, onChange, categories = CATEGORIES }) {
+export function CategoryRail({ value, onChange, categories }) {
+  const { t } = useTranslation("common");
+  const allCategories = useCategories();
+  const options = categories ?? allCategories;
+
   return (
-    <Rail role="radiogroup" aria-label="Filter by category">
-      {categories.map(({ id, label, value: categoryValue, icon: Icon }) => {
+    <Rail role="radiogroup" aria-label={t("discover.categoryRailLabel")}>
+      {options.map(({ id, label, value: categoryValue, icon: Icon }) => {
         const isActive = value === categoryValue;
 
         return (
@@ -40,9 +46,9 @@ export function CategoryRail({ value, onChange, categories = CATEGORIES }) {
             onKeyDown={(event) => {
               if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
               event.preventDefault();
-              const index = categories.findIndex((c) => c.value === value);
+              const index = options.findIndex((c) => c.value === value);
               const delta = event.key === "ArrowRight" ? 1 : -1;
-              const next = categories[(index + delta + categories.length) % categories.length];
+              const next = options[(index + delta + options.length) % options.length];
               onChange(next.value);
             }}
             className={cn(

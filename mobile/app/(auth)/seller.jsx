@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
-import { CUISINE_LABELS } from "@chowgo/shared/constants";
+import { cuisineOptions } from "@chowgo/shared/constants";
 import { errorMessage } from "@/api/client";
 import { CheckCircle2 } from "lucide-react-native";
 import { Badge } from "@/components/ui/Badge";
@@ -46,6 +47,9 @@ function Progress({ index }) {
 }
 
 export default function SellerSignup() {
+  const { t, i18n } = useTranslation(["auth", "common"]);
+  const cuisines = useMemo(() => cuisineOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [index, setIndex] = useState(0);
   const [collected, setCollected] = useState({});
   const [images, setImages] = useState([]);
@@ -177,7 +181,7 @@ export default function SellerSignup() {
                     Cuisine
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
-                    {Object.entries(CUISINE_LABELS).map(([value, label]) => (
+                    {cuisines.map(({ value, label }) => (
                       <Chip
                         key={value}
                         label={label}

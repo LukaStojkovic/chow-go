@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@chowgo/shared/i18n/config";
 
 const userSchema = new mongoose.Schema(
   {
@@ -51,6 +52,18 @@ const userSchema = new mongoose.Schema(
     // version they were minted at, so raising it invalidates every credential
     // already issued - there was previously no way to revoke anything.
     tokenVersion: { type: Number, default: 0 },
+
+    // The language this person reads the app in. Stored, not derived, because
+    // the backend has to render push notification copy long after the request
+    // that would have carried a header - a courier is assigned while the
+    // customer's app is closed. Clients set it at sign-in and whenever the
+    // user switches; `SUPPORTED_LOCALES` is the enum so a typo cannot write a
+    // value `resolveLocale` would silently fall back from on every send.
+    locale: {
+      type: String,
+      enum: SUPPORTED_LOCALES,
+      default: DEFAULT_LOCALE,
+    },
 
     // A deleted account is anonymised rather than removed: orders are the
     // restaurant's and the courier's records too, and a hard delete would tear

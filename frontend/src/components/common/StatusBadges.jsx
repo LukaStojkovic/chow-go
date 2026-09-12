@@ -7,10 +7,11 @@
  */
 
 import { CircleCheck, CircleX, Clock, Tag, Truck, UtensilsCrossed } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { ORDER_STATUS } from "@chowgo/shared/adapters/order";
+import { statusMeta } from "@chowgo/shared/adapters/order";
 
 /** Order status -> badge variant. Tones come from the adapter, not from here. */
 const TONE_TO_VARIANT = {
@@ -41,7 +42,10 @@ const STATUS_ICON = {
  * @param {boolean} [props.withIcon]
  */
 export function OrderStatusBadge({ status, size = "md", withIcon = true, className }) {
-  const meta = ORDER_STATUS[status] || ORDER_STATUS.pending;
+  // `useTranslation` is called for its re-render on language change; the copy
+  // itself comes from the adapter so a badge and a timeline node cannot differ.
+  useTranslation("order");
+  const meta = statusMeta(status);
   const Icon = STATUS_ICON[status] || Clock;
 
   return (
@@ -60,16 +64,21 @@ export function OrderStatusBadge({ status, size = "md", withIcon = true, classNa
  * @param {"onCard"|"inline"} [props.placement] `onCard` sits over a photo.
  */
 export function AvailabilityBadge({ availability, placement = "inline", size = "md", className }) {
+  const { t } = useTranslation("restaurant");
+
   if (availability === "open") {
     if (placement === "onCard") return null; // Open is the default; no badge needed.
     return (
       <Badge variant="success" size={size} className={className}>
-        Open now
+        {t("availability.open")}
       </Badge>
     );
   }
 
-  const label = availability === "unavailable" ? "Not taking orders" : "Closed";
+  const label =
+    availability === "unavailable"
+      ? t("availability.unavailable")
+      : t("availability.closed");
 
   return (
     <Badge
@@ -84,9 +93,11 @@ export function AvailabilityBadge({ availability, placement = "inline", size = "
 
 /** Marks a dish the kitchen has switched off. */
 export function SoldOutBadge({ size = "md", className }) {
+  const { t } = useTranslation("restaurant");
+
   return (
     <Badge variant="muted" size={size} className={className}>
-      Sold out
+      {t("menu.soldOut")}
     </Badge>
   );
 }
@@ -104,12 +115,14 @@ export function SoldOutBadge({ size = "md", className }) {
  * @param {"sm"|"md"|"lg"} [props.size]
  */
 export function PromoBadge({ percent, label, size = "md", className }) {
+  const { t } = useTranslation("restaurant");
+
   if (!percent) return null;
 
   return (
     <Badge variant="promo" size={size} className={className}>
       <Tag aria-hidden="true" />
-      <span className="sr-only">Promotion: </span>
+      <span className="sr-only">{t("promotions.srPrefix")} </span>
       {label ? `${label} · -${percent}%` : `-${percent}%`}
     </Badge>
   );

@@ -3,6 +3,10 @@ import { Button } from "../ui/button";
 import { LogOut, Settings, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useTranslation } from "react-i18next";
+
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
+
 export default function MobileSidebarContent({
   authUser,
   onLogout,
@@ -12,6 +16,7 @@ export default function MobileSidebarContent({
   const profilePicture =
     authUser?.profilePicture || "/defaultProfilePicture.png";
   const navigate = useNavigate();
+  const { t } = useTranslation(["common", "auth", "profile"]);
 
   return (
     <>
@@ -26,7 +31,7 @@ export default function MobileSidebarContent({
             />
             <div className="min-w-0">
               <p className="font-semibold text-sm sm:text-base">
-                Welcome back!
+                {t("auth:login.title")}
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {authUser.name}
@@ -41,14 +46,14 @@ export default function MobileSidebarContent({
               className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-primary-subtle/50 text-muted-foreground "
             >
               <User className="w-4 sm:w-5 h-4 sm:h-5 mr-2 sm:mr-3 shrink-0" />
-              Profile
+              {t("common:nav.profile")}
             </Button>
             <Button
               variant="ghost"
               className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base hover:bg-primary-subtle/50 text-muted-foreground "
             >
               <Settings className="w-4 sm:w-5 h-4 sm:h-5 mr-2 sm:mr-3 shrink-0" />
-              Settings
+              {t("common:nav.settings")}
             </Button>
             <Button
               onClick={onLogout}
@@ -56,7 +61,7 @@ export default function MobileSidebarContent({
               className="w-full justify-start h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base text-destructive hover:bg-destructive-subtle/50 "
             >
               <LogOut className="w-4 sm:w-5 h-4 sm:h-5 mr-2 sm:mr-3 shrink-0" />
-              Logout
+              {t("common:actions.logOut")}
             </Button>
           </div>
         </div>
@@ -67,35 +72,44 @@ export default function MobileSidebarContent({
             variant="ghost"
             className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-muted rounded-lg sm:rounded-xl"
           >
-            Log In
+            {t("auth:login.submit")}
           </Button>
           <Button
             onClick={() => onSignup(false)}
             className="w-full justify-center text-base sm:text-lg font-medium h-12 sm:h-14 hover:bg-muted rounded-lg sm:rounded-xl"
           >
-            Sign up
+            {t("auth:register.submit")}
           </Button>
         </div>
       )}
+
+      {/* Above the secondary links on purpose: someone who cannot read the
+          rest of this sheet still needs to find the language control. */}
+      <div className="space-y-2 pt-4 sm:pt-6 border-t border-border/50">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {t("common:language.label")}
+        </p>
+        <LanguageSwitcher variant="list" />
+      </div>
 
       <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-border/50 ">
         <a
           href="#"
           className="block text-sm sm:text-lg text-muted-foreground hover:text-primary transition-colors font-medium"
         >
-          Restaurants
+          {t("common:nav.restaurants")}
         </a>
         <Link
           to="/become-courier"
           className="block text-sm sm:text-lg text-muted-foreground hover:text-primary transition-colors font-medium"
         >
-          Become a Courier
+          {t("profile:becomeCourier.cta")}
         </Link>
         <a
           href="#"
           className="block text-sm sm:text-lg text-muted-foreground hover:text-primary transition-colors font-medium"
         >
-          Help Center
+          {t("common:nav.help")}
         </a>
       </div>
     </>

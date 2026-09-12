@@ -16,7 +16,7 @@ import { AppearanceSettings } from "@/features/settings/AppearanceSettings";
 import { Bike, Heart, Search, Star, Store } from "lucide-react-native";
 import { formatPrice } from "@chowgo/shared/format";
 import { formatDistance } from "@chowgo/shared/geo";
-import { CATEGORIES } from "@chowgo/shared/constants";
+import { CATEGORY_VALUES } from "@chowgo/shared/constants";
 import { PRICING } from "@chowgo/shared/adapters/pricing";
 import { api, errorMessage } from "@/api/client";
 import { API_URL, SOCKET_URL } from "@/lib/config";
@@ -346,7 +346,7 @@ function KitchenSink() {
             <Text variant="body-sm">formatPrice(12.5) = {formatPrice(12.5)}</Text>
             <Text variant="body-sm">geo.formatDistance(1250) = {formatDistance(1250)}</Text>
             <Text variant="body-sm">delivery fee = {formatPrice(PRICING.deliveryFee)}</Text>
-            <Text variant="body-sm">{CATEGORIES.length} categories</Text>
+            <Text variant="body-sm">{CATEGORY_VALUES.length} categories</Text>
           </Card>
         </Group>
 
