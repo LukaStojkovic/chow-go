@@ -3,7 +3,7 @@ const VALID_TRANSITIONS = {
   preparing: ["ready"],
 };
 
-const ACTIVE_STATUSES = [
+export const ACTIVE_STATUSES = [
   "pending",
   "confirmed",
   "preparing",
@@ -46,8 +46,36 @@ export function canReject(status) {
   return status === "pending";
 }
 
+/** Restaurant-side cancel. */
+export const RESTAURANT_CANCELLABLE = ["confirmed", "preparing", "ready"];
+
 export function canCancel(status) {
-  return ["confirmed", "preparing", "ready"].includes(status);
+  return RESTAURANT_CANCELLABLE.includes(status);
+}
+
+/**
+ * Every status a given status is legally reachable from - the inverse of
+ * VALID_TRANSITIONS. An atomic transition needs this: the filter has to name
+ * the statuses the write is allowed from, rather than reading the current one
+ * first and then writing.
+ */
+export function statusesThatReach(newStatus) {
+  return Object.entries(VALID_TRANSITIONS)
+    .filter(([, allowed]) => allowed.includes(newStatus))
+    .map(([from]) => from);
+}
+
+/**
+ * Customer-side cancel. Was an inline array in orderController that disagreed
+ * with the copy in shared/src/adapters/order.js two ways: it blocked
+ * "preparing" the UI still offered, and it permitted "rejected", which let a
+ * customer overwrite a seller's rejection reason.
+ *
+ * "assigned" stays cancellable - a courier on the way to the restaurant is not
+ * a reason to trap the customer - but the handler must release that courier.
+ */
+export function canCustomerCancel(status) {
+  return ["pending", "confirmed", "ready", "assigned"].includes(status);
 }
 
 export function parseStatusFilter(statusParam) {

@@ -24,6 +24,14 @@ import { useCartStore } from "@/store/useCartStore";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
+import { makeRouteErrorBoundary } from "@/components/feedback/routeErrorBoundary";
+
+export const ErrorBoundary = makeRouteErrorBoundary(
+  "checkout",
+  "Checkout hit a problem",
+  "Your basket is safe and nothing has been charged.",
+);
+
 export default function Checkout() {
   const { items, totalPrice, clearLocalCart, restaurant, fetchCart } = useCartStore();
   const addresses = useAddresses();

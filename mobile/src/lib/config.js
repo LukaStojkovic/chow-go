@@ -20,9 +20,37 @@ function devHost() {
   return "localhost";
 }
 
+const VAR = { api: "EXPO_PUBLIC_API_URL", socket: "EXPO_PUBLIC_SOCKET_URL" };
+
+/**
+ * The dev-host fallback is a development convenience and nothing more.
+ *
+ * There was no `__DEV__` guard here, so a release build with the variable unset
+ * - which is what mobile/.env held, and eas.json supplied nothing for the
+ * production profile - silently resolved to http://localhost:8000/api. Every
+ * request in the shipped app then failed with a generic network error telling
+ * the user to "check that the API is running".
+ *
+ * A release build throws instead. There is no useful app without an API, and a
+ * build that cannot reach one should not get as far as the App Store.
+ */
 function resolve(envValue, kind) {
   const env = envValue?.trim();
-  if (env && !/localhost|127\.0\.0\.1/.test(env)) return env.replace(/\/$/, "");
+  const name = VAR[kind];
+
+  if (env && !/localhost|127\.0\.0\.1/.test(env)) {
+    if (!__DEV__ && env.startsWith("http://")) {
+      throw new Error(`${name} must use https in a release build.`);
+    }
+    return env.replace(/\/$/, "");
+  }
+
+  if (!__DEV__) {
+    throw new Error(
+      `${name} is not set. A release build has no dev host to fall back to - ` +
+        "set it in the eas.json build profile.",
+    );
+  }
 
   const host = devHost();
   return kind === "api" ? `http://${host}:8000/api` : `http://${host}:8000`;

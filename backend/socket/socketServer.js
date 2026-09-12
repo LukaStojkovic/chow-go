@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import { isTokenVersionCurrent } from "../utils/generateToken.js";
 import User from "../models/User.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -73,8 +74,12 @@ class SocketServer {
 
         const user = await User.findById(decoded.userId);
 
-        if (!user) {
+        if (!user || user.isDeleted) {
           return next(new Error("Authentication error: User not found"));
+        }
+
+        if (!isTokenVersionCurrent(decoded, user)) {
+          return next(new Error("Authentication error: Token revoked"));
         }
 
         socket.userId = user._id.toString();
@@ -380,6 +385,19 @@ class SocketServer {
       data,
       "the courier pool",
     );
+  }
+
+  /**
+   * Courier ids with at least one live socket. The pool push uses this to skip
+   * couriers who are already watching, the same way deliverToCustomer uses an
+   * empty room as its signal.
+   */
+  connectedCourierIds() {
+    const ids = new Set();
+    for (const [courierId, sockets] of this.connections.couriers) {
+      if (sockets && sockets.size > 0) ids.add(String(courierId));
+    }
+    return ids;
   }
 
   getStats() {

@@ -20,8 +20,13 @@ export default function VerifyOtp() {
 
   async function onSubmit({ code }) {
     try {
-      await verifyOtp(email, code);
-      router.push({ pathname: "/(auth)/reset-password", params: { email } });
+      const res = await verifyOtp(email, code);
+      // The next screen identifies the account by this single-use token, so the
+      // email no longer needs to travel with the request.
+      router.push({
+        pathname: "/(auth)/reset-password",
+        params: { resetToken: res?.data?.resetToken ?? "" },
+      });
     } catch (error) {
       toast.error("That code didn't work", { description: errorMessage(error) });
     }

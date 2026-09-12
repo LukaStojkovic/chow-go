@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { RouteSkeleton } from "@/components/skeletons/routeSkeletons";
 import {
   LayoutDashboard,
   ListOrdered,
@@ -205,6 +206,7 @@ export default function CourierLayout() {
 
               <PageTransition
                 context={{ isAvailable, activeOrder }}
+                fallback={<RouteSkeleton pathname={location.pathname} />}
                 className={
                   isDeliveryPage ? "flex min-h-0 flex-1 flex-col" : undefined
                 }

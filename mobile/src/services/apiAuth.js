@@ -16,6 +16,13 @@ export async function registerCustomer(payload) {
   return data;
 }
 
+export async function deleteAccount(password) {
+  const { data } = await api.delete("/auth/account", {
+    data: password ? { password } : {},
+  });
+  return data;
+}
+
 export async function logoutUser() {
   const { data } = await api.post("/auth/logout");
   return data;
@@ -31,8 +38,10 @@ export async function verifyOtp(email, code) {
   return data;
 }
 
-export async function resetPassword(email, newPassword) {
-  const { data } = await api.post("/auth/reset-password", { email, newPassword });
+// verify-otp returns a single-use resetToken; the account is identified by
+// that rather than by an email supplied with the request.
+export async function resetPassword(resetToken, newPassword) {
+  const { data } = await api.post("/auth/reset-password", { resetToken, newPassword });
   return data;
 }
 

@@ -95,10 +95,11 @@ export function buildPriceBreakdown({
 /**
  * Read a breakdown back off a placed order.
  *
- * `serviceFee` is passed to the Order constructor by the backend but is not on
- * the schema, so Mongoose drops it - the stored line items genuinely do not
- * reconcile with `total`. Rather than print a total that does not add up, we
- * recover the missing amount as the difference and label it honestly.
+ * `serviceFee` and `priorityFee` are stored on the order now, so this is a
+ * straight read. Orders placed before that have neither: the schema dropped
+ * `serviceFee`, and `priorityFee` was folded into `deliveryFee`. For those,
+ * recover the missing amount as the difference and label it honestly rather
+ * than print a total that does not add up.
  *
  * @param {Object} order Raw order document.
  * @returns {PriceBreakdownView}
@@ -113,9 +114,24 @@ export function breakdownFromOrder(order) {
   const discount = Number(order.discount) || 0;
   const total = Number(order.total) || 0;
 
+  // priorityFee is the marker: it only exists on orders written after the fees
+  // were persisted separately.
+  const isItemised = order.priorityFee !== undefined && order.priorityFee !== null;
+
+  if (isItemised) {
+    return {
+      subtotal: toMoney(subtotal),
+      deliveryFee: toMoney(deliveryFee),
+      serviceFee: toMoney(Number(order.serviceFee) || 0),
+      priorityFee: toMoney(Number(order.priorityFee) || 0),
+      tip: toMoney(tip),
+      discount: toMoney(discount),
+      tax: toMoney(tax),
+      total: toMoney(total),
+    };
+  }
+
   const accountedFor = subtotal + deliveryFee + tax + tip - discount;
-  // Whatever the stored total contains beyond the stored line items is the
-  // service fee (and priority surcharge, if any) the schema never persisted.
   const unaccounted = toMoney(Math.max(0, total - accountedFor));
 
   return {

@@ -70,7 +70,7 @@ export async function updateRestaurantInfo({
     }
 
     restaurant.isOpenNow =
-      restaurant.isActive && isOpenAt(restaurant.schedule);
+      restaurant.isActive && isOpenAt(restaurant.schedule, new Date(), restaurant.timezone);
   }
 
   if (estimatedDeliveryTime !== undefined) {

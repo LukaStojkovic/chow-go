@@ -15,7 +15,7 @@ const otpSchema = z.object({
 
 const resetSchema = z
   .object({
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -26,6 +26,10 @@ const resetSchema = z
 export function usePasswordReset(onComplete) {
   const { forgotPassword, verifyOtp, resetPassword } = useAuthStore();
   const [resetEmail, setResetEmail] = useState("");
+  // verify-otp hands back a single-use, 15-minute token that reset-password
+  // identifies the account by. It is held in memory only - persisting it would
+  // leave a password-reset credential in storage.
+  const [resetToken, setResetToken] = useState("");
 
   const emailForm = useForm({
     resolver: zodResolver(forgotEmailSchema),
@@ -57,6 +61,7 @@ export function usePasswordReset(onComplete) {
   const verifyCode = async (data) => {
     try {
       const res = await verifyOtp(resetEmail, data.code);
+      setResetToken(res?.data?.resetToken ?? "");
       toast.success(res.message);
       return "reset";
     } catch (err) {
@@ -67,12 +72,13 @@ export function usePasswordReset(onComplete) {
 
   const changePassword = async (data) => {
     try {
-      const res = await resetPassword(resetEmail, data.password);
+      const res = await resetPassword(resetToken, data.password);
       toast.success(res.message);
       emailForm.reset();
       otpForm.reset();
       resetForm.reset();
       setResetEmail("");
+      setResetToken("");
       onComplete?.();
       return "login";
     } catch (err) {

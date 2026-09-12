@@ -6,14 +6,15 @@ export function startCronJobs() {
   cron.schedule("* * * * *", async () => {
     try {
       const activeRestaurants = await Restaurant.find({ isActive: true })
-        .select("schedule isOpenNow _id")
+        .select("schedule isOpenNow timezone _id")
         .lean();
 
       const now = new Date();
       const bulkOperations = [];
 
       for (const restaurant of activeRestaurants) {
-        const shouldBeOpen = isOpenAt(restaurant.schedule, now);
+        // Each restaurant is evaluated in its own zone rather than the host's.
+        const shouldBeOpen = isOpenAt(restaurant.schedule, now, restaurant.timezone);
 
         if (restaurant.isOpenNow !== shouldBeOpen) {
           bulkOperations.push({

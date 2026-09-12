@@ -8,6 +8,7 @@ import {
 import {
   checkAuth,
   loginUser,
+  deleteAccount as deleteAccountApi,
   logoutUser,
   registerCustomer,
   requestPasswordReset,
@@ -106,6 +107,15 @@ export const useAuthStore = create((set) => {
         // The token is cleared locally regardless; a failed call must not
         // strand the user in a signed-in state.
       }
+      await clearToken();
+      set({ authUser: null });
+    },
+
+    // Deletion is irreversible on the server, so the local session is torn
+    // down the same way logout does it - the token it held is already dead.
+    deleteAccount: async (password) => {
+      await import("@/notifications/register").then((m) => m.unregisterPush());
+      await deleteAccountApi(password);
       await clearToken();
       set({ authUser: null });
     },

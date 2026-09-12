@@ -6,6 +6,9 @@ import MenuItem from "../models/MenuItem.js";
 
 dotenv.config();
 
+import { assertDevDatabase } from "./guardDatabase.js";
+assertDevDatabase();
+
 async function connectDB() {
   try {
     await mongoose.connect(process.env.MONGODB_URL);

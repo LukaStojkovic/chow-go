@@ -8,6 +8,7 @@ import { PaymentMethodChart } from "@/components/Seller/Analytics/Charts/Payment
 import { RevenueLineChart } from "@/components/Seller/Analytics/Charts/RevenueLineChart";
 import { TopItemsSection } from "@/components/Seller/Analytics/TopItemsSection";
 import { RecentRatingsSection } from "@/components/Seller/Analytics/RecentRatingsSection";
+import { SellerAnalyticsSkeleton } from "@/components/skeletons/SellerSkeletons";
 
 export const SellerAnalytics = () => {
   const { authUser } = useAuthStore();
@@ -17,11 +18,7 @@ export const SellerAnalytics = () => {
     useGetRestaurantAnalytics(restaurantId);
 
   if (isLoadingAnalytics) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
+    return <SellerAnalyticsSkeleton />;
   }
 
   if (error) {

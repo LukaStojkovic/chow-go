@@ -4,6 +4,7 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { api } from "@/api/client";
 import { ensureChannels } from "./channels";
+import { reportError } from "@/lib/monitoring";
 
 let registeredToken = null;
 
@@ -32,7 +33,7 @@ export async function registerForPush() {
     // anything the running app did, so it is named rather than swallowed below.
     const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
     if (!projectId) {
-      console.warn("[push] no EAS projectId - run `eas init`; push stays off until then");
+      reportError(new Error("push registration: no EAS projectId"), { hint: "run `eas init`" });
       return null;
     }
 
@@ -47,7 +48,9 @@ export async function registerForPush() {
     registeredToken = token;
     return token;
   } catch (error) {
-    console.warn("[push] registration failed:", error.message);
+    // Push is how a customer learns their order was confirmed. A silent
+    // console.warn here means a broken setup is invisible in production.
+    reportError(error, { stage: "registerForPush" });
     return null;
   }
 }

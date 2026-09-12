@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import useGetRestaurantStats from "@/hooks/Restaurants/useGetRestaurantStats";
-import Spinner from "@/components/Spinner";
+import { SellerDashboardSkeleton } from "@/components/skeletons/SellerSkeletons";
 import {
   Tooltip,
   TooltipTrigger,
@@ -19,7 +19,7 @@ export const SellerDashboard = () => {
     useGetRestaurantStats(restaurantId);
 
   if (isLoadingStats) {
-    return <Spinner fullScreen />;
+    return <SellerDashboardSkeleton />;
   }
 
   if (error) {

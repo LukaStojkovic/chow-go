@@ -1,3 +1,4 @@
+import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -21,10 +22,19 @@ export function useCreateOrder() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { mutate: createOrder, isPending: isCreatingOrder } = useMutation({
-    mutationFn: createOrderApi,
+  // One key per checkout attempt, held until the order lands. Two taps send
+  // the same key, so the backend hands the second one the first one's order
+  // instead of creating a duplicate.
+  const keyRef = useRef(null);
+
+  const { mutate, isPending: isCreatingOrder } = useMutation({
+    mutationFn: (orderData) => {
+      if (!keyRef.current) keyRef.current = crypto.randomUUID();
+      return createOrderApi({ ...orderData, idempotencyKey: keyRef.current });
+    },
 
     onSuccess: (data) => {
+      keyRef.current = null;
       const orderId = data?.data?.order?._id;
 
       useCartStore.setState({ items: [], totalPrice: 0, restaurant: null });
@@ -47,6 +57,8 @@ export function useCreateOrder() {
       );
     },
   });
+
+  const createOrder = useCallback((orderData) => mutate(orderData), [mutate]);
 
   return { createOrder, isCreatingOrder };
 }

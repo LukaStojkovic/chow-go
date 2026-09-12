@@ -112,8 +112,8 @@ export const useAuthStore = create((set) => ({
     return data;
   },
 
-  resetPassword: async (email, password) => {
-    const data = await apiResetPassword(email, password);
+  resetPassword: async (resetToken, password) => {
+    const data = await apiResetPassword(resetToken, password);
 
     return data;
   },

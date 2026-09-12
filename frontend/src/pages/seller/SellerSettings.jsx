@@ -5,6 +5,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,12 +33,15 @@ import {
   isOvernight,
   normalizeSchedule,
 } from "@chowgo/shared/schedule";
+import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 
 export const SellerSettings = () => {
   const { authUser, apiUpdateRestaurant, isUpdatingProfile } = useAuthStore();
   const restaurant = authUser?.restaurant?.[0] || {};
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
+
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
 
   const [formData, setFormData] = useState({
     name: restaurant.name || "",
@@ -151,10 +155,16 @@ export const SellerSettings = () => {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-8 pb-8">
       <Card>
-        <CardHeader>
+        {/* CardContent, not CardHeader: this card has no body below it, and a
+            header carries no bottom padding - the avatar spilled past the card
+            edge. */}
+        <CardContent>
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="relative group">
-              <Avatar className="w-24 h-24">
+            {/* Sized to the avatar so the uploading overlay's `inset-0` stays a
+                circle - it used to inherit the wrapper's height and render as a
+                dark pill hanging below the image. */}
+            <div className="relative size-24 shrink-0">
+              <Avatar className="size-24">
                 <AvatarImage
                   src={displayImage}
                   alt="Restaurant Logo"
@@ -166,7 +176,7 @@ export const SellerSettings = () => {
               </Avatar>
 
               {isUpdatingProfile && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
                   <Loader2 className="w-8 h-8 text-white animate-spin" />
                 </div>
               )}
@@ -184,7 +194,8 @@ export const SellerSettings = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUpdatingProfile}
-                className="absolute bottom-0 right-0 rounded-full h-8 w-8 bg-primary hover:bg-primary"
+                aria-label="Change restaurant logo"
+                className="absolute bottom-0 right-0 size-8 rounded-full ring-2 ring-card"
               >
                 <Camera className="w-4 h-4" />
               </Button>
@@ -205,7 +216,7 @@ export const SellerSettings = () => {
               </CardDescription>
             </div>
           </div>
-        </CardHeader>
+        </CardContent>
       </Card>
 
       <Card>
@@ -460,6 +471,30 @@ export const SellerSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+          <CardDescription>
+            Deleting your account takes your restaurant offline. Past orders stay
+            on record for your customers and couriers.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive px-0"
+            onClick={() => setShowDeleteAccount(true)}
+          >
+            Delete my account
+          </Button>
+        </CardContent>
+      </Card>
+
+      <DeleteAccountDialog
+        open={showDeleteAccount}
+        onOpenChange={setShowDeleteAccount}
+      />
     </div>
   );
 };

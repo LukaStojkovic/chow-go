@@ -22,6 +22,13 @@ import { useCancelOrder, useOrder } from "@/hooks/Orders/useOrders";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
+import { makeRouteErrorBoundary } from "@/components/feedback/routeErrorBoundary";
+
+export const ErrorBoundary = makeRouteErrorBoundary(
+  "order-tracking",
+  "We could not show this order",
+);
+
 // The adapter's status tones, mapped onto the badge's own vocabulary.
 const BADGE_TONE = {
   warning: "warning",

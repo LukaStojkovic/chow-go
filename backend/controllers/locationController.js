@@ -1,8 +1,7 @@
-import dotenv from "dotenv";
+import "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 import Restaurant from "../models/Restaurant.js";
 
-dotenv.config();
 
 async function fetchJson(url) {
   const response = await fetch(url, {

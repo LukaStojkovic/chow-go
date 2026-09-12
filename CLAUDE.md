@@ -34,7 +34,13 @@ node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migra
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
 ```
 
-There is **no test framework and no CI** anywhere in the repo. Do not invent a `npm test` invocation; verify changes by running the dev servers.
+There is **no test framework and no CI** anywhere in the repo, and no `npm test`. There is,
+however, a suite of self-contained check scripts — `cd backend && npm run check:all` runs
+all nine against a throwaway in-memory MongoDB, needing no running server and never
+touching a real database. Run it after any change to the order lifecycle, auth, or
+pricing. Individually: `check:observability`, `check:reset`, `check:courier-access`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
+`check:schedule`.
 
 The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
@@ -60,13 +66,35 @@ All GeoJSON is `[lng, lat]`. 2dsphere indexes exist on `Restaurant.location`, `A
 
 | Actor | Service | Transitions |
 |---|---|---|
-| customer | `controllers/orderController.js` | create (`pending`), cancel while pending/confirmed/ready |
+| customer | `controllers/orderController.js` | create (`pending`), cancel per `canCustomerCancel` — pending/confirmed/ready/assigned |
 | seller | `services/restaurantOrder.service.js` | confirm/reject from `pending`; `preparing`/`ready` gated by `isValidTransition`; cancel while confirmed/preparing/ready |
 | courier | `services/courierOrder.service.js` | claim a `ready` order → `assigned`, release back to pool, `picked_up`, `in_transit`, `delivered` |
 
-`utils/orderStatus.js` is the single source of truth for restaurant-side transitions, `ACTIVE_STATUSES`, and `parseStatusFilter` (accepts `"active"` or a comma-separated list from query params). Courier claiming is the one race-safe write in the codebase: a single `findOneAndUpdate` filtered on `{status: "ready", courier: null}`.
+`utils/orderStatus.js` is the single source of truth for transitions on both sides:
+`canCustomerCancel` (mirrored exactly by `shared/src/adapters/order.js`),
+`RESTAURANT_CANCELLABLE`, `statusesThatReach` (the inverse of `VALID_TRANSITIONS`),
+`ACTIVE_STATUSES`, and `parseStatusFilter`.
 
-Order creation snapshots data deliberately — item name/price are copied into `order.items`, and the address is copied into `deliveryAddressSnapshot` — then the cart document is deleted. Pricing is hardcoded in `createOrder` (delivery 2.50, service 1.50, priority +1.99, tax 0).
+**Every status change is a conditional `findOneAndUpdate`** whose filter names the
+statuses the write is legal from, so the guard and the write are one operation. Both
+services have a private `transition()` helper for this; a caller that loses the race
+gets a `409 ORDER_STATUS_CONFLICT` rather than silently overwriting. Never reintroduce
+read-check-mutate-save here.
+
+Order creation snapshots data deliberately — item name/price are copied into
+`order.items`, and the address is copied into `deliveryAddressSnapshot` — then the cart
+document is deleted. Those four writes run inside one `session.withTransaction`, so they
+need a replica set (as the delivery-address endpoints already did).
+
+`createOrder` honours an `Idempotency-Key` header, stored on `Order.idempotencyKey`
+(unique, sparse, `select: false`): a repeat returns the original order with
+`idempotentReplay: true` instead of placing a second one. Both clients generate one key
+per checkout attempt and clear it on success.
+
+Pricing is hardcoded in `createOrder` (delivery 2.50, service 1.50, priority +1.99, tax
+0) and every figure goes through `utils/money.js#toMoney`. `serviceFee` and
+`priorityFee` are each stored on their own field, so the stored order itemises exactly
+like the checkout preview.
 
 ## Realtime (Socket.IO)
 
@@ -86,7 +114,11 @@ Those same templates are the source of push copy via `pushPayloadFor`, so the tw
 
 `utils/schedule.js` is the single source of truth — `DAYS_OF_WEEK` (indexed to match `Date#getDay()`, and the model's `schedule` fields are generated from it), `isOpenAt` (checks today's window *and* yesterday's overnight spill), `normalizeScheduleInput` (validates partial payloads, coerces the `"true"`/`"false"` strings that arrive over multipart), and `buildScheduleFromRange` (signup collects one range and expands it across all 7 days).
 
-`isOpenNow` is precomputed, not derived: `services/cron.service.js` runs every minute and bulk-writes it via `isOpenAt` using **server-local time**. Discovery and nearby queries filter on that boolean, so state can lag up to a minute — `restaurant.service.updateRestaurantInfo` therefore recomputes it inline whenever the schedule changes. The job starts inside the Mongoose connect callback, so every backend instance runs its own copy.
+`isOpenNow` is precomputed, not derived: `services/cron.service.js` runs every minute and
+bulk-writes it via `isOpenAt` using **each restaurant's own `timezone`** (IANA, validated
+on the model, defaulting to `DEFAULT_TIMEZONE`). `isOpenAt` resolves the local weekday and
+time through `Intl`, and falls back to the host clock for an unusable zone so a bad value
+can never close a restaurant. Discovery and nearby queries filter on that boolean, so state can lag up to a minute — `restaurant.service.updateRestaurantInfo` therefore recomputes it inline whenever the schedule changes. The job starts inside the Mongoose connect callback, so every backend instance runs its own copy.
 
 The seller edits hours per day in `SellerSettings.jsx`, which autosaves nested multipart fields (`schedule[monday][isOpen]`); multer's `append-field` rebuilds them into an object, and the service merges day-by-day so a partial payload never wipes untouched days. `frontend/src/utils/scheduleUtils.js` holds the display-side ordering and formatting shared by the settings form and `RestaurantInfoModal`.
 
@@ -106,11 +138,21 @@ Layering is `routes → controllers → services → models`, but only partly mi
 
 Express 5 forwards async rejections to error middleware automatically, so many handlers deliberately omit `try/catch`; older ones wrap and call `next(error)`. Both are fine — match the file you're editing.
 
-`controllers/errorController.js` returns the full stack in development and only `err.message` for `isOperational` errors in production. Note that in production the SPA fallback `app.use` is registered before the error handler, so unmatched `/api/*` paths return `index.html` rather than a 404 JSON.
+`controllers/errorController.js` translates `CastError`, `ValidationError`, duplicate-key,
+JWT and Multer failures into 4xx with a stable machine-readable `code` and, where useful,
+a `fields` map — ordinary bad input used to fall through as a 500. Every response carries
+`requestId`, matching the `X-Request-Id` header and the `pino` log line.
+`AppError(message, statusCode, code)` takes that code. Unmatched `/api` paths return a
+JSON 404, registered ahead of the production SPA fallback.
 
 Auth is a JWT minted by `utils/generateToken.js`, carried two ways. The web gets an httpOnly cookie named `jwt` (`sameSite: strict`, `secure` unless `NODE_ENV=development`). Native clients have no usable cookie jar, so they read the token from the response body and send `Authorization: Bearer`; `middlewares/authMiddleware.js#extractToken` prefers the header and falls back to the cookie. The socket handshake mirrors this in `socket/socketServer.js#tokenFromHandshake` (`handshake.auth.token` → `Authorization` → cookie).
 
 The token is only added to a response body when `utils/clientType.js#isMobileClient` is true — i.e. the request carried `X-Client: mobile` or `?client=mobile`. Returning it unconditionally would hand a 7–30 day bearer credential to any XSS on the web SPA, which the httpOnly cookie currently prevents. Controllers opt in by wrapping their response in `withAuthToken(req, body, token)`.
+
+Tokens also carry `ver`, the user's `tokenVersion` at mint time; `protectedRoute` and the
+socket handshake reject a token whose `ver` is behind the user's current value, which is
+how a password reset or change revokes sessions already issued. A token minted before
+`ver` existed reads as 0 and keeps working until the version is actually raised.
 
 Tokens carry `typ: "access"`. `protectedRoute` and the socket middleware reject any other `typ`, but only when the claim is present, so pre-existing cookies keep working. This guard matters because other short-lived tokens are signed with the same `JWT_SECRET`.
 
@@ -165,9 +207,10 @@ Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else li
 
 ## Known drift — check before touching these
 
-1. **`serviceFee` is not on the Order schema.** `createOrder` adds 1.50 into `total` and passes `serviceFee` to the constructor, where Mongoose drops it — stored line items don't reconcile with `total`.
-2. Rate limits in `middlewares/rateLimit.js` all key off `req.ip`. Mobile carriers put thousands of subscribers behind one address, so `accountLimiter` (20 per 15 min, counting successes) and `loginLimiter` (10 failed logins) will collide for real cellular traffic — rekey on email before shipping a mobile client. `TRUST_PROXY` must also be set in production or every user lands in one bucket.
-3. Signup (both the local and Google seller paths) still collects a single opening/closing range rather than a full week; the backend expands it across all 7 days. Per-day control lives only in seller settings.
+1. Rate limits in `middlewares/rateLimit.js` all key off `req.ip`. Mobile carriers put thousands of subscribers behind one address, so `accountLimiter` (20 per 15 min, counting successes) and `loginLimiter` (10 failed logins) will collide for real cellular traffic — rekey on email before shipping a mobile client. `TRUST_PROXY` must also be set in production or every user lands in one bucket.
+2. Signup (both the local and Google seller paths) still collects a single opening/closing range rather than a full week; the backend expands it across all 7 days. Per-day control lives only in seller settings.
+3. **A seller signup creates a live restaurant.** `isActive: true` from the first request, so it appears in discovery with no approval step. Couriers are gated — `acceptOrderOperation` refuses an order unless `verificationStatus === "verified"`, approved with `scripts/verifyCourier.js` until there is an admin surface — but restaurants are not.
+4. **No online payment exists.** `paymentMethod` is `cash` or `card`, and both mean the courier collects at the door. `paymentStatus` never leaves `"pending"`, so nothing records that money changed hands.
 
 ## Single-instance assumptions (relevant to scaling)
 
@@ -177,6 +220,4 @@ The backend currently cannot run more than one process correctly. Anything touch
 - `express-session` uses the default `MemoryStore`, which breaks the two-phase Google signup across instances and loses sessions on restart.
 - The cron job runs per instance, so N instances race on the same `bulkWrite`.
 - `emitNewOrderAvailable` / `emitOrderTaken` / `emitOrderBackToPool` loop over *every* connected courier per event.
-- `orderNumber` is generated in a `pre("validate")` hook from `countDocuments()` — a full count on every order plus a duplicate-key race under concurrency.
-- No multi-document transactions: courier claim is atomic but the following `courier.save()` isn't, and rating averages in `orderRating.service.js` are read-modify-write on `Restaurant`/`Courier`.
 - `stats.service.fetchOrdersData` loads four unbounded `Order.find()` result sets into memory instead of aggregating.

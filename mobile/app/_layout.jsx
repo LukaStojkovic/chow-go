@@ -25,8 +25,28 @@ import { useGlobalSocketEvents } from "@/realtime/useGlobalSocketEvents";
 import { useAuthStore } from "@/store/useAuthStore";
 import { watchReduceMotion } from "@/store/useMotionStore";
 import { useThemeStore } from "@/store/useThemeStore";
+import { initMonitoring, reportError } from "@/lib/monitoring";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { View } from "react-native";
 
 SplashScreen.preventAutoHideAsync();
+initMonitoring();
+
+// Expo Router renders this in place of any subtree that throws, instead of the
+// white screen a release build would otherwise show.
+export function ErrorBoundary({ error, retry }) {
+  reportError(error, { boundary: "root" });
+  return (
+    <View className="flex-1 items-center justify-center bg-surface px-6">
+      <EmptyState
+        title="Chow & Go hit a problem"
+        description="Nothing has been charged. Try again, or reopen the app."
+        actionLabel="Try again"
+        onAction={retry}
+      />
+    </View>
+  );
+}
 
 function AppContent() {
   useGlobalSocketEvents();

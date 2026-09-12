@@ -8,6 +8,9 @@
  */
 import dotenv from "dotenv";
 dotenv.config();
+
+import { assertDevDatabase } from "./guardDatabase.js";
+assertDevDatabase();
 import mongoose from "mongoose";
 
 const API = "http://localhost:8000/api";
@@ -55,6 +58,13 @@ const courierUser = await User.findOne({
 const customerToken = await login(customer.email);
 const sellerToken = await login(seller.email);
 const courierToken = await login(courierUser.email);
+
+// The fixture comes from smokeRealtime --keep, where signup leaves the courier
+// "pending"; acceptOrderOperation refuses orders until it is verified.
+await Courier.updateOne(
+  { userId: courierUser._id },
+  { $set: { verificationStatus: "verified" } },
+);
 
 const item = await MenuItem.findOne({ name: "Smoke Burger" }).lean();
 await call("POST", "/delivery-address", customerToken, {

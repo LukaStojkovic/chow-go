@@ -7,6 +7,29 @@ import * as socketService from "./orderSocket.service.js";
 import { isUsableCoordinatePair } from "./locationTracking.service.js";
 
 const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
+
+// The unclaimed pool is visible to every courier on duty, so it carries only
+// what the accept decision needs. The entry details - door code, apartment,
+// floor, entrance - and both note fields are withheld until the order is
+// actually assigned, at which point listCourierOrders (scoped to the courier's
+// own id) returns the full snapshot.
+const POOL_ORDER_FIELDS = {
+  orderNumber: 1,
+  status: 1,
+  restaurant: 1,
+  items: 1,
+  subtotal: 1,
+  deliveryFee: 1,
+  tip: 1,
+  total: 1,
+  paymentMethod: 1,
+  createdAt: 1,
+  readyAt: 1,
+  estimatedDeliveryTime: 1,
+  deliveryDistance: 1,
+  "deliveryAddressSnapshot.fullAddress": 1,
+  "deliveryAddressSnapshot.location": 1,
+};
 const COURIER_HISTORY_STATUSES = ["delivered", "cancelled"];
 const DEFAULT_RADIUS_METERS = 15_000;
 
@@ -58,6 +81,7 @@ export async function listAvailableOrders({
           orders: [
             { $skip: skip },
             { $limit: limitNum },
+            { $project: POOL_ORDER_FIELDS },
             {
               $lookup: {
                 from: "restaurants",
@@ -111,6 +135,7 @@ export async function listAvailableOrders({
 
   const [orders, totalItems] = await Promise.all([
     Order.find(query)
+      .select(POOL_ORDER_FIELDS)
       .populate("restaurant", "name profilePicture address phone location")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -172,8 +197,50 @@ export async function listCourierOrders({
   };
 }
 
+
+/**
+ * Applies a courier-side status change only if the order is still in a status
+ * that change is legal from, in one write. These were read, check, mutate,
+ * save - the same shape the atomic claim below deliberately avoids.
+ */
+async function transition({ orderId, courierId, fromStatuses, set, conflictMessage }) {
+  const order = await Order.findOneAndUpdate(
+    { _id: orderId, courier: courierId, status: { $in: fromStatuses } },
+    { $set: set },
+    { new: true },
+  );
+
+  if (order) return order;
+
+  const exists = await Order.exists({ _id: orderId, courier: courierId });
+  if (!exists) throw new AppError("Order not found", 404);
+  throw new AppError(conflictMessage, 409, "ORDER_STATUS_CONFLICT");
+}
+
+function populateOrder(orderId) {
+  return Order.findById(orderId)
+    .populate("customer", "name email phoneNumber")
+    .populate("restaurant", "name profilePicture address phone location")
+    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
+    .populate("items.menuItem", "name imageUrls");
+}
+
 export async function acceptOrderOperation({ orderId, courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
+
+  // verificationStatus was written at signup and read nowhere, so anyone who
+  // completed the courier form could take custody of a stranger's paid order
+  // and their address. Approve a courier with scripts/verifyCourier.js until
+  // there is an admin surface to do it from.
+  if (courier.verificationStatus !== "verified") {
+    throw new AppError(
+      courier.verificationStatus === "rejected"
+        ? "Your courier application was not approved."
+        : "Your account is still being reviewed. You can accept orders once it is approved.",
+      403,
+      "COURIER_NOT_VERIFIED",
+    );
+  }
 
   if (!courier.isAvailable) {
     throw new AppError("You must be on duty to accept orders", 400);
@@ -209,20 +276,29 @@ export async function acceptOrderOperation({ orderId, courierUserId }) {
     throw new AppError("Order is not available for assignment", 400);
   }
 
-  courier.currentOrder = order._id;
-  courier.isAvailable = false;
-  await courier.save();
+  // The claim above is atomic, but this second write is not part of it. A
+  // failure here would leave the order assigned to a courier whose
+  // currentOrder is null - invisible to them and unclaimable by anyone else.
+  // There are no transactions in this codebase, so compensate instead.
+  try {
+    await Courier.updateOne(
+      { _id: courier._id },
+      { $set: { currentOrder: order._id, isAvailable: false } },
+    );
+  } catch (err) {
+    await Order.updateOne(
+      { _id: order._id, courier: courier._id },
+      { $set: { status: "ready", courier: null, assignedAt: null } },
+    );
+    throw err;
+  }
 
   await notificationService.createOrderStatusNotification(order, "assigned");
   await socketService.emitOrderAssigned(order);
 
   await socketService.emitOrderTaken(order._id);
 
-  const populated = await Order.findById(order._id)
-    .populate("customer", "name email phoneNumber")
-    .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
-    .populate("items.menuItem", "name imageUrls");
+  const populated = await populateOrder(order._id);
 
   return populated;
 }
@@ -234,25 +310,18 @@ export async function cancelAssignedOrderOperation({
 }) {
   const courier = await getCourierByUserId(courierUserId);
 
-  const order = await Order.findOne({
-    _id: orderId,
-    courier: courier._id,
+  const order = await transition({
+    orderId,
+    courierId: courier._id,
+    fromStatuses: ["assigned"],
+    set: { status: "ready", courier: null, assignedAt: null, courierNotes: reason || "" },
+    conflictMessage: "Only an assigned order can be released",
   });
-  if (!order) throw new AppError("Order not found", 404);
 
-  if (!["assigned"].includes(order.status)) {
-    throw new AppError("Only assigned orders can be cancelled by courier", 400);
-  }
-
-  order.status = "ready";
-  order.courier = null;
-  order.assignedAt = null;
-  order.courierNotes = reason || "";
-  await order.save();
-
-  courier.currentOrder = null;
-  courier.isAvailable = true;
-  await courier.save();
+  await Courier.updateOne(
+    { _id: courier._id },
+    { $set: { currentOrder: null, isAvailable: true } },
+  );
 
   await socketService.emitOrderCourierUnassigned(
     order,
@@ -261,87 +330,67 @@ export async function cancelAssignedOrderOperation({
 
   await socketService.emitOrderBackToPool(order);
 
-  const populated = await Order.findById(order._id)
-    .populate("customer", "name email phoneNumber")
-    .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
-    .populate("items.menuItem", "name imageUrls");
+  const populated = await populateOrder(order._id);
 
   return populated;
 }
 
 export async function markPickedUpOperation({ orderId, courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
-  const order = await Order.findOne({ _id: orderId, courier: courier._id });
-  if (!order) throw new AppError("Order not found", 404);
-
-  if (order.status !== "assigned") {
-    throw new AppError("Order must be assigned to mark picked up", 400);
-  }
-
-  order.status = "picked_up";
-  order.pickedUpAt = new Date();
-  await order.save();
+  const order = await transition({
+    orderId,
+    courierId: courier._id,
+    fromStatuses: ["assigned"],
+    set: { status: "picked_up", pickedUpAt: new Date() },
+    conflictMessage: "That order is no longer waiting to be picked up",
+  });
 
   await notificationService.createOrderStatusNotification(order, "picked_up");
   await socketService.emitOrderPickedUp(order);
 
-  return await Order.findById(order._id)
-    .populate("customer", "name email phoneNumber")
-    .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
-    .populate("items.menuItem", "name imageUrls");
+  return await populateOrder(order._id);
 }
 
 export async function markInTransitOperation({ orderId, courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
-  const order = await Order.findOne({ _id: orderId, courier: courier._id });
-  if (!order) throw new AppError("Order not found", 404);
-
-  if (!["picked_up"].includes(order.status)) {
-    throw new AppError("Order must be picked up to start delivery", 400);
-  }
-
-  order.status = "in_transit";
-  await order.save();
+  const order = await transition({
+    orderId,
+    courierId: courier._id,
+    fromStatuses: ["picked_up"],
+    set: { status: "in_transit" },
+    conflictMessage: "That order is not picked up yet",
+  });
 
   await notificationService.createOrderStatusNotification(order, "in_transit");
   await socketService.emitOrderInTransit(order);
 
-  return await Order.findById(order._id)
-    .populate("customer", "name email phoneNumber")
-    .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
-    .populate("items.menuItem", "name imageUrls");
+  return await populateOrder(order._id);
 }
 
 export async function markDeliveredOperation({ orderId, courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
-  const order = await Order.findOne({ _id: orderId, courier: courier._id });
-  if (!order) throw new AppError("Order not found", 404);
+  const order = await transition({
+    orderId,
+    courierId: courier._id,
+    fromStatuses: ["in_transit"],
+    set: { status: "delivered", deliveredAt: new Date() },
+    conflictMessage: "That order is not in transit",
+  });
 
-  if (!["in_transit"].includes(order.status)) {
-    throw new AppError("Order must be in transit to deliver", 400);
-  }
-
-  order.status = "delivered";
-  order.deliveredAt = new Date();
-  await order.save();
-
-  courier.currentOrder = null;
-  courier.isAvailable = true;
-  courier.totalDeliveries += 1;
-  courier.successfulDeliveries += 1;
-  await courier.save();
+  // $inc rather than load-modify-save: the counters are shared with the
+  // ratings path and two writes landing together lost one of them.
+  await Courier.updateOne(
+    { _id: courier._id },
+    {
+      $set: { currentOrder: null, isAvailable: true },
+      $inc: { totalDeliveries: 1, successfulDeliveries: 1 },
+    },
+  );
 
   await notificationService.createOrderStatusNotification(order, "delivered");
   await socketService.emitOrderDelivered(order);
 
-  return await Order.findById(order._id)
-    .populate("customer", "name email phoneNumber")
-    .populate("restaurant", "name profilePicture address phone location")
-    .populate("courier", "fullName phoneNumber vehicleType currentLocation lastLocationUpdate")
-    .populate("items.menuItem", "name imageUrls");
+  return await populateOrder(order._id);
 }
 
 export async function getCourierOrderById({ orderId, courierUserId }) {

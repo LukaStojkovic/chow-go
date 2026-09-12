@@ -7,14 +7,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 const LOGIN_SCHEMA = z.object({
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Min 6 characters"),
+  password: z.string().min(1, "Password is required"),
   rememberMe: z.boolean().optional().default(false),
 });
 
 const REGISTER_CUSTOMER_SCHEMA = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Min 6 characters"),
+  password: z.string().min(8, "Min 8 characters"),
   phoneNumber: z.string().min(1, "Phone number is required"),
   profilePicture: z.instanceof(File).optional(),
 });
@@ -22,7 +22,7 @@ const REGISTER_CUSTOMER_SCHEMA = z.object({
 const REGISTER_SELLER_SCHEMA = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Min 6 characters"),
+  password: z.string().min(8, "Min 8 characters"),
   profilePicture: z.instanceof(File, "Profile image is required"),
 });
 

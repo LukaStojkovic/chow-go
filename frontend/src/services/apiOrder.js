@@ -1,8 +1,12 @@
 import { axiosInstance } from "@/lib/axios";
 
-export async function createOrder(orderData) {
+export async function createOrder({ idempotencyKey, ...orderData }) {
   try {
-    const res = await axiosInstance.post("/orders/create", orderData);
+    // The backend returns the original order for a repeated key rather than
+    // creating a second one, so a double-tap cannot place two orders.
+    const res = await axiosInstance.post("/orders/create", orderData, {
+      headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+    });
     return res.data;
   } catch (err) {
     console.error("Error creating order:", err);

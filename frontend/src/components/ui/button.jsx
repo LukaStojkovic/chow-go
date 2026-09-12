@@ -16,7 +16,10 @@ import { cn } from "@/lib/utils";
  */
 const buttonVariants = cva(
   [
-    "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap",
+    // `relative` sits in the base rather than being appended after `className`:
+    // appended, tailwind-merge strips an `absolute` the caller passed and drops
+    // the button back into normal flow.
+    "relative inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap",
     "rounded-sm text-label font-semibold",
     // Transform is in the list for the press: a button that only changes
     // colour on `:active` gives no sense of having been pushed.
@@ -106,7 +109,7 @@ const Button = React.forwardRef(function Button(
   return (
     <button
       ref={ref}
-      className={cn(buttonVariants({ variant, size, block, className }), "relative")}
+      className={cn(buttonVariants({ variant, size, block, className }))}
       disabled={disabled || isLoading}
       aria-busy={isLoading || undefined}
       {...props}

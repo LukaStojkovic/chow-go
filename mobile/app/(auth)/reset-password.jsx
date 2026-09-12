@@ -11,7 +11,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
 export default function ResetPassword() {
-  const { email } = useLocalSearchParams();
+  const { resetToken } = useLocalSearchParams();
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(resetPasswordSchema),
@@ -20,7 +20,7 @@ export default function ResetPassword() {
 
   async function onSubmit({ password }) {
     try {
-      await resetPassword(email, password);
+      await resetPassword(resetToken, password);
       toast.success("Password updated", { description: "Sign in with your new password." });
       router.replace("/(auth)/login");
     } catch (error) {
@@ -31,7 +31,7 @@ export default function ResetPassword() {
   return (
     <AuthScreen title="Set a new password" subtitle="Choose something you haven't used before.">
       {[
-        { name: "password", label: "New password", hint: "At least 6 characters" },
+        { name: "password", label: "New password", hint: "At least 8 characters" },
         { name: "confirmPassword", label: "Confirm new password" },
       ].map((item) => (
         <Controller

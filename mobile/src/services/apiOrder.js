@@ -1,7 +1,11 @@
 import { api } from "@/api/client";
 
-export async function createOrder(payload) {
-  const { data } = await api.post("/orders/create", payload);
+export async function createOrder({ idempotencyKey, ...payload }) {
+  // The backend returns the original order for a repeated key rather than
+  // creating a second one, so a double-tap cannot place two orders.
+  const { data } = await api.post("/orders/create", payload, {
+    headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+  });
   return data.data.order;
 }
 

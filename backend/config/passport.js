@@ -1,9 +1,8 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
-import dotenv from "dotenv";
+import "./env.js";
 
-dotenv.config();
 
 function getGoogleProfilePicture(profile) {
   const photo = profile.photos?.[0]?.value;

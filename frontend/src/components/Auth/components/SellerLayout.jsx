@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { RouteSkeleton } from "@/components/skeletons/routeSkeletons";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -102,7 +103,9 @@ export default function SellerLayout() {
               </p>
             </div>
 
-            <PageTransition />
+            <PageTransition
+              fallback={<RouteSkeleton pathname={location.pathname} />}
+            />
           </div>
         </div>
       </main>

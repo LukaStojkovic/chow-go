@@ -3,7 +3,7 @@ import { motion } from"framer-motion";
 import { Button } from"@/components/ui/button";
 import { Card } from"@/components/ui/card";
 import { Home, UtensilsCrossed, Frown } from"lucide-react";
-import { Link } from"react-router";
+import { Link } from "react-router-dom";
 
 export default function NotFoundPage() {
   return (

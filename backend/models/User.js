@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       type: String,
       required: true,
+      // Restaurant.email already did this; User did not, so "A@b.com" and
+      // "a@b.com" were two accounts and a lookup had to guess the casing.
+      lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -28,12 +32,31 @@ const userSchema = new mongoose.Schema(
       default: "local",
     },
     profilePicture: String,
-    otp: String,
-    isVerifiedOtp: {
-      type: Boolean,
-      default: false,
-    },
-    otpExpiry: Date,
+
+    // The reset code was stored in cleartext with no select:false, so
+    // updateProfile (.select("-password")) returned the live OTP in its
+    // response body. It is hashed and hidden now, and the attempt counter
+    // closes the brute-force window that a 6-digit code otherwise leaves open.
+    otpHash: { type: String, select: false },
+    otpExpiry: { type: Date, select: false },
+    otpAttempts: { type: Number, default: 0, select: false },
+
+    // verifyOtp used to set a sticky isVerifiedOtp boolean with no expiry, so a
+    // verified reset window stayed open forever and resetPassword needed only
+    // an email to use it. It now issues a single-use, short-lived token.
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpiry: { type: Date, select: false },
+
+    // Bumped on password reset and password change. Access tokens carry the
+    // version they were minted at, so raising it invalidates every credential
+    // already issued - there was previously no way to revoke anything.
+    tokenVersion: { type: Number, default: 0 },
+
+    // A deleted account is anonymised rather than removed: orders are the
+    // restaurant's and the courier's records too, and a hard delete would tear
+    // holes in their history. See services/accountDeletion.service.js.
+    isDeleted: { type: Boolean, default: false },
+    deletedAt: Date,
     phoneNumber: {
       type: String,
       required: function () {
