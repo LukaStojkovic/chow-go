@@ -1,3 +1,4 @@
+import { createHash, randomBytes, randomInt } from "crypto";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
@@ -12,10 +13,44 @@ import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
+import { deleteAccountOperation } from "../services/accountDeletion.service.js";
 import {
   buildScheduleFromRange,
   isValidTimeString,
 } from "../utils/schedule.js";
+
+
+const OTP_TTL_MS = 5 * 60 * 1000;
+const RESET_WINDOW_MS = 15 * 60 * 1000;
+const MAX_OTP_ATTEMPTS = 5;
+
+// User.email is unique but not lowercased, while Restaurant.email is - so
+// "A@b.com" and "a@b.com" could become two accounts and a user who signed up
+// with capitals could not log in typing lowercase.
+function normalizeEmail(value) {
+  return String(value).trim().toLowerCase();
+}
+
+// The reset token is 256 bits of entropy, so a fast digest is appropriate here;
+// the 6-digit OTP is bcrypt-hashed because its keyspace is small.
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+// bcrypt silently truncates at 72 bytes, so an unbounded password gives a false
+// sense of strength.
+function passwordPolicyError(password) {
+  if (typeof password !== "string") {
+    return new AppError("Password must be text", 400, "PASSWORD_INVALID");
+  }
+  if (password.length < 8) {
+    return new AppError("Password must be at least 8 characters", 400, "PASSWORD_TOO_SHORT");
+  }
+  if (Buffer.byteLength(password, "utf8") > 72) {
+    return new AppError("Password is too long (72 bytes max)", 400, "PASSWORD_TOO_LONG");
+  }
+  return null;
+}
 
 export async function login(req, res, next) {
   const { email, password, rememberMe } = req.body;
@@ -24,7 +59,7 @@ export async function login(req, res, next) {
     return next(new AppError("All fields are required", 400));
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizeEmail(email), isDeleted: { $ne: true } });
   if (!user) {
     return next(new AppError("Invalid credentials", 400));
   }
@@ -38,11 +73,7 @@ export async function login(req, res, next) {
     return next(new AppError("Invalid credentials", 400));
   }
 
-  const token = generateToken(
-    user._id,
-    res,
-    !!rememberMe || isMobileClient(req),
-  );
+  const token = generateToken(user, res, !!rememberMe || isMobileClient(req));
 
   if (user.role === "seller") {
     await user.populate("restaurant");
@@ -83,11 +114,10 @@ export const register = async (req, res, next) => {
     return next(new AppError("Phone number is required for customers", 400));
   }
 
-  if (password.length < 6) {
-    return next(new AppError("Password too short", 400));
-  }
+  const policyError = passwordPolicyError(password);
+  if (policyError) return next(policyError);
 
-  if (await User.exists({ email })) {
+  if (await User.exists({ email: normalizeEmail(email) })) {
     return next(new AppError("Email already in use", 400));
   }
 
@@ -245,7 +275,7 @@ export const register = async (req, res, next) => {
       isAvailable: true,
     });
 
-    const courierToken = generateToken(user._id, res, isMobileClient(req));
+    const courierToken = generateToken(user, res, isMobileClient(req));
 
     return res.status(201).json(
       withAuthToken(
@@ -265,7 +295,7 @@ export const register = async (req, res, next) => {
     );
   }
 
-  const token = generateToken(user._id, res, isMobileClient(req));
+  const token = generateToken(user, res, isMobileClient(req));
 
   const response = {
     _id: user._id,
@@ -285,8 +315,10 @@ export const register = async (req, res, next) => {
 };
 
 export function logout(req, res) {
-  res.cookie("jwt", "", {
-    maxAge: 0,
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV !== "development",
   });
 
   res
@@ -333,9 +365,8 @@ export const updateProfile = async (req, res, next) => {
       return next(new AppError("Passwords do not match", 400));
     }
 
-    if (newPassword.length < 6) {
-      return next(new AppError("Password must be at least 6 characters", 400));
-    }
+    const policyError = passwordPolicyError(newPassword);
+    if (policyError) return next(policyError);
 
     const isCorrectPassword = await bcrypt.compare(
       currentPassword,
@@ -347,6 +378,8 @@ export const updateProfile = async (req, res, next) => {
     }
 
     updateData.password = await bcrypt.hash(newPassword, 12);
+    // Ends every session that was minted before the change.
+    updateData.tokenVersion = (user.tokenVersion ?? 0) + 1;
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -367,74 +400,150 @@ export const updateProfile = async (req, res, next) => {
 export const forgotPassword = async (req, res, next) => {
   const { email } = req.body;
 
-  if (!email) {
-    return next(new AppError("Email is required", 400));
+  if (!email || typeof email !== "string") {
+    return next(new AppError("Email is required", 400, "EMAIL_REQUIRED"));
   }
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError("User not found", 400));
-  }
+  const user = await User.findOne({ email: normalizeEmail(email) });
 
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiry = Date.now() + 5 * 60 * 1000;
+  // Deliberately uniform: "User not found" here told an attacker which
+  // addresses have accounts.
+  const sent = {
+    status: "success",
+    message: "If that email has an account, a reset code is on its way.",
+  };
 
-  user.otp = otpCode;
-  user.otpExpiry = otpExpiry;
-  user.isVerifiedOtp = false;
+  if (!user) return res.status(200).json(sent);
+
+  // crypto.randomInt, not Math.random - a predictable PRNG over a 10^6 space
+  // is guessable.
+  const otpCode = String(randomInt(100000, 1000000));
+
+  user.otpHash = await bcrypt.hash(otpCode, 10);
+  user.otpExpiry = new Date(Date.now() + OTP_TTL_MS);
+  user.otpAttempts = 0;
+  user.resetTokenHash = undefined;
+  user.resetTokenExpiry = undefined;
 
   await user.save();
 
-  await sendOtpEmail(email, otpCode);
+  await sendOtpEmail(user.email, otpCode);
 
-  res.status(200).json({
-    status: "success",
-    message: "Password reset code sent to your email",
-  });
+  res.status(200).json(sent);
 };
 
 export const verifyOtp = async (req, res, next) => {
   const { email, code } = req.body;
 
   if (!email || !code) {
-    return next(new AppError("All fields are required", 400));
+    return next(new AppError("All fields are required", 400, "MISSING_FIELDS"));
   }
 
-  const user = await User.findOne({ email });
-  if (!user || user.otp !== code || Date.now() > user.otpExpiry) {
-    return next(new AppError("Invalid or expired OTP", 400));
+  const user = await User.findOne({ email: normalizeEmail(email) }).select(
+    "+otpHash +otpExpiry +otpAttempts",
+  );
+
+  const invalid = new AppError("That code is invalid or has expired", 400, "OTP_INVALID");
+
+  if (!user?.otpHash || !user.otpExpiry || Date.now() > user.otpExpiry.getTime()) {
+    return next(invalid);
   }
 
-  user.isVerifiedOtp = true;
-  user.otp = null;
-  user.otpExpiry = null;
+  // There was no per-account counter, so the only brake on brute-forcing a
+  // 6-digit code was a 20-per-15-minutes limit keyed on IP.
+  if (user.otpAttempts >= MAX_OTP_ATTEMPTS) {
+    user.otpHash = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+    return next(
+      new AppError("Too many incorrect codes. Request a new one.", 429, "OTP_LOCKED"),
+    );
+  }
+
+  if (!(await bcrypt.compare(String(code), user.otpHash))) {
+    user.otpAttempts += 1;
+    await user.save();
+    return next(invalid);
+  }
+
+  // Single-use and short-lived, in place of the old sticky boolean. The client
+  // carries this to reset-password, so that endpoint no longer resolves a
+  // target by email.
+  const resetToken = randomBytes(32).toString("base64url");
+
+  user.resetTokenHash = sha256(resetToken);
+  user.resetTokenExpiry = new Date(Date.now() + RESET_WINDOW_MS);
+  user.otpHash = undefined;
+  user.otpExpiry = undefined;
+  user.otpAttempts = 0;
   await user.save();
 
-  res
-    .status(200)
-    .json({ status: "success", message: "Email verified successfully" });
+  res.status(200).json({
+    status: "success",
+    message: "Code verified",
+    data: { resetToken, expiresInMinutes: RESET_WINDOW_MS / 60000 },
+  });
 };
 
 export async function resetPassword(req, res, next) {
-  const { email, newPassword } = req.body;
+  const { resetToken, newPassword } = req.body;
 
-  if (!email || !newPassword) {
-    return next(new AppError("All fields are required", 400));
+  if (!resetToken || !newPassword) {
+    return next(new AppError("All fields are required", 400, "MISSING_FIELDS"));
   }
 
-  const user = await User.findOne({ email });
-  if (!user || !user.isVerifiedOtp) {
-    return next(new AppError("Unauthorized request", 400));
+  // register enforces a minimum; this path did not, so a reset could set a
+  // one-character password.
+  const policyError = passwordPolicyError(newPassword);
+  if (policyError) return next(policyError);
+
+  // Looked up by the token itself: the old version resolved a user by email,
+  // which an unsanitized {"$ne": null} could exploit to take over whichever
+  // account happened to be mid-reset.
+  const user = await User.findOne({
+    resetTokenHash: sha256(String(resetToken)),
+    resetTokenExpiry: { $gt: new Date() },
+  }).select("+resetTokenHash +resetTokenExpiry");
+
+  if (!user) {
+    return next(
+      new AppError("That reset link is invalid or has expired", 400, "RESET_TOKEN_INVALID"),
+    );
   }
 
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
-  user.password = hashedPassword;
-  user.isVerifiedOtp = false;
+  user.password = await bcrypt.hash(newPassword, 12);
+  user.resetTokenHash = undefined;
+  user.resetTokenExpiry = undefined;
+  user.otpHash = undefined;
+  user.otpExpiry = undefined;
+  user.otpAttempts = 0;
+  // The whole point of a reset is usually that someone else holds a session.
+  user.tokenVersion = (user.tokenVersion ?? 0) + 1;
   await user.save();
 
-  res
-    .status(200)
-    .json({ status: "success", message: "Password reset successfully" });
+  res.status(200).json({
+    status: "success",
+    message: "Password reset successfully. Sign in with your new password.",
+  });
+}
+
+/**
+ * Required by App Store Review Guideline 5.1.1(v) for any app that lets people
+ * create an account, and by GDPR regardless of the stores.
+ */
+export async function deleteAccount(req, res, next) {
+  await deleteAccountOperation({ user: req.user, password: req.body?.password });
+
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV !== "development",
+  });
+
+  res.status(200).json({
+    status: "success",
+    message: "Your account has been deleted.",
+  });
 }
 
 export const checkAuth = (req, res) => {
@@ -484,7 +593,7 @@ export const googleCallback = async (req, res, next) => {
     req.session.googleProfile = data.googleProfile;
     return res.redirect(`${base}?newUser=true`);
   }
-  generateToken(data._id, res);
+  generateToken(data, res);
   return res.redirect(`${base}?success=true`);
 };
 
@@ -519,7 +628,7 @@ export const googleExchange = async (req, res, next) => {
   if (!user) return next(new AppError("User not found", 404));
   if (user.role === "seller") await user.populate("restaurant");
 
-  const token = generateToken(user._id, res, true, { skipCookie: true });
+  const token = generateToken(user, res, true, { skipCookie: true });
 
   const response = {
     _id: user._id,
@@ -576,7 +685,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     return next(new AppError("Valid role is required", 400));
   }
 
-  if (await User.exists({ email: googleProfile.email })) {
+  if (await User.exists({ email: normalizeEmail(googleProfile.email) })) {
     if (fromSession) delete req.session.googleProfile;
     return next(new AppError("An account with this email already exists", 400));
   }
@@ -691,7 +800,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     await user.save();
     await user.populate("restaurant");
 
-    generateToken(user._id, res);
+    generateToken(user, res);
     if (fromSession) delete req.session.googleProfile;
 
     return res.status(201).json({
@@ -749,7 +858,7 @@ export const googleCompleteProfile = async (req, res, next) => {
       isAvailable: true,
     });
 
-    generateToken(user._id, res);
+    generateToken(user, res);
     if (fromSession) delete req.session.googleProfile;
 
     return res.status(201).json({
@@ -764,7 +873,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     });
   }
 
-  generateToken(user._id, res);
+  generateToken(user, res);
   if (fromSession) delete req.session.googleProfile;
 
   return res.status(201).json({

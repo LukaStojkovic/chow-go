@@ -5,6 +5,33 @@ import * as orderStatus from "../utils/orderStatus.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
 
+
+/**
+ * Applies a status change only if the order is still in a status the change is
+ * legal from, in one write.
+ *
+ * These were all read, check, mutate, save - so two seller tabs could both
+ * pass the guard and both write, and a seller's cancel could race a courier's
+ * claim. The courier claim at courierOrder.service.js:190 was already the one
+ * race-safe write in the codebase; this is the same shape.
+ *
+ * The extra read on failure is only to tell "not your order" apart from
+ * "wrong status", which the caller needs for a sensible message.
+ */
+async function transition({ orderId, restaurantId, fromStatuses, set, conflictMessage }) {
+  const order = await Order.findOneAndUpdate(
+    { _id: orderId, restaurant: restaurantId, status: { $in: fromStatuses } },
+    { $set: set },
+    { new: true },
+  );
+
+  if (order) return order;
+
+  const exists = await Order.exists({ _id: orderId, restaurant: restaurantId });
+  if (!exists) throw new AppError("Order not found", 404);
+  throw new AppError(conflictMessage, 409, "ORDER_STATUS_CONFLICT");
+}
+
 export async function getRestaurantByUserId(userId) {
   const restaurant = await Restaurant.findOne({ ownerId: userId });
 
@@ -116,28 +143,20 @@ export async function confirmOrderOperation(
   restaurantId,
   estimatedPreparationTime,
 ) {
-  const order = await Order.findOne({
-    _id: orderId,
-    restaurant: restaurantId,
+  const prepTime = Number(estimatedPreparationTime) > 0 ? Number(estimatedPreparationTime) : 30;
+
+  const order = await transition({
+    orderId,
+    restaurantId,
+    fromStatuses: ["pending"],
+    set: {
+      status: "confirmed",
+      confirmedAt: new Date(),
+      estimatedPreparationTime: prepTime,
+      estimatedDeliveryTime: new Date(Date.now() + prepTime * 60 * 1000 + 30 * 60 * 1000),
+    },
+    conflictMessage: "That order is no longer pending",
   });
-
-  if (!order) {
-    throw new AppError("Order not found", 404);
-  }
-
-  if (!orderStatus.canConfirm(order.status)) {
-    throw new AppError("Order cannot be confirmed", 400);
-  }
-
-  const prepTime = estimatedPreparationTime || 30;
-  order.status = "confirmed";
-  order.confirmedAt = new Date();
-  order.estimatedPreparationTime = prepTime;
-  order.estimatedDeliveryTime = new Date(
-    Date.now() + prepTime * 60 * 1000 + 30 * 60 * 1000,
-  );
-
-  await order.save();
 
   await notificationService.createOrderConfirmedNotification(order);
 
@@ -147,24 +166,17 @@ export async function confirmOrderOperation(
 }
 
 export async function rejectOrderOperation(orderId, restaurantId, reason) {
-  const order = await Order.findOne({
-    _id: orderId,
-    restaurant: restaurantId,
+  const order = await transition({
+    orderId,
+    restaurantId,
+    fromStatuses: ["pending"],
+    set: {
+      status: "rejected",
+      rejectedAt: new Date(),
+      rejectionReason: reason || "Rejected by restaurant",
+    },
+    conflictMessage: "That order is no longer pending",
   });
-
-  if (!order) {
-    throw new AppError("Order not found", 404);
-  }
-
-  if (!orderStatus.canReject(order.status)) {
-    throw new AppError("Order cannot be rejected", 400);
-  }
-
-  order.status = "rejected";
-  order.rejectedAt = new Date();
-  order.rejectionReason = reason || "Rejected by restaurant";
-
-  await order.save();
 
   await notificationService.createOrderRejectedNotification(
     order,
@@ -185,28 +197,22 @@ export async function updateOrderStatusOperation(
   restaurantId,
   newStatus,
 ) {
-  const order = await Order.findOne({
-    _id: orderId,
-    restaurant: restaurantId,
+  const fromStatuses = orderStatus.statusesThatReach(newStatus);
+  if (fromStatuses.length === 0) {
+    throw new AppError("Invalid status transition", 400, "INVALID_TRANSITION");
+  }
+
+  const order = await transition({
+    orderId,
+    restaurantId,
+    fromStatuses,
+    set: {
+      status: newStatus,
+      ...(newStatus === "preparing" ? { preparingAt: new Date() } : {}),
+      ...(newStatus === "ready" ? { readyAt: new Date() } : {}),
+    },
+    conflictMessage: `That order cannot move to ${newStatus} from its current status`,
   });
-
-  if (!order) {
-    throw new AppError("Order not found", 404);
-  }
-
-  if (!orderStatus.isValidTransition(order.status, newStatus)) {
-    throw new AppError("Invalid status transition", 400);
-  }
-
-  order.status = newStatus;
-
-  if (newStatus === "preparing") {
-    order.preparingAt = new Date();
-  } else if (newStatus === "ready") {
-    order.readyAt = new Date();
-  }
-
-  await order.save();
 
   await notificationService.createOrderStatusNotification(order, newStatus);
 
@@ -220,25 +226,18 @@ export async function updateOrderStatusOperation(
 }
 
 export async function cancelOrderOperation(orderId, restaurantId, reason) {
-  const order = await Order.findOne({
-    _id: orderId,
-    restaurant: restaurantId,
+  const order = await transition({
+    orderId,
+    restaurantId,
+    fromStatuses: orderStatus.RESTAURANT_CANCELLABLE,
+    set: {
+      status: "cancelled",
+      cancelledAt: new Date(),
+      cancellationReason: reason || "Cancelled by restaurant",
+      cancelledBy: "restaurant",
+    },
+    conflictMessage: "That order can no longer be cancelled",
   });
-
-  if (!order) {
-    throw new AppError("Order not found", 404);
-  }
-
-  if (!orderStatus.canCancel(order.status)) {
-    throw new AppError("Order cannot be cancelled at this stage", 400);
-  }
-
-  order.status = "cancelled";
-  order.cancelledAt = new Date();
-  order.cancellationReason = reason || "Cancelled by restaurant";
-  order.cancelledBy = "restaurant";
-
-  await order.save();
 
   await notificationService.createOrderCancelledNotification(
     order,

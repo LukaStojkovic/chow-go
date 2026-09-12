@@ -14,8 +14,15 @@
  *
  * `mode="wait"` stops the two screens from being briefly stacked; the exit is
  * 140ms, which is the whole cost of the effect.
+ *
+ * The Suspense boundary belongs here, inside the layout, rather than around the
+ * whole `<Routes>`: a lazy route chunk then suspends only the content column,
+ * so the sidebar and header stay put and `fallback` can be a skeleton shaped
+ * like the screen being opened. Keying it by pathname gives each navigation its
+ * own boundary, which is what makes the fallback appear at all.
  */
 
+import { Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useOutlet } from "react-router-dom";
 
@@ -25,9 +32,10 @@ import { pageTransition } from "@/lib/motion";
  * @param {Object} props
  * @param {unknown} [props.context] Forwarded to `useOutlet`, for layouts that
  *   pass data down through `<Outlet context={...} />`.
+ * @param {React.ReactNode} [props.fallback] Rendered while the route chunk loads.
  * @param {string} [props.className]
  */
-export function PageTransition({ context, className }) {
+export function PageTransition({ context, fallback = null, className }) {
   const outlet = useOutlet(context);
   const { pathname } = useLocation();
 
@@ -41,7 +49,7 @@ export function PageTransition({ context, className }) {
         exit="exit"
         className={className}
       >
-        {outlet}
+        <Suspense fallback={fallback}>{outlet}</Suspense>
       </motion.div>
     </AnimatePresence>
   );

@@ -52,6 +52,7 @@ import { buttonVariants } from "@/components/ui/button";
 import PasswordChangeModal from "@/components/Profile/PasswordChangeModal";
 import { PersonalDetailsCard } from "@/features/profile/PersonalDetailsCard";
 import { SavedAddressesCard } from "@/features/profile/SavedAddressesCard";
+import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 
 const THEMES = [
   { value: "light", label: "Light", icon: Sun },
@@ -89,6 +90,7 @@ function LinkRow({ to, icon: Icon, label, description }) {
 
 export default function ProfilePage() {
   const { authUser, logout } = useAuthStore();
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const { theme, setTheme } = useDarkMode();
   const { preference: motion, setPreference: setMotion, systemReduced } =
     useMotionPreference();
@@ -264,9 +266,22 @@ export default function ProfilePage() {
             <p className="text-caption text-muted-foreground mt-2 px-4">
               Signed in as {authUser?.email}
             </p>
+            <Button
+              variant="ghost"
+              block
+              className="text-muted-foreground hover:text-destructive justify-start mt-2"
+              onClick={() => setShowDeleteAccount(true)}
+            >
+              Delete my account
+            </Button>
           </div>
         </Stack>
       </div>
+
+      <DeleteAccountDialog
+        open={showDeleteAccount}
+        onOpenChange={setShowDeleteAccount}
+      />
 
       <PasswordChangeModal
         isOpen={showPasswordModal}

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import Spinner from "@/components/Spinner";
+import { CourierDeliverySkeleton } from "@/components/skeletons/CourierSkeletons";
 import { CourierActiveDeliveryMap } from "@/components/Courier/components/CourierActiveDeliveryMap";
 import { CourierDeliveryPanel } from "@/components/Courier/components/CourierDeliveryPanel";
 import useGetCourierOrderById from "@/hooks/Courier/useGetCourierOrderById";
@@ -21,11 +21,7 @@ export default function CourierActiveDelivery() {
   }, [order, navigate]);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
+    return <CourierDeliverySkeleton />;
   }
 
   if (isError || !order) {

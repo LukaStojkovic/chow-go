@@ -131,11 +131,51 @@ function isWithinWindow(day, nowMinutes, spilloverOnly) {
   return spilloverOnly ? nowMinutes < close : nowMinutes >= open;
 }
 
-export function isOpenAt(schedule, date = new Date()) {
+/** Fallback for restaurants stored before timezone existed on the model. */
+export const DEFAULT_TIMEZONE = process.env.DEFAULT_TIMEZONE || "Europe/Belgrade";
+
+const WEEKDAY_INDEX = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+};
+
+/**
+ * The wall-clock day and time at an instant, in a named zone.
+ *
+ * This used to be date.getHours() and date.getDay() - the *server's* local
+ * time. Deployed on UTC infrastructure, every restaurant's opening hours were
+ * an hour or two out, and since createOrder rejects on isOpenNow that silently
+ * refused real orders. Intl carries the zone database, so no dependency.
+ */
+function zonedNow(date, timeZone) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+
+    const get = (type) => parts.find((part) => part.type === type)?.value;
+    const dayIndex = WEEKDAY_INDEX[get("weekday")];
+    // "24" appears at midnight in some ICU versions.
+    const hours = Number(get("hour")) % 24;
+    const minutes = Number(get("minute"));
+
+    if (dayIndex === undefined || Number.isNaN(hours) || Number.isNaN(minutes)) {
+      throw new Error("unparseable");
+    }
+    return { dayIndex, minutes: hours * 60 + minutes };
+  } catch {
+    // An invalid zone should not close a restaurant; fall back to the server.
+    return { dayIndex: date.getDay(), minutes: date.getHours() * 60 + date.getMinutes() };
+  }
+}
+
+export function isOpenAt(schedule, date = new Date(), timeZone = DEFAULT_TIMEZONE) {
   if (!schedule) return false;
 
-  const nowMinutes = date.getHours() * 60 + date.getMinutes();
-  const dayIndex = date.getDay();
+  const { dayIndex, minutes: nowMinutes } = zonedNow(date, timeZone);
   const yesterdayIndex = (dayIndex + 6) % 7;
 
   return (

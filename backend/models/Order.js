@@ -19,9 +19,19 @@ const orderItemSchema = new mongoose.Schema(
 const orderSchema = new mongoose.Schema(
   {
     orderNumber: {
+      // unique already builds an index; declaring both produced a duplicate
+      // index warning on every boot.
       type: String,
       unique: true,
-      index: true,
+    },
+
+    // Set from an Idempotency-Key header. A double-tap on Place Order, or a
+    // client retry after a slow response, used to create two real orders.
+    idempotencyKey: {
+      type: String,
+      unique: true,
+      sparse: true,
+      select: false,
     },
 
     customer: {
@@ -76,6 +86,13 @@ const orderSchema = new mongoose.Schema(
 
     subtotal: { type: Number, required: true, min: 0 },
     deliveryFee: { type: Number, required: true, min: 0, default: 0 },
+    // serviceFee was passed to this constructor and silently dropped, so
+    // subtotal + deliveryFee + tax + tip never reconciled with total and
+    // platform revenue was recorded nowhere. priorityFee used to be folded
+    // into deliveryFee, which made the stored order itemise differently from
+    // the checkout screen that produced it.
+    serviceFee: { type: Number, required: true, min: 0, default: 0 },
+    priorityFee: { type: Number, required: true, min: 0, default: 0 },
     tax: { type: Number, required: true, min: 0, default: 0 },
     tip: { type: Number, min: 0, default: 0 },
     discount: { type: Number, min: 0, default: 0 },
@@ -101,8 +118,11 @@ const orderSchema = new mongoose.Schema(
     },
 
     paymentMethod: {
+      // Both are collected by the courier on delivery - "card" means a card
+      // terminal at the door, not an online charge. "wallet" was in this enum
+      // with no UI offering it and nothing implementing it.
       type: String,
-      enum: ["cash", "card", "wallet"],
+      enum: ["cash", "card"],
       required: true,
     },
     paymentStatus: {

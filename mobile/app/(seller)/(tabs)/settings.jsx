@@ -230,6 +230,18 @@ export default function SellerSettings() {
             </Text>
           </View>
         </Button>
+      
+        <Button
+          variant="ghost"
+          size="md"
+          fullWidth
+          onPress={() => router.push("/delete-account")}
+          accessibilityLabel="Delete my account"
+        >
+          <Text variant="caption" tone="muted">
+            Delete my account
+          </Text>
+        </Button>
       </ScrollView>
     </Screen>
   );

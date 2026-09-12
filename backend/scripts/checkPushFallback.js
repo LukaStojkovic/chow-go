@@ -14,6 +14,9 @@
  */
 import dotenv from "dotenv";
 dotenv.config();
+
+import { assertDevDatabase } from "./guardDatabase.js";
+assertDevDatabase();
 import http from "http";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";

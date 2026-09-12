@@ -63,6 +63,13 @@ export async function logoutUser() {
   }
 }
 
+export async function apiDeleteAccount(password) {
+  const res = await axiosInstance.delete("/auth/account", {
+    data: password ? { password } : {},
+  });
+  return res.data;
+}
+
 export async function apiForgotPassword(email) {
   const res = await axiosInstance.post("/auth/forgot-password", { email });
   return res.data;
@@ -73,9 +80,12 @@ export async function apiVerifyOtp(email, code) {
   return res.data;
 }
 
-export async function apiResetPassword(email, password) {
+// verify-otp now returns a single-use resetToken instead of flipping a sticky
+// flag on the user, so reset-password identifies the account by that token
+// rather than by an email anyone can supply.
+export async function apiResetPassword(resetToken, password) {
   const res = await axiosInstance.post("/auth/reset-password", {
-    email,
+    resetToken,
     newPassword: password,
   });
   return res.data;

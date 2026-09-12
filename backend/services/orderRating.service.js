@@ -3,6 +3,40 @@ import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
 
+
+/**
+ * Folds one rating into a running average atomically.
+ *
+ * This was load-then-recompute-then-save, so two ratings landing together lost
+ * one of them. An update pipeline recomputes server-side in a single write, so
+ * there is no read to go stale.
+ */
+async function applyRating(Model, id, rating, countField) {
+  await Model.updateOne({ _id: id }, [
+    {
+      $set: {
+        averageRating: {
+          $round: [
+            {
+              $divide: [
+                {
+                  $add: [
+                    { $multiply: [{ $ifNull: ["$averageRating", 0] }, { $ifNull: ["$" + countField, 0] }] },
+                    rating,
+                  ],
+                },
+                { $add: [{ $ifNull: ["$" + countField, 0] }, 1] },
+              ],
+            },
+            1,
+          ],
+        },
+        [countField]: { $add: [{ $ifNull: ["$" + countField, 0] }, 1] },
+      },
+    },
+  ]);
+}
+
 export async function rateOrderOperation({
   orderId,
   customerUserId,
@@ -56,39 +90,24 @@ export async function rateOrderOperation({
      throw new AppError("No ratings provided", 400);
   }
 
-  order.customerRating = {
-    ...order.customerRating,
-    ...updates,
-    ratedAt: new Date(),
-  };
+  // Spreading order.customerRating copied a Mongoose subdocument's own
+  // properties ($__, _doc, $isNew) rather than its schema values, which live
+  // behind prototype accessors - so Mongoose dropped the earlier rating on
+  // cast. Worse, the duplicate guards above key on restaurantRating rather
+  // than ratedAt, so alternating the two calls let one delivered order inflate
+  // a restaurant's average without bound. Setting explicit paths keeps both.
+  for (const [field, value] of Object.entries(updates)) {
+    order.set(`customerRating.${field}`, value);
+  }
+  order.set("customerRating.ratedAt", new Date());
   await order.save();
 
   if (updates.restaurantRating) {
-    const restaurant = await Restaurant.findById(order.restaurant);
-    if (restaurant) {
-      const prevTotal = restaurant.totalReviews ?? 0;
-      const prevAvg = restaurant.averageRating ?? 0;
-      const newTotal = prevTotal + 1;
-      const newAvg = (prevAvg * prevTotal + updates.restaurantRating) / newTotal;
-
-      restaurant.totalReviews = newTotal;
-      restaurant.averageRating = Math.round(newAvg * 10) / 10;
-      await restaurant.save();
-    }
+    await applyRating(Restaurant, order.restaurant, updates.restaurantRating, "totalReviews");
   }
 
   if (updates.courierRating && order.courier) {
-    const courier = await Courier.findById(order.courier);
-    if (courier) {
-      const prevTotal = courier.totalRatings ?? 0;
-      const prevAvg = courier.averageRating ?? 0;
-      const newTotal = prevTotal + 1;
-      const newAvg = (prevAvg * prevTotal + updates.courierRating) / newTotal;
-
-      courier.totalRatings = newTotal;
-      courier.averageRating = Math.round(newAvg * 10) / 10;
-      await courier.save();
-    }
+    await applyRating(Courier, order.courier, updates.courierRating, "totalRatings");
   }
 
   return Order.findById(order._id)

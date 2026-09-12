@@ -1,6 +1,22 @@
 import Notification from "../models/OrderNotification.js";
 
 const NOTIFICATION_TEMPLATES = {
+  // Seller- and courier-facing. Everything below this pair is written to the
+  // customer; these two exist because sendPushToUser was only ever called for
+  // the customer, so a backgrounded seller learned nothing about a new order
+  // and the pool was socket-only.
+  order_placed: {
+    title: "New order",
+    messageTemplate: (orderNumber) => `Order #${orderNumber} is waiting for you to confirm`,
+    type: "order_placed",
+    priority: "high",
+  },
+  order_available: {
+    title: "Delivery available",
+    messageTemplate: (orderNumber) => `Order #${orderNumber} is ready for pickup`,
+    type: "order_available",
+    priority: "high",
+  },
   order_confirmed: {
     title: "Order Confirmed!",
     messageTemplate: (orderNumber) =>

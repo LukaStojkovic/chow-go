@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const email = z.string().trim().min(1, "Email is required").email("Enter a valid email");
 // Matches the backend's own floor in authController.register.
-const password = z.string().min(6, "Password must be at least 6 characters");
+const password = z.string().min(8, "Password must be at least 8 characters");
 
 export const loginSchema = z.object({
   email,

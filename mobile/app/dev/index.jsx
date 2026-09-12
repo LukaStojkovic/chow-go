@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Redirect } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { Badge, StatusDot } from "@/components/ui/Badge";
 import { Button, IconButton } from "@/components/ui/Button";
@@ -110,7 +111,15 @@ function Group({ title, children }) {
   );
 }
 
-export default function KitchenSink() {
+// This route reads the session token out of SecureStore and runs a live API
+// probe. Expo Router has no dev-only route exclusion, so the redirect is the
+// gate: in a release build the screen is unreachable.
+export default function DevRoute() {
+  if (!__DEV__) return <Redirect href="/" />;
+  return <KitchenSink />;
+}
+
+function KitchenSink() {
   const { preference, setPreference } = useThemeStore();
   const { scheme, elevation } = useTokens();
   const [probe, setProbe] = useState(null);

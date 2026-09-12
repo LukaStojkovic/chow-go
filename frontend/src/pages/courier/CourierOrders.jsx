@@ -5,7 +5,7 @@ import { MapPin, Navigation, Package } from "lucide-react";
 import useGetAvailableOrders from "@/hooks/Courier/useGetAvailableOrders";
 import useGetCourierOrders from "@/hooks/Courier/useGetCourierOrders";
 import useAcceptCourierOrder from "@/hooks/Courier/useAcceptCourierOrder";
-import Spinner from "@/components/Spinner";
+import { CourierOrderCardSkeleton } from "@/components/skeletons/CourierSkeletons";
 import { CourierOrderCard } from "@/components/Courier/components/CourierOrderCard";
 import CourierOrderHistoryCard from "@/components/Courier/components/CourierOrderHistoryCard";
 import PaginationSelector from "@/components/ui/PaginationSelector";
@@ -102,7 +102,10 @@ export function CourierOrders() {
               </p>
             )}
 
-            {isLoadingOrders && <Spinner />}
+            {isLoadingOrders &&
+              Array.from({ length: 3 }).map((_, i) => (
+                <CourierOrderCardSkeleton key={i} />
+              ))}
 
             {!isLoadingOrders && orders.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center ">
@@ -130,7 +133,10 @@ export function CourierOrders() {
 
         {activeTab === "history" && (
           <div className="space-y-4">
-            {isLoadingHistory && <Spinner />}
+            {isLoadingHistory &&
+              Array.from({ length: 4 }).map((_, i) => (
+                <CourierOrderCardSkeleton key={i} />
+              ))}
 
             {!isLoadingHistory && historyOrders.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center ">

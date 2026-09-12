@@ -45,12 +45,23 @@ const Card = React.forwardRef(function Card(
   );
 });
 
+/**
+ * Title block at the top of a card.
+ *
+ * A column, not a row: every call site passes either a title followed by a
+ * description, or one wrapper that lays out its own `justify-between` row. As
+ * a row this stretched neither - a lone child shrink-wrapped, so its own
+ * `justify-between` had no width to distribute, and a title/description pair
+ * was pushed to opposite ends. Column children stretch, which is what both
+ * shapes want. Carries no bottom padding: a `CardContent` supplies it. When a
+ * header is the card's only child, reach for `CardContent` instead.
+ */
 function CardHeader({ className, ...props }) {
   return (
     <div
       data-slot="card-header"
       className={cn(
-        "flex items-start justify-between gap-4 px-4 pt-4 sm:px-5 sm:pt-5",
+        "flex flex-col gap-1.5 px-4 pt-4 sm:px-5 sm:pt-5",
         className,
       )}
       {...props}

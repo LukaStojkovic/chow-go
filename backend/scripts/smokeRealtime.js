@@ -20,6 +20,9 @@ import { io } from "socket.io-client";
 
 dotenv.config();
 
+import { assertDevDatabase } from "./guardDatabase.js";
+assertDevDatabase();
+
 const BASE = `http://localhost:${process.env.PORT || 8000}`;
 const API = `${BASE}/api`;
 const PASSWORD = "smoketest123";
@@ -186,6 +189,9 @@ async function main() {
       email: courierUser.email,
       vehicleType: "bike",
       isAvailable: true,
+      // acceptOrderOperation refuses orders from an unverified courier, and
+      // signup leaves this "pending".
+      verificationStatus: "verified",
     });
 
     const address = await Addresses.create({

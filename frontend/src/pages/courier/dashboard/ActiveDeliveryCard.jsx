@@ -1,6 +1,7 @@
 import React from "react";
 import { MapPin, Navigation } from "lucide-react";
 import Spinner from "@/components/Spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 
 export function ActiveDeliveryCard({
@@ -38,8 +39,22 @@ export function ActiveDeliveryCard({
 
       <div className="p-6">
         {isLoadingOrders ? (
-          <div className="flex h-72 items-center justify-center">
-            <Spinner size="lg" />
+          <div className="h-72 space-y-6" role="status" aria-label="Loading delivery" aria-busy="true">
+            <div className="relative space-y-6 pl-6">
+              <div className="absolute bottom-2 left-[11px] top-2 w-2px bg-secondary" />
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="relative space-y-2">
+                  <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-border bg-card" />
+                  <Skeleton className="h-4 w-44" />
+                  <Skeleton className="h-3.5 w-60 max-w-full" />
+                </div>
+              ))}
+            </div>
+            <Skeleton className="h-px w-full" />
+            <div className="flex gap-3">
+              <Skeleton className="h-12 flex-1 rounded-xl" />
+              <Skeleton className="h-12 flex-1 rounded-xl" />
+            </div>
           </div>
         ) : (
           <>

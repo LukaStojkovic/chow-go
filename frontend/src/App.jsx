@@ -13,7 +13,10 @@ import ScrollToTop from "./hooks/ScrollToTop";
 import Spinner from "./components/Spinner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { CustomerShell } from "./components/shell/CustomerShell";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { lazyNamed } from "./lib/lazyNamed";
+import { routeChunks } from "./lib/routeChunks";
+import { PortalShellSkeleton } from "./components/skeletons/PortalShellSkeleton";
 
 import LandingPage from "./pages/LandingPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -37,35 +40,34 @@ import CourierRoute from "./pages/courier/CourierRoute";
 const SellerLayout = lazy(
   () => import("./components/Auth/components/SellerLayout"),
 );
+// Loaders come from the shared registry so a sidebar hover and the `lazy()`
+// call below request the same chunk - see lib/routeChunks.js.
 const SellerDashboard = lazyNamed(
-  () => import("./pages/seller/dashboard/SellerDashboard"),
+  routeChunks["/seller/dashboard"],
   "SellerDashboard",
 );
-const SellerOrders = lazyNamed(
-  () => import("./pages/seller/SellerOrders"),
-  "SellerOrders",
-);
-const SellerMenu = lazyNamed(() => import("./pages/seller/SellerMenu"), "SellerMenu");
+const SellerOrders = lazyNamed(routeChunks["/seller/orders"], "SellerOrders");
+const SellerMenu = lazyNamed(routeChunks["/seller/menu"], "SellerMenu");
 const SellerAnalytics = lazyNamed(
-  () => import("./pages/seller/SellerAnalytics"),
+  routeChunks["/seller/analytics"],
   "SellerAnalytics",
 );
 const SellerSettings = lazyNamed(
-  () => import("./pages/seller/SellerSettings"),
+  routeChunks["/seller/settings"],
   "SellerSettings",
 );
 
 const CourierLayout = lazy(() => import("./pages/courier/CourierLayout"));
-const CourierDashboard = lazy(() => import("./pages/courier/CourierDashboard"));
+const CourierDashboard = lazy(routeChunks["/courier/dashboard"]);
 const CourierOrders = lazyNamed(
-  () => import("./pages/courier/CourierOrders"),
+  routeChunks["/courier/orders"],
   "CourierOrders",
 );
 const CourierActiveDelivery = lazy(
   () => import("./pages/courier/CourierActiveDelivery"),
 );
 const CourierProfile = lazyNamed(
-  () => import("./pages/courier/CourierProfile"),
+  routeChunks["/courier/profile"],
   "CourierProfile",
 );
 
@@ -124,10 +126,30 @@ function AppContent() {
             <Route
               element={<CustomerShell variant="detail" title="Your orders" backTo="/discovery" />}
             >
-              <Route path="/orders" element={<MyOrdersPage />} />
+              <Route
+                path="/orders"
+                element={
+                  <ErrorBoundary
+                    name="my-orders"
+                    title="We could not load your orders"
+                  >
+                    <MyOrdersPage />
+                  </ErrorBoundary>
+                }
+              />
             </Route>
             <Route element={<CustomerShell variant="detail" title="Order" backTo="/orders" />}>
-              <Route path="/orders/:orderId" element={<OrderTrackingPage />} />
+              <Route
+                path="/orders/:orderId"
+                element={
+                  <ErrorBoundary
+                    name="order-tracking"
+                    title="We could not show this order"
+                  >
+                    <OrderTrackingPage />
+                  </ErrorBoundary>
+                }
+              />
             </Route>
             <Route
               element={
@@ -155,7 +177,18 @@ function AppContent() {
                 />
               }
             >
-              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route
+                path="/checkout"
+                element={
+                  <ErrorBoundary
+                    name="checkout"
+                    title="Checkout hit a problem"
+                    description="Your basket is safe and nothing has been charged. Try again in a moment."
+                  >
+                    <CheckoutPage />
+                  </ErrorBoundary>
+                }
+              />
             </Route>
             <Route element={<CustomerShell variant="detail" title="Profile" backTo="/discovery" />}>
               <Route path="/profile" element={<ProfilePage />} />
@@ -166,7 +199,9 @@ function AppContent() {
             path="/seller"
             element={
               <SellerRoute>
-                <SellerLayout />
+                <Suspense fallback={<PortalShellSkeleton />}>
+                  <SellerLayout />
+                </Suspense>
               </SellerRoute>
             }
           >
@@ -182,7 +217,9 @@ function AppContent() {
             path="/courier"
             element={
               <CourierRoute>
-                <CourierLayout />
+                <Suspense fallback={<PortalShellSkeleton />}>
+                  <CourierLayout />
+                </Suspense>
               </CourierRoute>
             }
           >

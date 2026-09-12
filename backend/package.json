@@ -8,9 +8,22 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "check:observability": "node scripts/checkObservability.js",
+    "check:reset": "node scripts/checkPasswordReset.js",
+    "check:courier-access": "node scripts/checkCourierPoolPrivacy.js",
+    "check:cancel": "node scripts/checkOrderCancel.js",
+    "check:rating": "node scripts/checkRating.js",
+    "check:money": "node scripts/checkOrderMoney.js",
+    "check:all": "node scripts/checkObservability.js && node scripts/checkPasswordReset.js && node scripts/checkAccountDeletion.js && node scripts/checkCourierPoolPrivacy.js && node scripts/checkOrderCancel.js && node scripts/checkOrderTransitions.js && node scripts/checkRating.js && node scripts/checkOrderMoney.js && node scripts/checkCheckout.js && node scripts/checkPushRouting.js && node scripts/checkSchedule.js",
+    "check:transitions": "node scripts/checkOrderTransitions.js",
+    "check:checkout": "node scripts/checkCheckout.js",
+    "check:schedule": "node scripts/checkSchedule.js",
+    "check:deletion": "node scripts/checkAccountDeletion.js",
+    "check:push": "node scripts/checkPushRouting.js"
   },
   "dependencies": {
+    "@sentry/node": "^10.74.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
@@ -20,6 +33,7 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
@@ -27,12 +41,16 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^4.4.1",
     "nodemailer": "^7.0.10",
-    "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.1.10",
+    "pino-pretty": "^13.1.3",
     "socket.io-client": "^4.8.3"
   }
 }

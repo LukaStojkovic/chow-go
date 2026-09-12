@@ -13,6 +13,7 @@ import {
 } from "../controllers/restaurantController.js";
 import { createUpload } from "../middlewares/upload.js";
 import { isSellerMiddleware } from "../middlewares/roleMiddleware.js";
+import { requireRestaurantOwnership } from "../middlewares/restaurantOwnership.js";
 
 const router = Router();
 const uploadMenuItemImage = createUpload("menuItems");
@@ -29,17 +30,22 @@ router.use(protectedRoute);
 
 router.put(
   "/update",
+  isSellerMiddleware,
   uploadRestaurantImage.single("profilePicture"),
   updateRestaurant,
 );
 
 router.post(
   "/:restaurantId/menu",
+  isSellerMiddleware,
+  requireRestaurantOwnership,
   uploadMenuItemImage.array("images", 6),
   createMenuItem,
 );
 router.put(
   "/:restaurantId/menu/:menuItemId",
+  isSellerMiddleware,
+  requireRestaurantOwnership,
   uploadMenuItemImage.array("images", 6),
   editMenuItem,
 );
@@ -49,7 +55,12 @@ router.get(
   isSellerMiddleware,
   getRestaurantAnalytics,
 );
-router.get("/:restaurantId/menu-items", getRestaurantMenuItems);
+router.get(
+  "/:restaurantId/menu-items",
+  isSellerMiddleware,
+  requireRestaurantOwnership,
+  getRestaurantMenuItems,
+);
 router.delete(
   "/:restaurantId/menu/:menuItemId",
   isSellerMiddleware,

@@ -81,14 +81,34 @@ export function SocketProvider({ children }) {
 
   // iOS suspends the socket within ~30s of backgrounding and does not always
   // fire a disconnect, so returning to the foreground has to force the issue.
+  //
+  // Backgrounding disconnects deliberately. The backend only sends a push when
+  // the socket room is empty, and Android will happily hold a socket open while
+  // the app is hidden - so without this the server believes the user is
+  // watching, skips the push, and fires the event into a UI nobody can see. On
+  // Android that was not "occasionally skipped": it was every notification for
+  // the whole order.
+  //
+  // Couriers are the exception. Their GPS broadcast rides this socket, and
+  // dropping it while a delivery is in flight would break live tracking that
+  // currently works on Android. Until background location lands they stay
+  // connected, and a courier is by definition already looking at the app.
+  const disconnectOnBackground = authUser?.role !== "courier";
+
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (status) => {
-      if (status !== "active") return;
       const current = socketRef.current;
-      if (current && !current.connected) current.connect();
+      if (!current) return;
+
+      if (status === "active") {
+        if (!current.connected) current.connect();
+        return;
+      }
+
+      if (disconnectOnBackground && current.connected) current.disconnect();
     });
     return () => subscription.remove();
-  }, []);
+  }, [disconnectOnBackground]);
 
   useEffect(() => {
     if (!isConnected) return;

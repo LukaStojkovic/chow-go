@@ -245,9 +245,10 @@ export function toOrderView(raw) {
     statusTone: meta.tone,
     lifecycle: meta.lifecycle,
     isTerminal,
-    // Mirrors the backend rule: the customer may cancel until a courier has
-    // physically collected the food.
-    canCancel: !["picked_up", "in_transit", "delivered", "cancelled", "rejected"].includes(status),
+    // Mirrors utils/orderStatus.js#canCustomerCancel exactly. The previous
+    // list offered Cancel during "preparing", where the API returns 400 - and
+    // that is where an order sits longest.
+    canCancel: ["pending", "confirmed", "ready", "assigned"].includes(status),
     canReorder: isTerminal,
     canRate: status === "delivered" && !raw.customerRating?.ratedAt,
     placedAt: raw.createdAt,

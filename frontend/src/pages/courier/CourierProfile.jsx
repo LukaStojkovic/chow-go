@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCourierOverview } from "@/hooks/Courier/useCourierOverview";
 import useUpdateCourierProfile from "@/hooks/Courier/useUpdateCourierProfile";
+import { Button } from "@/components/ui/button";
+import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 
 const VEHICLE_LABELS = {
   bike: "Bicycle",
@@ -61,6 +63,8 @@ export function CourierProfile() {
 
   const fileInputRef = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [fullName, setFullName] = useState(courier?.fullName ?? "");
   const [phoneNumber, setPhoneNumber] = useState(courier?.phoneNumber ?? authUser?.phoneNumber ?? "");
   const [previewImage, setPreviewImage] = useState(null);
@@ -346,7 +350,22 @@ export function CourierProfile() {
             value={courier.isAvailable ? "On duty" : "Off duty"}
           />
         </div>
+
+        <div className="mt-6 border-t border-border pt-4">
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive px-0"
+            onClick={() => setShowDeleteAccount(true)}
+          >
+            Delete my account
+          </Button>
+        </div>
       </div>
+
+      <DeleteAccountDialog
+        open={showDeleteAccount}
+        onOpenChange={setShowDeleteAccount}
+      />
     </div>
   );
 }

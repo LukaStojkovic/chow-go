@@ -4,6 +4,7 @@ import {
   DEFAULT_CLOSING_TIME,
   DEFAULT_OPENING_TIME,
   TIME_PATTERN,
+  DEFAULT_TIMEZONE,
 } from "../utils/schedule.js";
 
 const dayScheduleSchema = new mongoose.Schema(
@@ -106,6 +107,26 @@ const restaurantSchema = new mongoose.Schema(
     },
 
     schedule: weeklyScheduleFields,
+
+    // isOpenNow used to be computed from the server's local clock, so a UTC
+    // host put every restaurant's hours an hour or two out - and createOrder
+    // rejects on that flag.
+    timezone: {
+      type: String,
+      default: DEFAULT_TIMEZONE,
+      validate: {
+        validator: (value) => {
+          if (!value) return false;
+          try {
+            new Intl.DateTimeFormat("en-US", { timeZone: value });
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        message: "{VALUE} is not a recognised IANA time zone",
+      },
+    },
 
     isActive: {
       type: Boolean,
