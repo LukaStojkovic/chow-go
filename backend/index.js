@@ -98,7 +98,12 @@ app.use(cookieParser());
 // route throws before it has looked at the user.
 app.use(attachLocale);
 app.use(rejectMongoOperators);
+// Scoped to the API. In production this process also serves the SPA, and Vite
+// marks its module scripts `crossorigin`, so the browser sends an Origin header
+// on same-origin asset requests too - a global gate turns one missing entry in
+// CORS_ORIGINS into a 500 on every script and stylesheet, and a blank page.
 app.use(
+  "/api",
   cors({
     origin: corsOrigin,
     credentials: true,
