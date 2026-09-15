@@ -18,8 +18,9 @@ The root `package.json` exists only for single-service deploys: `npm run build` 
 ```bash
 cd backend && npm run dev      # nodemon index.js
 cd frontend && npm run dev     # vite --host
-cd frontend && npm run lint    # eslint (the only automated check in the repo)
+cd frontend && npm run lint    # eslint
 cd frontend && npm run build   # vite build -> frontend/dist
+cd shared && npm run check     # locale drift, shared imports, translation keys
 cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
 cd mobile && npm run sync-theme  # regenerate the theme from mobile/src/theme/palette.js
 node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
@@ -44,7 +45,13 @@ pricing. Individually: `check:observability`, `check:reset`, `check:courier-acce
 
 The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
-`shared/` has no build step and no lint. It does need its own `npm install` (it depends on `zod`): Vite resolves the linked package through its real path, so a missing `shared/node_modules` breaks the frontend build rather than the shared package alone.
+`shared/` has no build step and no lint. It does need its own `npm install` (it depends on `zod` and `i18next`): Vite resolves the linked package through its real path, so a missing `shared/node_modules` breaks the frontend build rather than the shared package alone.
+
+`cd shared && npm run check` runs three static guards over **every** package, and each exists because the failure it catches is silent at runtime:
+
+- `check:locales` — en/sr drift, mismatched `{{placeholders}}`, and duplicate keys in one object literal (the later one wins and the earlier translation is simply gone). Plural families are compared by base key, since Serbian needs three forms where English needs two.
+- `check:imports` — every `@chowgo/shared/*` import across `frontend/`, `mobile/` and `backend/` resolves to a real export and a real subpath. Renaming a shared export otherwise fails at module-evaluation time, in the browser, on one route.
+- `check:keys` — every literal `t("ns:key")` exists in the catalog, every file calling `t()` has it in scope, and dynamic `` t(`ns:${value}`) `` patterns without a `defaultValue` are listed as warnings. A missing key renders as the raw key and logs nothing in production.
 
 **On Windows, `frontend/node_modules/@chowgo/shared` is a directory junction.** A recursive delete of that path follows the junction and wipes the real `shared/` directory — delete the junction itself (`cmd /c rmdir`) instead. Run `npm install` from PowerShell, not Git Bash; npm invoked from bash writes a POSIX path into the link that Windows cannot follow, producing a package that silently fails to resolve.
 
@@ -172,7 +179,7 @@ Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload
 
 `@chowgo/shared` holds logic that must be identical on every client. Several modules mirror backend rules — `adapters/pricing.js` carries the delivery/service/priority fees, `promotion.js` the discount floor and ceiling — so duplicating them per client means a pricing change lands in three places and the failure mode is a wrong total on a customer's screen.
 
-- **No React, no DOM, no `import.meta`, no icon library, no HTTP client.** Everything here must run unchanged under Vite and under Metro/Hermes. `zod` is the only dependency.
+- **No React, no DOM, no `import.meta`, no icon library, no HTTP client.** Everything here must run unchanged under Vite and under Metro/Hermes. The only dependencies are `zod` and `i18next` — the latter because `src/i18n/` owns the single i18next instance every client shares, and it must be one module instance in each bundler (Vite `resolve.dedupe`, Metro `resolveRequest`) or the active language lives in two places.
 - **Subpath exports only, no barrel** (`@chowgo/shared/format`, `@chowgo/shared/adapters/pricing`). `format.js` and `geo.js` both export a `formatDistance` with deliberately different rounding — discovery buckets to 50 m, map/route distance does not — and a barrel would silently resolve one of them everywhere. Adding a module means adding an `exports` entry.
 - **Relative imports inside the package carry explicit `.js` extensions.**
 - `constants.js` holds taxonomy **data**; category icons are string keys (`icon: "pizza"`). `frontend/src/lib/constants.js` is a thin shim that maps those keys to `lucide-react` components and re-exports the rest, which is why component imports of `@/lib/constants` were left alone.

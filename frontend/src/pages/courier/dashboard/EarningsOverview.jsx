@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   BarChart,
   Bar,
@@ -13,6 +14,7 @@ import { generateNameInitials } from "@chowgo/shared/strings";
 import { formatDateAgo } from "@chowgo/shared/dates";
 
 export function EarningsOverview({ chartData = [], recentOrders = [] }) {
+  const { t } = useTranslation(["courier", "common"]);
   return (
     <div className="space-y-4">
       <motion.div
@@ -22,7 +24,7 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
         className="rounded-3xl border border-border bg-card p-6 shadow-sm "
       >
         <h3 className="mb-4 text-base font-semibold text-foreground ">
-          Weekly earnings
+          {t("dashboard.weeklyEarnings")}
         </h3>
         <div className="h-52 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -85,7 +87,7 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
           className="rounded-3xl border border-border bg-card p-6 shadow-sm "
         >
           <h3 className="mb-4 text-base font-semibold text-foreground ">
-            Recent deliveries
+            {t("dashboard.recentDeliveries")}
           </h3>
           <div className="divide-y divide-border ">
             {recentOrders.map((o) => (

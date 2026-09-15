@@ -1,3 +1,5 @@
+import { t } from "@chowgo/shared/i18n";
+
 /**
  * Short status wording, for places that have room for a pill and nothing more.
  *
@@ -9,21 +11,13 @@
  * The full label still belongs anywhere with a line to itself: the tracking
  * screen headline, a screen-reader announcement, a notification.
  */
-export const SHORT_STATUS = {
-  pending: "Awaiting confirmation",
-  confirmed: "Confirmed",
-  preparing: "Preparing",
-  ready: "Ready",
-  assigned: "Courier assigned",
-  picked_up: "Picked up",
-  in_transit: "On the way",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-  rejected: "Declined",
-};
-
 export function shortStatus(order) {
-  return SHORT_STATUS[order?.status] ?? order?.statusLabel ?? "";
+  const status = order?.status;
+  if (!status) return order?.statusLabel ?? "";
+
+  // Resolved on every call rather than held in a table: this module is
+  // imported before a language exists, and the badge has to follow a switch.
+  return t(`order:short.${status}`, { defaultValue: order?.statusLabel ?? "" });
 }
 
 /** The adapter's status tones, mapped onto the Badge component's vocabulary. */

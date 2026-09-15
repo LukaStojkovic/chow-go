@@ -87,14 +87,14 @@ export default function MenuItemForm() {
     try {
       if (isNew) {
         await create.mutateAsync(values);
-        toast.success("Dish added");
+        toast.success(t("menu.dishAdded"));
       } else {
         await update.mutateAsync({ menuItemId, ...values });
-        toast.success("Dish updated");
+        toast.success(t("menu.dishUpdated"));
       }
       router.back();
     } catch (error) {
-      toast.error("Could not save the dish", { description: errorMessage(error) });
+      toast.error(t("menu.dishSaveFailed"), { description: errorMessage(error) });
     }
   }
 
@@ -107,7 +107,7 @@ export default function MenuItemForm() {
   return (
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader
-        title={isNew ? "Add a dish" : "Edit dish"}
+        title={isNew ? t("menu.addTitle") : t("menu.editTitle")}
         subtitle={isNew ? undefined : existingItem?.name}
       />
 
@@ -119,7 +119,7 @@ export default function MenuItemForm() {
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              The dish
+              {t("menu.theDish")}
             </Text>
           </View>
 
@@ -128,12 +128,12 @@ export default function MenuItemForm() {
             name="name"
             render={({ field }) => (
               <Input
-                label="Name"
+                label={t("menu.form.nameLabel")}
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
                 error={formState.errors.name?.message}
-                placeholder="Margherita Pizza"
+                placeholder={t("menu.form.namePlaceholder")}
               />
             )}
           />
@@ -143,12 +143,12 @@ export default function MenuItemForm() {
             name="description"
             render={({ field }) => (
               <Input
-                label="Description"
+                label={t("menu.form.descriptionLabel")}
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
                 error={formState.errors.description?.message}
-                placeholder="What is in it?"
+                placeholder={t("menu.form.descriptionShortPlaceholder")}
                 multiline
               />
             )}
@@ -160,7 +160,7 @@ export default function MenuItemForm() {
             render={({ field }) => (
               <View className="gap-2">
                 <Text variant="label-sm" tone={formState.errors.category ? "destructive" : "muted"}>
-                  Category
+                  {t("menu.form.categoryLabel")}
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {categories.filter((entry) => entry.id !== "all").map((entry) => (
@@ -187,7 +187,7 @@ export default function MenuItemForm() {
             name="price"
             render={({ field }) => (
               <Input
-                label="Price"
+                label={t("menu.form.priceLabel")}
                 value={String(field.value ?? "")}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
@@ -202,7 +202,7 @@ export default function MenuItemForm() {
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              Photos
+              {t("menu.form.imagesLabel")}
             </Text>
           </View>
 
@@ -221,15 +221,15 @@ export default function MenuItemForm() {
           render={({ field }) => (
             <Card className="flex-row items-center gap-3">
               <View className="flex-1 gap-0.5 pr-3">
-                <Text variant="h3">Available to order</Text>
+                <Text variant="h3">{t("menu.form.availableLabel")}</Text>
                 <Text variant="caption" tone="muted">
-                  Hidden dishes stay on your menu but cannot be ordered.
+                  {t("menu.form.availableHint")}
                 </Text>
               </View>
               <Toggle
                 value={field.value}
                 onValueChange={field.onChange}
-                accessibilityLabel="Available to order"
+                accessibilityLabel={t("menu.form.availableLabel")}
               />
             </Card>
           )}
@@ -242,15 +242,15 @@ export default function MenuItemForm() {
             render={({ field }) => (
               <View className="flex-row items-center gap-3">
                 <View className="flex-1">
-                  <Text variant="h3">Run a promotion</Text>
+                  <Text variant="h3">{t("promotion.enableLabel")}</Text>
                   <Text variant="caption" tone="muted">
-                    Mark this dish down for a while
+                    {t("promotion.shortHint")}
                   </Text>
                 </View>
                 <Toggle
                   value={field.value}
                   onValueChange={field.onChange}
-                  accessibilityLabel="Run a promotion"
+                  accessibilityLabel={t("promotion.enableLabel")}
                 />
               </View>
             )}
@@ -281,15 +281,23 @@ export default function MenuItemForm() {
                 name="promotion.value"
                 render={({ field }) => (
                   <Input
-                    label={promotion.type === "fixed" ? "Amount off" : "Percent off"}
+                    label={
+                      promotion.type === "fixed"
+                        ? t("promotion.amountOff")
+                        : t("promotion.percentOff")
+                    }
                     value={String(field.value ?? "")}
                     onChangeText={field.onChange}
                     keyboardType="decimal-pad"
                     error={formState.errors.promotion?.value?.message}
                     hint={
                       promotion.type === "fixed"
-                        ? `Cannot price the dish below ${formatPrice(PROMOTION_LIMITS.minPrice)}`
-                        : `Up to ${PROMOTION_LIMITS.maxPercentOff}% off`
+                        ? t("promotion.minPriceHint", {
+                            min: formatPrice(PROMOTION_LIMITS.minPrice),
+                          })
+                        : t("promotion.maxPercentHint", {
+                            max: PROMOTION_LIMITS.maxPercentOff,
+                          })
                     }
                   />
                 )}
@@ -300,11 +308,11 @@ export default function MenuItemForm() {
                 name="promotion.label"
                 render={({ field }) => (
                   <Input
-                    label="Label"
+                    label={t("promotion.badgeLabel")}
                     value={field.value ?? ""}
                     onChangeText={field.onChange}
                     maxLength={PROMOTION_LIMITS.maxLabelLength}
-                    placeholder="Lunch deal"
+                    placeholder={t("promotion.badgeShortPlaceholder")}
                     error={formState.errors.promotion?.label?.message}
                   />
                 )}
@@ -314,7 +322,7 @@ export default function MenuItemForm() {
                 visible before saving rather than after. */}
               <Inset tone="mint" className="gap-1">
                 <Text variant="caption" tone="primary">
-                  What customers will see
+                  {t("promotion.previewHeading")}
                 </Text>
                 {preview.isValid ? (
                   <View className="flex-row items-baseline gap-2">
@@ -330,7 +338,7 @@ export default function MenuItemForm() {
                   </View>
                 ) : (
                   <Text variant="body-sm" tone="muted">
-                    Enter a price and a discount to preview it.
+                    {t("promotion.previewEmpty")}
                   </Text>
                 )}
               </Inset>
@@ -348,17 +356,17 @@ export default function MenuItemForm() {
             onPress={async () => {
               try {
                 await remove.mutateAsync(menuItemId);
-                toast.info("Dish deleted");
+                toast.info(t("menu.dishDeleted"));
                 router.back();
               } catch (error) {
-                toast.error("Could not delete", { description: errorMessage(error) });
+                toast.error(t("common:error.deleteFailed"), { description: errorMessage(error) });
               }
             }}
           >
             <View className="flex-row items-center gap-2">
               <Trash2 size={17} color={color.destructive} />
               <Text variant="label" tone="destructive">
-                Delete dish
+                {t("menu.deleteDish")}
               </Text>
             </View>
           </Button>
@@ -368,7 +376,7 @@ export default function MenuItemForm() {
       <DockedBar>
         {!hasImage ? (
           <Text variant="caption" tone="muted" className="text-center">
-            Add at least one photo to save.
+            {t("menu.form.photoRequired")}
           </Text>
         ) : null}
         <Button
@@ -378,7 +386,7 @@ export default function MenuItemForm() {
           disabled={!hasImage}
           onPress={handleSubmit(onSubmit)}
         >
-          {isNew ? "Add dish" : "Save changes"}
+          {isNew ? t("menu.addSubmit") : t("common:actions.saveChanges")}
         </Button>
       </DockedBar>
     </Screen>

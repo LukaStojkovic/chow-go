@@ -1,4 +1,5 @@
 import { StickyNote } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SectionLabel } from "./CourierOrderDetailSheet";
 
 function NoteBox({ text }) {
@@ -11,12 +12,13 @@ function NoteBox({ text }) {
 }
 
 export function CourierOrderNotes({ customerNotes, addressNotes }) {
+  const { t } = useTranslation(["courier", "common"]);
   const showAddress = addressNotes && addressNotes !== customerNotes;
   if (!customerNotes && !showAddress) return null;
 
   return (
     <div className="px-5 py-4 space-y-2">
-      <SectionLabel>Notes</SectionLabel>
+      <SectionLabel>{t("delivery.notes")}</SectionLabel>
       {customerNotes && <NoteBox text={customerNotes} />}
       {showAddress && <NoteBox text={addressNotes} />}
     </div>

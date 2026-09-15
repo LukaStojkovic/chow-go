@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { translateFieldError } from "@chowgo/shared/i18n/fieldErrors";
 
 const PasswordField = ({
   label,
@@ -9,7 +11,11 @@ const PasswordField = ({
   register,
   errors,
   isUpdatingProfile,
-}) => (
+}) => {
+  // The schema carries keys, not copy - see `msg` in the shared package.
+  const { t } = useTranslation(["validation", "common"]);
+
+  return (
   <div>
     <label className="block text-sm font-medium text-muted-foreground mb-2">
       {label}
@@ -33,10 +39,11 @@ const PasswordField = ({
     </div>
     {errors[name] && (
       <p className="mt-1 text-xs text-destructive ">
-        {errors[name]?.message}
+        {translateFieldError(errors[name], t)}
       </p>
     )}
   </div>
-);
+  );
+};
 
 export default PasswordField;

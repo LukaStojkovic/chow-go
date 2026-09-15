@@ -124,7 +124,5 @@ export const elevation = {
 // and sheets at `xl`, and anything pressable is `full`.
 export const radius = { xs: 10, sm: 14, md: 18, lg: 22, xl: 26, "2xl": 30, "3xl": 34, full: 9999 };
 
-export const duration = { micro: 150, standard: 250, panel: 340, page: 300, image: 500 };
-
-// cubic-bezier(0.22, 1, 0.36, 1) and cubic-bezier(0.4, 0, 1, 1)
-export const easing = { standard: [0.22, 1, 0.36, 1], exit: [0.4, 0, 1, 1] };
+// Durations, easing curves and spring configs live in src/theme/motion.js -
+// they are hand-written rather than derived from the palette.

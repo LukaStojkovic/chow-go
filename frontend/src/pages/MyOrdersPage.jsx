@@ -8,6 +8,7 @@
  */
 
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Package } from "lucide-react";
@@ -24,33 +25,17 @@ import { EmptyState, ErrorState } from "@/components/common/StateViews";
 import { OrderCard, OrderCardSkeleton } from "@/features/orders/OrderCard";
 import { ReplaceBasketDialog } from "@/components/basket/ReplaceBasketDialog";
 
+// Both tables are module scope, so they hold keys rather than copy - a
+// resolved label here would be frozen in whichever language loaded first.
 const TABS = [
-  { id: "all", label: "All", status: undefined },
-  { id: "active", label: "Active", status: ACTIVE_STATUS_FILTER },
-  { id: "delivered", label: "Delivered", status: "delivered" },
-  { id: "cancelled", label: "Cancelled", status: "cancelled,rejected" },
+  { id: "all", labelKey: "history.tabs.all", status: undefined },
+  { id: "active", labelKey: "history.tabs.active", status: ACTIVE_STATUS_FILTER },
+  { id: "delivered", labelKey: "history.tabs.delivered", status: "delivered" },
+  { id: "cancelled", labelKey: "history.tabs.cancelled", status: "cancelled,rejected" },
 ];
 
-const EMPTY_COPY = {
-  all: {
-    title: "No orders yet",
-    description: "Once you place your first order it will live here, ready to reorder.",
-  },
-  active: {
-    title: "Nothing in progress",
-    description: "You have no orders being prepared or on their way right now.",
-  },
-  delivered: {
-    title: "No delivered orders yet",
-    description: "Orders show up here once they have arrived.",
-  },
-  cancelled: {
-    title: "No cancelled orders",
-    description: "Nothing here - which is exactly how it should be.",
-  },
-};
-
 export default function MyOrdersPage() {
+  const { t } = useTranslation(["order", "basket", "common"]);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const rawTab = searchParams.get("filter") ?? "all";
@@ -78,7 +63,7 @@ export default function MyOrdersPage() {
         <Stack gap="lg">
           <div
             role="tablist"
-            aria-label="Filter orders"
+            aria-label={t("history.filterLabel")}
             className="border-border scrollbar-hide flex gap-1 overflow-x-auto rounded-md border p-1"
           >
             {TABS.map((tab) => {
@@ -107,7 +92,7 @@ export default function MyOrdersPage() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               );
             })}
@@ -115,14 +100,14 @@ export default function MyOrdersPage() {
 
           {error ? (
             <ErrorState
-              title="We could not load your orders"
-              description="This is a connection problem, not a problem with your orders."
+              title={t("list.error.title")}
+              description={t("history.error.description")}
               onRetry={refetch}
             />
           ) : isLoadingOrders ? (
             <ul className="space-y-3" aria-busy="true">
               <span className="sr-only" role="status">
-                Loading your orders
+                {t("history.loading")}
               </span>
               {[0, 1, 2].map((i) => (
                 <OrderCardSkeleton key={i} />
@@ -131,17 +116,17 @@ export default function MyOrdersPage() {
           ) : orders.length === 0 ? (
             <EmptyState
               icon={Package}
-              title={EMPTY_COPY[activeTab].title}
-              description={EMPTY_COPY[activeTab].description}
+              title={t(`history.empty.${activeTab}.title`)}
+              description={t(`history.empty.${activeTab}.description`)}
               action={
                 <Button asChild>
-                  <Link to="/discovery">Browse restaurants</Link>
+                  <Link to="/discovery">{t("basket:empty.action")}</Link>
                 </Button>
               }
               secondaryAction={
                 activeTab !== "all" ? (
                   <Button variant="ghost" onClick={() => setTab("all")}>
-                    Show all orders
+                    {t("history.showAll")}
                   </Button>
                 ) : null
               }
@@ -168,7 +153,7 @@ export default function MyOrdersPage() {
 
               {pagination?.totalPages > 1 && (
                 <nav
-                  aria-label="Order history pages"
+                  aria-label={t("history.pagesLabel")}
                   className="flex items-center justify-center gap-3"
                 >
                   <Button
@@ -177,10 +162,13 @@ export default function MyOrdersPage() {
                     disabled={!pagination.hasPrev}
                     onClick={() => setPage(page - 1)}
                   >
-                    Previous
+                    {t("common:a11y.previous")}
                   </Button>
                   <span aria-live="polite" className="text-body-sm text-muted-foreground tabular">
-                    Page {pagination.currentPage} of {pagination.totalPages}
+                    {t("history.pageOf", {
+                      current: pagination.currentPage,
+                      total: pagination.totalPages,
+                    })}
                   </span>
                   <Button
                     variant="outline"
@@ -188,7 +176,7 @@ export default function MyOrdersPage() {
                     disabled={!pagination.hasNext}
                     onClick={() => setPage(page + 1)}
                   >
-                    Next
+                    {t("common:a11y.next")}
                   </Button>
                 </nav>
               )}

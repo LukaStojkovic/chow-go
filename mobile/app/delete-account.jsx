@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 
@@ -14,6 +15,7 @@ import { toast } from "@/store/useToastStore";
 // Required by App Store Review Guideline 5.1.1(v) and by Google Play, and it
 // has to be findable in the app rather than only on a website.
 export default function DeleteAccount() {
+  const { t } = useTranslation(["profile", "order", "basket", "errors", "common"]);
   const authUser = useAuthStore((state) => state.authUser);
   const deleteAccount = useAuthStore((state) => state.deleteAccount);
 
@@ -29,17 +31,19 @@ export default function DeleteAccount() {
     setBusy(true);
     try {
       await deleteAccount(needsPassword ? password : undefined);
-      toast.success("Your account has been deleted");
+      toast.success(t("profile:account.accountDeleted"));
       router.replace("/(auth)/welcome");
     } catch (error) {
-      toast.error("Could not delete your account", { description: errorMessage(error) });
+      toast.error(t("profile:account.accountDeleteFailed"), {
+        description: errorMessage(error),
+      });
       setBusy(false);
     }
   }
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <ScreenHeader title="Delete account" onBack={() => router.back()} />
+      <ScreenHeader title={t("deleteAccount.title")} onBack={() => router.back()} />
 
       <ScrollView
         contentContainerClassName="gap-5 px-5 pb-10"
@@ -47,33 +51,29 @@ export default function DeleteAccount() {
         automaticallyAdjustKeyboardInsets
       >
         <Text variant="body" tone="muted">
-          This cannot be undone. Your name, email, phone number and saved
-          addresses are removed straight away, and you are signed out everywhere.
+          {t("deleteAccount.body1")}
         </Text>
 
         <View className="gap-2 rounded-lg bg-muted p-4">
-          <Text variant="label">What is kept</Text>
+          <Text variant="label">{t("deleteAccount.whatIsKept")}</Text>
           <Text variant="caption" tone="muted">
-            Past orders stay on record without your personal details, because
-            they are also the restaurant's and the courier's receipts. Nobody can
-            tell they were yours.
+            {t("deleteAccount.body2")}
           </Text>
         </View>
 
         <Text variant="caption" tone="muted">
-          If you have an order on its way, wait until it arrives — we cannot
-          delete an account mid-delivery.
+          {t("deleteAccount.body3")}
         </Text>
 
         {needsPassword ? (
           <Input
-            label="Confirm your password"
+            label={t("deleteAccount.confirmLabel")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
             textContentType="password"
-            accessibilityLabel="Confirm your password to delete your account"
+            accessibilityLabel={t("deleteAccount.confirmLabel")}
           />
         ) : null}
 
@@ -84,10 +84,12 @@ export default function DeleteAccount() {
           onPress={() => setConfirmed((value) => !value)}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: confirmed }}
-          accessibilityLabel="I understand this cannot be undone"
+          accessibilityLabel={t("deleteAccount.understand")}
         >
           <Text variant="label" tone={confirmed ? "destructive" : "muted"}>
-            {confirmed ? "✓ I understand this cannot be undone" : "I understand this cannot be undone"}
+            {confirmed
+              ? `✓ ${t("deleteAccount.understand")}`
+              : t("deleteAccount.understand")}
           </Text>
         </Button>
 
@@ -98,16 +100,16 @@ export default function DeleteAccount() {
           disabled={!canSubmit}
           loading={busy}
           onPress={onDelete}
-          accessibilityLabel="Permanently delete my account"
+          accessibilityLabel={t("deleteAccount.permanently")}
         >
           <Text variant="label" tone="inverse">
-            Delete my account
+            {t("deleteAccount.confirm")}
           </Text>
         </Button>
 
         <Button variant="ghost" size="md" fullWidth onPress={() => router.back()}>
           <Text variant="label" tone="muted">
-            Keep my account
+            {t("deleteAccount.cancel")}
           </Text>
         </Button>
       </ScrollView>

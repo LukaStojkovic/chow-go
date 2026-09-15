@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Camera, Pencil } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export function PersonalDetailsCard() {
+  const { t } = useTranslation(["profile", "auth", "common"]);
   const { authUser, apiUpdateProfile, isUpdatingProfile } = useAuthStore();
 
   // The form is seeded from the store each time it is opened, rather than kept
@@ -66,11 +68,14 @@ export function PersonalDetailsCard() {
     if (!file) return;
 
     if (!IMAGE_TYPES.includes(file.type)) {
-      setErrors((current) => ({ ...current, photo: "Use a JPEG, PNG or WebP image." }));
+      setErrors((current) => ({ ...current, photo: t("account.imageType") }));
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      setErrors((current) => ({ ...current, photo: "That image is over 5 MB." }));
+      setErrors((current) => ({
+        ...current,
+        photo: t("account.imageSize", { size: MAX_IMAGE_BYTES / 1_000_000 }),
+      }));
       return;
     }
 
@@ -80,9 +85,9 @@ export function PersonalDetailsCard() {
 
   const validate = () => {
     const next = {};
-    if (name.trim().length < 2) next.name = "Enter your name - at least 2 characters.";
+    if (name.trim().length < 2) next.name = t("account.nameMin", { count: 2 });
     if (phone.trim() && !PHONE_PATTERN.test(phone.trim())) {
-      next.phone = "Use digits, spaces, and + ( ) - only.";
+      next.phone = t("account.phoneChars");
     }
     setErrors((current) => ({ ...next, photo: current.photo }));
     return Object.keys(next).length === 0;
@@ -119,11 +124,11 @@ export function PersonalDetailsCard() {
   return (
     <Card padded className="space-y-4">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-h2">Personal details</h2>
+        <h2 className="text-h2">{t("account.personalDetails")}</h2>
         {!isEditing && (
           <Button variant="outline" size="sm" onClick={startEditing}>
             <Pencil aria-hidden="true" />
-            Edit
+            {t("common:actions.edit")}
           </Button>
         )}
       </div>
@@ -141,7 +146,7 @@ export function PersonalDetailsCard() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="bg-primary text-primary-foreground border-card hover:bg-primary/90 focus-visible:ring-ring absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border-2 focus-visible:ring-2 focus-visible:outline-none"
-                aria-label="Change profile photo"
+                aria-label={t("account.changePhoto")}
               >
                 <Camera className="size-3" aria-hidden="true" />
               </button>
@@ -156,7 +161,7 @@ export function PersonalDetailsCard() {
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-label truncate">{authUser?.name || "Your account"}</p>
+          <p className="text-label truncate">{authUser?.name || t("account.yourAccount")}</p>
           <p className="text-body-sm text-muted-foreground truncate">{authUser?.email}</p>
           {isEditing &&
             (errors.photo ? (
@@ -164,7 +169,7 @@ export function PersonalDetailsCard() {
             ) : (
               photo && (
                 <p className="text-caption text-muted-foreground">
-                  New photo - saves with your changes.
+                  {t("account.newPhotoHint")}
                 </p>
               )
             ))}
@@ -174,7 +179,7 @@ export function PersonalDetailsCard() {
       {isEditing ? (
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="profile-name">Full name</Label>
+            <Label htmlFor="profile-name">{t("auth:fields.fullName")}</Label>
             <Input
               id="profile-name"
               value={name}
@@ -191,7 +196,7 @@ export function PersonalDetailsCard() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="profile-phone">Phone number</Label>
+            <Label htmlFor="profile-phone">{t("account.phone")}</Label>
             <Input
               id="profile-phone"
               type="tel"
@@ -210,36 +215,40 @@ export function PersonalDetailsCard() {
               </p>
             ) : (
               <p id="profile-phone-hint" className="text-caption text-muted-foreground">
-                Couriers use this to reach you about a delivery.
+                {t("account.phoneHint")}
               </p>
             )}
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" isLoading={isUpdatingProfile} loadingLabel="Saving">
-              Save changes
+            <Button
+              type="submit"
+              isLoading={isUpdatingProfile}
+              loadingLabel={t("common:state.saving")}
+            >
+              {t("common:actions.saveChanges")}
             </Button>
             <Button type="button" variant="ghost" onClick={cancel}>
-              Cancel
+              {t("common:actions.cancel")}
             </Button>
           </div>
         </form>
       ) : (
         <dl className={cn("border-border divide-border divide-y border-t")}>
           <div className="flex justify-between gap-4 py-2.5">
-            <dt className="text-body-sm text-muted-foreground">Name</dt>
+            <dt className="text-body-sm text-muted-foreground">{t("account.name")}</dt>
             <dd className="text-body-sm text-foreground text-right">
-              {authUser?.name || "Not set"}
+              {authUser?.name || t("account.notSet")}
             </dd>
           </div>
           <div className="flex justify-between gap-4 py-2.5">
-            <dt className="text-body-sm text-muted-foreground">Phone</dt>
+            <dt className="text-body-sm text-muted-foreground">{t("account.phone")}</dt>
             <dd className="text-body-sm text-foreground text-right">
-              {authUser?.phoneNumber || "Not set"}
+              {authUser?.phoneNumber || t("account.notSet")}
             </dd>
           </div>
           <div className="flex justify-between gap-4 py-2.5">
-            <dt className="text-body-sm text-muted-foreground">Email</dt>
+            <dt className="text-body-sm text-muted-foreground">{t("account.email")}</dt>
             <dd className="text-body-sm text-foreground truncate text-right">
               {authUser?.email}
             </dd>

@@ -1,7 +1,8 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { CheckCircle2 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { toOrderView } from "@chowgo/shared/adapters/order";
@@ -12,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { useOrder } from "@/hooks/Orders/useOrders";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -23,9 +25,21 @@ import { useTokens } from "@/theme/useTokens";
  * hands you on to.
  */
 export default function OrderConfirmed() {
+  const { t } = useTranslation([
+    "order",
+    "restaurant",
+    "basket",
+    "profile",
+    "auth",
+    "errors",
+    "validation",
+    "courier",
+    "common",
+  ]);
   const { orderId } = useLocalSearchParams();
   const { data } = useOrder(orderId);
   const { color } = useTokens();
+  const motion = useMotion();
   const insets = useSafeAreaInsets();
 
   const order = data ? toOrderView(data) : null;
@@ -38,25 +52,30 @@ export default function OrderConfirmed() {
         end={{ x: 0.9, y: 1 }}
         style={{ paddingTop: insets.top + 56 }}
       >
-        <Animated.View entering={FadeIn.duration(400)} className="items-center gap-5 px-6 pb-16">
-          <View className="h-24 w-24 items-center justify-center rounded-full bg-white/20">
+        <Animated.View entering={motion.enter.content()} className="items-center gap-5 px-6 pb-16">
+          {/* The tick springs in on its own beat, slightly after the field it
+              sits on - it is the thing this screen exists to say. */}
+          <Animated.View
+            entering={motion.enter.pop(120)}
+            className="h-24 w-24 items-center justify-center rounded-full bg-white/20"
+          >
             <CheckCircle2 size={52} strokeWidth={2} color={color["primary-foreground"]} />
-          </View>
+          </Animated.View>
           <View className="items-center gap-2">
             <Text variant="display" tone="inverse" className="text-center">
-              Order placed
+              {t("confirmed.title")}
             </Text>
             <Text variant="body-lg" tone="inverse" className="text-center opacity-85">
               {order?.restaurant?.name
-                ? `${order.restaurant.name} will confirm it in a moment.`
-                : "The restaurant will confirm it in a moment."}
+                ? t("confirmSoon", { name: order.restaurant.name })
+                : t("confirmSoonFallback")}
             </Text>
           </View>
         </Animated.View>
       </LinearGradient>
 
       <Animated.View
-        entering={FadeInDown.duration(400).delay(120)}
+        entering={motion.enter.panel()}
         className="-mt-8 flex-1 gap-3 rounded-t-3xl bg-background px-5 pt-6"
         style={{ paddingBottom: Math.max(insets.bottom, 20) }}
       >
@@ -65,7 +84,7 @@ export default function OrderConfirmed() {
             <View className="flex-row items-center gap-3">
               <View className="flex-1">
                 <Text variant="caption" tone="muted">
-                  Order number
+                  {t("confirmed.orderNumber")}
                 </Text>
                 <Text variant="h3">#{order.number}</Text>
               </View>
@@ -86,7 +105,7 @@ export default function OrderConfirmed() {
                 <View className="flex-row items-center gap-3">
                   <View className="flex-1">
                     <Text variant="caption" tone="muted">
-                      Estimated delivery
+                      {t("eta.label")}
                     </Text>
                     <Text variant="h3">{order.restaurant.deliveryEstimate}</Text>
                   </View>
@@ -102,7 +121,7 @@ export default function OrderConfirmed() {
             fullWidth
             onPress={() => router.replace(`/(customer)/order/${orderId}`)}
           >
-            Track your order
+            {t("confirmed.trackAction")}
           </Button>
           <Button
             size="lg"
@@ -110,7 +129,7 @@ export default function OrderConfirmed() {
             fullWidth
             onPress={() => router.replace("/(customer)/(tabs)")}
           >
-            Back to browsing
+            {t("confirmed.homeAction")}
           </Button>
         </View>
       </Animated.View>

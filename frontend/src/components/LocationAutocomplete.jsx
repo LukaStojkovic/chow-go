@@ -1,4 +1,5 @@
 import { MapPin, LocateFixed, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import useLocationAutocomplete from "@/hooks/Location/useLocationAutocomplete";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,10 +9,11 @@ export default function LocationAutocomplete({
   value,
   onChange,
   onSelect,
-  placeholder = "Enter your delivery address...",
+  placeholder,
   onDetectClick,
   isDetecting = false,
 }) {
+  const { t } = useTranslation(["profile", "common"]);
   const [showDropdown, setShowDropdown] = useState(false);
   const ref = useOutsideClick(() => setShowDropdown(false), true);
   const { predictions = [], isLoading } = useLocationAutocomplete(value);
@@ -44,7 +46,7 @@ export default function LocationAutocomplete({
           value={value}
           onChange={handleInputChange}
           onFocus={() => value.length > 0 && setShowDropdown(true)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("delivery.searchPlaceholder")}
           className="h-16 w-full rounded-full border-2 border-border bg-card pl-14 pr-36 text-lg font-medium text-foreground placeholder:text-muted-foreground shadow-xl  outline-none transition-all hover:border-border focus:border-primary focus:ring-4 focus:ring-ring/10 dark:shadow-none "
         />
 
@@ -64,7 +66,7 @@ export default function LocationAutocomplete({
             ) : (
               <div className="flex items-center gap-2">
                 <LocateFixed className="h-5 w-5" />
-                <span className="hidden sm:inline">Locate Me</span>
+                <span className="hidden sm:inline">{t("delivery.useCurrent")}</span>
               </div>
             )}
           </button>
@@ -85,7 +87,7 @@ export default function LocationAutocomplete({
               </div>
             ) : predictions.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">
-                No results found for "{value}"
+                {t("common:state.noResultsFor", { query: value })}
               </div>
             ) : (
               <ul className="max-h-64 overflow-y-auto">

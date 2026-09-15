@@ -1,52 +1,25 @@
 import { ChefHat, Clock, Shield, Star, TrendingUp, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { motion } from "framer-motion";
 
 export default function ProsSection() {
+  const { t } = useTranslation(["landing", "common"]);
+  // Keys rather than copy: this list is rebuilt on every render, so it picks
+  // up a language change without any extra wiring.
   const features = [
-    {
-      icon: Clock,
-      title: "Lightning Fast",
-      description:
-        "Get your food delivered in 30 minutes or less. We prioritize speed without compromising quality.",
-      color: " ",
-    },
-    {
-      icon: ChefHat,
-      title: "Top Restaurants",
-      description:
-        "Order from the best restaurants in your area. Curated selection of quality establishments.",
-      color: " ",
-    },
-    {
-      icon: Shield,
-      title: "Secure & Safe",
-      description:
-        "Your data and payments are protected with industry-leading security measures.",
-      color: " ",
-    },
-    {
-      icon: Zap,
-      title: "Real-time Tracking",
-      description:
-        "Track your order in real-time from kitchen to your doorstep. Never wonder where your food is.",
-      color: " ",
-    },
-    {
-      icon: Star,
-      title: "Premium Quality",
-      description:
-        "Only the finest ingredients and most trusted restaurants. Quality guaranteed.",
-      color: " ",
-    },
-    {
-      icon: TrendingUp,
-      title: "Best Prices",
-      description:
-        "Competitive prices with exclusive deals and discounts. More value for your money.",
-      color: " ",
-    },
-  ];
+    { icon: Clock, key: "fast" },
+    { icon: ChefHat, key: "restaurants" },
+    { icon: Shield, key: "secure" },
+    { icon: Zap, key: "tracking" },
+    { icon: Star, key: "quality" },
+    { icon: TrendingUp, key: "prices" },
+  ].map((entry) => ({
+    ...entry,
+    title: t(`pros.${entry.key}.title`),
+    description: t(`pros.${entry.key}.description`),
+    color: " ",
+  }));
 
   return (
     <section className="py-20 md:py-32">
@@ -60,10 +33,12 @@ export default function ProsSection() {
             className="mb-16 text-center"
           >
             <h2 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-              Why Choose <span className="linear-text">Chow&Go</span>?
+              {t("pros.headingBefore")}{" "}
+              <span className="linear-text">{t("app.name")}</span>
+              {t("pros.headingAfter")}
             </h2>
             <p className="text-lg text-muted-foreground">
-              Experience the best food delivery service
+              {t("pros.subheading")}
             </p>
           </motion.div>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,13 +1,15 @@
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
 import { SectionLabel } from "./CourierOrderDetailSheet";
 
 export function CourierOrderItems({ items = [], total }) {
+  const { t } = useTranslation(["courier", "basket", "common"]);
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
 
   return (
     <div className="px-5 py-4">
-      <SectionLabel>Items · {totalItems} total</SectionLabel>
+      <SectionLabel>{t("delivery.itemsTotal", { count: totalItems })}</SectionLabel>
       <div className="space-y-2.5">
         {items.map((item, i) => (
           <div key={i} className="flex items-center justify-between">
@@ -32,7 +34,7 @@ export function CourierOrderItems({ items = [], total }) {
 
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-foreground">
-            Order total
+            {t("basket:summary.total")}
           </span>
           <span className="text-sm font-semibold text-foreground">
             ${total?.toFixed(2)}

@@ -48,7 +48,7 @@ export default function SellerMenu() {
         <View className="gap-4 px-5">
           <View className="flex-row items-end justify-between gap-3">
             <SectionHeader
-              title="Menu"
+              title={t("menu.title")}
               size="lg"
               subtitle={`${items.length} ${items.length === 1 ? "dish" : "dishes"}`}
               className="flex-1"
@@ -58,7 +58,7 @@ export default function SellerMenu() {
               <View className="flex-row items-center gap-1.5">
                 <Plus size={16} strokeWidth={2.6} color={color["primary-foreground"]} />
                 <Text variant="label" className="text-primary-foreground">
-                  Add dish
+                  {t("menu.addDish")}
                 </Text>
               </View>
             </Button>
@@ -67,7 +67,7 @@ export default function SellerMenu() {
           <SearchInput
             value={text}
             onChangeText={setText}
-            placeholder="Search your dishes"
+            placeholder={t("menu.searchPlaceholder")}
             autoCorrect={false}
             clearButtonMode="while-editing"
           />
@@ -79,7 +79,7 @@ export default function SellerMenu() {
           contentContainerClassName="gap-2 px-5"
         >
           <Chip
-            label="Available only"
+            label={t("menu.onlyAvailable")}
             active={availableOnly}
             showCheck
             onPress={() => setAvailableOnly((current) => !current)}
@@ -124,13 +124,11 @@ export default function SellerMenu() {
           ) : (
             <EmptyState
               icon={UtensilsCrossed}
-              title={search || category ? "Nothing matches" : "No dishes yet"}
+              title={search || category ? t("menu.emptyMatch") : t("menu.emptyNone")}
               description={
-                search || category
-                  ? "Try a different search or category."
-                  : "Add your first dish so customers can order it."
+                search || category ? t("menu.emptyMatchHint") : t("menu.emptyNoneHint")
               }
-              actionLabel={search || category ? undefined : "Add a dish"}
+              actionLabel={search || category ? undefined : t("menu.addTitle")}
               onAction={() => router.push("/(seller)/menu-item/new")}
             />
           )

@@ -78,18 +78,31 @@ export const CUISINE_VALUES = [
 ];
 
 /**
- * A cuisine's display label, falling back to the stored value for a cuisine
- * added to the model but not yet to the catalog.
+ * A cuisine's display label.
+ *
+ * The lookup is case-insensitive because the stored data is not consistent:
+ * the model's enum is lowercase ("italian"), but rows written through the
+ * free-text signup field carry the seller's own casing ("Italian"), and those
+ * rows are still live. Keying the catalog off the raw value would leave them
+ * untranslated - and, with `debug` on, logging a missing key on every card.
+ *
+ * A value that matches nothing is shown as the seller typed it rather than as
+ * a key, and `defaultValue` keeps that off the missing-key log: an unknown
+ * cuisine is a data question, not a translation gap.
  *
  * @param {TFunction} t
  * @param {string | null | undefined} value
  * @returns {string}
  */
 export function cuisineLabel(t, value) {
-  if (!value) return t("common:taxonomy.cuisine.fallback");
-  const key = `common:taxonomy.cuisine.${value}`;
-  const label = t(key);
-  return label === key ? value : label;
+  const raw = String(value ?? "").trim();
+  if (!raw) return t("common:taxonomy.cuisine.fallback");
+
+  const known = CUISINE_VALUES.find(
+    (cuisine) => cuisine.toLowerCase() === raw.toLowerCase(),
+  );
+
+  return t(`common:taxonomy.cuisine.${known ?? raw}`, { defaultValue: raw });
 }
 
 /**

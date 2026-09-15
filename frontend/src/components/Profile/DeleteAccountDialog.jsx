@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ import { useAuthStore } from "@/store/useAuthStore";
  * has no password to re-enter and the session itself is the proof.
  */
 export function DeleteAccountDialog({ open, onOpenChange }) {
+  const { t } = useTranslation(["profile", "common"]);
   const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.authUser);
   const needsPassword = authUser?.authProvider !== "google";
@@ -39,12 +41,12 @@ export function DeleteAccountDialog({ open, onOpenChange }) {
     try {
       await apiDeleteAccount(needsPassword ? password : undefined);
       useAuthStore.setState({ authUser: null });
-      toast.success("Your account has been deleted.");
+      toast.success(t("deleteAccount.success"));
       onOpenChange(false);
       navigate("/", { replace: true });
     } catch (error) {
       toast.error(
-        error?.response?.data?.message ?? "We could not delete your account just now.",
+        error?.response?.data?.message ?? t("account.deleteAccountFailed"),
       );
       setIsDeleting(false);
     }
@@ -54,30 +56,21 @@ export function DeleteAccountDialog({ open, onOpenChange }) {
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteAccount.title")}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-3">
-              <p>
-                This cannot be undone. Your name, email, phone number and saved
-                addresses are removed straight away, and you are signed out
-                everywhere.
-              </p>
-              <p>
-                Past orders stay on record without your personal details, because
-                they are also the restaurant&apos;s and the courier&apos;s
-                receipts. Nobody can tell they were yours.
-              </p>
-              <p>
-                If you have an order on its way, wait until it arrives — we
-                cannot delete an account mid-delivery.
-              </p>
+              <p>{t("deleteAccount.body1")}</p>
+              <p>{t("deleteAccount.body2")}</p>
+              <p>{t("deleteAccount.body3")}</p>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         {needsPassword ? (
           <div className="space-y-2">
-            <Label htmlFor="delete-account-password">Confirm your password</Label>
+            <Label htmlFor="delete-account-password">
+              {t("deleteAccount.confirmLabel")}
+            </Label>
             <Input
               id="delete-account-password"
               type="password"
@@ -90,13 +83,15 @@ export function DeleteAccountDialog({ open, onOpenChange }) {
         ) : null}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Keep my account</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>
+            {t("deleteAccount.cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting || (needsPassword && password.length === 0)}
             className={cn(buttonVariants({ variant: "destructive" }))}
           >
-            {isDeleting ? "Deleting…" : "Delete my account"}
+            {isDeleting ? "Deleting…" : t("deleteAccount.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

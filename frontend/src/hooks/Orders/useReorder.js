@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 import useCartStore from "@/store/useCartStore";
 import { addToCart } from "@/services/apiCart";
@@ -57,16 +58,21 @@ export function useReorder() {
       setReorderingId(null);
 
       if (added === 0) {
-        toast.error("None of these items are available any more.");
+        toast.error(t("basket:reorderNoneAvailable"));
         return;
       }
 
       if (skipped > 0) {
+        // Serbian has three plural forms, so both counts go through the
+        // catalog rather than an inline ternary.
         toast.warning(
-          `${added} ${added === 1 ? "item" : "items"} added. ${skipped} no longer available.`,
+          t("basket:line.reorderPartialWithSkipped", {
+            added: t("basket:reorderPartial", { count: added }),
+            skipped,
+          }),
         );
       } else {
-        toast.success("Added to your basket");
+        toast.success(t("basket:addedToBasket"));
       }
 
       navigate("/checkout");

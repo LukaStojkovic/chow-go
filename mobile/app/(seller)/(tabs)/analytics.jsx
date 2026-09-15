@@ -1,4 +1,5 @@
 import { RefreshControl, ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   Clock,
   CreditCard,
@@ -65,6 +66,7 @@ function Panel({ title, subtitle, icon, tone = "mint", children }) {
 }
 
 export default function SellerAnalytics() {
+  const { t } = useTranslation(["seller", "common"]);
   const refreshTint = useRefreshTint();
   const query = useRestaurantAnalytics();
   const { color } = useTokens();
@@ -98,26 +100,26 @@ export default function SellerAnalytics() {
         }
       >
         <SectionHeader
-          title="Analytics"
+          title={t("analytics.title")}
           size="lg"
-          subtitle="How the kitchen is trading"
+          subtitle={t("analytics.subtitle")}
           className="pb-1"
         />
 
         <View className="flex-row gap-3">
-          <Kpi label="Revenue today" value={formatPrice(kpis.todayRevenue ?? 0)} />
+          <Kpi label={t("analytics.todayRevenue")} value={formatPrice(kpis.todayRevenue ?? 0)} />
 
-          <Kpi label="Orders today" value={String(kpis.todayOrders ?? 0)} />
+          <Kpi label={t("analytics.todayOrders")} value={String(kpis.todayOrders ?? 0)} />
         </View>
         <View className="flex-row gap-3">
-          <Kpi label="Average order" value={formatPrice(kpis.avgOrderValue ?? 0)} />
+          <Kpi label={t("analytics.averageOrderValue")} value={formatPrice(kpis.avgOrderValue ?? 0)} />
 
-          <Kpi label="This month" value={formatPrice(kpis.monthlyRevenue ?? 0)} />
+          <Kpi label={t("dashboard.stats.month")} value={formatPrice(kpis.monthlyRevenue ?? 0)} />
         </View>
 
         <Card className="flex-row items-center gap-3">
           <View className="flex-1">
-            <Text variant="h3">Store rating</Text>
+            <Text variant="h3">{t("analytics.storeRating")}</Text>
             <Text variant="caption" tone="muted">
               {kpis.totalReviews ?? 0} reviews
             </Text>
@@ -128,7 +130,11 @@ export default function SellerAnalytics() {
           </View>
         </Card>
 
-        <Panel title="Revenue this week" subtitle="Tap a bar for that day" icon={TrendingUp}>
+        <Panel
+          title={t("analytics.revenueThisWeek")}
+          subtitle={t("analytics.tapBarHint")}
+          icon={TrendingUp}
+        >
           <BarChart
             data={(data?.dailyRevenue ?? []).map((entry) => ({
               label: entry.date,
@@ -136,11 +142,16 @@ export default function SellerAnalytics() {
               value: entry.revenue ?? 0,
             }))}
             formatValue={(value) => formatPrice(value)}
-            peakLabel="Best day"
+            peakLabel={t("analytics.bestDay")}
           />
         </Panel>
 
-        <Panel title="Busiest hours" subtitle="When the tickets land" icon={Clock} tone="citrus">
+        <Panel
+          title={t("analytics.peakHours")}
+          subtitle={t("analytics.peakHoursShortHint")}
+          icon={Clock}
+          tone="citrus"
+        >
           <BarChart
             // A tick every six hours: twenty-four labels on a phone is noise.
             data={(data?.peakHours ?? []).map((entry, index) => ({
@@ -149,11 +160,11 @@ export default function SellerAnalytics() {
               value: entry.orders ?? 0,
             }))}
             formatValue={(value) => `${value} orders`}
-            peakLabel="Rush hour"
+            peakLabel={t("analytics.rushHour")}
           />
         </Panel>
 
-        <Panel title="Order outcomes" icon={PieChart} tone="info">
+        <Panel title={t("analytics.orderBreakdown")} icon={PieChart} tone="info">
           {statusTotal ? (
             (data?.orderStatusBreakdown ?? []).map((entry) => (
               <ProportionRow
@@ -166,17 +177,17 @@ export default function SellerAnalytics() {
             ))
           ) : (
             <Text variant="body-sm" tone="muted">
-              No orders yet.
+              {t("dashboard.noRecentOrders")}
             </Text>
           )}
         </Panel>
 
-        <Panel title="How customers pay" icon={CreditCard} tone="info">
+        <Panel title={t("analytics.paymentMethods")} icon={CreditCard} tone="info">
           {paymentTotal ? (
             (data?.paymentMethodSplit ?? []).map((entry) => (
               <ProportionRow
                 key={entry._id}
-                label={entry._id === "cash" ? "Cash on delivery" : "Card"}
+                label={t(`common:taxonomy.paymentMethod.${entry._id === "cash" ? "cash" : "card"}.label`)}
                 value={entry.count}
                 total={paymentTotal}
                 tone="info"
@@ -184,12 +195,16 @@ export default function SellerAnalytics() {
             ))
           ) : (
             <Text variant="body-sm" tone="muted">
-              No payments yet.
+              {t("analytics.noPayments")}
             </Text>
           )}
         </Panel>
 
-        <Panel title="Top items" subtitle="Best sellers over the period" tone="warning">
+        <Panel
+          title={t("analytics.topItems")}
+          subtitle={t("analytics.topItemsHint")}
+          tone="warning"
+        >
           {(data?.topItems ?? []).length ? (
             data.topItems.map((item, index) => (
               <View key={item._id}>
@@ -214,13 +229,16 @@ export default function SellerAnalytics() {
             ))
           ) : (
             <Text variant="body-sm" tone="muted">
-              Nothing sold yet.
+              {t("analytics.noSales")}
             </Text>
           )}
         </Panel>
 
         <View className="gap-3 pt-2">
-          <SectionHeader title="Recent reviews" subtitle="What customers said" />
+          <SectionHeader
+            title={t("analytics.recentReviews")}
+            subtitle={t("analytics.recentReviewsHint")}
+          />
           {(data?.recentRatings ?? []).length ? (
             data.recentRatings.map((rating, index) => (
               <Card key={rating._id ?? index} className="gap-2">
@@ -244,8 +262,8 @@ export default function SellerAnalytics() {
           ) : (
             <EmptyState
               icon={MessageSquareQuote}
-              title="No reviews yet"
-              description="Ratings appear here once orders start being delivered."
+              title={t("analytics.noReviews")}
+              description={t("analytics.noReviewsHint")}
             />
           )}
         </View>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   MapContainer,
   TileLayer,
@@ -202,6 +203,17 @@ function MapInner({
   followCourier,
   isDark,
 }) {
+  const { t } = useTranslation(["courier", "common"]);
+  // Rebuilt when `t` changes identity, which react-i18next does on a language
+  // switch - a fresh DivIcon every render would remount all three markers.
+  const icons = useMemo(
+    () => ({
+      restaurant: restaurantIcon(t),
+      delivery: deliveryIcon(t),
+      courier: courierIcon(t),
+    }),
+    [t],
+  );
   const [initialCenter] = useState(
     () => courierCoords ?? restaurantCoords ?? deliveryCoords ?? FALLBACK_CENTER,
   );
@@ -225,23 +237,23 @@ function MapInner({
       />
 
       {restaurantCoords && (
-        <Marker position={restaurantCoords} icon={restaurantIcon}>
+        <Marker position={restaurantCoords} icon={icons.restaurant}>
           <Tooltip direction="top" offset={[0, -24]} opacity={0.92}>
-            Restaurant pickup
+            {t("delivery.pickup")}
           </Tooltip>
         </Marker>
       )}
       {deliveryCoords && (
-        <Marker position={deliveryCoords} icon={deliveryIcon}>
+        <Marker position={deliveryCoords} icon={icons.delivery}>
           <Tooltip direction="top" offset={[0, -24]} opacity={0.92}>
-            Delivery location
+            {t("delivery.dropoff")}
           </Tooltip>
         </Marker>
       )}
       <SmoothMarker
         position={courierCoords}
-        icon={courierIcon}
-        tooltip="Courier (live)"
+        icon={icons.courier}
+        tooltip={t("delivery.courierLive")}
       />
 
       {routeCoords?.length > 1 && (

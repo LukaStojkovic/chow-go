@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchDrivingRoute } from "@/services/routingService";
 import { haversineMeters } from "@chowgo/shared/geo";
+import { t } from "@chowgo/shared/i18n";
 
 const ROUTE_REFRESH_MS = 45000;
 const REROUTE_DEVIATION_M = 120;
@@ -52,7 +53,7 @@ export function useRouteDirections(from, to, enabled = true) {
       } catch (err) {
         if (requestId !== requestIdRef.current) return;
         console.error("Route fetch error:", err);
-        setRouteError(err?.message ?? "Failed to fetch route");
+        setRouteError(err?.message ?? t("courier:delivery.routeFailed"));
         setFailureCount((n) => n + 1);
       } finally {
         if (requestId === requestIdRef.current) setIsLoadingRoute(false);

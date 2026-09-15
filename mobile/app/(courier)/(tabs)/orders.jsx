@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, View } from "react-native";
 import { router } from "expo-router";
 import { ArrowRight, PackageSearch } from "lucide-react-native";
@@ -20,10 +21,11 @@ import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 import { useRefreshTint } from "@/theme/useRefreshTint";
 
+// Keys, not copy: module scope runs before a language is chosen.
 const TABS = [
-  { value: "available", label: "Available" },
-  { value: "active", label: "Active" },
-  { value: "history", label: "History" },
+  { value: "available", labelKey: "orders.available" },
+  { value: "active", labelKey: "order:list.tabs.active" },
+  { value: "history", labelKey: "order:list.tabs.past" },
 ];
 
 const BADGE_TONE = {
@@ -42,6 +44,7 @@ const BADGE_TONE = {
  * distance is legible before the claim rather than after.
  */
 function PoolCard({ order, raw, onClaim, isClaiming }) {
+  const { t } = useTranslation(["courier", "basket", "common"]);
   const { color } = useTokens();
 
   return (
@@ -49,14 +52,14 @@ function PoolCard({ order, raw, onClaim, isClaiming }) {
       <View className="flex-row items-start gap-3">
         <View className="flex-1 gap-1">
           <Text variant="caption" tone="muted">
-            Delivery fee
+            {t("basket:summary.deliveryFee")}
           </Text>
           <Text variant="price-xl" tone="primary">
             {formatPrice(raw?.deliveryFee ?? 0)}
           </Text>
         </View>
         <Badge tone="neutral">
-          {`${order.itemCount} ${order.itemCount === 1 ? "item" : "items"}`}
+          {t("basket:itemCount", { count: order.itemCount })}
         </Badge>
       </View>
 
@@ -66,7 +69,7 @@ function PoolCard({ order, raw, onClaim, isClaiming }) {
         <View className="flex-row items-center gap-3">
           <View className="flex-1">
             <Text variant="caption" tone="muted">
-              Collect from
+              {t("delivery.pickup")}
             </Text>
             <Text variant="body" numberOfLines={1}>
               {order.restaurant?.name}
@@ -77,10 +80,10 @@ function PoolCard({ order, raw, onClaim, isClaiming }) {
         <View className="flex-row items-center gap-3">
           <View className="flex-1">
             <Text variant="caption" tone="muted">
-              Deliver to
+              {t("delivery.dropoff")}
             </Text>
             <Text variant="body" numberOfLines={2}>
-              {raw?.deliveryAddressSnapshot?.fullAddress ?? "the customer"}
+              {raw?.deliveryAddressSnapshot?.fullAddress ?? t("delivery.customer")}
             </Text>
           </View>
         </View>
@@ -89,7 +92,7 @@ function PoolCard({ order, raw, onClaim, isClaiming }) {
       <Button size="lg" fullWidth loading={isClaiming} onPress={onClaim}>
         <View className="flex-row items-center gap-2">
           <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-            Claim delivery
+            {t("orders.accept")}
           </Text>
           <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
         </View>
@@ -99,6 +102,7 @@ function PoolCard({ order, raw, onClaim, isClaiming }) {
 }
 
 export default function CourierOrders() {
+  const { t } = useTranslation(["courier", "profile", "order", "basket", "seller", "auth", "common"]);
   const refreshTint = useRefreshTint();
   const [tab, setTab] = useState("available");
   const accept = useAcceptOrder();
@@ -113,12 +117,12 @@ export default function CourierOrders() {
   async function claim(orderId) {
     try {
       await accept.mutateAsync(orderId);
-      toast.success("Delivery claimed");
+      toast.success(t("courier:orders.claimed"));
       router.push(`/(courier)/delivery/${orderId}`);
     } catch (error) {
       // Claiming is a race the backend settles atomically, so losing it is
       // ordinary rather than an error worth alarming about.
-      toast.info("Someone else took that one", { description: errorMessage(error) });
+      toast.info(t("courier:orders.claimedByOther"), { description: errorMessage(error) });
     }
   }
 
@@ -126,18 +130,22 @@ export default function CourierOrders() {
     <Screen edges={["top"]}>
       <View className="gap-4 px-5 pb-4 pt-2">
         <SectionHeader
-          title="Jobs"
+          title={t("orders.title")}
           size="lg"
           subtitle={
             tab === "available"
               ? `${orders.length} waiting to be claimed`
               : tab === "active"
-                ? "What you are carrying now"
-                : "Everything you have delivered"
+                ? t("courier:orders.carryingNow")
+                : t("courier:orders.everythingDelivered")
           }
         />
 
-        <Segmented options={TABS} value={tab} onChange={setTab} />
+        <Segmented
+          options={TABS.map((entry) => ({ value: entry.value, label: t(entry.labelKey) }))}
+          value={tab}
+          onChange={setTab}
+        />
       </View>
 
       <FlatList
@@ -180,7 +188,7 @@ export default function CourierOrders() {
                 </Badge>
                 {tab === "active" ? (
                   <Button size="md" onPress={() => router.push(`/(courier)/delivery/${item.id}`)}>
-                    Continue
+                    {t("orders.resume")}
                   </Button>
                 ) : null}
               </View>
@@ -199,19 +207,19 @@ export default function CourierOrders() {
               icon={PackageSearch}
               title={
                 tab === "available"
-                  ? "Nothing waiting"
+                  ? t("orders.empty.title")
                   : tab === "active"
-                    ? "No active delivery"
-                    : "No deliveries yet"
+                    ? t("orders.empty.noActive")
+                    : t("orders.noCompleted")
               }
               description={
                 tab === "available"
-                  ? "Orders appear here the moment a restaurant marks one ready. Make sure you are on duty."
+                  ? t("orders.empty.availableHint")
                   : tab === "active"
-                    ? "Claim a job from the Available tab to get going."
-                    : "Your completed deliveries will be listed here."
+                    ? t("orders.empty.activeHint")
+                    : t("orders.empty.historyHint")
               }
-              actionLabel={tab === "active" ? "Find a job" : undefined}
+              actionLabel={tab === "active" ? t("orders.findJob") : undefined}
               onAction={tab === "active" ? () => setTab("available") : undefined}
             />
           )

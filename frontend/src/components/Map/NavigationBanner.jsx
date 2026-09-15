@@ -1,4 +1,5 @@
 import { Clock, Navigation } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { formatDistance, formatDuration } from "@chowgo/shared/geo";
 import Spinner from "@/components/Spinner";
 
@@ -11,6 +12,7 @@ export function NavigationBanner({
   onRecenter,
   followMode,
 }) {
+  const { t } = useTranslation(["courier", "common"]);
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border/80 bg-card/95 px-4 py-3 shadow-lg backdrop-blur-sm ">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-subtle ">
@@ -19,7 +21,7 @@ export function NavigationBanner({
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium uppercase tracking-wide text-muted-foreground ">
-          Navigating to
+          {t("delivery.navigatingTo")}
         </p>
         <p className="truncate text-sm font-bold text-foreground ">
           {destinationLabel}

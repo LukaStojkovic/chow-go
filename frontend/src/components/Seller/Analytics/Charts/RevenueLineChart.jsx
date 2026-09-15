@@ -8,19 +8,21 @@ import {
   CartesianGrid,
 } from "recharts";
 import { CustomTooltip } from "./CustomTooltip";
+import { useTranslation } from "react-i18next";
 import { Tooltip as UiTooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
 export const RevenueLineChart = ({ data }) => {
+  const { t } = useTranslation(["seller", "common"]);
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
       <h3 className="text-lg font-bold mb-6 flex items-center">
-        Revenue This Week
+        {t("analytics.revenueThisWeek")}
         <UiTooltip>
           <TooltipTrigger>
             <Info className="w-4 h-4 ml-2 text-muted-foreground cursor-pointer" />
           </TooltipTrigger>
-          <TooltipContent>Daily revenue totals over the past 7 days.</TooltipContent>
+          <TooltipContent>{t("analytics.revenueThisWeekHint")}</TooltipContent>
         </UiTooltip>
       </h3>
 

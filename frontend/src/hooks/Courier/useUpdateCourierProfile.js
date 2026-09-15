@@ -2,6 +2,7 @@ import { updateCourierProfile } from "@/services/apiCourier";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 export default function useUpdateCourierProfile() {
   const queryClient = useQueryClient();
@@ -13,10 +14,10 @@ export default function useUpdateCourierProfile() {
       await checkAuth();
       queryClient.invalidateQueries({ queryKey: ["courier-profile"] });
       queryClient.invalidateQueries({ queryKey: ["courier-overview"] });
-      toast.success("Profile updated successfully");
+      toast.success(t("courier:profile.saved"));
     },
     onError: (err) => {
-      toast.error(err?.response?.data?.message ?? "Failed to update profile");
+      toast.error(err?.response?.data?.message ?? t("courier:profile.saveFailed"));
     },
   });
 

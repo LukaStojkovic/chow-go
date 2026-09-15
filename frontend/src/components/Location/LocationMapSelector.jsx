@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   MapContainer,
   Marker,
@@ -60,6 +61,7 @@ export function LocationMapSelector({
     coordinates: detectedCoords,
   } = useDetectLocation();
   const { isDark } = useDarkMode();
+  const { t } = useTranslation("common");
 
   const [markerPosition, setMarkerPosition] = useState(
     initialPosition ? [initialPosition.lat, initialPosition.lng] : null,
@@ -137,7 +139,7 @@ export function LocationMapSelector({
           <Navigation
             className={`w-4 h-4 ${isDetecting ? "animate-pulse" : ""}`}
           />
-          {isDetecting ? <Spinner size="sm" /> : "Detect My Location"}
+          {isDetecting ? <Spinner size="sm" /> : t("common:state.detectMyLocation")}
         </Button>
       </div>
     </div>

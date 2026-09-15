@@ -1,5 +1,6 @@
 import { updateMenuItem as updateMenuItemApi } from "@/services/apiRestaurant";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { t } from "@chowgo/shared/i18n";
 
 import { toast } from "sonner";
 
@@ -11,11 +12,11 @@ export function useUpdateMenuItem() {
       updateMenuItemApi(restaurantId, menuItemId, menuItemData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menuItems"] });
-      toast.success("Menu item updated successfully");
+      toast.success(t("seller:menu.updatedShort"));
     },
     onError: (error) => {
       toast.error(
-        error?.response?.data?.message || "Failed to update menu item"
+        error?.response?.data?.message || t("seller:menu.updateFailed")
       );
     },
   });

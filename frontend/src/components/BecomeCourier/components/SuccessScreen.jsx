@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 
 export const SuccessScreen = () => {
+  const { t } = useTranslation("courier");
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -14,7 +16,7 @@ export const SuccessScreen = () => {
         <div
           className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-subtle "
           role="img"
-          aria-label="Success"
+          aria-label={t("signup.success.title")}
         >
           <Check
             className="h-8 w-8 text-primary "
@@ -23,10 +25,10 @@ export const SuccessScreen = () => {
         </div>
       </div>{" "}
       <p className="text-sm text-muted-foreground ">
-        Thank you! Your courier application has been submitted successfully.
+        {t("signup.success.title")}
       </p>
       <p className="text-xs text-muted-foreground ">
-        We'll review your application and get back to you soon.
+        {t("signup.success.description")}
       </p>
     </motion.div>
   );

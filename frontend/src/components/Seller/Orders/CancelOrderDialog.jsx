@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -13,14 +14,10 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 
 export function CancelOrderDialog({ isOpen, onClose, onCancel, isCancelling }) {
+  const { t } = useTranslation(["seller", "common"]);
   const [reason, setReason] = useState("");
 
-  const commonReasons = [
-    "Kitchen too busy",
-    "Ingredients unavailable",
-    "Equipment malfunction",
-    "Staff shortage",
-  ];
+  const commonReasons = ["kitchenBusy", "ingredients", "equipment", "staff"];
 
   const handleCancel = () => {
     if (reason.trim()) {
@@ -35,22 +32,21 @@ export function CancelOrderDialog({ isOpen, onClose, onCancel, isCancelling }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-warning">
             <AlertTriangle className="h-5 w-5" />
-            Cancel Order
+            {t("orders.actions.cancel")}
           </DialogTitle>
           <DialogDescription>
-            This order has already been confirmed. Please provide a reason for
-            cancellation. The customer will be notified.
+            {t("orders.cancelDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="cancel-reason">Reason for cancellation</Label>
+            <Label htmlFor="cancel-reason">{t("orders.rejectReasonLabel")}</Label>
             <Textarea
               id="cancel-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Enter reason..."
+              placeholder={t("orders.reasonPlaceholder")}
               rows={3}
               autoFocus
             />
@@ -58,7 +54,7 @@ export function CancelOrderDialog({ isOpen, onClose, onCancel, isCancelling }) {
 
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">
-              Quick select:
+              {t("orders.quickSelect")}
             </Label>
             <div className="flex flex-wrap gap-2">
               {commonReasons.map((r) => (
@@ -67,9 +63,9 @@ export function CancelOrderDialog({ isOpen, onClose, onCancel, isCancelling }) {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setReason(r)}
+                  onClick={() => setReason(t(`orders.cancelReasons.${r}`))}
                 >
-                  {r}
+                  {t(`orders.cancelReasons.${r}`)}
                 </Button>
               ))}
             </div>
@@ -78,14 +74,14 @@ export function CancelOrderDialog({ isOpen, onClose, onCancel, isCancelling }) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isCancelling}>
-            Don't Cancel
+            {t("orders.keepOrder")}
           </Button>
           <Button
             variant="destructive"
             onClick={handleCancel}
             disabled={isCancelling || !reason.trim()}
           >
-            {isCancelling ? "Cancelling..." : "Cancel Order"}
+            {isCancelling ? t("order:cancel.cancelling") : t("orders.actions.cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>

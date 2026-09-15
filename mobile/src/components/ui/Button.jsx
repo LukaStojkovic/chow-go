@@ -1,12 +1,10 @@
-import { ActivityIndicator, Pressable, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import { ActivityIndicator, View } from "react-native";
+import { PressableScale } from "@/components/motion/Pressable";
 import { cn } from "@/lib/cn";
 import { isTextual } from "@/lib/isTextual";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 import { Text } from "./Text";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // Every button is a pill. The design has no square-cornered action anywhere -
 // curvature is what makes a thing read as pressable in this system.
@@ -59,28 +57,18 @@ export function Button({
   const styles = VARIANTS[variant];
   const sizing = SIZES[size];
   const { color } = useTokens();
+  const motion = useMotion();
 
-  // Scale to 98% on press rather than dimming. A pill that dips reads as a
-  // physical control; one that fades reads as disabled.
-  const scale = useSharedValue(1);
-  const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
+  // Scale on press rather than dimming. A pill that dips reads as a physical
+  // control; one that fades reads as disabled.
   return (
-    <AnimatedPressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ disabled: isInactive, busy: loading }}
       disabled={isInactive}
-      onPressIn={() => {
-        scale.value = withTiming(0.98, { duration: 90 });
-      }}
-      onPressOut={() => {
-        scale.value = withTiming(1, { duration: 140 });
-      }}
-      onPress={(event) => {
-        if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress?.(event);
-      }}
-      style={animated}
+      onPress={onPress}
+      haptic={haptic ? "light" : "none"}
+      scale={motion.press.control}
       className={cn(
         "flex-row items-center justify-center gap-2 rounded-full",
         styles.view,
@@ -104,7 +92,7 @@ export function Button({
           )}
         </View>
       )}
-    </AnimatedPressable>
+    </PressableScale>
   );
 }
 
@@ -120,6 +108,7 @@ export function IconButton({
   ...props
 }) {
   const { color } = useTokens();
+  const motion = useMotion();
 
   const TINTS = {
     surface: { view: "bg-card", icon: color.foreground },
@@ -131,20 +120,18 @@ export function IconButton({
   const tint = TINTS[variant];
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={8}
       onPress={onPress}
+      haptic="selection"
+      scale={motion.press.icon}
       style={{ width: size, height: size }}
-      className={cn(
-        "items-center justify-center rounded-full active:opacity-70",
-        tint.view,
-        className,
-      )}
+      className={cn("items-center justify-center rounded-full", tint.view, className)}
       {...props}
     >
       <Icon size={Math.round(size * 0.45)} color={tint.icon} />
-    </Pressable>
+    </PressableScale>
   );
 }

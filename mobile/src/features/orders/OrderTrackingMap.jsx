@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Bike, MapPin, Store } from "lucide-react-native";
 import { formatDistance, formatDuration, toLatLng } from "@chowgo/shared/geo";
@@ -27,6 +28,7 @@ function Pin({ icon: Icon, color, background, size = 40 }) {
 // Takes the raw order, not the view model: the shared adapter deliberately
 // drops coordinates, and every position here is GeoJSON [lng, lat].
 export function OrderTrackingMap({ order }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const { color, elevation, scheme } = useTokens();
 
   const restaurant = toLatLng(order?.restaurant?.location?.coordinates);
@@ -64,10 +66,10 @@ export function OrderTrackingMap({ order }) {
             size={36}
           />
         </MapMarker>
-        <MapMarker position={destination} title="Delivery address">
+        <MapMarker position={destination} title={t("courier:delivery.dropoff")}>
           <Pin icon={MapPin} color={color["info-foreground"]} background={color.info} size={36} />
         </MapMarker>
-        <MapMarker position={courier} title="Courier">
+        <MapMarker position={courier} title={t("order:tracking.courierHeading")}>
           <Pin
             icon={Bike}
             color={color["primary-foreground"]}
@@ -84,7 +86,7 @@ export function OrderTrackingMap({ order }) {
           <View className="flex-row items-center gap-2">
             <StatusDot tone={isStale ? "muted" : "success"} />
             <Text variant="label" tone={isStale ? "muted" : "foreground"}>
-              {isStale ? "Waiting for a fresh location…" : `${formatDistance(route.distance)} away`}
+              {isStale ? t("courier:delivery.awaitingFix") : `${formatDistance(route.distance)} away`}
             </Text>
           </View>
           {route && !isStale ? (

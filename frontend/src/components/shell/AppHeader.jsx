@@ -85,7 +85,7 @@ export function AppHeader({
                 already owns Search as a destination, and the 40px it costs is
                 the difference between the address reading "Obrenovićeva 10"
                 and reading "Obren...". */}
-            <nav aria-label="Secondary" className="hidden items-center gap-1 md:flex">
+            <nav aria-label={t("common:nav.secondary")} className="hidden items-center gap-1 md:flex">
               <Button variant="ghost" size="sm" onClick={() => navigate("/search")}>
                 <Search aria-hidden="true" />
                 {t("common:nav.search")}

@@ -9,6 +9,7 @@
  */
 
 import { ChevronRight, Info, UtensilsCrossed } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { SmartImage } from "@/components/common/SmartImage";
@@ -39,6 +40,7 @@ export function RestaurantHero({
   isTogglingFavourite,
   onShowInfo,
 }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const closedNotice = unavailableReason(restaurant);
 
   return (
@@ -91,7 +93,7 @@ export function RestaurantHero({
 
         <Button variant="link" size="sm" className="ml-auto" onClick={onShowInfo}>
           <Info aria-hidden="true" />
-          Hours &amp; info
+          {t("info.viewInfo")}
           <ChevronRight aria-hidden="true" />
         </Button>
       </div>
@@ -101,8 +103,7 @@ export function RestaurantHero({
           role="status"
           className="border-border bg-muted text-body-sm text-muted-foreground mt-4 rounded-md border p-3"
         >
-          {closedNotice} You can still browse the menu - ordering will open again when
-          the kitchen does.
+          {closedNotice} {t("menu.browseWhileClosedSuffix")}
         </p>
       )}
 

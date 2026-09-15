@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { buttonVariants } from "@/components/ui/button";
+import { Trans, useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /**
@@ -34,28 +35,38 @@ export function ReplaceBasketDialog({
   onConfirm,
   onCancel,
 }) {
+  const { t } = useTranslation(["basket", "common"]);
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Start a new basket?</AlertDialogTitle>
+          <AlertDialogTitle>{t("differentRestaurant.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Your basket has items from{" "}
-            <strong className="text-foreground">
-              {currentRestaurantName || "another restaurant"}
-            </strong>
-            . You can only order from one restaurant at a time, so those items will be
-            removed
-            {nextRestaurantName ? ` and replaced with your order from ${nextRestaurantName}` : ""}.
+            {/* One sentence rather than four concatenated fragments: the two
+                restaurant names sit in a different order in Serbian, and a
+                sentence built from pieces can only follow one language's. */}
+            <Trans
+              t={t}
+              i18nKey={
+                nextRestaurantName
+                  ? "differentRestaurant.bodyWithNext"
+                  : "differentRestaurant.body"
+              }
+              values={{
+                current: currentRestaurantName || t("differentRestaurant.anotherRestaurant"),
+                next: nextRestaurantName,
+              }}
+              components={[<strong key="name" className="text-foreground" />]}
+            />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Keep my basket</AlertDialogCancel>
+          <AlertDialogCancel>{t("differentRestaurant.keep")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className={cn(buttonVariants({ variant: "destructive" }))}
           >
-            Empty basket and continue
+            {t("differentRestaurant.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

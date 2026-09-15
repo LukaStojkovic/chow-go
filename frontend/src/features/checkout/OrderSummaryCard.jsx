@@ -11,6 +11,7 @@
  */
 
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ShieldCheck, UtensilsCrossed } from "lucide-react";
 
 import { formatPrice } from "@chowgo/shared/format";
@@ -38,6 +39,7 @@ export function OrderSummaryCard({
   isPlacing,
   onPlaceOrder,
 }) {
+  const { t } = useTranslation(["basket", "common"]);
   const canPlace = blockers.length === 0;
 
   return (
@@ -48,13 +50,15 @@ export function OrderSummaryCard({
           name={restaurant?.name || "Restaurant"}
         />
         <div className="min-w-0 flex-1">
-          <h2 className="text-h3 truncate">{restaurant?.name || "Your order"}</h2>
+          <h2 className="text-h3 truncate">
+            {restaurant?.name || t("order:detail.itemsHeading")}
+          </h2>
           {restaurant?._id && (
             <Link
               to={`/restaurant/${restaurant._id}`}
               className="text-body-sm text-primary hover:underline"
             >
-              Edit your order
+              {t("checkout.editOrder")}
             </Link>
           )}
         </div>
@@ -95,16 +99,16 @@ export function OrderSummaryCard({
           className="hidden lg:flex"
           disabled={!canPlace}
           isLoading={isPlacing}
-          loadingLabel="Placing your order"
+          loadingLabel={t("checkout.placing")}
           onClick={onPlaceOrder}
         >
-          <span>Place order</span>
+          <span>{t("checkout.placeOrder")}</span>
           <span className="tabular ml-auto">{formatPrice(pricing.total)}</span>
         </Button>
 
         <p className="text-caption text-muted-foreground flex items-center justify-center gap-1.5">
           <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
-          Your details are sent over an encrypted connection.
+          {t("checkout.secureHint")}
         </p>
       </div>
     </Card>

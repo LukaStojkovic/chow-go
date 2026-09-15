@@ -11,6 +11,7 @@
  */
 
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
@@ -67,6 +68,7 @@ function applyOptimisticQuantity(menuItemId, quantity) {
  * @param {() => void} props.onClose
  */
 export function BasketPanel({ isOpen, onClose }) {
+  const { t } = useTranslation(["basket", "common", "restaurant"]);
   const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.authUser);
   const {
@@ -104,7 +106,7 @@ export function BasketPanel({ isOpen, onClose }) {
 
     toast(`${line.name} removed`, {
       action: {
-        label: "Undo",
+        label: t("common:actions.undo"),
         onClick: () => {
           // Cancel the pending delete before re-adding, or the debounced call
           // lands after the restore and removes it again.
@@ -121,16 +123,16 @@ export function BasketPanel({ isOpen, onClose }) {
     <Sheet open={isOpen} onOpenChange={(next) => !next && onClose()}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
         <SheetHeader className="border-border border-b px-4 py-3 sm:px-5">
-          <SheetTitle className="text-h2">Your basket</SheetTitle>
+          <SheetTitle className="text-h2">{t("title")}</SheetTitle>
           <SheetDescription className="sr-only">
-            Review and edit the items in your basket before checking out.
+            {t("panelDescription")}
           </SheetDescription>
         </SheetHeader>
 
         {isLoading && isEmpty ? (
           <div className="flex-1 space-y-4 p-4 sm:p-5" aria-busy="true">
             <span className="sr-only" role="status">
-              Loading your basket
+              {t("loading")}
             </span>
             <div className="flex items-center gap-3">
               <Skeleton className="size-10 rounded-full" />
@@ -151,8 +153,8 @@ export function BasketPanel({ isOpen, onClose }) {
           <div className="flex flex-1 items-center justify-center">
             <EmptyState
               icon={ShoppingBag}
-              title="Your basket is empty"
-              description="Add something from a restaurant near you and it will show up here."
+              title={t("empty.title")}
+              description={t("empty.description")}
               action={
                 <Button
                   onClick={() => {
@@ -160,7 +162,7 @@ export function BasketPanel({ isOpen, onClose }) {
                     navigate("/discovery");
                   }}
                 >
-                  Browse restaurants
+                  {t("empty.action")}
                 </Button>
               }
             />
@@ -179,7 +181,7 @@ export function BasketPanel({ isOpen, onClose }) {
                       className="text-body-sm text-primary inline-flex items-center gap-1 hover:underline"
                     >
                       <Store className="size-3.5" aria-hidden="true" />
-                      View menu
+                      {t("viewMenu")}
                     </Link>
                   </div>
                 </div>
@@ -203,7 +205,9 @@ export function BasketPanel({ isOpen, onClose }) {
               {restaurant?.estimatedDeliveryTime && (
                 <p className="text-body-sm text-muted-foreground flex items-center gap-2 py-3">
                   <Clock className="size-4 shrink-0" aria-hidden="true" />
-                  Estimated delivery {restaurant.estimatedDeliveryTime}
+                  {t("restaurant:info.estimatedDelivery", {
+                    value: restaurant.estimatedDeliveryTime,
+                  })}
                 </p>
               )}
             </div>
@@ -219,7 +223,7 @@ export function BasketPanel({ isOpen, onClose }) {
                   navigate("/checkout");
                 }}
               >
-                <span>Continue to checkout</span>
+                <span>{t("goToCheckout")}</span>
                 <span className="tabular ml-auto flex items-center gap-2">
                   {formatPrice(pricing.total)}
                   <ArrowRight className="size-4" aria-hidden="true" />

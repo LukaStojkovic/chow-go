@@ -1,4 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
 import { errorMessage } from "@/api/client";
@@ -11,6 +12,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
 export default function VerifyOtp() {
+  const { t } = useTranslation(["auth", "common"]);
   const { email } = useLocalSearchParams();
   const verifyOtp = useAuthStore((state) => state.verifyOtp);
   const { control, handleSubmit, formState } = useForm({
@@ -28,18 +30,18 @@ export default function VerifyOtp() {
         params: { resetToken: res?.data?.resetToken ?? "" },
       });
     } catch (error) {
-      toast.error("That code didn't work", { description: errorMessage(error) });
+      toast.error(t("register.codeRejected"), { description: errorMessage(error) });
     }
   }
 
   return (
-    <AuthScreen title="Check your email" subtitle={`We sent a six-digit code to ${email}.`}>
+    <AuthScreen title={t("reset.checkEmail")} subtitle={t("reset.codeSent", { email })}>
       <Controller
         control={control}
         name="code"
         render={({ field }) => (
           <Input
-            label="Verification code"
+            label={t("fields.code")}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -57,7 +59,7 @@ export default function VerifyOtp() {
       />
 
       <Button size="lg" fullWidth loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Verify
+        {t("reset.verifyCode")}
       </Button>
     </AuthScreen>
   );

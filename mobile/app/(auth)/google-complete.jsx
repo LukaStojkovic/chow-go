@@ -1,6 +1,8 @@
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { msg } from "@chowgo/shared/i18n/fieldErrors";
 import { router, useLocalSearchParams } from "expo-router";
 import { errorMessage } from "@/api/client";
 
@@ -15,10 +17,11 @@ import { toast } from "@/store/useToastStore";
 // requires one for customers. Seller and courier signup need more still, so
 // this screen finishes the customer path only for now.
 const schema = z.object({
-  phoneNumber: z.string().trim().min(6, "Phone number is required"),
+  phoneNumber: z.string().trim().min(6, msg("validation:auth.phoneRequired")),
 });
 
 export default function GoogleComplete() {
+  const { t } = useTranslation(["auth", "common"]);
   const { signupToken, name, email } = useLocalSearchParams();
   const { completeGoogleProfile, isSubmitting } = useAuthStore();
 
@@ -36,21 +39,21 @@ export default function GoogleComplete() {
       });
       router.replace(homeForRole(user?.role));
     } catch (error) {
-      toast.error("Could not finish signing up", { description: errorMessage(error) });
+      toast.error(t("google.finishFailed"), { description: errorMessage(error) });
     }
   }
 
   return (
     <AuthScreen
-      title="One last thing"
-      subtitle={`Signing in as ${name || email}. Your courier needs a number to reach you on.`}
+      title={t("google.oneLastThing")}
+      subtitle={t("google.signingInAs", { email: name || email })}
     >
       <Controller
         control={control}
         name="phoneNumber"
         render={({ field }) => (
           <Input
-            label="Phone number"
+            label={t("fields.phone")}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -65,7 +68,7 @@ export default function GoogleComplete() {
       />
 
       <Button size="lg" fullWidth loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Finish signing up
+        {t("google.finish")}
       </Button>
     </AuthScreen>
   );

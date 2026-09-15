@@ -11,6 +11,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { UtensilsCrossed } from "lucide-react";
 
@@ -27,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  *   live promotion. `discountPercent` is guaranteed non-zero by the endpoint.
  */
 export function PromoCard({ deal }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const href = deal.restaurantId ? `/restaurant/${deal.restaurantId}` : null;
 
   return (
@@ -64,7 +66,7 @@ export function PromoCard({ deal }) {
 
         <div className="min-w-0">
           <p className="text-scrim-foreground text-display tabular leading-none">
-            <span className="sr-only">Save </span>
+            <span className="sr-only">{t("promotions.save")} </span>
             {deal.discountPercent}%
             <span className="text-h3 ml-1.5 align-middle font-semibold">off</span>
           </p>
@@ -90,7 +92,7 @@ export function PromoCard({ deal }) {
             </span>
             {deal.basePrice != null && (
               <span className="tabular line-through">
-                <span className="sr-only">, reduced from </span>
+                <span className="sr-only">{t("common:meta.reducedFrom")} </span>
                 {formatPrice(deal.basePrice)}
               </span>
             )}

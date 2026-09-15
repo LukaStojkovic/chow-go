@@ -1,10 +1,12 @@
 import { Pressable, ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { AuthOptions, PARTNER_OPTIONS } from "@/features/auth/AuthScreen";
+import { LanguagePicker } from "@/features/settings/LanguagePicker";
 
 /**
  * The way in.
@@ -15,6 +17,7 @@ import { AuthOptions, PARTNER_OPTIONS } from "@/features/auth/AuthScreen";
  * with the two that matter.
  */
 export default function Welcome() {
+  const { t } = useTranslation(["auth", "common"]);
   const insets = useSafeAreaInsets();
 
   return (
@@ -32,19 +35,24 @@ export default function Welcome() {
           <BrandLogo tight size={26} />
         </View>
         <View className="gap-3">
-          <Text variant="display">Good food,{"\n"}already on its way.</Text>
+          <Text variant="display">{t("register.tagline")}</Text>
           <Text variant="body-lg" tone="muted">
-            Order from restaurants near you and follow your courier to your door.
+            {t("welcome.body")}
           </Text>
         </View>
       </View>
 
       <View className="gap-6">
-        <AuthOptions label="Work with Chow" options={PARTNER_OPTIONS} />
+        {/* Before sign-in on purpose: someone who opened the app in a language
+            they cannot read has to be able to change it here, not after
+            navigating an account flow written in it. */}
+        <LanguagePicker />
+
+        <AuthOptions label={t("welcome.partnerLabel")} options={PARTNER_OPTIONS} />
 
         <View className="gap-3">
           <Button size="lg" fullWidth onPress={() => router.push("/(auth)/register")}>
-            Create an account
+            {t("welcome.createAccount")}
           </Button>
           <Button
             size="lg"
@@ -52,7 +60,7 @@ export default function Welcome() {
             fullWidth
             onPress={() => router.push("/(auth)/login")}
           >
-            Sign in
+            {t("login.submit")}
           </Button>
 
           <Pressable
@@ -61,7 +69,7 @@ export default function Welcome() {
             className="items-center py-2 active:opacity-60"
           >
             <Text variant="label" tone="muted">
-              Browse without signing in
+              {t("welcome.browse")}
             </Text>
           </Pressable>
         </View>

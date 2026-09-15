@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { ImagePlus, Star, X } from "lucide-react-native";
 import { pickImages } from "@/api/uploads";
@@ -19,19 +20,22 @@ const MAX_IMAGES = 6;
  * visible.
  */
 export function MenuItemImages({ existing, added, error, onChangeExisting, onChangeAdded }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const { color } = useTokens();
   const total = existing.length + added.length;
 
   async function add() {
     const remaining = MAX_IMAGES - total;
     if (remaining <= 0) {
-      toast.info(`Up to ${MAX_IMAGES} images`);
+      toast.info(t("seller:menu.photoLimit", { count: MAX_IMAGES }));
       return;
     }
 
     const result = await pickImages({ limit: remaining });
     if (result.status === "denied") {
-      toast.warning("Photo access needed", { description: "Turn it on in Settings." });
+      toast.warning(t("common:error.photoAccess"), {
+        description: t("common:error.enableInSettings"),
+      });
       return;
     }
     if (result.images.length) onChangeAdded([...added, ...result.images]);
@@ -44,7 +48,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
       {isMain ? (
         <View className="absolute bottom-1 left-1">
           <Badge tone="solid" size="sm" icon={Star}>
-            Main
+            {t("menu.form.mainPhoto")}
           </Badge>
         </View>
       ) : null}
@@ -64,7 +68,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
   return (
     <View className="gap-2">
       <Text variant="label-sm" tone={error ? "destructive" : "muted"}>
-        Photos
+        {t("menu.form.imagesLabel")}
       </Text>
 
       <View className="flex-row flex-wrap gap-2">
@@ -73,7 +77,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
             key={url}
             uri={url}
             isMain={index === 0}
-            label="Remove photo"
+            label={t("menu.form.removeImage")}
             onRemove={() => onChangeExisting(existing.filter((entry) => entry !== url))}
           />
         ))}
@@ -82,7 +86,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
             key={file.uri}
             uri={file.uri}
             isMain={existing.length === 0 && index === 0}
-            label="Remove photo"
+            label={t("menu.form.removeImage")}
             onRemove={() => onChangeAdded(added.filter((entry) => entry.uri !== file.uri))}
           />
         ))}
@@ -90,13 +94,13 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
         {total < MAX_IMAGES ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Add a photo"
+            accessibilityLabel={t("menu.form.addImages")}
             onPress={add}
             className="h-24 w-24 items-center justify-center gap-1 rounded-md border-2 border-dashed border-border-strong bg-muted active:opacity-70"
           >
             <ImagePlus size={22} color={color.primary} />
             <Text variant="caption" tone="primary">
-              Add
+              {t("common:actions.add")}
             </Text>
           </Pressable>
         ) : null}

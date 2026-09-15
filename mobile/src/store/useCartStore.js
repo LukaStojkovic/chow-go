@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { t } from "@chowgo/shared/i18n";
 import { errorMessage } from "@/api/client";
 import {
   addToCart,
@@ -75,7 +76,9 @@ export const useCartStore = create((set, get) => ({
         set({ pendingConflict: { menuItemId, quantity, specialInstructions } });
         return { status: "conflict" };
       }
-      toast.error("Could not add this item", { description: errorMessage(error) });
+      toast.error(t("basket:addFailed"), {
+        description: errorMessage(error),
+      });
       return { status: "error" };
     }
   },
@@ -93,7 +96,9 @@ export const useCartStore = create((set, get) => ({
       );
       return true;
     } catch (error) {
-      toast.error("Could not replace your basket", { description: errorMessage(error) });
+      toast.error(t("basket:replaceFailed"), {
+        description: errorMessage(error),
+      });
       return false;
     }
   },
@@ -105,7 +110,9 @@ export const useCartStore = create((set, get) => ({
     try {
       applyCart(set, await updateCartItemQuantity(menuItemId, quantity, specialInstructions));
     } catch (error) {
-      toast.error("Could not update the basket", { description: errorMessage(error) });
+      toast.error(t("basket:updateFailed"), {
+        description: errorMessage(error),
+      });
     }
   },
 
@@ -113,7 +120,9 @@ export const useCartStore = create((set, get) => ({
     try {
       applyCart(set, await removeItemFromCart(menuItemId));
     } catch (error) {
-      toast.error("Could not remove the item", { description: errorMessage(error) });
+      toast.error(t("basket:removeFailed"), {
+        description: errorMessage(error),
+      });
     }
   },
 

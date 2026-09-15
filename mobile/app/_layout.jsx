@@ -24,9 +24,11 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { SocketProvider } from "@/realtime/SocketProvider";
 import { usePushNotifications } from "@/notifications/usePushNotifications";
 import { useGlobalSocketEvents } from "@/realtime/useGlobalSocketEvents";
+import { fadeOptions } from "@/navigation/transitions";
 import { useAuthStore } from "@/store/useAuthStore";
 import { watchReduceMotion } from "@/store/useMotionStore";
 import { useThemeStore } from "@/store/useThemeStore";
+import { useTokens } from "@/theme/useTokens";
 import { initMonitoring, reportError } from "@/lib/monitoring";
 import { setupI18n } from "@/lib/i18n";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -51,7 +53,7 @@ export function ErrorBoundary({ error, retry }) {
 function RootErrorFallback({ retry }) {
   const { t } = useTranslation("common");
   return (
-    <View className="flex-1 items-center justify-center bg-surface px-6">
+    <View className="bg-surface flex-1 items-center justify-center px-6">
       <EmptyState
         title={t("error.startupTitle")}
         description={t("error.startupDescription")}
@@ -63,9 +65,23 @@ function RootErrorFallback({ retry }) {
 }
 
 function AppContent() {
+  const { color } = useTokens();
   useGlobalSocketEvents();
   usePushNotifications();
-  return <Stack screenOptions={{ headerShown: false }} />;
+  // The root stack only ever swaps whole role groups - signing in, signing
+  // out, switching role - so it cross-fades instead of pushing sideways. The
+  // background has to be named: a cross-fade is a window in which neither
+  // screen is opaque, and whatever the navigator paints behind them shows
+  // through it.
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: color.background },
+        ...fadeOptions,
+      }}
+    />
+  );
 }
 
 export default function RootLayout() {

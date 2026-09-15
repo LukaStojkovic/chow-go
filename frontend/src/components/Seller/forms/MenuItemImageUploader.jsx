@@ -1,4 +1,5 @@
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -10,6 +11,7 @@ export const MenuItemImageUploader = ({
   setPreviews,
   errors,
 }) => {
+  const { t } = useTranslation(["seller", "common"]);
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export const MenuItemImageUploader = ({
 
   return (
     <div className="space-y-4">
-      <Label>Images (up to 6 recommended)</Label>
+      <Label>{t("menu.form.imagesLabelWithMax", { max: 6 })}</Label>
 
       <label
         onDrop={(e) => {
@@ -81,11 +83,11 @@ export const MenuItemImageUploader = ({
             )}
           >
             {isDragging
-              ? "Drop images here"
-              : "Click to upload or drag and drop"}
+              ? t("menu.dropImages")
+              : t("menu.dragOrClick")}
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            PNG, JPG up to 10MB • Multiple images supported
+            {t("menu.form.imagesFormatHint", { size: 10 })}
           </p>
         </div>
         <input
@@ -119,7 +121,7 @@ export const MenuItemImageUploader = ({
                 type="button"
                 onClick={() => removeImage(index)}
                 className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label={`Remove image ${index + 1}`}
+                aria-label={`${t("menu.removeImage")} ${index + 1}`}
               >
                 <X className="w-8 h-8 text-white" strokeWidth={3} />
               </button>

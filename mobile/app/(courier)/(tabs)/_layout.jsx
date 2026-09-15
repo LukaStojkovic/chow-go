@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -6,13 +7,16 @@ import { tabItemOptions, tabScreenOptions } from "@/navigation/tabBar";
 import { useAvailableOrders } from "@/hooks/Courier/useCourier";
 import { useTokens } from "@/theme/useTokens";
 
+// Keys rather than labels: this runs at module scope, before a language is
+// picked, so a resolved string would stick after the user switches.
 const TABS = [
-  { name: "index", title: "Today", icon: LayoutDashboard },
-  { name: "orders", title: "Jobs", icon: PackageSearch, badge: true },
-  { name: "profile", title: "Profile", icon: UserRound },
+  { name: "index", titleKey: "time.today", icon: LayoutDashboard },
+  { name: "orders", titleKey: "nav.jobs", icon: PackageSearch, badge: true },
+  { name: "profile", titleKey: "nav.profile", icon: UserRound },
 ];
 
 export default function CourierTabs() {
+  const { t } = useTranslation("common");
   const { color, isDark } = useTokens();
   const insets = useSafeAreaInsets();
 
@@ -25,13 +29,13 @@ export default function CourierTabs() {
       screenOptions={tabScreenOptions({ color, isDark, insets })}
       screenListeners={{ tabPress: () => Haptics.selectionAsync() }}
     >
-      {TABS.map(({ name, title, icon, badge }) => (
+      {TABS.map(({ name, titleKey, icon, badge }) => (
         <Tabs.Screen
           key={name}
           name={name}
           options={tabItemOptions({
             icon,
-            title,
+            title: t(titleKey),
             badge: badge && waiting > 0 ? waiting : undefined,
           })}
         />

@@ -12,6 +12,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { UtensilsCrossed } from "lucide-react";
 
 import { formatPrice } from "@chowgo/shared/format";
@@ -54,6 +55,7 @@ export function ItemCustomizationSheet({ dish, onClose, unavailableReason }) {
 }
 
 function CustomizationForm({ dish, onClose, unavailableReason }) {
+  const { t } = useTranslation(["basket", "restaurant", "common"]);
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -93,10 +95,10 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
               className="flex-1"
               disabled={!canOrder}
               isLoading={isAdding}
-              loadingLabel="Adding to basket"
+              loadingLabel={t("restaurant:reorder.adding")}
               onClick={handleAdd}
             >
-              <span>Add to basket</span>
+              <span>{t("restaurant:menu.addToBasket")}</span>
               <span className="tabular ml-auto">{formatPrice(lineTotal)}</span>
             </Button>
           </div>
@@ -133,7 +135,7 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
             >
               <SoldOutBadge />
               <p className="text-body-sm text-muted-foreground">
-                The kitchen has run out of this today. It should be back tomorrow.
+                {t("basket:soldOutBody")}
               </p>
             </div>
           )}
@@ -148,20 +150,19 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="dish-note">Note for the kitchen (optional)</Label>
+            <Label htmlFor="dish-note">{t("basket:kitchenNote")}</Label>
             <Textarea
               id="dish-note"
               rows={3}
               value={note}
               maxLength={MAX_NOTE}
               disabled={!canOrder}
-              placeholder="No onions, extra napkins, allergies to flag..."
+              placeholder={t("kitchenNotePlaceholder")}
               onChange={(event) => setNote(event.target.value)}
               aria-describedby="dish-note-hint"
             />
             <p id="dish-note-hint" className="text-caption text-muted-foreground">
-              The restaurant will do its best, but cannot always accommodate every
-              request. {note.length}/{MAX_NOTE}
+              {t("line.instructionsHint")} {note.length}/{MAX_NOTE}
             </p>
           </div>
         </div>

@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { categoryOptions } from "@chowgo/shared/constants";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EMPTY_PROMOTION, menuItemSchema } from "@chowgo/shared/menuItemSchema";
@@ -20,17 +22,16 @@ import Spinner from "@/components/Spinner";
 import { MenuItemImageUploader } from "./MenuItemImageUploader";
 import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
 
-const CATEGORIES = [
-  { value: "pizza", label: "Pizza" },
-  { value: "burger", label: "Burger" },
-  { value: "salad", label: "Salad" },
-  { value: "japanese", label: "Japanese" },
-  { value: "dessert", label: "Dessert" },
-  { value: "drinks", label: "Drinks" },
-  { value: "other", label: "Other" },
-];
+// The local list used to offer "burger", "salad" and "japanese" - values no
+// `MenuItem.category` filter on the customer side matches, so a dish filed
+// under any of them was unreachable from discovery. The shared taxonomy is the
+// one list both sides agree on.
 
 export const AddMenuItemForm = ({ onClose }) => {
+  const { t, i18n } = useTranslation(["seller", "common"]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const categories = useMemo(() => categoryOptions(t), [i18n.language]);
+
   const [previews, setPreviews] = useState([]);
   const { createMenuItem, isCreating } = useCreateMenuItem();
   const { authUser } = useAuthStore();
@@ -74,10 +75,10 @@ export const AddMenuItemForm = ({ onClose }) => {
     >
       <div className="space-y-7">
         <div>
-          <Label htmlFor="name">Dish Name</Label>
+          <Label htmlFor="name">{t("menu.form.nameLabel")}</Label>
           <Input
             id="name"
-            placeholder="e.g. Margherita Pizza"
+            placeholder={t("menu.form.namePlaceholder")}
             className="mt-2 h-12"
             {...register("name")}
           />
@@ -89,17 +90,19 @@ export const AddMenuItemForm = ({ onClose }) => {
         </div>
 
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category">{t("menu.form.categoryLabel")}</Label>
           <Select onValueChange={(value) => setValue("category", value)}>
             <SelectTrigger className="mt-2 h-12">
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder={t("menu.form.categoryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
+              {categories
+                .filter((entry) => entry.id !== "all")
+                .map((entry) => (
+                  <SelectItem key={entry.id} value={entry.value}>
+                    {entry.label}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           {errors.category && (
@@ -110,7 +113,7 @@ export const AddMenuItemForm = ({ onClose }) => {
         </div>
 
         <div>
-          <Label htmlFor="price">Price</Label>
+          <Label htmlFor="price">{t("menu.form.priceLabel")}</Label>
           <Input
             id="price"
             type="number"
@@ -133,16 +136,16 @@ export const AddMenuItemForm = ({ onClose }) => {
             onCheckedChange={(checked) => setValue("available", checked)}
           />
           <Label htmlFor="available" className="cursor-pointer">
-            Available for sale
+            {t("menu.form.availableLabel")}
           </Label>
         </div>
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t("menu.form.descriptionLabel")}</Label>
         <Textarea
           id="description"
-          placeholder="Describe your dish in detail..."
+          placeholder={t("menu.form.descriptionPlaceholder")}
           rows={10}
           className="mt-2 resize-none"
           {...register("description")}
@@ -162,7 +165,7 @@ export const AddMenuItemForm = ({ onClose }) => {
 
       <div className="flex justify-end gap-4 pt-8 border-t">
         <Button type="button" variant="outline" size="lg" onClick={onClose}>
-          Cancel
+          {t("common:actions.cancel")}
         </Button>
         <Button
           type="submit"
@@ -170,7 +173,7 @@ export const AddMenuItemForm = ({ onClose }) => {
           disabled={isCreating}
           className="bg-primary hover:bg-primary px-8"
         >
-          {isCreating ? <Spinner size="sm" /> : "Add Menu Item"}
+          {isCreating ? <Spinner size="sm" /> : t("menu.addDish")}
         </Button>
       </div>
     </form>

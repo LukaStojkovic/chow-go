@@ -1,23 +1,25 @@
 import React from"react";
+import { useTranslation } from "react-i18next";
 import { motion } from"framer-motion";
 import { Bike, Clock, Wallet, MapPin } from"lucide-react";
 
 export default function Hero() {
+  const { t } = useTranslation("courier");
   const perks = [
     {
       icon: Clock,
-      title:"Flexible Hours",
-      desc:"Work when you want, for as long as you want.",
+      title: t("signup.perks.hours.title"),
+      desc: t("signup.perks.hours.description"),
     },
     {
       icon: Wallet,
-      title:"Competitive Pay",
-      desc:"Earn great money and keep 100% of your tips.",
+      title: t("signup.perks.pay.title"),
+      desc: t("signup.perks.pay.description"),
     },
     {
       icon: MapPin,
-      title:"Deliver Locally",
-      desc:"Stay in your city and discover new local spots.",
+      title: t("signup.perks.local.title"),
+      desc: t("signup.perks.local.description"),
     },
   ];
 
@@ -31,7 +33,7 @@ export default function Hero() {
       >
         <div className="inline-flex items-center gap-2 rounded-full border border-primary bg-primary-subtle/50 px-4 py-1.5 text-sm font-semibold text-primary backdrop-blur-sm">
           <Bike className="h-3.5 w-3.5" />
-          <span>Join our fleet</span>
+          <span>{t("signup.badge")}</span>
         </div>
       </motion.div>
 
@@ -41,10 +43,8 @@ export default function Hero() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="mb-6 text-5xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl "
       >
-        Deliver smiles. <br className="hidden sm:block" />
-        <span className="text-primary">
-          Earn on your terms.
-        </span>
+        {t("signup.headline")} <br className="hidden sm:block" />
+        <span className="text-primary">{t("signup.headlineAccent")}</span>
       </motion.h1>
 
       <motion.p
@@ -53,9 +53,7 @@ export default function Hero() {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="mb-10 text-lg text-muted-foreground sm:text-xl"
       >
-        Become a courier today. Enjoy flexible hours, competitive pay, and the
-        freedom of the open road while delivering food from the best local
-        restaurants.
+        {t("signup.body")}
       </motion.p>
 
       <motion.div

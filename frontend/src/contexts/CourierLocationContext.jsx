@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { useSocket } from "@/contexts/SocketContext";
 
 const FALLBACK = {
@@ -38,6 +39,7 @@ export function useCourierLocation() {
 }
 
 export function CourierLocationProvider({ children, enabled, activeOrderId }) {
+  const { t } = useTranslation(["courier", "common"]);
   const { socket, isRegistered } = useSocket();
 
   const [fix, setFix] = useState(EMPTY_FIX);
@@ -88,7 +90,7 @@ export function CourierLocationProvider({ children, enabled, activeOrderId }) {
         setFix((prev) => ({
           ...prev,
           error: isDenied
-            ? "Location access is blocked. Enable it to navigate and to let the customer follow your delivery."
+            ? t("courier:delivery.locationBlockedLong")
             : err.message,
           isDenied,
         }));
@@ -115,7 +117,7 @@ export function CourierLocationProvider({ children, enabled, activeOrderId }) {
       ...fix,
       isUnsupported,
       error: isUnsupported
-        ? "This device cannot report its location."
+        ? t("courier:delivery.noGeolocation")
         : fix.error,
       isTracking: enabled && !fix.isDenied && !isUnsupported,
     }),

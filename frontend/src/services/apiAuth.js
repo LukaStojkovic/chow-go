@@ -1,5 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 export async function checkAuth() {
   try {
@@ -18,18 +19,18 @@ export async function registerUser(data) {
         "Content-Type": "multipart/form-data",
       },
     });
-    toast.success("Account Created");
+    toast.success(t("auth:register.accountCreated"));
     return response.data;
   } catch (err) {
     console.error("Error registerUser:", err);
-    toast.error(err.response?.data?.message || "Registration failed");
+    toast.error(err.response?.data?.message || t("auth:register.registrationFailed"));
   }
 }
 
 export async function loginUser(data) {
   try {
     const response = await axiosInstance.post("/auth/login", data);
-    toast.success("Login successful!");
+    toast.success(t("auth:register.loginSuccess"));
     return response.data;
   } catch (err) {
     console.error("Error loginUser:", err);
@@ -44,11 +45,11 @@ export async function registerCourier(data) {
         "Content-Type": "application/json",
       },
     });
-    toast.success("Courier application submitted!");
+    toast.success(t("auth:register.courierSubmitted"));
     return response.data;
   } catch (err) {
     console.error("Error registerCourier:", err);
-    toast.error(err.response?.data?.message || "Registration failed");
+    toast.error(err.response?.data?.message || t("auth:register.registrationFailed"));
   }
 }
 
@@ -59,7 +60,7 @@ export async function logoutUser() {
     return response.data;
   } catch (err) {
     console.error("Error logoutUser:", err);
-    toast.error("Logout failed");
+    toast.error(t("auth:register.logoutFailed"));
   }
 }
 
@@ -101,7 +102,7 @@ export async function updateProfile(data) {
         ? { headers: { "Content-Type": "multipart/form-data" } }
         : undefined,
     );
-    toast.success("Profile updated successfully!");
+    toast.success(t("auth:register.profileUpdated"));
     return res.data;
   } catch (err) {
     console.error("Error updateProfile:", err);
@@ -119,11 +120,11 @@ export async function completeGoogleProfile(data) {
         ? { headers: { "Content-Type": "multipart/form-data" } }
         : undefined,
     );
-    toast.success("Account created successfully!");
+    toast.success(t("auth:register.accountCreated"));
     return response.data;
   } catch (err) {
     console.error("Error completeGoogleProfile:", err);
-    toast.error(err.response?.data?.message || "Profile completion failed");
+    toast.error(err.response?.data?.message || t("auth:register.profileCompletionFailed"));
     throw err;
   }
 }

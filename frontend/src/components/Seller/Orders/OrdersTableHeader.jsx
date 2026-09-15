@@ -1,3 +1,6 @@
+import { statusMeta } from "@chowgo/shared/adapters/order";
+import { useTranslation } from "react-i18next";
+
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -22,14 +25,17 @@ export function OrdersTableHeader({
   onRefresh,
   isRefreshing = false,
 }) {
+  const { t } = useTranslation(["seller", "common"]);
   const filterOptions = [
-    { value: "active", label: "Active Orders" },
-    { value: "pending", label: "Pending" },
-    { value: "confirmed", label: "Confirmed" },
-    { value: "preparing", label: "Preparing" },
-    { value: "ready", label: "Ready" },
-    { value: "delivered", label: "Delivered" },
-    { value: "cancelled", label: "Cancelled" },
+    // Status wording comes from the shared adapter, so a filter chip here and
+    // the badge on the row below it can never disagree.
+    { value: "active", label: t("dashboard.stats.activeOrders") },
+    { value: "pending", label: statusMeta("pending").label },
+    { value: "confirmed", label: statusMeta("confirmed").label },
+    { value: "preparing", label: statusMeta("preparing").label },
+    { value: "ready", label: statusMeta("ready").label },
+    { value: "delivered", label: statusMeta("delivered").label },
+    { value: "cancelled", label: statusMeta("cancelled").label },
   ];
 
   return (
@@ -37,7 +43,7 @@ export function OrdersTableHeader({
       <div className="relative w-full sm:w-96">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search order ID or customer..."
+          placeholder={t("orders.searchPlaceholderLong")}
           className="pl-10"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

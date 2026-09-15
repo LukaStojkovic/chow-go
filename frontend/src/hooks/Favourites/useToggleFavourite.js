@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { toggleFavourite } from "@/services/apiFavourite";
+import { t } from "@chowgo/shared/i18n";
 
 /**
  * Toggle a restaurant in the customer's favourites.
@@ -46,13 +47,13 @@ export default function useToggleFavourite() {
         queryClient.setQueryData(["favourites"], context.previous);
       }
       toast.error(
-        error?.response?.data?.message || "Could not update your favourites. Try again.",
+        error?.response?.data?.message || t("restaurant:favourites.toggleFailed"),
       );
     },
 
     onSuccess: (data) => {
       toast.success(
-        data?.data?.isFavourited ? "Saved to favourites" : "Removed from favourites",
+        data?.data?.isFavourited ? t("restaurant:favourites.saved") : t("restaurant:favourites.removedShort"),
       );
     },
 

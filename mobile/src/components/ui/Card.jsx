@@ -1,5 +1,7 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
+import { PressableScale } from "@/components/motion/Pressable";
 import { cn } from "@/lib/cn";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -24,16 +26,28 @@ export function Card({ className, elevation = "subtle", bordered = false, style,
 }
 
 // Same surface, pressable. Dips slightly instead of fading so the shadow stays.
-export function PressableCard({ className, elevation = "subtle", onPress, style, ...props }) {
+// A card is a big target, so it scales less than a button does: the eye reads
+// the absolute travel of the edge, not the ratio.
+export function PressableCard({
+  className,
+  elevation = "subtle",
+  onPress,
+  haptic = "selection",
+  style,
+  ...props
+}) {
   const { elevation: shadows, scheme } = useTokens();
+  const motion = useMotion();
   const shadow = elevation === "none" ? null : shadows[elevation][scheme];
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       onPress={onPress}
+      haptic={haptic}
+      scale={motion.press.card}
       style={[shadow, style]}
-      className={cn("rounded-lg bg-card p-4 active:opacity-80", className)}
+      className={cn("rounded-lg bg-card p-4", className)}
       {...props}
     />
   );

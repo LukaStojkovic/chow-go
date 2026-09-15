@@ -10,6 +10,12 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // `@chowgo/shared` is a linked package with its own node_modules, so a bare
+    // import resolved from inside it finds a second copy of these. `i18next`
+    // keeps the active language in module state and the shared package owns the
+    // instance every component reads, so two copies means a language switch
+    // that moves only one of them - and 40kB shipped twice.
+    dedupe: ["i18next", "react-i18next", "react", "react-dom", "zod"],
   },
   // Socket handlers log whole order payloads - customer name, phone and the
   // delivery address including the door code. None of that should reach a

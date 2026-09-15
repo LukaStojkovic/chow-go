@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { useMutation } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
 export default function EditProfile() {
+  const { t } = useTranslation(["profile", "common"]);
   const { authUser, setAuthUser } = useAuthStore();
   const { color } = useTokens();
 
@@ -46,10 +48,12 @@ export default function EditProfile() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      toast.success("Profile updated");
+      toast.success(t("profile:account.profileUpdated"));
     },
     onError: (error) =>
-      toast.error("Could not update your profile", { description: errorMessage(error) }),
+      toast.error(t("profile:account.profileUpdateFailed"), {
+        description: errorMessage(error),
+      }),
   });
 
   // The photo saves on pick rather than waiting for the Save button: it is the
@@ -59,17 +63,21 @@ export default function EditProfile() {
     mutationFn: (image) => updateProfile({ profilePicture: image }),
     onSuccess: (data) => {
       if (data?.data) setAuthUser(data.data);
-      toast.success("Photo updated");
+      toast.success(t("profile:account.photoUpdated"));
     },
     onError: (error) =>
-      toast.error("Could not update your photo", { description: errorMessage(error) }),
+      toast.error(t("profile:account.photoUpdateFailed"), {
+        description: errorMessage(error),
+      }),
     onSettled: () => setPreview(null),
   });
 
   async function changePhoto() {
     const result = await pickImages({ limit: 1 });
     if (result.status === "denied") {
-      toast.warning("Photo access needed", { description: "Turn it on in Settings." });
+      toast.warning(t("common:error.photoAccess"), {
+        description: t("common:error.enableInSettings"),
+      });
       return;
     }
 
@@ -84,7 +92,7 @@ export default function EditProfile() {
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <ScreenHeader title="Your details" subtitle={authUser?.email} />
+      <ScreenHeader title={t("account.personalDetails")} subtitle={authUser?.email} />
       <ScrollView
         contentContainerClassName="gap-3 px-5 pb-8"
         keyboardShouldPersistTaps="handled"
@@ -108,17 +116,17 @@ export default function EditProfile() {
 
           <View className="flex-1 gap-0.5">
             <Text variant="h3" numberOfLines={1}>
-              Profile photo
+              {t("account.photo")}
             </Text>
             <Text variant="caption" tone="muted">
-              Couriers see this when they pick your order up
+              {t("account.photoHint")}
             </Text>
           </View>
 
           <IconButton
             icon={ImagePlus}
             variant="mint"
-            label="Change photo"
+            label={t("account.changePhoto")}
             onPress={changePhoto}
             disabled={uploadPhoto.isPending}
           />
@@ -127,13 +135,18 @@ export default function EditProfile() {
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              Your details
+              {t("account.personalDetails")}
             </Text>
           </View>
-          <Input label="Name" value={name} onChangeText={setName} autoComplete="name" />
+          <Input
+            label={t("account.name")}
+            value={name}
+            onChangeText={setName}
+            autoComplete="name"
+          />
 
           <Input
-            label="Phone number"
+            label={t("account.phone")}
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
@@ -141,24 +154,24 @@ export default function EditProfile() {
           />
 
           <Input
-            label="Email"
+            label={t("account.email")}
             value={authUser?.email ?? ""}
             editable={false}
-            hint="Email cannot be changed."
+            hint={t("account.emailLocked")}
           />
         </Card>
 
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">Change password</Text>
+              <Text variant="h3">{t("account.changePassword")}</Text>
               <Text variant="caption" tone="muted">
-                Leave blank to keep your current one
+                {t("account.passwordOptionalHint")}
               </Text>
             </View>
           </View>
           <Input
-            label="Current password"
+            label={t("account.currentPassword")}
             value={currentPassword}
             onChangeText={setCurrentPassword}
             secureTextEntry
@@ -166,21 +179,21 @@ export default function EditProfile() {
           />
 
           <Input
-            label="New password"
+            label={t("account.newPassword")}
             value={newPassword}
             onChangeText={setNewPassword}
             secureTextEntry
             textContentType="newPassword"
-            hint="At least 6 characters"
+            hint={t("account.passwordMinHint", { count: 6 })}
           />
 
           <Input
-            label="Confirm new password"
+            label={t("account.confirmPassword")}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
             textContentType="newPassword"
-            error={mismatch ? "Passwords do not match" : undefined}
+            error={mismatch ? t("validation:auth.passwordsMismatch") : undefined}
           />
         </Card>
       </ScrollView>
@@ -193,7 +206,7 @@ export default function EditProfile() {
           disabled={mismatch || (changingPassword && !currentPassword)}
           onPress={() => save.mutate()}
         >
-          Save changes
+          {t("common:actions.saveChanges")}
         </Button>
       </DockedBar>
     </Screen>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { RouteSkeleton } from "@/components/skeletons/routeSkeletons";
@@ -20,21 +21,22 @@ import { SidebarLink } from "@/components/ui/SidebarLink";
 import UserMenu from "@/components/Navbar/UserMenu";
 
 export default function SellerLayout() {
+  const { t } = useTranslation(["seller", "common"]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { logout, authUser } = useAuthStore();
   const location = useLocation();
 
   const navItems = [
-    { to: "/seller/dashboard", icon: LayoutDashboard, label: "Overview" },
-    { to: "/seller/orders", icon: ShoppingBag, label: "Live Orders" },
-    { to: "/seller/menu", icon: UtensilsCrossed, label: "Menu Management" },
-    { to: "/seller/analytics", icon: BarChart3, label: "Analytics" },
-    { to: "/seller/settings", icon: Settings, label: "Restaurant Settings" },
+    { to: "/seller/dashboard", icon: LayoutDashboard, label: t("seller:nav.dashboard") },
+    { to: "/seller/orders", icon: ShoppingBag, label: t("seller:nav.orders") },
+    { to: "/seller/menu", icon: UtensilsCrossed, label: t("seller:nav.menu") },
+    { to: "/seller/analytics", icon: BarChart3, label: t("seller:nav.analytics") },
+    { to: "/seller/settings", icon: Settings, label: t("seller:nav.settings") },
   ];
 
   const currentTitle =
     navItems.find((item) => item.to === location.pathname)?.label ||
-    "Seller Portal";
+    t("settings.portalShort");
 
   return (
     <div className="min-h-screen bg-muted text-foreground flex overflow-hidden">
@@ -99,7 +101,7 @@ export default function SellerLayout() {
                 {currentTitle}
               </h1>
               <p className="text-muted-foreground mt-2">
-                Manage your store performance and details
+                {t("portalSubtitle")}
               </p>
             </div>
 

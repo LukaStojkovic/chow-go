@@ -11,6 +11,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 /**
  * @param {Object} props
@@ -35,6 +36,7 @@ export function QuantityStepper({
   size = "md",
   className,
 }) {
+  const { t } = useTranslation(["basket", "common"]);
   const atMin = value <= min;
   const atMax = value >= max;
   const removeOnDecrement = atMin && typeof onRemove === "function";
@@ -64,7 +66,9 @@ export function QuantityStepper({
         onClick={handleDecrement}
         disabled={disabled || (atMin && !removeOnDecrement)}
         aria-label={
-          removeOnDecrement ? `Remove ${itemName} from basket` : `Decrease quantity of ${itemName}`
+          removeOnDecrement
+            ? t("basket:line.remove", { name: itemName })
+            : t("common:a11y.decreaseQuantityOf", { name: itemName })
         }
       >
         {removeOnDecrement ? (
@@ -92,7 +96,7 @@ export function QuantityStepper({
         className={buttonSize}
         onClick={() => !atMax && onChange(value + 1)}
         disabled={disabled || atMax}
-        aria-label={`Increase quantity of ${itemName}`}
+        aria-label={t("common:a11y.increaseQuantityOf", { name: itemName })}
       >
         <Plus className="size-4" aria-hidden="true" />
       </Button>

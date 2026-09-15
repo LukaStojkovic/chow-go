@@ -1,4 +1,5 @@
 import { Button } from "../ui/button";
+import { useTranslation } from "react-i18next";
 import Modal from "../Modal";
 import { LoginForm } from "./forms/LoginForm";
 import { RegisterForm } from "./forms/RegisterForm";
@@ -28,6 +29,7 @@ export default function AuthModal({
   setIsOpen,
   initialStep = STEPS.LOGIN,
 }) {
+  const { t } = useTranslation(["auth", "profile", "common"]);
   const [step, setStep] = useState(initialStep);
   const { isLoggingIn, isRegistering, authUser } = useAuthStore();
 
@@ -90,7 +92,7 @@ export default function AuthModal({
           onClick={handleBack}
           className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
         >
-          Back
+          {t("common:actions.back")}
         </Button>
       )}
       <Button
@@ -98,7 +100,7 @@ export default function AuthModal({
         onClick={() => setIsOpen(false)}
         className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
       >
-        Cancel
+        {t("common:actions.cancel")}
       </Button>
       {!isForgotFlow && (
         <Button
@@ -112,23 +114,23 @@ export default function AuthModal({
               <Spinner size="sm" />
               <span className="hidden sm:inline">
                 {step === STEPS.LOGIN
-                  ? "Logging in..."
+                  ? t("auth:login.submitting")
                   : step === STEPS.REGISTER && auth.watchedRole === "customer"
-                    ? "Registering..."
+                    ? t("auth:register.submitting")
                     : step === STEPS.RESTAURANT_IMAGES
-                      ? "Creating..."
-                      : "Next"}
+                      ? t("common:state.saving")
+                      : t("common:actions.next")}
               </span>
             </>
           ) : (
             <>
               {step === STEPS.LOGIN
-                ? "Log In"
+                ? t("auth:login.submit")
                 : step === STEPS.REGISTER && auth.watchedRole === "customer"
-                  ? "Register"
+                  ? t("auth:register.submit")
                   : step === STEPS.RESTAURANT_IMAGES
-                    ? "Complete Registration"
-                    : "Next"}
+                    ? t("auth:register.complete")
+                    : t("common:actions.next")}
             </>
           )}
         </Button>
@@ -142,8 +144,8 @@ export default function AuthModal({
     <Modal
       isOpen={isOpen}
       onClose={() => setIsOpen(false)}
-      title={getTitle(step)}
-      description={getDescription(step, passwordReset.resetEmail)}
+      title={getTitle(step, t)}
+      description={getDescription(step, passwordReset.resetEmail, t)}
       size="md"
       footer={footer}
     >
@@ -157,14 +159,14 @@ export default function AuthModal({
             />
           </form>
           <div className="text-center text-xs sm:text-sm text-muted-foreground pt-4">
-            Don't have an account?{" "}
+            {t("auth:login.noAccount")}{" "}
             <button
               type="button"
               onClick={() => setStep(STEPS.REGISTER)}
               disabled={isLoading}
               className="text-primary cursor-pointer font-medium hover:underline transition-colors"
             >
-              Sign up
+              {t("auth:register.submit")}
             </button>
           </div>
         </>
@@ -187,14 +189,14 @@ export default function AuthModal({
             />
           </form>
           <div className="text-center text-xs sm:text-sm text-muted-foreground pt-4">
-            Already have an account?{" "}
+            {t("auth:register.haveAccount")}{" "}
             <button
               type="button"
               onClick={() => setStep(STEPS.LOGIN)}
               disabled={isLoading}
               className="text-primary cursor-pointer font-medium hover:underline transition-colors"
             >
-              Log in
+              {t("auth:login.submit")}
             </button>
           </div>
         </>
@@ -253,7 +255,7 @@ export default function AuthModal({
               onClick={() => setStep(STEPS.LOGIN)}
               className="text-xs sm:text-sm text-primary hover:underline cursor-pointer transition-colors"
             >
-              Back to login
+              {t("auth:reset.backToLogin")}
             </button>
           </div>
         </form>
@@ -283,14 +285,14 @@ export default function AuthModal({
               })}
               className="text-xs sm:text-sm text-primary hover:underline cursor-pointer transition-colors"
             >
-              Resend code
+              {t("auth:reset.resendCode")}
             </button>
           </div>
           <Button
             type="submit"
             className="w-full h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg  text-sm sm:text-base"
           >
-            Verify Code
+            {t("auth:reset.verifyCode")}
           </Button>
         </form>
       )}
@@ -306,20 +308,20 @@ export default function AuthModal({
           <InputField
             register={passwordReset.resetForm.register("password")}
             type="password"
-            placeholder="New password"
+            placeholder={t("profile:account.newPassword")}
             error={passwordReset.resetForm.formState.errors.password}
           />
           <InputField
             register={passwordReset.resetForm.register("confirmPassword")}
             type="password"
-            placeholder="Confirm password"
+            placeholder={t("auth:fields.confirmPassword")}
             error={passwordReset.resetForm.formState.errors.confirmPassword}
           />
           <Button
             type="submit"
             className="w-full h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl transition-all shadow-lg  text-sm sm:text-base"
           >
-            Set New Password
+            {t("auth:reset.setPassword")}
           </Button>
         </form>
       )}
@@ -327,45 +329,45 @@ export default function AuthModal({
   );
 }
 
-function getTitle(step) {
+function getTitle(step, t) {
   switch (step) {
     case STEPS.FORGOT:
     case STEPS.OTP:
     case STEPS.RESET:
-      return "Reset Password";
+      return t("auth:reset.title");
     case STEPS.RESTAURANT_INFO:
-      return "Restaurant Information";
+      return t("auth:restaurant.infoTitle");
     case STEPS.RESTAURANT_LOCATION:
-      return "Restaurant Location & Hours";
+      return t("auth:restaurant.locationTitle");
     case STEPS.RESTAURANT_IMAGES:
-      return "Restaurant Photos & Description";
+      return t("auth:restaurant.imagesTitle");
     case STEPS.LOGIN:
-      return "Welcome Back!";
+      return t("auth:login.title");
     case STEPS.REGISTER:
-      return "Join Chow & Go";
+      return t("auth:register.title");
     default:
-      return "Authentication";
+      return t("auth:guard.signInRequired");
   }
 }
 
-function getDescription(step, resetEmail) {
+function getDescription(step, resetEmail, t) {
   switch (step) {
     case STEPS.RESTAURANT_INFO:
-      return "Tell us about your restaurant";
+      return t("auth:restaurant.infoDescription");
     case STEPS.RESTAURANT_LOCATION:
-      return "Select your location and operating hours";
+      return t("auth:restaurant.locationDescription");
     case STEPS.RESTAURANT_IMAGES:
-      return "Add photos and describe your restaurant";
+      return t("auth:restaurant.imagesDescription");
     case STEPS.FORGOT:
-      return "Enter your email to get a verification code";
+      return t("auth:reset.emailDescription");
     case STEPS.OTP:
-      return `Check ${resetEmail} for the 6-digit code`;
+      return t("auth:reset.codeSent", { email: resetEmail });
     case STEPS.RESET:
-      return "Choose a new password";
+      return t("auth:reset.newPasswordDescription");
     case STEPS.LOGIN:
-      return "Log in to track your orders and save favorites.";
+      return t("auth:login.description");
     case STEPS.REGISTER:
-      return "Create an account to start ordering in seconds.";
+      return t("auth:register.description");
     default:
       return "";
   }

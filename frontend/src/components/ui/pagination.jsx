@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useTranslation } from "react-i18next";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -63,9 +64,11 @@ function PaginationPrevious({
   className,
   ...props
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <PaginationLink
-      aria-label="Go to previous page"
+      aria-label={t("a11y.previousPage")}
       size="default"
       className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
       {...props}>
@@ -79,9 +82,11 @@ function PaginationNext({
   className,
   ...props
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <PaginationLink
-      aria-label="Go to next page"
+      aria-label={t("a11y.nextPage")}
       size="default"
       className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
       {...props}>
@@ -95,6 +100,8 @@ function PaginationEllipsis({
   className,
   ...props
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <span
       aria-hidden
@@ -102,7 +109,7 @@ function PaginationEllipsis({
       className={cn("flex size-9 items-center justify-center", className)}
       {...props}>
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">More pages</span>
+      <span className="sr-only">{t("a11y.morePages")}</span>
     </span>
   );
 }

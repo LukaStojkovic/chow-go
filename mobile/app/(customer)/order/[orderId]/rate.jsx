@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Star } from "lucide-react-native";
@@ -19,10 +20,10 @@ import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
 // Stated back to the person rating, so a tap on the third star is confirmed by
-// words rather than only by four unfilled outlines.
-const SCORE_LABELS = ["", "Poor", "Not great", "Fine", "Good", "Excellent"];
-
+// words rather than only by four unfilled outlines. The score is the catalog
+// key, resolved inside the component so a language switch reaches it.
 function Stars({ value, onChange }) {
+  const { t } = useTranslation("order");
   const { color } = useTokens();
 
   return (
@@ -51,13 +52,14 @@ function Stars({ value, onChange }) {
         ))}
       </View>
       <Text variant="label-sm" tone={value ? "foreground" : "muted"}>
-        {value ? SCORE_LABELS[value] : "Tap to rate"}
+        {value ? t(`order:rating.scores.${value}`) : t("order:rating.tapToRate")}
       </Text>
     </View>
   );
 }
 
 export default function RateOrder() {
+  const { t } = useTranslation(["order", "restaurant", "basket", "profile", "auth", "errors", "validation", "courier", "common"]);
   const { orderId } = useLocalSearchParams();
   const { data } = useOrder(orderId);
   const queryClient = useQueryClient();
@@ -82,16 +84,16 @@ export default function RateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["order", orderId] });
       queryClient.invalidateQueries({ queryKey: ["customerOrders"] });
-      toast.success("Thanks for the feedback");
+      toast.success(t("order:rating.thanks"));
       router.back();
     },
     onError: (error) =>
-      toast.error("Could not submit your rating", { description: errorMessage(error) }),
+      toast.error(t("order:rating.submitFailed"), { description: errorMessage(error) }),
   });
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <ScreenHeader title="How was it?" subtitle={order?.restaurant?.name} />
+      <ScreenHeader title={t("rating.title")} subtitle={order?.restaurant?.name} />
 
       <ScrollView
         contentContainerClassName="gap-3 px-5 pb-8"
@@ -101,9 +103,9 @@ export default function RateOrder() {
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">The food</Text>
+              <Text variant="h3">{t("rating.restaurantHeading")}</Text>
               <Text variant="caption" tone="muted" numberOfLines={1}>
-                {order?.restaurant?.name ?? "Your order"}
+                {order?.restaurant?.name ?? t("order:detail.itemsHeading")}
               </Text>
             </View>
           </View>
@@ -113,7 +115,7 @@ export default function RateOrder() {
           <Input
             value={restaurantReview}
             onChangeText={setRestaurantReview}
-            placeholder="Anything you'd like the restaurant to know?"
+            placeholder={t("rating.foodPlaceholder")}
             multiline
             maxLength={500}
           />
@@ -123,7 +125,7 @@ export default function RateOrder() {
           <Card className="gap-4">
             <View className="flex-row items-center gap-3">
               <View className="flex-1">
-                <Text variant="h3">The delivery</Text>
+                <Text variant="h3">{t("rating.courierHeading")}</Text>
                 <Text variant="caption" tone="muted" numberOfLines={1}>
                   {order.courier.name}
                 </Text>
@@ -135,7 +137,7 @@ export default function RateOrder() {
             <Input
               value={courierReview}
               onChangeText={setCourierReview}
-              placeholder="Anything about the delivery?"
+              placeholder={t("rating.deliveryPlaceholder")}
               multiline
               maxLength={500}
             />
@@ -151,7 +153,9 @@ export default function RateOrder() {
           loading={submit.isPending}
           onPress={() => submit.mutate()}
         >
-          {restaurantRating === 0 ? "Pick a rating" : "Submit rating"}
+          {restaurantRating === 0
+            ? t("validation:order.ratingRequired")
+            : t("rating.submit")}
         </Button>
       </DockedBar>
     </Screen>

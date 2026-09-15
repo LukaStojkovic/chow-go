@@ -29,6 +29,23 @@ import { LOCALES } from "@chowgo/shared/i18n";
 
 import { setLocale } from "@/lib/i18n";
 
+/**
+ * Hoisted out of `UserMenu`: a component declared inside a render is a new
+ * type on every pass, so React unmounts and remounts it rather than updating
+ * it. Harmless for an icon, but the rule that catches it is worth keeping
+ * clean.
+ */
+function ThemeIcon({ currentTheme }) {
+  switch (currentTheme) {
+    case "light":
+      return <Sun className="mr-3 h-4 w-4 text-primary" />;
+    case "dark":
+      return <Moon className="mr-3 h-4 w-4 text-primary" />;
+    default:
+      return <Monitor className="mr-3 h-4 w-4 text-primary" />;
+  }
+}
+
 export default function UserMenu({ user, onLogout }) {
   const { theme, setTheme } = useDarkMode();
   const navigate = useNavigate();
@@ -37,17 +54,6 @@ export default function UserMenu({ user, onLogout }) {
 
   const isSeller = user?.role === "seller";
   const isCourier = user?.role === "courier";
-
-  const ThemeIcon = ({ currentTheme }) => {
-    switch (currentTheme) {
-      case "light":
-        return <Sun className="mr-3 h-4 w-4 text-primary" />;
-      case "dark":
-        return <Moon className="mr-3 h-4 w-4 text-primary" />;
-      default:
-        return <Monitor className="mr-3 h-4 w-4 text-primary" />;
-    }
-  };
 
   return (
     <DropdownMenu>

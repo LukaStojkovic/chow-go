@@ -1,6 +1,7 @@
 import { Redirect, Stack } from "expo-router";
 import { SellerAlert } from "@/features/seller/SellerAlert";
 import { useAuthStore } from "@/store/useAuthStore";
+import { fullScreenModalOptions, stackScreenOptions } from "@/navigation/transitions";
 import { useTokens } from "@/theme/useTokens";
 
 export default function SellerLayout() {
@@ -12,14 +13,9 @@ export default function SellerLayout() {
 
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: color.background },
-        }}
-      >
+      <Stack screenOptions={stackScreenOptions({ color })}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="incoming/[orderId]" options={{ presentation: "fullScreenModal" }} />
+        <Stack.Screen name="incoming/[orderId]" options={fullScreenModalOptions} />
         <Stack.Screen name="order/[orderId]" />
         <Stack.Screen name="menu-item/[menuItemId]" />
       </Stack>

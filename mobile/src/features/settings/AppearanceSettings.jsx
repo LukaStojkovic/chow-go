@@ -1,18 +1,21 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Accessibility, Moon, Smartphone, Sparkles, Sun } from "lucide-react-native";
 import { Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Chip";
+import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { LanguagePicker } from "./LanguagePicker";
 import { useMotionStore } from "@/store/useMotionStore";
 import { useThemeStore } from "@/store/useThemeStore";
 
 /**
- * Appearance and motion, shared by the customer and courier profiles.
+ * Appearance, motion and language, shared by the customer and courier profiles.
  *
- * Both stores keep their values as lowercase enums - "light", "system",
- * "reduced" - and those were being rendered straight into the control. A raw
- * enum is not a label, so each option now carries its own icon and its own
- * written name.
+ * The theme and motion stores keep their values as lowercase enums - "light",
+ * "system", "reduced" - and those were being rendered straight into the
+ * control. A raw enum is not a label, so each option carries its own icon and
+ * its own written name.
  *
  * The icons stand alone in the control and the *current* value is spelled out
  * in the row heading opposite the title. That keeps the control compact without
@@ -20,17 +23,22 @@ import { useThemeStore } from "@/store/useThemeStore";
  *
  * `Smartphone` means "match the device" in both rows, so the idea only has to
  * be learned once.
+ *
+ * Language is not a segmented control. Its options are words rather than
+ * glyphs, and a fixed-width track would shrink them as languages are added -
+ * so it is a row that names the current language and opens a list. See
+ * `LanguagePicker`.
  */
-const THEME_OPTIONS = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "Match device", icon: Smartphone },
+const THEME_VALUES = [
+  { value: "light", labelKey: "preferences.themeLight", icon: Sun },
+  { value: "dark", labelKey: "preferences.themeDark", icon: Moon },
+  { value: "system", labelKey: "preferences.themeSystem", icon: Smartphone },
 ];
 
-const MOTION_OPTIONS = [
-  { value: "full", label: "Full", icon: Sparkles },
-  { value: "reduced", label: "Reduced", icon: Accessibility },
-  { value: "system", label: "Match device", icon: Smartphone },
+const MOTION_VALUES = [
+  { value: "full", labelKey: "preferences.motionFull", icon: Sparkles },
+  { value: "reduced", labelKey: "preferences.motionReduced", icon: Accessibility },
+  { value: "system", labelKey: "preferences.themeSystem", icon: Smartphone },
 ];
 
 function PreferenceRow({ title, hint, options, value, onChange }) {
@@ -60,25 +68,32 @@ function PreferenceRow({ title, hint, options, value, onChange }) {
 }
 
 export function AppearanceSettings() {
+  const { t } = useTranslation(["profile", "common"]);
   const theme = useThemeStore();
   const motion = useMotionStore();
+
+  const resolve = (entries) =>
+    entries.map((entry) => ({ ...entry, label: t(`profile:${entry.labelKey}`) }));
 
   return (
     <Card className="gap-5">
       <PreferenceRow
-        title="Appearance"
-        hint="Light, dark, or whatever your phone is set to"
-        options={THEME_OPTIONS}
+        title={t("profile:preferences.theme")}
+        hint={t("profile:preferences.themeHint")}
+        options={resolve(THEME_VALUES)}
         value={theme.preference}
         onChange={theme.setPreference}
       />
       <PreferenceRow
-        title="Motion"
-        hint="Reduce animation across the app"
-        options={MOTION_OPTIONS}
+        title={t("profile:preferences.motion")}
+        hint={t("profile:preferences.motionHint")}
+        options={resolve(MOTION_VALUES)}
         value={motion.preference}
         onChange={motion.setPreference}
       />
+      <Divider />
+
+      <LanguagePicker bare className="-my-2" />
     </Card>
   );
 }

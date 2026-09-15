@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Bike, Check, ChefHat, Home, PackageCheck, Receipt } from "lucide-react-native";
 import { cn } from "@/lib/cn";
 import { Text } from "@/components/ui/Text";
@@ -26,18 +27,12 @@ const ICONS = {
   delivered: Home,
 };
 
-// Short forms. The adapter's labels are written for a screen reader and a
-// vertical list; across six columns on a phone they have to be one word.
-const SHORT = {
-  received: "Placed",
-  confirmed: "Confirmed",
-  preparing: "Cooking",
-  assigned: "Courier",
-  on_the_way: "On the way",
-  delivered: "Delivered",
-};
-
 export function OrderStatusTimeline({ steps }) {
+  // Short forms. The adapter's labels are written for a screen reader and a
+  // vertical list; across six columns on a phone they have to be one word.
+  // They resolve here, not in a module-scope table, so a language switch
+  // reaches them.
+  const { t } = useTranslation("order");
   const { color } = useTokens();
   if (!steps?.length) return null;
 
@@ -88,7 +83,7 @@ export function OrderStatusTimeline({ steps }) {
               tone={reached ? "primary" : "muted"}
               className="mt-1.5 text-center"
             >
-              {SHORT[step.id] ?? step.label}
+              {t(`timeline.${step.id}`, { defaultValue: step.label })}
             </Text>
           </View>
         );

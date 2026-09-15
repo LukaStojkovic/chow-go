@@ -1,4 +1,6 @@
 import { Package } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { statusMeta } from "@chowgo/shared/adapters/order";
 
 const getStatusColor = (status) => {
   const colors = {
@@ -17,23 +19,18 @@ const getStatusColor = (status) => {
   );
 };
 
-const getStatusLabel = (status) => {
-  const labels = {
-    pending: "Pending",
-    confirmed: "Confirmed",
-    preparing: "Preparing",
-    ready: "Ready",
-    assigned: "Assigned",
-  };
-  return labels[status] || status.charAt(0).toUpperCase() + status.slice(1);
-};
+// The status wording comes from the shared adapter rather than a second
+// table here: a badge on this dashboard and the same order's badge on the
+// customer's screen have to say the same thing in both languages.
+const getStatusLabel = (status) => statusMeta(status).label;
 
 export const RecentOrders = ({ orders }) => {
+  const { t } = useTranslation(["seller", "common"]);
   return (
     <div className="bg-card rounded-3xl border border-border p-8 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-foreground ">
-          Recent Orders
+          {t("dashboard.recentOrders")}
         </h3>
         <Package className="w-5 h-5 text-muted-foreground" />
       </div>
@@ -44,22 +41,22 @@ export const RecentOrders = ({ orders }) => {
             <thead>
               <tr className="border-b border-border ">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground ">
-                  Order ID
+                  {t("orders.table.id")}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground ">
-                  Customer
+                  {t("orders.table.customer")}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground ">
-                  Items
+                  {t("orders.table.items")}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground ">
-                  Total
+                  {t("orders.table.total")}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground ">
-                  Status
+                  {t("orders.table.status")}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground ">
-                  Time
+                  {t("orders.table.time")}
                 </th>
               </tr>
             </thead>
@@ -109,10 +106,10 @@ export const RecentOrders = ({ orders }) => {
         <div className="text-center py-12">
           <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground font-medium">
-            No recent orders
+            {t("dashboard.noRecentOrders")}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            Active orders will appear here
+            {t("dashboard.noRecentOrdersHint")}
           </p>
         </div>
       )}

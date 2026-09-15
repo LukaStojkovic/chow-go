@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -19,6 +20,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { toast } from "@/store/useToastStore";
 
 export default function ItemCustomization() {
+  const { t } = useTranslation(["order", "restaurant", "basket", "profile", "auth", "errors", "validation", "courier", "common"]);
   const { menuItemId, restaurantId } = useLocalSearchParams();
   const queryClient = useQueryClient();
   const addItem = useCartStore((state) => state.addItem);
@@ -51,7 +53,7 @@ export default function ItemCustomization() {
     if (result.status === "conflict") {
       router.back();
       // The dialog lives above the tab bar so it survives this sheet closing.
-      toast.info("Your basket has items from another restaurant");
+      toast.info(t("basket:heading"));
     }
   }
 
@@ -61,9 +63,9 @@ export default function ItemCustomization() {
         <ScreenHeader />
         <EmptyState
           icon={UtensilsCrossed}
-          title="Item unavailable"
-          description="This dish is no longer on the menu."
-          actionLabel="Go back"
+          title={t("restaurant:menu.soldOut")}
+          description={t("errors:cart.menuItemNotFound")}
+          actionLabel={t("common:actions.goBack")}
           onAction={() => router.back()}
         />
       </Screen>
@@ -114,13 +116,13 @@ export default function ItemCustomization() {
           </View>
 
           <Input
-            label="Special instructions"
-            hint="Optional - allergies, preferences, anything the kitchen should know."
+            label={t("basket:line.instructions")}
+            hint={t("basket:kitchenNoteHint")}
             value={notes}
             onChangeText={setNotes}
             maxLength={MAX_ORDER_NOTES}
             multiline
-            placeholder="No pickles, extra spicy…"
+            placeholder={t("basket:kitchenNoteShortPlaceholder")}
           />
         </View>
       </ScrollView>
@@ -128,7 +130,7 @@ export default function ItemCustomization() {
       <DockedBar className="flex-row items-center gap-3">
         <Stepper value={quantity} onChange={setQuantity} />
         <Button className="flex-1" size="lg" loading={busy} onPress={add}>
-          {`Add · ${formatPrice(total)}`}
+          {t("basket:addItem", { price: formatPrice(total) })}
         </Button>
       </DockedBar>
     </Screen>

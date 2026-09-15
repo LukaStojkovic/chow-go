@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, UtensilsCrossed } from "lucide-react";
@@ -37,6 +38,7 @@ import { RestaurantInfoSheet } from "@/features/restaurant/RestaurantInfoSheet";
 const SCROLL_OFFSET = 132;
 
 export default function RestaurantPage() {
+  const { t } = useTranslation(["restaurant", "basket", "common"]);
   const { restaurantId } = useParams();
   const { restaurant, menu, isLoadingRestaurant, isLoadingMenu, error, refetch } =
     useRestaurant(restaurantId);
@@ -110,8 +112,8 @@ export default function RestaurantPage() {
     return (
       <PageContainer width="reading" className="py-10">
         <ErrorState
-          title="We could not load this restaurant"
-          description="It may have been removed, or the connection dropped on the way."
+          title={t("error.title")}
+          description={t("error.loadDescription")}
           onRetry={refetch}
         />
       </PageContainer>
@@ -122,7 +124,7 @@ export default function RestaurantPage() {
     return (
       <PageContainer width="reading" className="py-5 sm:py-6">
         <span className="sr-only" role="status">
-          Loading restaurant
+          {t("loading")}
         </span>
         <RestaurantHeroSkeleton />
         <ul className="mt-8 space-y-3">
@@ -179,16 +181,14 @@ export default function RestaurantPage() {
         ) : visibleSections.length === 0 ? (
           <EmptyState
             icon={UtensilsCrossed}
-            title={query ? `Nothing matching "${query}"` : "This menu is empty"}
-            description={
-              query
-                ? "Try a shorter term, or clear the filter to see the whole menu."
-                : "The restaurant has not published any dishes yet. Check back soon."
+            title={
+              query ? t("menu.emptySearch", { query }) : t("menu.emptyTitle")
             }
+            description={query ? t("menu.emptySearchHint") : t("menu.emptyHint")}
             action={
               query ? (
                 <Button variant="outline" onClick={() => setQuery("")}>
-                  Clear filter
+                  {t("common:actions.clear")}
                 </Button>
               ) : null
             }
@@ -239,7 +239,7 @@ export default function RestaurantPage() {
         <StickyActionBar aboveBottomNav className="md:hidden">
           <Button size="lg" block onClick={openBasket}>
             <span>
-              View basket
+              {t("basket:open")}
               <span className="ml-1.5 font-normal opacity-90">
                 ({cartItems.reduce((sum, line) => sum + line.quantity, 0)})
               </span>

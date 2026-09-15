@@ -1,6 +1,7 @@
 import { getUserLocation } from "@/services/apiLocation";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 export default function useReverseGeocoding(lat, lon) {
   const { data, isLoading } = useQuery({
@@ -11,7 +12,7 @@ export default function useReverseGeocoding(lat, lon) {
     retry: 1,
     enabled: !!lat && !!lon,
     onError: () => {
-      toast.error("Failed to find your address");
+      toast.error(t("profile:address.lookupFailed"));
     },
   });
 

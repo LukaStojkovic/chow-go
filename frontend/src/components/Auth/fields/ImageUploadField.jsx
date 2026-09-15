@@ -1,4 +1,5 @@
 import { Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Upload, X } from "lucide-react";
 import { useState, useRef } from "react";
 
@@ -10,9 +11,10 @@ export function ImageUploadField({
   error,
   multiple = false,
   maxImages = 10,
-  label = "Images",
+  label,
   required = false,
 }) {
+  const { t } = useTranslation(["auth", "profile", "common"]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [previews, setPreviews] = useState(
     multiple ? [] : imagePreview ? [imagePreview] : []
@@ -83,7 +85,7 @@ export function ImageUploadField({
     return (
       <div className="space-y-2">
         <label className="text-sm font-medium text-muted-foreground ">
-          {label}
+          {label ?? t("restaurant.imagesLabel")}
         </label>
         <div className="space-y-4">
           <div
@@ -112,8 +114,8 @@ export function ImageUploadField({
               }`}
             >
               {isDragOver
-                ? "Drop images here"
-                : "Drag & drop images or click to select"}
+                ? t("profile:account.dropImages")
+                : t("profile:account.dragOrClick")}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Maximum {maxImages} images
@@ -139,7 +141,7 @@ export function ImageUploadField({
                   <div key={index} className="relative group">
                     <img
                       src={preview}
-                      alt={`Preview ${index + 1}`}
+                      alt=""
                       className="w-full h-24 object-cover rounded-lg border border-border "
                     />
                     <button
@@ -162,14 +164,15 @@ export function ImageUploadField({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-muted-foreground ">
-        Profile Image {required && <span className="text-destructive">*</span>}
+        {t("profile:account.profileImage")}{" "}
+        {required && <span className="text-destructive">*</span>}
       </label>
       <div className="flex items-center gap-4">
         {previews[0] ? (
           <div className="relative">
             <img
               src={previews[0]}
-              alt="Preview"
+              alt=""
               className="w-20 h-20 rounded-full object-cover border-2 border-primary "
             />
             <button
@@ -199,7 +202,7 @@ export function ImageUploadField({
                 className="hidden"
               />
               <span className="px-4 py-2 bg-primary-subtle text-primary rounded-lg hover:bg-primary-subtle transition">
-                Choose Image
+                {t("chooseImage")}
               </span>
             </label>
           )}

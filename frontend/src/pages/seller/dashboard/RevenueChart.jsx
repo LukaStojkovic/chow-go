@@ -1,4 +1,6 @@
 import { TrendingUp } from "lucide-react";
+import { formatPrice } from "@chowgo/shared/format";
+import { useTranslation } from "react-i18next";
 import {
   AreaChart,
   Area,
@@ -28,6 +30,7 @@ const getDayLabel = (dateStr) => {
 };
 
 export const RevenueChart = ({ chartData }) => {
+  const { t } = useTranslation("seller");
   const chartDataWithLabels = chartData.map((day) => ({
     ...day,
     dayLabel: getDayLabel(day.date),
@@ -46,12 +49,12 @@ export const RevenueChart = ({ chartData }) => {
     <div className="lg:col-span-2 bg-card rounded-3xl border border-border p-8 shadow-sm">
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-xl font-bold text-foreground ">
-          Revenue Analytics
+          {t("analytics.revenueTitle")}
         </h3>
         <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
           <TrendingUp className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-muted-foreground ">
-            Last 7 Days
+            {t("analytics.range.week")}
           </span>
         </div>
       </div>
@@ -96,10 +99,10 @@ export const RevenueChart = ({ chartData }) => {
           </ResponsiveContainer>
           <div className="mt-4 flex items-center justify-between text-xs">
             <span className="text-muted-foreground ">
-              Peak: ${maxRevenue.toFixed(2)}
+              {t("analytics.peakValue", { value: formatPrice(maxRevenue) })}
             </span>
             <span className="text-muted-foreground ">
-              Total: ${totalRevenue.toFixed(2)}
+              {t("analytics.totalValue", { value: formatPrice(totalRevenue) })}
             </span>
           </div>
         </>
@@ -108,10 +111,10 @@ export const RevenueChart = ({ chartData }) => {
           <div className="text-center">
             <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground ">
-              No revenue data yet
+              {t("analytics.noData")}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Start receiving orders to see analytics
+              {t("analytics.noDataDescription")}
             </p>
           </div>
         </div>

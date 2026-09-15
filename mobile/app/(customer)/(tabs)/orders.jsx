@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, View } from "react-native";
 import { router } from "expo-router";
 import { LogIn, Receipt } from "lucide-react-native";
@@ -21,6 +22,7 @@ const TABS = [
 ];
 
 export default function Orders() {
+  const { t } = useTranslation(["order", "restaurant", "basket", "profile", "auth", "errors", "validation", "courier", "common"]);
   const refreshTint = useRefreshTint();
   const authUser = useAuthStore((state) => state.authUser);
   const [tab, setTab] = useState("active");
@@ -35,9 +37,9 @@ export default function Orders() {
       <Screen edges={["top"]} className="justify-center">
         <EmptyState
           icon={LogIn}
-          title="Sign in to see your orders"
-          description="Your order history lives with your account."
-          actionLabel="Sign in"
+          title={t("list.guestTitle")}
+          description={t("list.guestDescription")}
+          actionLabel={t("auth:login.submit")}
           onAction={() => router.push("/(auth)/login")}
         />
       </Screen>
@@ -52,10 +54,10 @@ export default function Orders() {
     <Screen edges={["top"]}>
       <View className="gap-4 px-5 pb-4 pt-2">
         <SectionHeader
-          title="Your orders"
+          title={t("list.title")}
           size="lg"
           subtitle={
-            tab === "active" ? "Everything on its way to you" : "Delivered and cancelled orders"
+            tab === "active" ? t("rating.activeHeading") : t("rating.pastHeading")
           }
         />
         <Segmented options={TABS} value={tab} onChange={setTab} />
@@ -95,13 +97,11 @@ export default function Orders() {
           ) : (
             <EmptyState
               icon={Receipt}
-              title={tab === "active" ? "No active orders" : "No past orders"}
+              title={tab === "active" ? t("rating.emptyActive") : t("rating.emptyPast")}
               description={
-                tab === "active"
-                  ? "When you order, you can follow it here from the kitchen to your door."
-                  : "Delivered and cancelled orders show up here."
+                tab === "active" ? t("rating.emptyActiveHint") : t("rating.emptyPastHint")
               }
-              actionLabel={tab === "active" ? "Find something to eat" : undefined}
+              actionLabel={tab === "active" ? t("list.empty.active.action") : undefined}
               onAction={tab === "active" ? () => router.push("/(customer)/(tabs)") : undefined}
             />
           )

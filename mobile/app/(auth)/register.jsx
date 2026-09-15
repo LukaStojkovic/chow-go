@@ -1,4 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { LogIn } from "lucide-react-native";
@@ -18,15 +19,17 @@ import { homeForRole } from "@/navigation/homeForRole";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
+// Keys rather than copy: module scope runs before a language is picked.
 const FIELDS = [
   {
     name: "name",
-    label: "Full name",
-    props: { autoComplete: "name", textContentType: "name", placeholder: "Alex Rivera" },
+    labelKey: "fields.fullName",
+    placeholderKey: "fields.namePlaceholder",
+    props: { autoComplete: "name", textContentType: "name" },
   },
   {
     name: "email",
-    label: "Email",
+    labelKey: "fields.email",
     props: {
       autoCapitalize: "none",
       autoComplete: "email",
@@ -37,7 +40,7 @@ const FIELDS = [
   },
   {
     name: "phoneNumber",
-    label: "Phone number",
+    labelKey: "fields.phone",
     props: {
       keyboardType: "phone-pad",
       autoComplete: "tel",
@@ -47,35 +50,37 @@ const FIELDS = [
   },
   {
     name: "password",
-    label: "Password",
-    hint: "At least 6 characters",
+    labelKey: "fields.password",
+    hintKey: "fields.passwordHint",
+    hintParams: { count: 8 },
+    placeholderKey: "fields.newPasswordPlaceholder",
     props: {
       secureTextEntry: true,
       autoComplete: "new-password",
       textContentType: "newPassword",
-      placeholder: "Create a password",
     },
   },
   {
     name: "confirmPassword",
-    label: "Confirm password",
+    labelKey: "fields.confirmPassword",
+    placeholderKey: "fields.confirmPasswordPlaceholder",
     props: {
       secureTextEntry: true,
       autoComplete: "new-password",
       textContentType: "newPassword",
-      placeholder: "Repeat your password",
     },
   },
 ];
 
 const SIGN_IN_OPTION = {
   icon: LogIn,
-  title: "Sign in instead",
-  description: "You already have a Chow account",
+  titleKey: "auth:register.signInInstead",
+  descriptionKey: "auth:register.signInInsteadHint",
   href: "/(auth)/login",
 };
 
 export default function Register() {
+  const { t } = useTranslation(["auth", "common"]);
   const { register, isSubmitting } = useAuthStore();
   const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(registerSchema),
@@ -87,23 +92,23 @@ export default function Register() {
       const user = await register(payload);
       router.replace(homeForRole(user?.role));
     } catch (error) {
-      toast.error("Could not create account", { description: errorMessage(error) });
+      toast.error(t("register.createFailed"), { description: errorMessage(error) });
     }
   }
 
   return (
     <AuthScreen
-      title="Create your account"
-      subtitle="Order from restaurants near you and follow every delivery to your door."
+      title={t("register.title")}
+      subtitle={t("register.shortDescription")}
       footer={
         <>
           <AuthDivider />
           <GoogleButton />
           <AuthOptions
-            label="Other ways to use Chow"
+            label={t("register.otherWays")}
             options={[SIGN_IN_OPTION, ...PARTNER_OPTIONS]}
           />
-          <AuthLegal verb="creating an account" />
+          <AuthLegal action="creatingAccount" />
         </>
       }
     >
@@ -114,8 +119,9 @@ export default function Register() {
           name={item.name}
           render={({ field }) => (
             <Input
-              label={item.label}
-              hint={item.hint}
+              label={t(item.labelKey)}
+              hint={item.hintKey ? t(item.hintKey, item.hintParams) : undefined}
+              placeholder={item.placeholderKey ? t(item.placeholderKey) : undefined}
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
@@ -127,7 +133,7 @@ export default function Register() {
       ))}
 
       <Button size="lg" fullWidth loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Create account
+        {t("register.submit")}
       </Button>
     </AuthScreen>
   );

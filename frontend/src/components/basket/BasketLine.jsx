@@ -7,6 +7,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { UtensilsCrossed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ import { QuantityStepper } from "@/components/common/QuantityStepper";
  * @param {boolean} [props.disabled]
  */
 export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, disabled }) {
+  const { t } = useTranslation(["basket", "common"]);
   return (
     <motion.li
       layout="position"
@@ -59,13 +61,13 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
         {line.savings > 0 && (
           <p className="text-body-sm inline-flex items-center gap-2">
             <Badge variant="promo" size="sm">
-              Deal
+              {t("line.deal")}
             </Badge>
             <span className="text-primary tabular font-semibold">
-              You save {formatPrice(line.savings)}
+              {t("summary.savings", { amount: formatPrice(line.savings) })}
             </span>
             <span className="text-muted-foreground tabular line-through">
-              <span className="sr-only">, was </span>
+              <span className="sr-only">{t("common:meta.reducedFrom")} </span>
               {formatPrice(line.baseUnitPrice * line.quantity)}
             </span>
           </p>
@@ -77,7 +79,7 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
 
         {line.notes && (
           <p className="text-caption text-muted-foreground line-clamp-2 italic">
-            <span className="sr-only">Special instructions: </span>
+            <span className="sr-only">{t("line.instructions")} </span>
             {line.notes}
           </p>
         )}

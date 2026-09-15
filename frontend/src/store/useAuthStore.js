@@ -14,6 +14,7 @@ import {
 import useCartStore from "./useCartStore";
 import { axiosInstance } from "@/lib/axios";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -144,11 +145,11 @@ export const useAuthStore = create((set) => ({
       });
 
       set({ authUser: res.data.user });
-      toast.success("Restaurant updated successfully");
+      toast.success(t("seller:settings.updated"));
     } catch (error) {
       console.error("Error updating restaurant:", error);
       toast.error(
-        error.response?.data?.message || "Failed to update restaurant",
+        error.response?.data?.message || t("seller:settings.updateFailed"),
       );
     } finally {
       set({ isUpdatingProfile: false });

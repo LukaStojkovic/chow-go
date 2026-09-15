@@ -8,6 +8,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Plus, UtensilsCrossed } from "lucide-react";
 
@@ -28,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * @param {boolean} [props.animate]
  */
 export function DishCard({ dish, onAdd, variant = "default", animate = true }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const Wrapper = animate ? motion.article : "article";
   const motionProps = animate ? { variants: listItem, ...hoverLift } : {};
   const href = dish.restaurantId ? `/restaurant/${dish.restaurantId}` : null;
@@ -114,7 +116,7 @@ export function DishCard({ dish, onAdd, variant = "default", animate = true }) {
               }}
             >
               <Plus aria-hidden="true" />
-              {dish.isAvailable ? "Add to basket" : "Unavailable"}
+              {dish.isAvailable ? t("menu.addToBasket") : t("menu.unavailableShort")}
             </Button>
           </div>
         )}

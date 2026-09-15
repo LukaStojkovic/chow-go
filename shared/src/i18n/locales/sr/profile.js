@@ -5,8 +5,24 @@ export default {
   greeting: "Zdravo, {{name}}",
   memberSince: "Sa nama od {{date}}",
 
+  guest: {
+    title: "Pregledate kao gost",
+    description: "Prijavite se da poručujete, pratite dostave i sačuvate mesta koja volite.",
+  },
+
+  partner: {
+    seller: "Uvedite svoj restoran",
+    sellerHint: "Postavite svoju kuhinju na Chow",
+  },
+
   sections: {
     account: "Nalog",
+    accountHint: "Vaši podaci, adrese i istorija porudžbina",
+    activity: "Vaša aktivnost",
+    activityNav: "Delovi naloga",
+    ordersHint: "Pratite dostave i poručite ponovo",
+    favouritesHint: "Restorani koje ste sačuvali",
+    security: "Bezbednost",
     addresses: "Sačuvane adrese",
     preferences: "Podešavanja",
     support: "Pomoć i podrška",
@@ -14,10 +30,23 @@ export default {
   },
 
   account: {
+    personalDetails: "Vaši podaci",
+    personalDetailsHint: "Ime, imejl i broj telefona",
+    newPhotoHint: "Nova fotografija - čuva se uz vaše izmene.",
+    phoneHint: "Kuriri ga koriste da vas kontaktiraju u vezi sa dostavom.",
+    googleManaged: "Prijavljujete se preko Google-a, pa se lozinka tamo i menja.",
+    passwordHint: "Izaberite lozinku koju ne koristite nigde drugde.",
+    changePasswordHint: "Napravite jaku novu lozinku za svoj nalog",
+    newPasswordPlaceholder: "Unesite novu lozinku",
+    confirmPasswordPlaceholder: "Potvrdite novu lozinku",
+    passwordMinHint: "Najmanje {{count}} znakova",
     name: "Ime",
     email: "Imejl",
     phone: "Broj telefona",
     photo: "Profilna fotografija",
+    photoHint: "Kuriri je vide kada preuzimaju vašu porudžbinu",
+    emailLocked: "Imejl se ne može promeniti.",
+    passwordOptionalHint: "Ostavite prazno da zadržite trenutnu",
     changePhoto: "Promeni fotografiju",
     removePhoto: "Ukloni fotografiju",
     edit: "Izmeni profil",
@@ -27,14 +56,59 @@ export default {
     currentPassword: "Trenutna lozinka",
     newPassword: "Nova lozinka",
     confirmPassword: "Potvrdite novu lozinku",
+    updatePassword: "Promeni lozinku",
+    passwordChangeFailed: "Nije moguće promeniti lozinku",
+    profileUpdated: "Profil je ažuriran",
+    profileUpdateFailed: "Ažuriranje profila nije uspelo",
+    photoUpdated: "Fotografija je promenjena",
+    photoUpdateFailed: "Promena fotografije nije uspela",
+    addressSaved: "Adresa je sačuvana",
+    addressSaveFailed: "Čuvanje adrese nije uspelo",
+    addressUpdated: "Adresa je ažurirana",
+    addressUpdateFailed: "Ažuriranje adrese nije uspelo",
+    accountDeleted: "Vaš nalog je obrisan",
+    accountDeleteFailed: "Brisanje naloga nije uspelo",
     passwordChanged: "Vaša lozinka je promenjena. Ostajete prijavljeni ovde.",
+    deleteAccountFailed: "Trenutno ne možemo da obrišemo vaš nalog.",
+    notSet: "Nije postavljeno",
+    signedInAs: "Prijavljeni ste kao",
+    yourAccount: "Vaš nalog",
+    imageType: "Koristite JPEG, PNG ili WebP sliku.",
+    imageSize: "Ta slika je veća od {{size}} MB.",
+    nameMin: "Unesite svoje ime - najmanje {{count}} karaktera.",
+    phoneChars: "Koristite samo cifre, razmake i + ( ) -.",
+    profileImage: "Profilna slika",
+    dropImages: "Prevucite slike ovde",
+    dragOrClick: "Prevucite slike ili kliknite da izaberete",
+  },
+
+  notifications: {
+    orderUpdates: "Obaveštenja o porudžbini",
+    orderUpdatesHint:
+      "Dok je porudžbina u toku, dobijate obaveštenja uživo na ovom uređaju. Podešavanja imejl i push obaveštenja još nisu dostupna.",
+  },
+
+  support: {
+    orderProblem:
+      "Problem sa određenom porudžbinom? Otvorite je iz svojih porudžbina i upotrebite <0>Zatraži pomoć</0> - restoran to obično najbrže reši.",
+    emailSupport: "Podrška putem imejla",
   },
 
   preferences: {
     theme: "Izgled",
+    chooseTheme: "Izaberite temu",
+    motionHintLong:
+      "Paneli, kartice i promene stranica se animiraju. Izaberite Smanjene da svedete pokret na minimum ili Kao uređaj da pratite podešavanje telefona.",
+    motionDeviceAsks:
+      "Vaš uređaj traži od aplikacija da smanje animacije. Ova aplikacija ih svejedno prikazuje - izaberite Kao uređaj da ispratite podešavanje ili Smanjene da zaustavite pokret svuda.",
+    themeHint: "Svetlo, tamno ili kako je podešen vaš telefon",
     themeLight: "Svetlo",
     themeDark: "Tamno",
-    themeSystem: "Kao na uređaju",
+    themeSystem: "Kao uređaj",
+    motion: "Animacije",
+    motionHint: "Smanji animacije u celoj aplikaciji",
+    motionFull: "Pune",
+    motionReduced: "Smanjene",
     language: "Jezik",
     languageDescription: "Koristi se u celoj aplikaciji i za obaveštenja o porudžbinama.",
     notifications: "Obaveštenja",
@@ -42,6 +116,24 @@ export default {
 
   address: {
     heading: "Sačuvane adrese",
+    deliveryHeading: "Adrese za dostavu",
+    savedOf: "{{count}} od {{max}} sačuvano",
+    editorHint:
+      "Označite lokaciju na mapi, pa dodajte detalje koji su kuriru potrebni da vas pronađe.",
+    deleteNamed: "Obrisati {{name}}?",
+    deleteBody:
+      "{{address}} će biti uklonjena sa vašeg naloga. Porudžbine koje su već poslate na nju ostaju nepromenjene.",
+    thisAddress: "ovu adresu",
+    keepIt: "Zadrži",
+    deliveringHere: "Dostava ovde",
+    goneDescription: "Ova adresa više ne postoji.",
+    movePin: "Pomerite oznaku",
+    movePinHint: "Ona određuje koji restorani dostavljaju ovde",
+    useLocation: "Koristi ovu lokaciju",
+    tapMapHint: "Dodirnite mapu da postavite oznaku",
+    detailsTitle: "Detalji adrese",
+    detailsHint: "Da kurir pronađe vrata",
+    loading: "Učitavanje sačuvanih adresa",
     subtitle: "Najviše {{max}} adresa. Podrazumevana se koristi pri plaćanju.",
     add: "Dodaj adresu",
     addTitle: "Dodaj adresu za dostavu",
@@ -62,6 +154,14 @@ export default {
     selectedLocation: "Izabrana lokacija",
     locationSelected: "Lokacija je izabrana",
     droppedPin: "Postavljena oznaka",
+    deliveringTo: "Dostava na",
+    deliveringToNamed: "Dostava na {{label}}",
+    atLimit: "Sačuvali ste najviše dozvoljenih {{count}} adresa. Obrišite jednu da biste dodali novu.",
+    noPinYet: "Još nema oznake",
+    lookingUpAddress: "Traženje adrese...",
+    pickHint: "Dodirnite mapu, pretražite ili koristite svoju lokaciju.",
+    currentLocation: "Trenutna lokacija",
+    locationFailed: "Preuzimanje lokacije nije uspelo",
     pinnedLocation: "Označena lokacija ({{lat}}, {{lng}})",
     customLabelPlaceholder: "Dajte naziv ovoj adresi",
 
@@ -84,8 +184,17 @@ export default {
 
     empty: {
       title: "Nema sačuvanih adresa",
-      description: "Dodajte jednu i plaćanje će biti mnogo brže.",
+      description: "Dodajte jednu da bi plaćanje znalo gde da pošalje vašu porudžbinu.",
     },
+    added: "Nova adresa za dostavu je dodata",
+    addFailed: "Dodavanje adrese za dostavu nije uspelo",
+    deleteFailed: "Brisanje adrese nije uspelo",
+    setDefaultFailed: "Postavljanje podrazumevane adrese nije uspelo",
+    lookupFailed: "Pronalaženje vaše adrese nije uspelo",
+    detected: "Lokacija je pronađena",
+    unsupported: "Ovaj uređaj ne podržava lokaciju",
+    denied: "Pristup lokaciji je odbijen",
+    choose: "Izaberite adresu za dostavu",
   },
 
   delivery: {
@@ -94,9 +203,15 @@ export default {
     choose: "Izaberite adresu za dostavu",
     detecting: "Tražimo vašu lokaciju...",
     useCurrent: "Koristi moju trenutnu lokaciju",
+    findFood: "Pronađi hranu",
     denied: "Pristup lokaciji je isključen. Unesite adresu ručno.",
     unsupported: "Ovaj pregledač ne može da podeli vašu lokaciju.",
     searchPlaceholder: "Pretražite ulicu ili mesto",
+    searchStreet: "Ulica i broj",
+    searchLabel: "Pretražite adresu",
+    enterAddress: "Unesite adresu",
+    gateTitle: "Gde dostavljamo?",
+    gateBody: "Svaka kuhinja na Chow-u dostavlja u određenom radijusu, pa nam treba tačka na mapi pre nego što išta prikažemo.",
     noResults: "Ništa ne odgovara toj pretrazi.",
     recent: "Nedavno",
   },
@@ -109,16 +224,27 @@ export default {
   deleteAccount: {
     title: "Obriši nalog",
     description: "Ovo briše vaš nalog i sve na njemu. Ne može se poništiti.",
-    confirmLabel: "Unesite lozinku da biste potvrdili",
+    confirmLabel: "Potvrdite svoju lozinku",
+    whatIsKept: "Šta se čuva",
+    understand: "Razumem da se ovo ne može poništiti",
+    permanently: "Trajno obriši moj nalog",
     confirm: "Obriši moj nalog",
     cancel: "Zadrži nalog",
     success: "Vaš nalog je obrisan.",
+    body1:
+      "Ovo se ne može poništiti. Vaše ime, e-adresa, broj telefona i sačuvane adrese se odmah uklanjaju, a vi se odjavljujete svuda.",
+    body2:
+      "Prethodne porudžbine ostaju u evidenciji bez vaših ličnih podataka, jer su one ujedno i računi restorana i kurira. Niko ne može da zna da su bile vaše.",
+    body3:
+      "Ako je porudžbina na putu, sačekajte da stigne - nalog ne možemo obrisati usred dostave.",
   },
 
   logOut: {
     action: "Odjavi se",
-    title: "Odjaviti se?",
-    description: "Moraćete ponovo da se prijavite da biste poručili.",
+    title: "Odjaviti se sa Chow & Go?",
+    description:
+      "Vaša korpa i sačuvane adrese ostaju na nalogu. Možete se ponovo prijaviti bilo kada.",
     confirm: "Odjavi se",
+    stay: "Ostani prijavljen",
   },
 };

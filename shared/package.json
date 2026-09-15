@@ -25,12 +25,13 @@
     "./adapters/types": "./src/adapters/types.js"
   },
   "dependencies": {
-    "i18next": "^25.10.10",
+    "i18next": "^26.4.2",
     "zod": "^4.1.11"
   },
   "scripts": {
     "check:locales": "node scripts/check-locales.mjs",
     "check:imports": "node scripts/check-imports.mjs",
-    "check": "npm run check:locales && npm run check:imports"
+    "check:keys": "node scripts/check-keys.mjs",
+    "check": "npm run check:locales && npm run check:imports && npm run check:keys"
   }
 }

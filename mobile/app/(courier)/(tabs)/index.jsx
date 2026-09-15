@@ -1,4 +1,5 @@
 import { RefreshControl, ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { ArrowRight, CheckCircle2, Package, Star, TrendingUp, XCircle } from "lucide-react-native";
 import { toOrderViews } from "@chowgo/shared/adapters/order";
@@ -40,6 +41,7 @@ function Stat({ label, value, icon, tone }) {
 }
 
 export default function CourierToday() {
+  const { t } = useTranslation(["courier", "profile", "order", "basket", "seller", "auth", "common"]);
   const refreshTint = useRefreshTint();
   const overview = useCourierOverview();
   const profile = useCourierProfile();
@@ -78,7 +80,7 @@ export default function CourierToday() {
         }
       >
         <SectionHeader
-          title="Today"
+          title={t("dashboard.today")}
           size="lg"
           subtitle={`${analytics?.today?.deliveries ?? 0} delivered so far`}
           className="pb-1"
@@ -90,10 +92,10 @@ export default function CourierToday() {
           <View className="flex-1 gap-0.5">
             <View className="flex-row items-center gap-2">
               {onDuty ? <StatusDot /> : null}
-              <Text variant="h3">{onDuty ? "You're on duty" : "You're off duty"}</Text>
+              <Text variant="h3">{onDuty ? t("duty.youAreOn") : t("duty.youAreOff")}</Text>
             </View>
             <Text variant="caption" tone="muted">
-              {onDuty ? "New orders can be claimed." : "You won't be offered deliveries."}
+              {onDuty ? t("duty.onHint") : t("duty.offShortHint")}
             </Text>
           </View>
           <Toggle
@@ -101,10 +103,10 @@ export default function CourierToday() {
             disabled={duty.isPending}
             onValueChange={(next) =>
               duty.mutate(next, {
-                onError: () => toast.error("Could not change your duty status"),
+                onError: () => toast.error(t("duty.changeFailed")),
               })
             }
-            accessibilityLabel="On duty"
+            accessibilityLabel={t("duty.on")}
           />
         </Card>
 
@@ -112,7 +114,7 @@ export default function CourierToday() {
               the only thing on it that is still happening. */}
         {activeOrders.length ? (
           <View className="gap-3">
-            <SectionHeader title="Active delivery" className="pt-2" />
+            <SectionHeader title={t("dashboard.inProgress")} className="pt-2" />
             {activeOrders.map((order) => (
               <Card key={order.id} className="gap-3" elevation="raised">
                 <View className="flex-row items-center gap-3">
@@ -134,7 +136,7 @@ export default function CourierToday() {
                 >
                   <View className="flex-row items-center gap-2">
                     <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-                      Continue delivery
+                      {t("delivery.continue")}
                     </Text>
                     <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
                   </View>
@@ -145,22 +147,34 @@ export default function CourierToday() {
         ) : null}
 
         <View className="flex-row gap-3">
-          <Stat label="Earned today" value={formatPrice(analytics?.today?.earnings ?? 0)} />
+          <Stat
+            label={t("dashboard.earnedToday")}
+            value={formatPrice(analytics?.today?.earnings ?? 0)}
+          />
 
-          <Stat label="Deliveries today" value={String(analytics?.today?.deliveries ?? 0)} />
+          <Stat
+            label={t("dashboard.deliveriesToday")}
+            value={String(analytics?.today?.deliveries ?? 0)}
+          />
         </View>
         <View className="flex-row gap-3">
-          <Stat label="This week" value={formatPrice(analytics?.week?.earnings ?? 0)} />
+          <Stat
+            label={t("dashboard.week")}
+            value={formatPrice(analytics?.week?.earnings ?? 0)}
+          />
 
-          <Stat label="This month" value={formatPrice(analytics?.month?.earnings ?? 0)} />
+          <Stat
+            label={t("dashboard.month")}
+            value={formatPrice(analytics?.month?.earnings ?? 0)}
+          />
         </View>
 
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">Earnings this week</Text>
+              <Text variant="h3">{t("dashboard.weeklyEarnings")}</Text>
               <Text variant="caption" tone="muted">
-                Tap a bar for that day
+                {t("seller:analytics.tapBarHint")}
               </Text>
             </View>
           </View>
@@ -171,35 +185,43 @@ export default function CourierToday() {
               value: entry.earnings ?? 0,
             }))}
             formatValue={(value) => formatPrice(value)}
-            peakLabel="Best day"
+            peakLabel={t("seller:analytics.bestDay")}
           />
         </Card>
 
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              All time
+              {t("dashboard.allTime")}
             </Text>
           </View>
 
           {[
-            { icon: Package, label: "Deliveries", value: analytics?.allTime?.totalDeliveries ?? 0 },
+            {
+              icon: Package,
+              label: t("dashboard.deliveries"),
+              value: analytics?.allTime?.totalDeliveries ?? 0,
+            },
             {
               icon: CheckCircle2,
-              label: "Completed",
+              label: t("profile.successful"),
               value: analytics?.allTime?.successfulDeliveries ?? 0,
             },
             {
               icon: XCircle,
-              label: "Cancelled",
+              label: t("order:short.cancelled"),
               value: analytics?.allTime?.cancelledDeliveries ?? 0,
             },
             {
               icon: TrendingUp,
-              label: "Acceptance rate",
+              label: t("dashboard.acceptanceRate"),
               value: `${analytics?.allTime?.acceptanceRate ?? 0}%`,
             },
-            { icon: Star, label: "Rating", value: analytics?.allTime?.averageRating ?? 0 },
+            {
+              icon: Star,
+              label: t("dashboard.rating"),
+              value: analytics?.allTime?.averageRating ?? 0,
+            },
           ].map((row, index) => (
             <View key={row.label}>
               {index > 0 ? <Divider className="mb-3" /> : null}

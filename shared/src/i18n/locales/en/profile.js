@@ -5,8 +5,24 @@ export default {
   greeting: "Hi, {{name}}",
   memberSince: "With us since {{date}}",
 
+  guest: {
+    title: "You are browsing as a guest",
+    description: "Sign in to order, track deliveries and save the places you like.",
+  },
+
+  partner: {
+    seller: "Partner your restaurant",
+    sellerHint: "List your kitchen on Chow",
+  },
+
   sections: {
     account: "Account",
+    accountHint: "Your details, addresses and order history",
+    activity: "Your activity",
+    activityNav: "Account sections",
+    ordersHint: "Track deliveries and reorder",
+    favouritesHint: "Restaurants you have saved",
+    security: "Security",
     addresses: "Saved addresses",
     preferences: "Preferences",
     support: "Help & support",
@@ -14,10 +30,23 @@ export default {
   },
 
   account: {
+    personalDetails: "Your details",
+    personalDetailsHint: "Name, email and phone number",
+    newPhotoHint: "New photo - saves with your changes.",
+    phoneHint: "Couriers use this to reach you about a delivery.",
+    googleManaged: "You sign in with Google, so your password is managed there.",
+    passwordHint: "Choose a password you do not use anywhere else.",
+    changePasswordHint: "Create a strong new password for your account",
+    newPasswordPlaceholder: "Enter new password",
+    confirmPasswordPlaceholder: "Confirm new password",
+    passwordMinHint: "At least {{count}} characters",
     name: "Name",
     email: "Email",
     phone: "Phone number",
     photo: "Profile photo",
+    photoHint: "Couriers see this when they pick your order up",
+    emailLocked: "Email cannot be changed.",
+    passwordOptionalHint: "Leave blank to keep your current one",
     changePhoto: "Change photo",
     removePhoto: "Remove photo",
     edit: "Edit profile",
@@ -27,14 +56,59 @@ export default {
     currentPassword: "Current password",
     newPassword: "New password",
     confirmPassword: "Confirm new password",
+    updatePassword: "Update password",
+    passwordChangeFailed: "Could not change your password",
+    profileUpdated: "Profile updated",
+    profileUpdateFailed: "Could not update your profile",
+    photoUpdated: "Photo updated",
+    photoUpdateFailed: "Could not update your photo",
+    addressSaved: "Address saved",
+    addressSaveFailed: "Could not save the address",
+    addressUpdated: "Address updated",
+    addressUpdateFailed: "Could not update the address",
+    accountDeleted: "Your account has been deleted",
+    accountDeleteFailed: "Could not delete your account",
     passwordChanged: "Your password was changed. You will stay signed in here.",
+    deleteAccountFailed: "We could not delete your account just now.",
+    notSet: "Not set",
+    signedInAs: "Signed in as",
+    yourAccount: "Your account",
+    imageType: "Use a JPEG, PNG or WebP image.",
+    imageSize: "That image is over {{size}} MB.",
+    nameMin: "Enter your name - at least {{count}} characters.",
+    phoneChars: "Use digits, spaces, and + ( ) - only.",
+    profileImage: "Profile image",
+    dropImages: "Drop images here",
+    dragOrClick: "Drag and drop images, or click to select",
+  },
+
+  notifications: {
+    orderUpdates: "Order updates",
+    orderUpdatesHint:
+      "You get live updates on this device while an order is in progress. Email and push notification preferences are not available yet.",
+  },
+
+  support: {
+    orderProblem:
+      "Problem with a specific order? Open it from your orders and use <0>Get help with this order</0> - the restaurant can usually fix it fastest.",
+    emailSupport: "Email support",
   },
 
   preferences: {
     theme: "Appearance",
+    chooseTheme: "Choose a theme",
+    motionHintLong:
+      "Panels, cards and page changes animate. Choose Reduced to keep movement to a minimum, or System to follow your device.",
+    motionDeviceAsks:
+      "Your device asks apps to reduce motion. This app animates anyway - pick System to follow the device setting, or Reduced to stop movement everywhere.",
+    themeHint: "Light, dark, or whatever your phone is set to",
     themeLight: "Light",
     themeDark: "Dark",
-    themeSystem: "Match my device",
+    themeSystem: "Match device",
+    motion: "Motion",
+    motionHint: "Reduce animation across the app",
+    motionFull: "Full",
+    motionReduced: "Reduced",
     language: "Language",
     languageDescription: "Used across the app, and for order notifications.",
     notifications: "Notifications",
@@ -42,6 +116,24 @@ export default {
 
   address: {
     heading: "Saved addresses",
+    deliveryHeading: "Delivery addresses",
+    savedOf: "{{count}} of {{max}} saved",
+    editorHint:
+      "Pin the location on the map, then add the details a courier needs to find you.",
+    deleteNamed: "Delete {{name}}?",
+    deleteBody:
+      "{{address}} will be removed from your account. Orders already placed to it are not affected.",
+    thisAddress: "this address",
+    keepIt: "Keep it",
+    deliveringHere: "Delivering here",
+    goneDescription: "This address no longer exists.",
+    movePin: "Move the pin",
+    movePinHint: "It decides which restaurants deliver here",
+    useLocation: "Use this location",
+    tapMapHint: "Tap the map to place the pin",
+    detailsTitle: "Address details",
+    detailsHint: "So the courier finds the door",
+    loading: "Loading your saved addresses",
     subtitle: "Up to {{max}} addresses. The default is used at checkout.",
     add: "Add address",
     addTitle: "Add a delivery address",
@@ -62,6 +154,14 @@ export default {
     selectedLocation: "Selected location",
     locationSelected: "Location selected",
     droppedPin: "Dropped pin",
+    deliveringTo: "Delivering to",
+    deliveringToNamed: "Delivering to {{label}}",
+    atLimit: "You have saved the maximum of {{count}} addresses. Delete one to add another.",
+    noPinYet: "No pin yet",
+    lookingUpAddress: "Looking up the address...",
+    pickHint: "Tap the map, search, or use your location.",
+    currentLocation: "Current location",
+    locationFailed: "Could not get your location",
     pinnedLocation: "Pinned location ({{lat}}, {{lng}})",
     customLabelPlaceholder: "Name this address",
 
@@ -84,8 +184,17 @@ export default {
 
     empty: {
       title: "No saved addresses",
-      description: "Add one and checkout gets a lot faster.",
+      description: "Add one so checkout knows where to send your order.",
     },
+    added: "New delivery address added",
+    addFailed: "Could not add the delivery address",
+    deleteFailed: "Could not delete the address",
+    setDefaultFailed: "Could not set the default address",
+    lookupFailed: "Could not find your address",
+    detected: "Location detected",
+    unsupported: "This device does not support location",
+    denied: "Location access denied",
+    choose: "Choose delivery address",
   },
 
   delivery: {
@@ -94,9 +203,15 @@ export default {
     choose: "Choose a delivery address",
     detecting: "Finding your location...",
     useCurrent: "Use my current location",
+    findFood: "Find food",
     denied: "Location access is off. Enter an address instead.",
     unsupported: "This browser cannot share your location.",
     searchPlaceholder: "Search for a street or place",
+    searchStreet: "Street and number",
+    searchLabel: "Search for an address",
+    enterAddress: "Enter an address",
+    gateTitle: "Where are we delivering?",
+    gateBody: "Every kitchen on Chow delivers to a radius, so we need a point on the map before we can show you anything.",
     noResults: "Nothing matched that search.",
     recent: "Recent",
   },
@@ -109,16 +224,27 @@ export default {
   deleteAccount: {
     title: "Delete account",
     description: "This removes your account and everything on it. It cannot be undone.",
-    confirmLabel: "Enter your password to confirm",
+    confirmLabel: "Confirm your password",
+    whatIsKept: "What is kept",
+    understand: "I understand this cannot be undone",
+    permanently: "Permanently delete my account",
     confirm: "Delete my account",
     cancel: "Keep my account",
     success: "Your account was deleted.",
+    body1:
+      "This cannot be undone. Your name, email, phone number and saved addresses are removed straight away, and you are signed out everywhere.",
+    body2:
+      "Past orders stay on record without your personal details, because they are also the restaurant's and the courier's receipts. Nobody can tell they were yours.",
+    body3:
+      "If you have an order on its way, wait until it arrives - we cannot delete an account mid-delivery.",
   },
 
   logOut: {
-    action: "Log out",
-    title: "Log out?",
-    description: "You will need to sign in again to order.",
-    confirm: "Log out",
+    action: "Sign out",
+    title: "Sign out of Chow & Go?",
+    description:
+      "Your basket and saved addresses stay on your account. You can sign back in any time.",
+    confirm: "Sign out",
+    stay: "Stay signed in",
   },
 };

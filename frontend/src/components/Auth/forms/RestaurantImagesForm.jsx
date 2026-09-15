@@ -1,15 +1,17 @@
 import { ImageUploadField } from "../fields/ImageUploadField";
+import { useTranslation } from "react-i18next";
 
 export function RestaurantImagesForm({ register, errors, setValue, control }) {
+  const { t } = useTranslation("auth");
   return (
     <div className="space-y-5">
       <div>
         <label className="block text-sm font-medium text-muted-foreground mb-2">
-          Restaurant Description
+          {t("restaurant.descriptionLabel")}
         </label>
         <textarea
           {...register("restaurantDescription")}
-          placeholder="Describe your restaurant (at least 10 characters)"
+          placeholder={t("restaurant.descriptionPlaceholder")}
           className="w-full h-24 px-3 py-2 rounded-lg sm:rounded-xl bg-card/50 border border-border hover:border-primary focus:border-primary focus:ring-ring/20 transition-colors text-sm placeholder:text-muted-foreground resize-none"
         />
         {errors.restaurantDescription && (
@@ -25,7 +27,7 @@ export function RestaurantImagesForm({ register, errors, setValue, control }) {
         error={errors.restaurantImages}
         multiple={true}
         maxImages={10}
-        label="Restaurant Photos (1-10 images)"
+        label={t("restaurant.photosLabel", { min: 1, max: 10 })}
       />
     </div>
   );

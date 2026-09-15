@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { ACTIVE_STATUS_FILTER, toOrderViews } from "@chowgo/shared/adapters/order";
@@ -28,6 +29,7 @@ const FILTERS = [
 ];
 
 export default function SellerOrdersScreen() {
+  const { t } = useTranslation(["seller", "profile", "order", "basket", "common"]);
   const refreshTint = useRefreshTint();
   const [filter, setFilter] = useState("active");
   const [text, setText] = useState("");
@@ -50,7 +52,7 @@ export default function SellerOrdersScreen() {
       <View className="gap-3 pb-3 pt-2">
         <View className="gap-4 px-5">
           <SectionHeader
-            title="Orders"
+            title={t("orders.title")}
             size="lg"
             subtitle={`${orders.length} on the board`}
             /* A seller needs to know the live feed is live; a stale console is
@@ -62,7 +64,7 @@ export default function SellerOrdersScreen() {
           <SearchInput
             value={text}
             onChangeText={setText}
-            placeholder="Order number or customer"
+            placeholder={t("orders.searchPlaceholder")}
             autoCorrect={false}
             clearButtonMode="while-editing"
             right={<StatusDot tone={isConnected ? "success" : "muted"} />}
@@ -110,7 +112,7 @@ export default function SellerOrdersScreen() {
               try {
                 await advance.mutateAsync({ orderId: item.id, status });
               } catch (error) {
-                toast.error("Could not update the order", { description: errorMessage(error) });
+                toast.error(t("seller:orders.updateFailed"), { description: errorMessage(error) });
               }
             }}
           />
@@ -125,10 +127,10 @@ export default function SellerOrdersScreen() {
           ) : (
             <EmptyState
               icon={ReceiptText}
-              title={search ? `Nothing for "${search}"` : "No orders here"}
-              description={
-                filter === "active" ? "New orders appear here the moment they arrive." : undefined
+              title={
+                search ? t("orders.emptySearch", { query: search }) : t("orders.emptyTitle")
               }
+              description={filter === "active" ? t("orders.emptyHint") : undefined}
             />
           )
         }

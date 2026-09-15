@@ -1,4 +1,5 @@
 import { FlatList, RefreshControl, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Heart } from "lucide-react-native";
 import { toRestaurantViews } from "@chowgo/shared/adapters/restaurant";
@@ -13,6 +14,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useRefreshTint } from "@/theme/useRefreshTint";
 
 export default function Favourites() {
+  const { t } = useTranslation(["restaurant", "auth", "basket", "common"]);
   const refreshTint = useRefreshTint();
   const authUser = useAuthStore((state) => state.authUser);
   const query = useFavourites();
@@ -23,9 +25,9 @@ export default function Favourites() {
       <Screen edges={["top"]} className="justify-center">
         <EmptyState
           icon={Heart}
-          title="Sign in to save favourites"
-          description="Keep the places you order from most in one list."
-          actionLabel="Sign in"
+          title={t("auth:guard.signInToFavourite")}
+          description={t("restaurant:favourites.guestHint")}
+          actionLabel={t("auth:login.submit")}
           onAction={() => router.push("/(auth)/login")}
         />
       </Screen>
@@ -43,7 +45,7 @@ export default function Favourites() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <SectionHeader
-            title="Saved places"
+            title={t("restaurant:favourites.title")}
             size="lg"
             subtitle={`${restaurants.length} ${restaurants.length === 1 ? "restaurant" : "restaurants"} you come back to`}
             className="pb-1 pt-2"
@@ -74,9 +76,9 @@ export default function Favourites() {
           ) : (
             <EmptyState
               icon={Heart}
-              title="No favourites yet"
-              description="Tap the heart on any restaurant and it will wait for you here."
-              actionLabel="Browse restaurants"
+              title={t("restaurant:favourites.empty.title")}
+              description={t("restaurant:favourites.empty.description")}
+              actionLabel={t("basket:empty.action")}
               onAction={() => router.push("/(customer)/(tabs)")}
             />
           )

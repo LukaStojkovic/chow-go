@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function MenuNavigation({
   query,
   onQueryChange,
 }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const listRef = useRef(null);
 
   // Keep the active tab in view as the page scrolls past sections, so the
@@ -52,7 +54,7 @@ export function MenuNavigation({
       <div className="flex items-center gap-3">
         <div className="relative w-40 shrink-0 sm:w-56">
           <label htmlFor="menu-filter" className="sr-only">
-            Filter this menu
+            {t("menu.filterLabel")}
           </label>
           <Search
             className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
@@ -62,7 +64,7 @@ export function MenuNavigation({
             id="menu-filter"
             type="search"
             value={query}
-            placeholder="Filter menu"
+            placeholder={t("menu.filterPlaceholder")}
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape" && query) {
@@ -81,7 +83,7 @@ export function MenuNavigation({
             <button
               type="button"
               onClick={() => onQueryChange("")}
-              aria-label="Clear menu filter"
+              aria-label={t("menu.filterClear")}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1 flex size-7 -translate-y-1/2 items-center justify-center rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <X className="size-3.5" aria-hidden="true" />
@@ -93,7 +95,7 @@ export function MenuNavigation({
           <div
             ref={listRef}
             role="tablist"
-            aria-label="Menu sections"
+            aria-label={t("menu.sectionNav")}
             aria-orientation="horizontal"
             className="scrollbar-hide flex min-w-0 flex-1 gap-1.5 overflow-x-auto"
           >

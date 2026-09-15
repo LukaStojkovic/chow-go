@@ -1,4 +1,5 @@
 import { ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Crosshair, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react-native";
 import { MAX_SAVED_ADDRESSES } from "@chowgo/shared/constants";
@@ -15,6 +16,7 @@ import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
 export default function Addresses() {
+  const { t } = useTranslation(["profile", "order", "basket", "errors", "common"]);
   const addresses = useAddresses();
   const setDefault = useSetDefaultAddress();
   const removeAddress = useDeleteAddress();
@@ -36,13 +38,15 @@ export default function Addresses() {
         lon: entry.location.coordinates[0],
       },
     });
-    toast.success(`Delivering to ${entry.label ?? "this address"}`);
+    toast.success(
+      t("address.deliveringToNamed", { label: entry.label ?? t("address.thisAddress") }),
+    );
   }
 
   return (
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader
-        title="Delivery addresses"
+        title={t("address.deliveryHeading")}
         subtitle={`${saved.length} of ${MAX_SAVED_ADDRESSES} saved`}
       />
 
@@ -61,12 +65,12 @@ export default function Addresses() {
                   </Text>
                   {entry.fullAddress === activeAddress ? (
                     <Badge tone="mint" size="sm" icon={MapPin}>
-                      Delivering here
+                      {t("address.deliveringHere")}
                     </Badge>
                   ) : null}
                   {entry.isDefault ? (
                     <Badge tone="neutral" size="sm" icon={Star}>
-                      Default
+                      {t("address.isDefault")}
                     </Badge>
                   ) : null}
                 </View>
@@ -80,7 +84,7 @@ export default function Addresses() {
                     className="mt-1 self-start"
                     onPress={() => setDefault.mutate(entry._id)}
                   >
-                    Make default
+                    {t("address.setDefault")}
                   </Button>
                 ) : null}
               </View>
@@ -107,16 +111,15 @@ export default function Addresses() {
         ) : (
           <EmptyState
             icon={MapPin}
-            title="No saved addresses"
-            description="Add one so checkout already knows where to send your order."
+            title={t("address.empty.title")}
+            description={t("address.empty.description")}
           />
         )}
 
         {atLimit ? (
           <Inset tone="warning">
             <Text variant="body-sm" className="text-warning">
-              You have saved the maximum of {MAX_SAVED_ADDRESSES} addresses. Delete one to add
-              another.
+              {t("address.atLimit", { count: MAX_SAVED_ADDRESSES })}
             </Text>
           </Inset>
         ) : (
@@ -129,7 +132,7 @@ export default function Addresses() {
             <View className="flex-row items-center gap-2">
               <Plus size={18} color={color["primary-foreground"]} />
               <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-                Add an address
+                {t("address.addTitle")}
               </Text>
             </View>
           </Button>
@@ -141,7 +144,7 @@ export default function Addresses() {
           <View className="flex-row items-center gap-2">
             <Crosshair size={17} color={color.primary} />
             <Text variant="label" tone="primary">
-              Deliver to my current location
+              {t("delivery.useCurrent")}
             </Text>
           </View>
         </Button>

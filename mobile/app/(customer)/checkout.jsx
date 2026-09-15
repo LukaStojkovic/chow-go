@@ -29,8 +29,8 @@ import { makeRouteErrorBoundary } from "@/components/feedback/routeErrorBoundary
 
 export const ErrorBoundary = makeRouteErrorBoundary(
   "checkout",
-  "Checkout hit a problem",
-  "Your basket is safe and nothing has been charged.",
+  "basket:checkout.error.title",
+  "basket:checkout.error.description",
 );
 
 export default function Checkout() {
@@ -38,7 +38,7 @@ export default function Checkout() {
   const addresses = useAddresses();
   const createOrder = useCreateOrder();
   const { color } = useTokens();
-  const { t, i18n } = useTranslation(["basket", "common"]);
+  const { t, i18n } = useTranslation(["basket", "profile", "order", "common"]);
 
   // Rebuilt only when the language changes: `t` is a new function on every
   // render, and these lists sit inside a scrolling form.
@@ -70,14 +70,14 @@ export default function Checkout() {
 
   async function placeOrder() {
     if (!addressId) {
-      toast.warning("Choose a delivery address");
+      toast.warning(t("basket:chooseAddress"));
       return;
     }
 
     const restaurantId = restaurant?._id ?? useCartStore.getState().restaurant?._id;
     if (!restaurantId) {
-      toast.error("We lost track of the restaurant", {
-        description: "Pull up your basket again and retry.",
+      toast.error(t("order:detail.restaurantLost"), {
+        description: t("order:detail.restaurantLostHint"),
       });
       fetchCart();
       return;
@@ -96,18 +96,18 @@ export default function Checkout() {
       clearLocalCart();
       router.replace(`/(customer)/order/${order._id}/confirmed`);
     } catch (error) {
-      toast.error("Could not place your order", { description: errorMessage(error) });
+      toast.error(t("order:detail.placeFailed"), { description: errorMessage(error) });
     }
   }
 
   if (items.length === 0) {
     return (
       <Screen>
-        <ScreenHeader title="Checkout" />
+        <ScreenHeader title={t("basket:checkout.title")} />
         <EmptyState
-          title="Your basket is empty"
-          description="There is nothing to check out yet."
-          actionLabel="Browse restaurants"
+          title={t("basket:empty.title")}
+          description={t("basket:checkout.empty.description")}
+          actionLabel={t("basket:empty.action")}
           onAction={() => router.replace("/(customer)/(tabs)")}
         />
       </Screen>
@@ -115,16 +115,18 @@ export default function Checkout() {
   }
 
   const ROWS = [
-    ["Subtotal", breakdown.subtotal],
-    ["Delivery fee", breakdown.deliveryFee],
-    ["Service fee", breakdown.serviceFee],
-    ...(breakdown.priorityFee ? [["Priority delivery", breakdown.priorityFee]] : []),
-    ...(tip ? [["Courier tip", tip]] : []),
+    [t("basket:summary.subtotal"), breakdown.subtotal],
+    [t("basket:summary.deliveryFee"), breakdown.deliveryFee],
+    [t("basket:summary.serviceFee"), breakdown.serviceFee],
+    ...(breakdown.priorityFee
+      ? [[t("basket:summary.priorityFee"), breakdown.priorityFee]]
+      : []),
+    ...(tip ? [[t("basket:summary.tip"), tip]] : []),
   ];
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <ScreenHeader title="Checkout" subtitle={restaurant?.name} />
+      <ScreenHeader title={t("basket:checkout.title")} subtitle={restaurant?.name} />
 
       <ScrollView
         contentContainerClassName="gap-3 px-5 pb-6"
@@ -132,16 +134,16 @@ export default function Checkout() {
         showsVerticalScrollIndicator={false}
       >
         <Section
-          title="Deliver to"
+          title={t("profile:delivery.deliverTo")}
           action={
             <Button variant="mint" size="sm" onPress={() => router.push("/(customer)/address")}>
-              Manage
+              {t("common:actions.change")}
             </Button>
           }
         >
           {addresses.isLoading ? (
             <Text variant="body-sm" tone="muted">
-              Loading addresses…
+              {t("profile:address.loading")}
             </Text>
           ) : addresses.data?.length ? (
             <View className="gap-2">
@@ -157,12 +159,12 @@ export default function Checkout() {
             </View>
           ) : (
             <Button variant="mint" size="lg" onPress={() => router.push("/(customer)/address/new")}>
-              Add a delivery address
+              {t("basket:checkout.address.add")}
             </Button>
           )}
         </Section>
 
-        <Section title="Delivery speed">
+        <Section title={t("basket:checkout.speed.title")}>
           <View className="gap-2">
             {speeds.map((option) => (
               <OptionRow
@@ -183,7 +185,7 @@ export default function Checkout() {
           </View>
         </Section>
 
-        <Section title="Payment">
+        <Section title={t("basket:checkout.payment.title")}>
           <View className="gap-2">
             {payments.map((option) => (
               <OptionRow
@@ -197,12 +199,15 @@ export default function Checkout() {
           </View>
         </Section>
 
-        <Section title="Tip your courier" subtitle="100% goes to the person who brings it">
+        <Section
+          title={t("basket:checkout.tip.title")}
+          subtitle={t("basket:checkout.tip.shortDescription")}
+        >
           <View className="flex-row gap-2">
             {PRICING.tipPresets.map((preset) => (
               <Chip
                 key={preset}
-                label={preset === 0 ? "None" : formatPrice(preset)}
+                label={preset === 0 ? t("basket:checkout.tip.none") : formatPrice(preset)}
                 active={tip === preset}
                 onPress={() => setTip(preset)}
                 className="flex-1 justify-center"
@@ -211,19 +216,19 @@ export default function Checkout() {
           </View>
         </Section>
 
-        <Section title="Notes for the restaurant">
+        <Section title={t("order:detail.restaurantNotes")}>
           <Input
             value={notes}
             onChangeText={setNotes}
             maxLength={MAX_ORDER_NOTES}
             multiline
-            placeholder="Allergies, buzzer code, anything else"
+            placeholder={t("basket:checkout.notes.shortPlaceholder")}
           />
         </Section>
 
         <Card>
           <Text variant="h3" className="mb-2">
-            Price breakdown
+            {t("basket:summary.title")}
           </Text>
           {ROWS.map(([label, value]) => (
             <View key={label} className="flex-row items-center justify-between py-1">
@@ -238,9 +243,9 @@ export default function Checkout() {
           <Divider className="my-2" />
           <View className="flex-row items-end justify-between">
             <View>
-              <Text variant="h3">Total</Text>
+              <Text variant="h3">{t("basket:summary.total")}</Text>
               <Text variant="caption" tone="muted">
-                Includes all fees
+                {t("basket:summary.includesFees")}
               </Text>
             </View>
             <Text variant="price-lg">{formatPrice(breakdown.total)}</Text>
@@ -253,7 +258,7 @@ export default function Checkout() {
           <View className="w-full flex-row items-center justify-center gap-2">
             <Lock size={17} color={color["primary-foreground"]} />
             <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              Place order
+              {t("basket:checkout.placeOrder")}
             </Text>
             <Text
               variant="body-lg"

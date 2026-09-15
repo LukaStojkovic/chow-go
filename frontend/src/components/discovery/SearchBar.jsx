@@ -7,6 +7,7 @@
  */
 
 import { forwardRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -26,14 +27,22 @@ export const SearchBar = forwardRef(function SearchBar(
     value,
     onChange,
     onSubmit,
-    placeholder = "Search restaurants or dishes",
+    placeholder,
     isSearching = false,
     autoFocus = false,
-    label = "Search restaurants and dishes",
+    label,
     className,
   },
   ref,
 ) {
+  const { t } = useTranslation(["discover", "common"]);
+
+  // Resolved here, not in the parameter list: a default in the signature is
+  // evaluated once per call but written once at module scope, so it would be
+  // the wrong language for anyone who switched.
+  const inputPlaceholder = placeholder ?? t("search.placeholder");
+  const inputLabel = label ?? t("search.label");
+
   return (
     <form
       role="search"
@@ -44,7 +53,7 @@ export const SearchBar = forwardRef(function SearchBar(
       }}
     >
       <label htmlFor="app-search" className="sr-only">
-        {label}
+        {inputLabel}
       </label>
 
       <Search
@@ -59,7 +68,7 @@ export const SearchBar = forwardRef(function SearchBar(
         value={value}
         autoFocus={autoFocus}
         autoComplete="off"
-        placeholder={placeholder}
+        placeholder={inputPlaceholder}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Escape" && value) {
@@ -84,7 +93,7 @@ export const SearchBar = forwardRef(function SearchBar(
           <>
             <Loader2 className="text-muted-foreground size-4 animate-spin" aria-hidden="true" />
             <span className="sr-only" role="status">
-              Searching
+              {t("common:state.searching")}
             </span>
           </>
         )}
@@ -92,7 +101,7 @@ export const SearchBar = forwardRef(function SearchBar(
           <button
             type="button"
             onClick={() => onChange("")}
-            aria-label="Clear search"
+            aria-label={t("search.clear")}
             className={cn(
               "text-muted-foreground hover:text-foreground hover:bg-muted flex size-7 items-center justify-center rounded-full",
               "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",

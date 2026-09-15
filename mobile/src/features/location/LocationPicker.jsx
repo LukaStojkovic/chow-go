@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Crosshair, MapPin } from "lucide-react-native";
 import { Map, MapMarker, toRegion } from "@/components/map/Map";
@@ -27,9 +28,10 @@ const STREET = 0.006;
 export function LocationPicker({
   initialPosition,
   onConfirm,
-  confirmLabel = "Confirm location",
+  confirmLabel,
   isConfirming = false,
 }) {
+  const { t } = useTranslation(["profile", "common"]);
   const storeCoordinates = useDeliveryStore((state) => state.coordinates);
   const { detect, isDetecting } = useDetectLocation();
   const { color, elevation, scheme } = useTokens();
@@ -98,7 +100,7 @@ export function LocationPicker({
         <View className="absolute left-5 right-5 top-3">
           <AddressAutocomplete
             label={null}
-            placeholder="Search for a street"
+            placeholder={t("delivery.searchStreet")}
             onSelect={({ address: found, lat, lon }) => moveTo([lat, lon], found)}
           />
         </View>
@@ -108,7 +110,7 @@ export function LocationPicker({
             icon={Crosshair}
             variant="surface"
             size={48}
-            label="Use my current location"
+            label={t("delivery.useCurrent")}
             disabled={isDetecting}
             onPress={() =>
               detect().then((result) => {
@@ -127,12 +129,15 @@ export function LocationPicker({
           </View>
           <View className="flex-1">
             <Text variant="label-sm" tone="muted">
-              {pin ? "Delivering to" : "No pin yet"}
+              {pin ? t("profile:address.deliveringTo") : t("profile:address.noPinYet")}
             </Text>
             <Text variant="body" numberOfLines={2}>
               {pin
-                ? (address ?? (isFetching ? "Looking up the address…" : "Dropped pin"))
-                : "Tap the map, search, or use your location."}
+                ? (address ??
+                  (isFetching
+                    ? t("profile:address.lookingUpAddress")
+                    : t("profile:address.droppedPin")))
+                : t("profile:address.pickHint")}
             </Text>
           </View>
         </View>
@@ -144,7 +149,7 @@ export function LocationPicker({
           loading={isConfirming}
           onPress={() => onConfirm({ lat: pin[0], lng: pin[1], address: address ?? "" })}
         >
-          {confirmLabel}
+          {confirmLabel ?? t("address.confirmLocation")}
         </Button>
       </View>
     </View>

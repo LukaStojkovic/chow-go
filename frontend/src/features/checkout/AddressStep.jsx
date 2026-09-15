@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { MapPin, Plus } from "lucide-react";
 
@@ -23,6 +24,7 @@ import { CheckoutSection, OptionRow } from "./CheckoutSection";
  * @param {number} props.step
  */
 export function AddressStep({ step }) {
+  const { t } = useTranslation(["basket", "profile", "common"]);
   const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
   const { selectedDeliveryAddress, setSelectedDeliveryAddress } = useDeliveryStore();
 
@@ -44,14 +46,14 @@ export function AddressStep({ step }) {
   return (
     <CheckoutSection
       step={step}
-      title="Delivery address"
+      title={t("checkout.address.title")}
       isComplete={Boolean(selectedDeliveryAddress)}
       action={
         addresses.length > 0 ? (
           <Button variant="link" size="sm" asChild>
             <Link to="/profile">
               <Plus aria-hidden="true" />
-              Add
+              {t("common:actions.add")}
             </Link>
           </Button>
         ) : null
@@ -67,18 +69,18 @@ export function AddressStep({ step }) {
           <EmptyState
             icon={MapPin}
             size="sm"
-            title="No delivery address yet"
-            description="Add an address so the courier knows where to bring your order."
+            title={t("checkout.address.emptyTitle")}
+            description={t("checkout.address.emptyDescription")}
             action={
               <Button asChild>
-                <Link to="/profile">Add an address</Link>
+                <Link to="/profile">{t("profile:address.addTitle")}</Link>
               </Button>
             }
           />
         </div>
       ) : (
         <fieldset className="space-y-2">
-          <legend className="sr-only">Choose a delivery address</legend>
+          <legend className="sr-only">{t("profile:delivery.choose")}</legend>
           {addresses.map((address) => {
             const details = [
               address.buildingName,

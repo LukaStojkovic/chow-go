@@ -1,4 +1,5 @@
 import Modal from "@/components/Modal";
+import { useTranslation } from "react-i18next";
 import { AddMenuItemForm } from "@/components/Seller/forms/AddMenuItemForm";
 import { EditMenuItemForm } from "@/components/Seller/forms/EditMenuItemForm";
 import useDeleteMenuItem from "@/components/Seller/hooks/useDeleteMenuItem";
@@ -18,6 +19,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useDebounce } from "use-debounce";
 
 export const SellerMenu = () => {
+  const { t } = useTranslation(["seller", "errors", "common"]);
   const [openAddItemModal, setOpenAddItemModal] = useState(false);
   const [openDeleteMenuItem, setOpenDeleteMenuItem] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -66,7 +68,7 @@ export const SellerMenu = () => {
   const { deleteMenuItem, isDeleting } = useDeleteMenuItem();
 
   if (!restaurantId)
-    return <div className="p-8 text-center">Restaurant not found.</div>;
+    return <div className="p-8 text-center">{t("errors:restaurant.notFound")}</div>;
 
   const handleOpenDeleteModal = (menuItem) => {
     setSelectedMenuItem(menuItem);
@@ -113,7 +115,7 @@ export const SellerMenu = () => {
           className="rounded-xl hover:text-primary border-primary text-primary hover:bg-primary-subtle hover:border-primary font-medium shadow-sm"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Add Menu Item
+          {t("menu.addDish")}
         </Button>
       </div>
 
@@ -129,7 +131,7 @@ export const SellerMenu = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {menuItems.length === 0 ? (
                 <div className="col-span-full text-center py-16 text-muted-foreground">
-                  No menu items found.
+                  {t("menu.empty.title")}
                 </div>
               ) : (
                 menuItems.map((item, index) => (
@@ -163,8 +165,8 @@ export const SellerMenu = () => {
       <Modal
         isOpen={openAddItemModal}
         onClose={() => setOpenAddItemModal(false)}
-        title="Add Menu Item"
-        description="Fill out the form below to add a new item to your menu."
+        title={t("menu.addDish")}
+        description={t("menu.addDishHint")}
         size="xl"
       >
         <AddMenuItemForm
@@ -176,8 +178,8 @@ export const SellerMenu = () => {
       <Modal
         isOpen={openEditModal}
         onClose={() => setOpenEditModal(false)}
-        title="Edit Menu Item"
-        description="Update the details of your menu item."
+        title={t("menu.editDish")}
+        description={t("menu.editDishHint")}
         size="xl"
       >
         <EditMenuItemForm
@@ -190,8 +192,8 @@ export const SellerMenu = () => {
       <DeleteModal
         isOpen={openDeleteMenuItem}
         onClose={() => setOpenDeleteMenuItem(false)}
-        title="Delete Menu Item"
-        description={`Are you sure you want to delete "${selectedMenuItem?.name}"?`}
+        title={t("menu.deleteDish")}
+        description={t("menu.confirmDeleteNamed", { name: selectedMenuItem?.name })}
         onConfirm={handleDeleteMenuItem}
         isLoading={isDeleting}
       />

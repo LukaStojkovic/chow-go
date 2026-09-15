@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 import { createOrder as createOrderApi } from "@/services/apiOrder";
 import useCartStore from "@/store/useCartStore";
@@ -45,7 +46,7 @@ export function useCreateOrder() {
       } else {
         // The order was created but the response was not the shape we expect;
         // order history is the safe landing place.
-        toast.success("Your order was placed.");
+        toast.success(t("order:detail.placed"));
         navigate("/orders", { replace: true });
       }
     },
@@ -53,7 +54,7 @@ export function useCreateOrder() {
     onError: (error) => {
       toast.error(
         error?.response?.data?.message ||
-          "We could not place your order. Nothing has been charged - please try again.",
+          t("order:detail.placeFailedLong"),
       );
     },
   });

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, ArrowLeft, Check, Loader2 } from "lucide-react";
 
 export const FormNavigationButtons = ({
@@ -8,6 +9,7 @@ export const FormNavigationButtons = ({
   onNext,
   isLoading,
 }) => {
+  const { t } = useTranslation(["courier", "common"]);
   return (
     <div className="flex gap-3 pt-4">
       {step > 1 && (
@@ -18,7 +20,7 @@ export const FormNavigationButtons = ({
           className="flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60 "
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t("common:actions.back")}
         </button>      )}
 
       {step < totalSteps ? (
@@ -27,7 +29,7 @@ export const FormNavigationButtons = ({
           onClick={onNext}
           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
         >
-          Next
+          {t("common:actions.next")}
           <ArrowRight className="h-4 w-4" />
         </button>
       ) : (
@@ -39,11 +41,11 @@ export const FormNavigationButtons = ({
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Submitting…
+              {t("courier:signup.submitting")}
             </>
           ) : (
             <>
-              Submit Application
+              {t("courier:signup.submit")}
               <Check className="h-4 w-4" />
             </>
           )}

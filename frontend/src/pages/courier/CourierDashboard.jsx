@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AlertCircle, Navigation } from "lucide-react";
@@ -13,6 +14,7 @@ import useAcceptCourierOrder from "@/hooks/Courier/useAcceptCourierOrder";
 import { useCourierOverview } from "@/hooks/Courier/useCourierOverview";
 
 export default function CourierDashboard() {
+  const { t } = useTranslation(["courier", "common"]);
   const navigate = useNavigate();
   const { isAvailable, activeOrder } = useOutletContext();
   const { courierAvailableOrders, isLoadingOrders } = useGetAvailableOrders(1);
@@ -41,8 +43,7 @@ export default function CourierDashboard() {
         >
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium">
-            You are currently off duty. Go on duty to start receiving delivery
-            requests.
+            {t("duty.offHint")}
           </p>
         </motion.div>
       )}
@@ -54,7 +55,7 @@ export default function CourierDashboard() {
         >
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-primary ">
-              Delivery in progress
+              {t("dashboard.inProgress")}
             </p>
             <p className="mt-1 font-semibold text-foreground ">
               {inProgressOrder.restaurant?.name ?? "Restaurant"}
@@ -62,7 +63,7 @@ export default function CourierDashboard() {
           </div>
           <span className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
             <Navigation className="h-4 w-4" />
-            Open map
+            {t("dashboard.openMap")}
           </span>
         </Link>
       )}

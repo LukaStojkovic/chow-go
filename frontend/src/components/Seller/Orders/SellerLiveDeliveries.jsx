@@ -1,4 +1,5 @@
 import { Suspense, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Bike, MapPin, UtensilsCrossed } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { lazyNamed } from "@/lib/lazyNamed";
@@ -13,13 +14,15 @@ import { formatDistance, formatDuration, toLatLng } from "@chowgo/shared/geo";
 
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
+// Keys, not copy: module scope runs before a language is picked.
 const STATUS_LABEL = {
-  assigned: "Courier heading to you",
-  picked_up: "Picked up",
-  in_transit: "Out for delivery",
+  assigned: "seller:orders.courierHeadingToYou",
+  picked_up: "order:short.picked_up",
+  in_transit: "seller:orders.outForDelivery",
 };
 
 export function SellerLiveDeliveries({ orders, restaurantCoordinates }) {
+  const { t } = useTranslation(["seller", "order", "courier", "common"]);
   const liveOrders = useMemo(
     () =>
       (orders ?? []).filter(
@@ -45,7 +48,7 @@ export function SellerLiveDeliveries({ orders, restaurantCoordinates }) {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
             </span>
             <h2 className="font-bold">
-              Live deliveries ({liveOrders.length})
+              {t("orders.liveDeliveries", { count: liveOrders.length })}
             </h2>
           </div>
 
@@ -82,6 +85,7 @@ export function SellerLiveDeliveries({ orders, restaurantCoordinates }) {
 }
 
 function SellerDeliveryMap({ order, restaurantCoordinates }) {
+  const { t } = useTranslation(["seller", "order", "courier", "common"]);
   const restaurantCoords = toLatLng(restaurantCoordinates);
   const deliveryCoords = toLatLng(
     order.deliveryAddressSnapshot?.location?.coordinates,
@@ -107,7 +111,7 @@ function SellerDeliveryMap({ order, restaurantCoordinates }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
         <span className="font-semibold">
-          {STATUS_LABEL[order.status] ?? order.status}
+          {STATUS_LABEL[order.status] ? t(STATUS_LABEL[order.status]) : order.status}
         </span>
         <span className="flex items-center gap-1.5 text-muted-foreground">
           <Bike className="h-3.5 w-3.5" />
@@ -123,7 +127,7 @@ function SellerDeliveryMap({ order, restaurantCoordinates }) {
         )}
         {isStale && (
           <span className="text-muted-foreground">
-            Courier position is not updating
+            {t("courier:orders.courierStalled")}
           </span>
         )}
       </div>
@@ -147,7 +151,7 @@ function SellerDeliveryMap({ order, restaurantCoordinates }) {
         {restaurantCoords && (
           <span className="flex items-center gap-1.5">
             <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
-            Your restaurant
+            {t("settings.yourRestaurant")}
           </span>
         )}
         {deliveryCoords && (

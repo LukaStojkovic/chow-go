@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Platform, Pressable, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Moon } from "lucide-react-native";
@@ -29,6 +30,7 @@ const toTime = (date) =>
  * of controls, and most of them are for hours that never change.
  */
 export function ScheduleEditor({ schedule, onChangeDay }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const [editing, setEditing] = useState(null);
   const today = getTodayKey();
 
@@ -55,12 +57,12 @@ export function ScheduleEditor({ schedule, onChangeDay }) {
                 </Text>
                 {key === today ? (
                   <Badge tone="mint" size="sm">
-                    Today
+                    {t("restaurant:hours.today")}
                   </Badge>
                 ) : null}
                 {overnight ? (
                   <Badge tone="info" size="sm" icon={Moon}>
-                    Overnight
+                    {t("restaurant:hours.overnight")}
                   </Badge>
                 ) : null}
 
@@ -68,7 +70,7 @@ export function ScheduleEditor({ schedule, onChangeDay }) {
                   <Toggle
                     value={entry.isOpen}
                     onValueChange={(isOpen) => onChangeDay(key, { ...entry, isOpen })}
-                    accessibilityLabel={`Open on ${label}`}
+                    accessibilityLabel={t("settings.openOn", { day: label })}
                   />
                 </View>
               </View>
@@ -84,7 +86,9 @@ export function ScheduleEditor({ schedule, onChangeDay }) {
                       className="flex-1 gap-0.5 rounded-md bg-muted px-3.5 py-2.5 active:opacity-70"
                     >
                       <Text variant="caption" tone="muted">
-                        {field === "openingTime" ? "Opens" : "Closes"}
+                        {field === "openingTime"
+                          ? t("seller:settings.hours.opensAt")
+                          : t("seller:settings.hours.closesAt")}
                       </Text>
                       <Text variant="price">{entry[field] ?? "09:00"}</Text>
                     </Pressable>
@@ -125,7 +129,7 @@ export function ScheduleEditor({ schedule, onChangeDay }) {
           className="items-center rounded-full bg-primary-subtle py-3 active:opacity-70"
         >
           <Text variant="label" tone="primary">
-            Done
+            {t("common:actions.done")}
           </Text>
         </Pressable>
       ) : null}

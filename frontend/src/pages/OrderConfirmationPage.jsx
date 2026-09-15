@@ -7,6 +7,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { Check, LifeBuoy, MapPin, Navigation } from "lucide-react";
 
@@ -25,6 +26,7 @@ import { BasketLine } from "@/components/basket/BasketLine";
 import { FeeBreakdown } from "@/components/basket/FeeBreakdown";
 
 export default function OrderConfirmationPage() {
+  const { t } = useTranslation(["order", "profile", "common"]);
   const { orderId } = useParams();
   const { order: raw, isLoadingOrder, error, refetch } = useGetOrderById(orderId);
 
@@ -32,7 +34,7 @@ export default function OrderConfirmationPage() {
     return (
       <PageContainer width="narrow" withBottomNav={false} className="py-8">
         <span className="sr-only" role="status">
-          Loading your order
+          {t("confirmed.loading")}
         </span>
         <Stack gap="xl">
           <Skeleton className="mx-auto size-12 rounded-full" />
@@ -47,8 +49,8 @@ export default function OrderConfirmationPage() {
     return (
       <PageContainer width="narrow" withBottomNav={false} className="py-10">
         <ErrorState
-          title="We could not load your order"
-          description="Your order was placed - this page just could not fetch it. It is in your order history."
+          title={t("confirmed.error.title")}
+          description={t("confirmed.error.description")}
           onRetry={refetch}
         />
       </PageContainer>
@@ -71,38 +73,47 @@ export default function OrderConfirmationPage() {
             <Check className="text-success size-6" aria-hidden="true" />
           </motion.span>
 
-          <h1 className="text-h1">Your order is on its way to the restaurant</h1>
+          <h1 className="text-h1">{t("confirmed.heading")}</h1>
           <p className="text-body text-muted-foreground mt-1.5 max-w-sm">
-            {order.restaurant?.name ?? "The restaurant"} will confirm it in the next few
-            minutes. We will keep you posted.
+            {t("confirmed.confirmSoonLong", {
+              name: order.restaurant?.name ?? t("confirmed.fallbackRestaurant"),
+            })}
           </p>
         </div>
 
         <Card padded className="space-y-4">
           <dl className="grid grid-cols-2 gap-3">
             <div>
-              <dt className="text-caption text-muted-foreground">Order number</dt>
+              <dt className="text-caption text-muted-foreground">
+                {t("confirmed.orderNumber")}
+              </dt>
               <dd className="text-h3 tabular mt-0.5">#{order.number}</dd>
             </div>
             <div>
-              <dt className="text-caption text-muted-foreground">Placed</dt>
+              <dt className="text-caption text-muted-foreground">
+                {t("confirmed.placed")}
+              </dt>
               <dd className="text-body mt-0.5">{formatOrderDate(order.placedAt)}</dd>
             </div>
             <div>
-              <dt className="text-caption text-muted-foreground">Estimated arrival</dt>
+              <dt className="text-caption text-muted-foreground">{t("eta.label")}</dt>
               <dd className="text-body mt-0.5">
                 {order.restaurant?.deliveryEstimate ?? "30-45 min"}
               </dd>
             </div>
             <div>
-              <dt className="text-caption text-muted-foreground">Paying by</dt>
+              <dt className="text-caption text-muted-foreground">
+                {t("confirmed.payingBy")}
+              </dt>
               <dd className="text-body mt-0.5">{order.paymentMethodLabel}</dd>
             </div>
           </dl>
 
           {order.deliveryAddress && (
             <div className="border-border border-t pt-3">
-              <p className="text-caption text-muted-foreground">Delivering to</p>
+              <p className="text-caption text-muted-foreground">
+                {t("profile:delivery.deliverTo")}
+              </p>
               <p className="text-body mt-0.5 flex items-start gap-2">
                 <MapPin className="text-muted-foreground mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <span>{order.deliveryAddress}</span>
@@ -118,7 +129,7 @@ export default function OrderConfirmationPage() {
               name={order.restaurant?.name || "Restaurant"}
             />
             <h2 className="text-h3 min-w-0 flex-1 truncate">
-              {order.restaurant?.name || "Your order"}
+              {order.restaurant?.name || t("detail.itemsHeading")}
             </h2>
           </div>
 
@@ -131,7 +142,7 @@ export default function OrderConfirmationPage() {
           </div>
 
           <div className="border-border border-t p-4">
-            <FeeBreakdown pricing={order.pricing} totalLabel="Total to pay" />
+            <FeeBreakdown pricing={order.pricing} totalLabel={t("detail.totalToPay")} />
           </div>
         </Card>
 
@@ -139,18 +150,18 @@ export default function OrderConfirmationPage() {
           <Button size="lg" block asChild>
             <Link to={`/orders/${order.id}`}>
               <Navigation aria-hidden="true" />
-              Track this order
+              {t("actions.track")}
             </Link>
           </Button>
 
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" asChild>
-              <Link to="/discovery">Keep browsing</Link>
+              <Link to="/discovery">{t("confirmed.homeAction")}</Link>
             </Button>
             <Button variant="ghost" asChild>
               <Link to="/orders">
                 <LifeBuoy aria-hidden="true" />
-                All orders
+                {t("list.title")}
               </Link>
             </Button>
           </div>

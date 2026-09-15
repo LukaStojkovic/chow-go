@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ export function ConfirmOrderDialog({
   onConfirm,
   isConfirming,
 }) {
+  const { t } = useTranslation(["seller", "common"]);
   const [prepTime, setPrepTime] = useState("30");
 
   const handleConfirm = () => {
@@ -34,16 +36,14 @@ export function ConfirmOrderDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Confirm Order
+            {t("orders.confirmTitle")}
           </DialogTitle>
-          <DialogDescription>
-            Set the estimated preparation time for this order
-          </DialogDescription>
+          <DialogDescription>{t("orders.confirmDescription")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="prep-time">Preparation Time (minutes)</Label>
+            <Label htmlFor="prep-time">{t("orders.prepTimeLabel")}</Label>
             <Input
               id="prep-time"
               type="number"
@@ -55,44 +55,31 @@ export function ConfirmOrderDialog({
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              Typical preparation time is 20-45 minutes
+              {t("orders.prepTimeHint")}
             </p>
           </div>
 
           <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPrepTime("15")}
-            >
-              15 min
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPrepTime("30")}
-            >
-              30 min
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPrepTime("45")}
-            >
-              45 min
-            </Button>
+            {["15", "30", "45"].map((minutes) => (
+              <Button
+                key={minutes}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPrepTime(minutes)}
+              >
+                {t("common:units.minutes", { value: minutes })}
+              </Button>
+            ))}
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isConfirming}>
-            Cancel
+            {t("common:actions.cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={isConfirming || !prepTime}>
-            {isConfirming ? "Confirming..." : "Confirm Order"}
+            {isConfirming ? t("common:state.processing") : t("orders.confirmTitle")}
           </Button>
         </DialogFooter>
       </DialogContent>

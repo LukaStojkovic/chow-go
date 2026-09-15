@@ -19,7 +19,10 @@ const REGISTER_CUSTOMER_SCHEMA = z.object({
   email: z.string().email(msg("validation:auth.emailInvalid")),
   password: z.string().min(8, msg("validation:auth.passwordMin", { count: 8 })),
   phoneNumber: z.string().min(1, msg("validation:auth.phoneRequired")),
-  profilePicture: z.instanceof(File).optional(),
+  // `.nullish()`, not `.optional()`: the form seeds this field with null, and
+  // optional only admits undefined - so a customer who never picked a photo
+  // failed validation with zod's own "expected File, received null".
+  profilePicture: z.instanceof(File).nullish(),
 });
 
 const REGISTER_SELLER_SCHEMA = z.object({

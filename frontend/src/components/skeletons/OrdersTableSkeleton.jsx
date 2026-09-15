@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 import {
   Table,
   TableBody,
@@ -9,16 +10,17 @@ import {
 } from "@/components/ui/table";
 
 export function OrdersTableSkeleton({ rows = 5 }) {
+  const { t } = useTranslation("seller");
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Order ID</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Items</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Total</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t("orders.table.id")}</TableHead>
+          <TableHead>{t("orders.table.customer")}</TableHead>
+          <TableHead>{t("orders.table.items")}</TableHead>
+          <TableHead>{t("orders.table.status")}</TableHead>
+          <TableHead>{t("orders.table.total")}</TableHead>
+          <TableHead className="text-right">{t("orders.table.actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

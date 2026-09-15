@@ -1,4 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
 import { errorMessage } from "@/api/client";
@@ -11,6 +12,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
 export default function ResetPassword() {
+  const { t } = useTranslation(["auth", "common"]);
   const { resetToken } = useLocalSearchParams();
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const { control, handleSubmit, formState } = useForm({
@@ -21,18 +23,24 @@ export default function ResetPassword() {
   async function onSubmit({ password }) {
     try {
       await resetPassword(resetToken, password);
-      toast.success("Password updated", { description: "Sign in with your new password." });
+      toast.success(t("register.passwordUpdated"), {
+        description: t("reset.signInWithNew"),
+      });
       router.replace("/(auth)/login");
     } catch (error) {
-      toast.error("Could not update password", { description: errorMessage(error) });
+      toast.error(t("register.passwordUpdateFailed"), { description: errorMessage(error) });
     }
   }
 
   return (
-    <AuthScreen title="Set a new password" subtitle="Choose something you haven't used before.">
+    <AuthScreen title={t("reset.setPassword")} subtitle={t("reset.newPasswordDescription")}>
       {[
-        { name: "password", label: "New password", hint: "At least 8 characters" },
-        { name: "confirmPassword", label: "Confirm new password" },
+        {
+          name: "password",
+          label: t("fields.newPassword"),
+          hint: t("fields.passwordHint", { count: 8 }),
+        },
+        { name: "confirmPassword", label: t("fields.confirmNewPassword") },
       ].map((item) => (
         <Controller
           key={item.name}
@@ -55,7 +63,7 @@ export default function ResetPassword() {
       ))}
 
       <Button size="lg" fullWidth loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Update password
+        {t("reset.setPassword")}
       </Button>
     </AuthScreen>
   );

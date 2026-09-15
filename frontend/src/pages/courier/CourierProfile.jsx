@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bike,
   Camera,
@@ -19,26 +20,19 @@ import useUpdateCourierProfile from "@/hooks/Courier/useUpdateCourierProfile";
 import { Button } from "@/components/ui/button";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 
-const VEHICLE_LABELS = {
-  bike: "Bicycle",
-  scooter: "Scooter",
-  motorcycle: "Motorcycle",
-  car: "Car",
-};
-
+// Vehicle wording comes from the shared taxonomy, so a courier's vehicle
+// reads the same here as it does on the customer's tracking screen.
 const VERIFICATION_CONFIG = {
   verified: {
-    label: "Verified",
-    className:
-      "bg-primary-subtle text-primary ",
+    labelKey: "verification.verified",
+    className: "bg-primary-subtle text-primary ",
   },
   pending: {
-    label: "Pending verification",
-    className:
-      "bg-warning-subtle text-warning ",
+    labelKey: "verification.pending",
+    className: "bg-warning-subtle text-warning ",
   },
   rejected: {
-    label: "Verification rejected",
+    labelKey: "verification.rejected",
     className: "bg-destructive-subtle text-destructive ",
   },
 };
@@ -55,6 +49,7 @@ function DetailRow({ label, value }) {
 }
 
 export function CourierProfile() {
+  const { t } = useTranslation(["courier", "profile", "errors", "common"]);
   const { authUser } = useAuthStore();
   const courier = authUser?.courier;
   const { data: analytics, isLoading: isLoadingAnalytics } =
@@ -77,7 +72,7 @@ export function CourierProfile() {
   if (!courier) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
-        Courier profile not found
+        {t("errors:courier.profileNotFound")}
       </div>
     );
   }
@@ -101,11 +96,11 @@ export function CourierProfile() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Max file size is 10MB");
+      toast.error(t("seller:settings.maxFileSize", { size: 10 }));
       return;
     }
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Only JPG, PNG, WEBP allowed");
+      toast.error(t("seller:settings.allowedTypes"));
       return;
     }
 
@@ -121,7 +116,7 @@ export function CourierProfile() {
   function handleSaveName() {
     const trimmed = fullName.trim();
     if (!trimmed) {
-      toast.error("Name cannot be empty");
+      toast.error(t("profile.nameRequired"));
       return;
     }
 
@@ -182,13 +177,13 @@ export function CourierProfile() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 text-lg font-bold text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20 sm:max-w-sm"
-                  placeholder="Your full name"
+                  placeholder={t("profile.namePlaceholder")}
                 />
                 <input
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 text-md font-semibold text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/20 sm:max-w-sm"
-                  placeholder="Your phone number"
+                  placeholder={t("profile.phonePlaceholder")}
                 />
                 <div className="flex justify-center gap-2 sm:justify-start">
                   <button
@@ -202,7 +197,7 @@ export function CourierProfile() {
                     ) : (
                       <Save className="h-4 w-4" />
                     )}
-                    Save
+                    {t("common:actions.save")}
                   </button>
                   <button
                     type="button"
@@ -210,7 +205,7 @@ export function CourierProfile() {
                     className="inline-flex items-center gap-1.5 rounded-xl bg-muted px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-secondary "
                   >
                     <X className="h-4 w-4" />
-                    Cancel
+                    {t("common:actions.cancel")}
                   </button>
                 </div>
               </div>
@@ -225,7 +220,7 @@ export function CourierProfile() {
                   className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary "
                 >
                   <Edit2 className="h-3.5 w-3.5" />
-                  Edit name
+                  {t("profile.editName")}
                 </button>
               </>
             )}
@@ -241,7 +236,7 @@ export function CourierProfile() {
                 className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${verification.className}`}
               >
                 <ShieldCheck className="h-3.5 w-3.5" />
-                {verification.label}
+                {t(verification.labelKey)}
               </span>
             </div>
           </div>
@@ -251,7 +246,7 @@ export function CourierProfile() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-5 ">
           <p className="text-sm text-muted-foreground ">
-            Total deliveries
+            {t("profile.totalDeliveries")}
           </p>
           <p className="mt-1 text-2xl font-bold text-foreground ">
             {courier.totalDeliveries ?? 0}
@@ -259,14 +254,14 @@ export function CourierProfile() {
         </div>
         <div className="rounded-2xl border border-border bg-card p-5 ">
           <p className="text-sm text-muted-foreground ">
-            Successful
+            {t("profile.successful")}
           </p>
           <p className="mt-1 text-2xl font-bold text-foreground ">
             {courier.successfulDeliveries ?? 0}
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-5 ">
-          <p className="text-sm text-muted-foreground ">Earnings</p>
+          <p className="text-sm text-muted-foreground ">{t("profile.earnings")}</p>
           <p className="mt-1 text-2xl font-bold text-primary ">
             ${(courier.totalEarnings ?? 0).toFixed(2)}
           </p>
@@ -278,7 +273,7 @@ export function CourierProfile() {
           <div className="mb-4 flex items-center gap-2 border-b border-border pb-4 ">
             <Mail className="h-5 w-5 text-muted-foreground " />
             <h3 className="font-bold text-foreground ">
-              Contact
+              {t("profile.contact")}
             </h3>
           </div>
           <div className="space-y-4">
@@ -286,7 +281,7 @@ export function CourierProfile() {
               <Mail className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground ">
-                  Email
+                  {t("profile:account.email")}
                 </p>
                 <p className="font-medium text-foreground ">
                   {courier.email}
@@ -297,7 +292,7 @@ export function CourierProfile() {
               <Phone className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground ">
-                  Phone
+                  {t("profile:account.phone")}
                 </p>
                 <a
                   href={`tel:${courier.phoneNumber}`}
@@ -314,19 +309,21 @@ export function CourierProfile() {
           <div className="mb-4 flex items-center gap-2 border-b border-border pb-4 ">
             <Bike className="h-5 w-5 text-muted-foreground " />
             <h3 className="font-bold text-foreground ">
-              Vehicle details
+              {t("profile.vehicleDetails")}
             </h3>
           </div>
           <div className="space-y-4">
             <DetailRow
-              label="Vehicle type"
-              value={VEHICLE_LABELS[courier.vehicleType] ?? courier.vehicleType}
+              label={t("profile.vehicleType")}
+              value={t(`common:taxonomy.vehicle.${courier.vehicleType}`, {
+                defaultValue: courier.vehicleType,
+              })}
             />
             {courier.vehicleModel && (
-              <DetailRow label="Model" value={courier.vehicleModel} />
+              <DetailRow label={t("profile.vehicleModel")} value={courier.vehicleModel} />
             )}
             {courier.vehicleNumber && (
-              <DetailRow label="Plate / ID" value={courier.vehicleNumber} />
+              <DetailRow label={t("profile.vehiclePlate")} value={courier.vehicleNumber} />
             )}
           </div>
         </div>
@@ -335,19 +332,19 @@ export function CourierProfile() {
       <div className="rounded-2xl border border-border bg-card p-6 ">
         <div className="mb-4 flex items-center gap-2 border-b border-border pb-4 ">
           <Truck className="h-5 w-5 text-muted-foreground " />
-          <h3 className="font-bold text-foreground ">Account</h3>
+          <h3 className="font-bold text-foreground ">{t("profile:sections.account")}</h3>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <DetailRow
-            label="Member since"
+            label={t("profile.memberSince")}
             value={new Date(courier.createdAt).toLocaleDateString(undefined, {
               month: "long",
               year: "numeric",
             })}
           />
           <DetailRow
-            label="Availability"
-            value={courier.isAvailable ? "On duty" : "Off duty"}
+            label={t("profile.availability")}
+            value={courier.isAvailable ? t("duty.on") : t("duty.off")}
           />
         </div>
 
@@ -357,7 +354,7 @@ export function CourierProfile() {
             className="text-muted-foreground hover:text-destructive px-0"
             onClick={() => setShowDeleteAccount(true)}
           >
-            Delete my account
+            {t("profile:deleteAccount.confirm")}
           </Button>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import * as Haptics from "expo-haptics";
 import { useQueryClient } from "@tanstack/react-query";
+import { t } from "@chowgo/shared/i18n";
+
 import { useSocket } from "./SocketProvider";
 import { toast } from "@/store/useToastStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -50,7 +52,8 @@ export function useGlobalSocketEvents() {
 
     const announce = (tone, title, order, extra) => {
       toast[tone](title, {
-        description: extra ?? (order?.orderNumber ? `Order #${order.orderNumber}` : undefined),
+        description:
+          extra ?? (order?.orderNumber ? t("order:detail.numbered", { number: order.orderNumber }) : undefined),
       });
       Haptics.notificationAsync(
         tone === "error"
@@ -61,39 +64,39 @@ export function useGlobalSocketEvents() {
 
     const handlers = {
       "order:confirmed": (data) => {
-        announce("success", "Order confirmed", data.order);
+        announce("success", t("order:notification.order_confirmed.title"), data.order);
         invalidate(CUSTOMER_KEYS);
       },
       "order:rejected": (data) => {
-        announce("error", "Order rejected", data.order, data.reason);
+        announce("error", t("order:notification.order_rejected.title"), data.order, data.reason);
         invalidate(CUSTOMER_KEYS);
       },
       "order:preparing": (data) => {
-        announce("info", "Your order is being prepared", data.order);
+        announce("info", t("order:notification.preparingBody"), data.order);
         invalidate(CUSTOMER_KEYS);
       },
       "order:ready": (data) => {
-        announce("info", "Your order is ready", data.order);
+        announce("info", t("order:notification.readyBody"), data.order);
         invalidate(CUSTOMER_KEYS);
       },
       "order:cancelled": (data) => {
-        announce("error", "Order cancelled", data.order, data.reason);
+        announce("error", t("order:notification.order_cancelled.title"), data.order, data.reason);
         invalidate(CUSTOMER_KEYS);
       },
       "order:assigned": (data) => {
-        announce("success", "Courier assigned", data.order);
+        announce("success", t("order:short.assigned"), data.order);
         upsertOrder(data.order);
       },
       "order:picked_up": (data) => {
-        announce("info", "Picked up", data.order);
+        announce("info", t("order:short.picked_up"), data.order);
         upsertOrder(data.order);
       },
       "order:in_transit": (data) => {
-        announce("info", "On the way", data.order);
+        announce("info", t("order:short.in_transit"), data.order);
         upsertOrder(data.order);
       },
       "order:delivered": (data) => {
-        announce("success", "Delivered", data.order);
+        announce("success", t("order:short.delivered"), data.order);
         upsertOrder(data.order);
       },
     };
@@ -109,8 +112,10 @@ export function useGlobalSocketEvents() {
       SELLER_KEYS.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
 
     const handleNewOrder = (data) => {
-      toast.success("New order", {
-        description: data.order?.orderNumber ? `Order #${data.order.orderNumber}` : undefined,
+      toast.success(t("seller:orders.newOrder"), {
+        description: data.order?.orderNumber
+          ? t("order:detail.numbered", { number: data.order.orderNumber })
+          : undefined,
         duration: 8000,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

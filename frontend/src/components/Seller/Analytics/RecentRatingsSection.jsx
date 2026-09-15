@@ -1,13 +1,15 @@
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const RecentRatingsSection = ({ ratings }) => {
+  const { t } = useTranslation(["seller", "common"]);
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
-      <h3 className="text-lg font-bold mb-6 ">Recent Ratings</h3>
+      <h3 className="text-lg font-bold mb-6 ">{t("analytics.recentRatings")}</h3>
 
       <div className="space-y-4">
         {ratings.length === 0 && (
-          <p className="text-sm text-muted-foreground">No ratings yet.</p>
+          <p className="text-sm text-muted-foreground">{t("common:rating.none")}</p>
         )}
 
         {ratings.map((order, i) => (

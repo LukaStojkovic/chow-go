@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ import { useTokens } from "@/theme/useTokens";
 const CANCELLABLE = ["confirmed", "preparing", "ready"];
 
 export default function SellerOrderDetail() {
+  const { t } = useTranslation(["seller", "profile", "order", "basket", "common"]);
   const { orderId } = useLocalSearchParams();
   const cancel = useCancelRestaurantOrder();
   const [cancelling, setCancelling] = useState(false);
@@ -40,7 +42,7 @@ export default function SellerOrderDetail() {
   if (isLoading) {
     return (
       <Screen>
-        <ScreenHeader title="Order" />
+        <ScreenHeader title={t("order:detail.title")} />
         <View className="gap-4 px-5">
           <Skeleton className="h-10 w-1/2" />
           <Skeleton className="h-48 w-full rounded-lg" />
@@ -52,12 +54,12 @@ export default function SellerOrderDetail() {
   if (isError || !data) {
     return (
       <Screen>
-        <ScreenHeader title="Order" />
+        <ScreenHeader title={t("order:detail.title")} />
         <EmptyState
           tone="danger"
-          title="Couldn't load this order"
-          description="Check your connection and try again."
-          actionLabel="Retry"
+          title={t("order:detail.error.title")}
+          description={t("common:error.networkDescription")}
+          actionLabel={t("common:actions.retry")}
           onAction={refetch}
         />
       </Screen>
@@ -112,7 +114,7 @@ export default function SellerOrderDetail() {
           <Divider />
 
           <View className="flex-row items-center justify-between">
-            <Text variant="h3">Total</Text>
+            <Text variant="h3">{t("basket:summary.total")}</Text>
             <View className="flex-row items-center gap-2">
               <Badge tone="neutral" size="sm">
                 {order.paymentMethodLabel}
@@ -126,7 +128,7 @@ export default function SellerOrderDetail() {
           <Card className="flex-row items-start gap-3">
             <View className="flex-1">
               <Text variant="caption" tone="muted">
-                Note from the customer
+                {t("orders.customerNotes")}
               </Text>
               <Text variant="body" numberOfLines={4}>
                 {data.customerNotes}
@@ -139,7 +141,7 @@ export default function SellerOrderDetail() {
           <View className="flex-row items-start gap-3">
             <View className="flex-1">
               <Text variant="caption" tone="muted">
-                Delivering to
+                {t("profile:delivery.deliverTo")}
               </Text>
               <Text variant="body" numberOfLines={3}>
                 {data.deliveryAddressSnapshot?.fullAddress ?? "—"}
@@ -153,7 +155,7 @@ export default function SellerOrderDetail() {
               <View className="flex-row items-center gap-3">
                 <View className="flex-1">
                   <Text variant="caption" tone="muted">
-                    Courier
+                    {t("order:tracking.courierHeading")}
                   </Text>
                   <Text variant="body" numberOfLines={1}>
                     {order.courier.name}
@@ -173,7 +175,7 @@ export default function SellerOrderDetail() {
             onPress={() => setCancelling(true)}
           >
             <Text variant="label" tone="destructive">
-              Cancel order
+              {t("orders.actions.cancel")}
             </Text>
           </Button>
         ) : null}
@@ -187,10 +189,10 @@ export default function SellerOrderDetail() {
           try {
             await cancel.mutateAsync({ orderId, reason });
             setCancelling(false);
-            toast.info("Order cancelled");
+            toast.info(t("order:detail.cancelled"));
             router.back();
           } catch (error) {
-            toast.error("Could not cancel", { description: errorMessage(error) });
+            toast.error(t("order:detail.cancelFailed"), { description: errorMessage(error) });
           }
         }}
       />

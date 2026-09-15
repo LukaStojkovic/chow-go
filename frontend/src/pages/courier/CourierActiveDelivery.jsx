@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { CourierDeliverySkeleton } from "@/components/skeletons/CourierSkeletons";
@@ -9,6 +10,7 @@ import useGetCourierOrderById from "@/hooks/Courier/useGetCourierOrderById";
 const ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
 export default function CourierActiveDelivery() {
+  const { t } = useTranslation(["courier", "common"]);
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { order, isLoading, isError } = useGetCourierOrderById(orderId);
@@ -27,12 +29,12 @@ export default function CourierActiveDelivery() {
   if (isError || !order) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 text-center">
-        <p className="font-medium text-muted-foreground ">Delivery not found</p>
+        <p className="font-medium text-muted-foreground ">{t("delivery.notFound")}</p>
         <Link
           to="/courier/orders"
           className="text-sm font-semibold text-primary hover:text-primary "
         >
-          Back to deliveries
+          {t("delivery.back")}
         </Link>
       </div>
     );

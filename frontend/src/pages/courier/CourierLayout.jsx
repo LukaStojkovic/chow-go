@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { RouteSkeleton } from "@/components/skeletons/routeSkeletons";
@@ -38,6 +39,7 @@ function LocationPermissionNotice() {
 }
 
 export default function CourierLayout() {
+  const { t, i18n } = useTranslation(["courier", "common"]);
   const location = useLocation();
   const { logout, authUser, checkAuth } = useAuthStore();
   const queryClient = useQueryClient();
@@ -57,18 +59,19 @@ export default function CourierLayout() {
 
   const navItems = useMemo(
     () => [
-      { to: "/courier/dashboard", icon: LayoutDashboard, label: "Overview" },
-      { to: "/courier/orders", icon: ListOrdered, label: "Deliveries" },
-      // { to: "/courier/earnings", icon: Wallet, label: "Earnings" },
-      { to: "/courier/profile", icon: User, label: "My Profile" },
+      { to: "/courier/dashboard", icon: LayoutDashboard, label: t("dashboard.title") },
+      { to: "/courier/orders", icon: ListOrdered, label: t("orders.title") },
+      // { to: "/courier/earnings", icon: Wallet, label: t("dashboard.earnings") },
+      { to: "/courier/profile", icon: User, label: t("profile.title") },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [i18n.language],
   );
 
   const currentTitle = isDeliveryPage
-    ? "Active Delivery"
+    ? t("delivery.activeTitle")
     : navItems.find((item) => item.to === location.pathname)?.label ||
-      "Courier Portal";
+      t("portalTitle");
 
   function handleChangeDutyStatus() {
     const nextStatus = !isAvailable;
@@ -81,10 +84,10 @@ export default function CourierLayout() {
   }
 
   const dutyLabel = activeOrder
-    ? "Delivering"
+    ? t("delivery.title")
     : isAvailable
-      ? "On duty"
-      : "Off duty";
+      ? t("duty.on")
+      : t("duty.off");
 
   return (
     <CourierLocationProvider
@@ -117,14 +120,14 @@ export default function CourierLayout() {
             <div className="mb-6 rounded-2xl bg-muted p-4 border border-border ">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-muted-foreground ">
-                  Status
+                  {t("common:nav.status")}
                 </span>
                 <button
                   onClick={handleChangeDutyStatus}
                   disabled={isChangingDutyStatus || Boolean(activeOrder)}
                   title={
                     activeOrder
-                      ? "You cannot change duty status during a delivery"
+                      ? t("duty.lockedDuringDelivery")
                       : undefined
                   }
                   className={`relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
@@ -199,7 +202,7 @@ export default function CourierLayout() {
                     {currentTitle}
                   </h1>
                   <p className="mt-2 text-muted-foreground ">
-                    Manage your deliveries and track your earnings
+                    {t("portalSubtitle")}
                   </p>
                 </div>
               )}

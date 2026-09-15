@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
+import { t } from "@chowgo/shared/i18n";
 
 /**
  * Android routes every notification through a channel; the id must match what
@@ -20,16 +21,16 @@ export async function ensureChannels() {
   if (Platform.OS !== "android") return;
 
   await Notifications.setNotificationChannelAsync(CHANNELS.orders, {
-    name: "Order updates",
-    description: "Confirmations, pickups and deliveries for orders in progress.",
+    name: t("order:notification.channelOrders"),
+    description: t("order:notification.channelOrdersHint"),
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
   });
 
   await Notifications.setNotificationChannelAsync(CHANNELS.promotions, {
-    name: "Offers and news",
-    description: "Deals and new restaurants. Never order updates.",
+    name: t("order:notification.channelPromotions"),
+    description: t("order:notification.channelPromotionsHint"),
     // Deliberately lower: this one arrives without a sound, and muting it must
     // stay a separate decision from muting order updates.
     importance: Notifications.AndroidImportance.DEFAULT,

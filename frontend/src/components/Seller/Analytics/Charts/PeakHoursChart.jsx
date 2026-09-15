@@ -8,21 +8,23 @@ import {
   CartesianGrid,
 } from "recharts";
 import { CustomTooltip } from "./CustomTooltip";
+import { useTranslation } from "react-i18next";
 import { Tooltip as UiTooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
 export const PeakHoursChart = ({ data }) => {
+  const { t } = useTranslation(["seller", "common"]);
   const filteredHours = data?.filter((_, i) => i >= 6 && i <= 23);
 
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
       <h3 className="text-lg font-bold mb-6 flex items-center">
-        Peak Hours
+        {t("analytics.peakHours")}
         <UiTooltip>
           <TooltipTrigger>
             <Info className="w-4 h-4 ml-2 text-muted-foreground cursor-pointer" />
           </TooltipTrigger>
-          <TooltipContent>Number of orders received per hour (6AM‑11PM).</TooltipContent>
+          <TooltipContent>{t("analytics.peakHoursHint")}</TooltipContent>
         </UiTooltip>
       </h3>
 

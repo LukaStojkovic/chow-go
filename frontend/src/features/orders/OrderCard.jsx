@@ -7,6 +7,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
@@ -25,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * @param {boolean} [props.isReordering]
  */
 export function OrderCard({ order, onReorder, isReordering = false }) {
+  const { t } = useTranslation(["order", "restaurant", "common"]);
   const summary = order.items
     .map((line) => `${line.quantity}x ${line.name}`)
     .join(", ");
@@ -82,7 +84,7 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
               // Above the stretched card link.
               className="relative z-10"
               isLoading={isReordering}
-              loadingLabel="Adding to basket"
+              loadingLabel={t("restaurant:reorder.adding")}
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -90,7 +92,7 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
               }}
             >
               <RotateCcw aria-hidden="true" />
-              Order again
+              {t("order:actions.reorder")}
             </Button>
           )}
         </div>

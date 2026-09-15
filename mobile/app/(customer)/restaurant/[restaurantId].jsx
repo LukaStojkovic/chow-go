@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { SectionList, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Heart, Info, UtensilsCrossed } from "lucide-react-native";
@@ -24,6 +25,7 @@ import { useTokens } from "@/theme/useTokens";
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
 
 export default function RestaurantPage() {
+  const { t } = useTranslation(["order", "restaurant", "basket", "profile", "auth", "errors", "validation", "courier", "common"]);
   const { restaurantId } = useLocalSearchParams();
   const { info, menu } = useRestaurant(restaurantId);
 
@@ -71,9 +73,9 @@ export default function RestaurantPage() {
       <Screen className="justify-center">
         <EmptyState
           tone="danger"
-          title="Couldn't load this restaurant"
-          description="Check your connection and try again."
-          actionLabel="Retry"
+          title={t("restaurant:error.title")}
+          description={t("common:error.networkDescription")}
+          actionLabel={t("common:actions.retry")}
           onAction={info.refetch}
         />
       </Screen>
@@ -162,8 +164,8 @@ export default function RestaurantPage() {
             ) : (
               <EmptyState
                 icon={UtensilsCrossed}
-                title="No menu yet"
-                description="This restaurant hasn't added any dishes."
+                title={t("restaurant:menu.empty.title")}
+                description={t("restaurant:menu.empty.description")}
               />
             )
           }
@@ -180,7 +182,7 @@ export default function RestaurantPage() {
           <IconButton
             icon={ArrowLeft}
             variant="scrim"
-            label="Go back"
+            label={t("common:actions.goBack")}
             onPress={() => (router.canGoBack() ? router.back() : router.replace("/(customer)"))}
           />
 
@@ -188,14 +190,15 @@ export default function RestaurantPage() {
             <IconButton
               icon={Info}
               variant="scrim"
-              label="Restaurant information"
+              label={t("restaurant:info.heading")}
               onPress={() => setInfoOpen(true)}
             />
 
             <IconButton
               icon={Heart}
               variant="scrim"
-              label={saved ? "Remove from favourites" : "Save to favourites"}
+              label={saved ? t("restaurant:favourites.removeShort")
+              : t("restaurant:favourites.saveShort")}
               onPress={() => toggleFavourite(restaurantId)}
               className={saved ? "bg-primary" : undefined}
             />

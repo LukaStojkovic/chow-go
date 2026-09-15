@@ -8,6 +8,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronDown, MapPin, Plus } from "lucide-react";
 
@@ -26,6 +27,7 @@ import { titleCase } from "@chowgo/shared/format";
  *   `full` shows the "Delivering to" caption used on desktop.
  */
 export function AddressSelector({ variant = "full", className }) {
+  const { t } = useTranslation(["profile", "common"]);
   const navigate = useNavigate();
   const { authUser, openAuthModal } = useAuthStore();
   const { address, setLocation } = useDeliveryStore();
@@ -33,7 +35,7 @@ export function AddressSelector({ variant = "full", className }) {
   const [open, setOpen] = useState(false);
 
   const addresses = deliveryAddresses?.data ?? [];
-  const currentLabel = address || "Choose delivery address";
+  const currentLabel = address || t("profile:address.choose");
 
   const handleSelect = (addr) => {
     setLocation(addr.fullAddress, {
@@ -72,7 +74,7 @@ export function AddressSelector({ variant = "full", className }) {
               // pin icon and the screen-reader text below already say what
               // this control is.
               <span className="text-caption text-muted-foreground hidden leading-none sm:block">
-                Delivering to
+                {t("delivery.deliverTo")}
               </span>
             )}
             <span
@@ -91,18 +93,20 @@ export function AddressSelector({ variant = "full", className }) {
             )}
             aria-hidden="true"
           />
-          <span className="sr-only">Change delivery address</span>
+          <span className="sr-only">{t("delivery.choose")}</span>
         </button>
       </PopoverTrigger>
 
       <PopoverContent align="start" className="w-[min(20rem,calc(100vw-2rem))] p-0">
         <div className="border-border border-b px-3 py-2">
-          <p className="text-caption text-muted-foreground uppercase">Saved addresses</p>
+          <p className="text-caption text-muted-foreground uppercase">
+            {t("address.heading")}
+          </p>
         </div>
 
         {isLoadingAddresses ? (
           <div className="space-y-2 p-3" aria-busy="true">
-            <span className="sr-only">Loading your saved addresses</span>
+            <span className="sr-only">{t("address.loading")}</span>
             <Skeleton className="h-11 w-full" />
             <Skeleton className="h-11 w-full" />
           </div>
@@ -128,7 +132,9 @@ export function AddressSelector({ variant = "full", className }) {
                           {titleCase(addr.label) || "Address"}
                         </span>
                         {addr.isDefault && (
-                          <span className="text-caption text-muted-foreground">Default</span>
+                          <span className="text-caption text-muted-foreground">
+                            {t("address.isDefault")}
+                          </span>
                         )}
                       </span>
                       <span className="text-body-sm text-muted-foreground mt-0.5 block truncate">
@@ -148,7 +154,7 @@ export function AddressSelector({ variant = "full", className }) {
           </ul>
         ) : (
           <p className="text-body-sm text-muted-foreground px-3 py-4 text-center">
-            You have not saved an address yet.
+            {t("address.empty.title")}
           </p>
         )}
 
@@ -164,7 +170,7 @@ export function AddressSelector({ variant = "full", className }) {
             }}
           >
             <Plus aria-hidden="true" />
-            Add a new address
+            {t("address.add")}
           </Button>
         </div>
       </PopoverContent>

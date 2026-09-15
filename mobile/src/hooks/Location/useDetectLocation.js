@@ -3,6 +3,8 @@ import * as Location from "expo-location";
 import { errorMessage } from "@/api/client";
 import { reverseGeocode } from "@/services/apiLocation";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
+import { t } from "@chowgo/shared/i18n";
+
 import { toast } from "@/store/useToastStore";
 
 export function useDetectLocation() {
@@ -14,8 +16,8 @@ export function useDetectLocation() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        toast.warning("Location permission needed", {
-          description: "Turn it on in Settings, or enter your address instead.",
+        toast.warning(t("common:error.locationPermission"), {
+          description: t("common:error.enableInSettingsOrType"),
         });
         return null;
       }
@@ -34,13 +36,13 @@ export function useDetectLocation() {
       try {
         ({ address } = await reverseGeocode(coordinates));
       } catch {
-        address = "Current location";
+        address = t("profile:address.currentLocation");
       }
 
       setLocation({ address, coordinates });
       return { address, coordinates };
     } catch (error) {
-      toast.error("Could not get your location", { description: errorMessage(error) });
+      toast.error(t("profile:address.locationFailed"), { description: errorMessage(error) });
       return null;
     } finally {
       setIsDetecting(false);

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import { useEffect, useRef, useState } from "react";
+import { ScrollView, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { Check } from "lucide-react-native";
+import { PressableScale } from "@/components/motion/Pressable";
 import { cn } from "@/lib/cn";
-import { useMotionStore } from "@/store/useMotionStore";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 import { Text } from "./Text";
 
@@ -17,15 +17,13 @@ export function Chip({ label, icon: Icon, active, onPress, showCheck = false, cl
   const { color } = useTokens();
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
-      onPress={() => {
-        Haptics.selectionAsync();
-        onPress?.();
-      }}
+      haptic="selection"
+      onPress={onPress}
       className={cn(
-        "h-10 flex-row items-center gap-1.5 rounded-full border px-4 active:opacity-70",
+        "h-10 flex-row items-center gap-1.5 rounded-full border px-4",
         active ? "border-primary bg-primary" : "border-border bg-card",
         className,
       )}
@@ -42,7 +40,7 @@ export function Chip({ label, icon: Icon, active, onPress, showCheck = false, cl
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -82,7 +80,7 @@ export function Segmented({
   className,
 }) {
   const [width, setWidth] = useState(0);
-  const reduced = useMotionStore((state) => state.isReduced);
+  const motion = useMotion();
   const { elevation, scheme } = useTokens();
 
   const items = options.map((option) =>
@@ -98,10 +96,17 @@ export function Segmented({
   const segment = width > 0 ? (width - 8) / items.length : 0;
 
   const offset = useSharedValue(0);
+  const placed = useRef(false);
   useEffect(() => {
+    if (segment <= 0) return;
     const target = index * segment;
-    offset.value = reduced ? target : withTiming(target, { duration: 220 });
-  }, [index, segment, reduced, offset]);
+    if (!placed.current || motion.isReduced) {
+      placed.current = true;
+      offset.value = target;
+      return;
+    }
+    offset.value = withSpring(target, motion.spring.snappy);
+  }, [index, segment, motion, offset]);
 
   const indicator = useAnimatedStyle(() => ({ transform: [{ translateX: offset.value }] }));
 
@@ -131,15 +136,14 @@ export function Segmented({
         const Icon = option.icon;
 
         return (
-          <Pressable
+          <PressableScale
             key={option.value}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={option.label}
-            onPress={() => {
-              Haptics.selectionAsync();
-              onChange(option.value);
-            }}
+            haptic="selection"
+            scale={motion.press.card}
+            onPress={() => onChange(option.value)}
             className="h-10 flex-1 flex-row items-center justify-center gap-1.5 rounded-full"
           >
             {Icon ? <SegmentedIcon Icon={Icon} active={active} tone={tone} /> : null}
@@ -159,7 +163,7 @@ export function Segmented({
                 {option.label}
               </Text>
             )}
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>
@@ -190,14 +194,13 @@ export function TabSwitch({ options, value, onChange, className }) {
         const active = key === value;
 
         return (
-          <Pressable
+          <PressableScale
             key={key}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
-            onPress={() => {
-              Haptics.selectionAsync();
-              onChange(key);
-            }}
+            haptic="selection"
+            scale={0.96}
+            onPress={() => onChange(key)}
             className={cn(
               "flex-1 items-center border-b-[2.5px] pb-3",
               active ? "border-primary" : "border-transparent",
@@ -206,7 +209,7 @@ export function TabSwitch({ options, value, onChange, className }) {
             <Text variant="h3" tone={active ? "primary" : "muted"} numberOfLines={1}>
               {label}
             </Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>

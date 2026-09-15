@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Wallet, TrendingUp, ArrowDownToLine } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export function CourierEarnings() {
+  const { t } = useTranslation(["courier", "common"]);
   const chartData = [
     { day: "Mon", earnings: 45 },
     { day: "Tue", earnings: 60 },
@@ -18,20 +20,20 @@ export function CourierEarnings() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-6 ">
           <div className="mb-2 flex items-center gap-2 text-muted-foreground ">
-            <Wallet className="h-5 w-5" /> <span>Available Balance</span>
+            <Wallet className="h-5 w-5" /> <span>{t("earnings.availableBalance")}</span>
           </div>
           <p className="text-4xl font-extrabold text-foreground ">
             $142.50
           </p>
           <button className="mt-4 w-full rounded-md bg-primary py-2.5 font-semibold text-primary-foreground transition hover:bg-primary-hover">
-            Cash Out Now
+            {t("earnings.cashOut")}
           </button>
         </div>
 
         <div className="sm:col-span-2 rounded-2xl border border-border bg-card p-6 ">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-muted-foreground ">
-              <TrendingUp className="h-5 w-5" /> <span>This Week</span>
+              <TrendingUp className="h-5 w-5" /> <span>{t("dashboard.week")}</span>
             </div>
             <span className="text-xl font-bold text-foreground ">
               $569.00
@@ -54,26 +56,26 @@ export function CourierEarnings() {
       <div className="rounded-2xl border border-border bg-card overflow-hidden ">
         <div className="border-b border-border p-5 ">
           <h3 className="font-bold text-foreground ">
-            Recent Transactions
+            {t("earnings.recentTransactions")}
           </h3>
         </div>
         <div className="divide-y divide-border ">
           {[
             {
-              title: "Delivery Earnings",
-              date: "Today, 2:30 PM",
+              title: t("earnings.deliveryEarnings"),
+              date: `${t("common:time.today")}, 14:30`,
               amount: "+$8.50",
               type: "earn",
             },
             {
-              title: "Delivery Earnings",
-              date: "Today, 1:15 PM",
+              title: t("earnings.deliveryEarnings"),
+              date: `${t("common:time.today")}, 13:15`,
               amount: "+$6.00",
               type: "earn",
             },
             {
-              title: "Bank Withdrawal",
-              date: "Yesterday",
+              title: t("earnings.bankWithdrawal"),
+              date: t("common:time.yesterday"),
               amount: "-$120.00",
               type: "withdraw",
             },

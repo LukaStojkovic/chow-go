@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { formatPrice } from "@chowgo/shared/format";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -9,9 +10,10 @@ import { STATUS_BADGE_TONE, shortStatus } from "@/features/orders/orderStatus";
 
 // The one action the seller can take from here, per status. Anything beyond
 // `ready` belongs to the courier, so the card stops offering buttons.
+// Keys, not copy: module scope runs before a language is picked.
 const NEXT_ACTION = {
-  confirmed: { label: "Start preparing", status: "preparing" },
-  preparing: { label: "Mark ready", status: "ready" },
+  confirmed: { labelKey: "seller:orders.actions.startPreparing", status: "preparing" },
+  preparing: { labelKey: "seller:orders.actions.markReady", status: "ready" },
 };
 
 /**
@@ -22,6 +24,7 @@ const NEXT_ACTION = {
  * "which ticket is this".
  */
 export function SellerOrderCard({ order, onPress, onAdvance, onOpen, isBusy }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const action = NEXT_ACTION[order.status];
   const needsAttention = order.status === "pending";
 
@@ -33,7 +36,7 @@ export function SellerOrderCard({ order, onPress, onAdvance, onOpen, isBusy }) {
             #{order.number}
           </Text>
           <Text variant="body-sm" tone="muted" numberOfLines={1}>
-            {order.itemCount} {order.itemCount === 1 ? "item" : "items"} · {order.placedAtLabel}
+            {t("basket:itemCount", { count: order.itemCount })} · {order.placedAtLabel}
           </Text>
         </View>
 
@@ -49,12 +52,12 @@ export function SellerOrderCard({ order, onPress, onAdvance, onOpen, isBusy }) {
 
       <View className="flex-row gap-2.5">
         <Button variant="secondary" size="md" className="flex-1" onPress={onOpen}>
-          Details
+          {t("courier:orders.details")}
         </Button>
 
         {needsAttention ? (
           <Button size="md" className="flex-1" onPress={onPress}>
-            Review
+            {t("orders.actions.viewDetails")}
           </Button>
         ) : action ? (
           <Button
@@ -63,7 +66,7 @@ export function SellerOrderCard({ order, onPress, onAdvance, onOpen, isBusy }) {
             loading={isBusy}
             onPress={() => onAdvance(action.status)}
           >
-            {action.label}
+            {t(action.labelKey)}
           </Button>
         ) : null}
       </View>

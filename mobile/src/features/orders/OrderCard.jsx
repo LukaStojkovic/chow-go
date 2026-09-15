@@ -1,11 +1,14 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ChevronRight, RotateCcw } from "lucide-react-native";
 import { formatPrice } from "@chowgo/shared/format";
+import { PressableScale } from "@/components/motion/Pressable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { STATUS_BADGE_TONE, shortStatus } from "./orderStatus";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -16,15 +19,19 @@ import { useTokens } from "@/theme/useTokens";
  * where the eye can run down a column of them.
  */
 export function OrderCard({ order, onPress, onReorder, isReordering }) {
+  const { t } = useTranslation(["order", "common"]);
   const { color, elevation, scheme } = useTokens();
+  const motion = useMotion();
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`Order ${order.number}, ${order.statusLabel}`}
       onPress={onPress}
+      haptic="selection"
+      scale={motion.press.card}
       style={elevation.subtle[scheme]}
-      className="gap-3 rounded-lg bg-card p-4 active:opacity-80"
+      className="gap-3 rounded-lg bg-card p-4"
     >
       <View className="flex-row items-start gap-3">
         <View className="flex-1 gap-1">
@@ -52,11 +59,11 @@ export function OrderCard({ order, onPress, onReorder, isReordering }) {
           <Button variant="secondary" size="md" loading={isReordering} onPress={onReorder}>
             <View className="flex-row items-center gap-2">
               <RotateCcw size={15} strokeWidth={2.2} color={color.foreground} />
-              <Text variant="label">Order again</Text>
+              <Text variant="label">{t("actions.reorder")}</Text>
             </View>
           </Button>
         </>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }

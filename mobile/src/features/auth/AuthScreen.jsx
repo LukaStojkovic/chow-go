@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Bike, ChevronRight, Store, UserPlus } from "lucide-react-native";
@@ -65,12 +66,14 @@ export function AuthHeading({ title, subtitle }) {
   );
 }
 
-export function AuthDivider({ label = "or" }) {
+export function AuthDivider({ label }) {
+  const { t } = useTranslation("common");
+
   return (
     <View className="flex-row items-center gap-4">
       <View className="h-px flex-1 bg-border" />
       <Text variant="caption" tone="muted">
-        {label}
+        {label ?? t("meta.or")}
       </Text>
       <View className="h-px flex-1 bg-border" />
     </View>
@@ -84,6 +87,7 @@ export function AuthDivider({ label = "or" }) {
  * is what made the screen read as a pile of options rather than a choice.
  */
 export function AuthOptions({ label, options }) {
+  const { t } = useTranslation(["auth", "common"]);
   const { color } = useTokens();
 
   return (
@@ -95,7 +99,11 @@ export function AuthOptions({ label, options }) {
       ) : null}
 
       <Card className="overflow-hidden p-0">
-        {options.map(({ icon: Icon, title, description, href }, position) => (
+        {options.map(({ icon: Icon, titleKey, descriptionKey, href }, position) => {
+          const title = t(titleKey);
+          const description = descriptionKey ? t(descriptionKey) : null;
+
+          return (
           <Fragment key={href}>
             {position > 0 ? <View className="ml-[62px] h-px bg-border" /> : null}
             <Pressable
@@ -120,40 +128,49 @@ export function AuthOptions({ label, options }) {
               <ChevronRight size={18} color={color["muted-foreground"]} />
             </Pressable>
           </Fragment>
-        ))}
+          );
+        })}
       </Card>
     </View>
   );
 }
 
 // Defined once so the two partner routes are described identically wherever
-// they surface - sign-in, sign-up and the welcome screen.
+// they surface - sign-in, sign-up and the welcome screen. They carry keys
+// rather than copy because this runs before a language has been picked.
 export const PARTNER_OPTIONS = [
   {
     icon: Bike,
-    title: "Deliver with Chow",
-    description: "Earn on your own schedule",
+    titleKey: "auth:register.partnerCourier",
+    descriptionKey: "auth:register.partnerCourierHint",
     href: "/(auth)/courier",
   },
   {
     icon: Store,
-    title: "Partner your restaurant",
-    description: "List your kitchen and take orders",
+    titleKey: "auth:register.partnerSeller",
+    descriptionKey: "auth:register.partnerSellerHint",
     href: "/(auth)/seller",
   },
 ];
 
 export const CREATE_ACCOUNT_OPTION = {
   icon: UserPlus,
-  title: "Create an account",
-  description: "Order from restaurants near you",
+  titleKey: "auth:welcome.createAccount",
+  descriptionKey: "auth:register.createAccountHint",
   href: "/(auth)/register",
 };
 
-export function AuthLegal({ verb = "continuing" }) {
+/**
+ * The whole sentence is one key per context rather than a verb slotted into a
+ * frame: Serbian inflects the verb and reorders the clause, so there is no
+ * equivalent of "By {verb} you agree..." to fill in.
+ */
+export function AuthLegal({ action = "continuing" }) {
+  const { t } = useTranslation("auth");
+
   return (
     <Text variant="caption" tone="muted">
-      By {verb} you agree to the Chow &amp; Go Terms of Service and Privacy Policy.
+      {t("legal." + action)}
     </Text>
   );
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCourierForm } from "@/components/BecomeCourier/hooks/useCourierForm";
 import { StepIndicator } from "@/components/BecomeCourier/components/StepIndicator";
@@ -9,6 +10,7 @@ import { SuccessScreen } from "@/components/BecomeCourier/components/SuccessScre
 import { FormNavigationButtons } from "@/components/BecomeCourier/components/FormNavigationButtons";
 
 export default function ApplicationForm({ openAuthModal }) {
+  const { t } = useTranslation(["courier", "auth", "common"]);
   const {
     step,
     submitSuccess,
@@ -32,10 +34,10 @@ export default function ApplicationForm({ openAuthModal }) {
     >
       <div className="rounded-2xl border border-border bg-card/60 p-6 shadow-xl backdrop-blur-xl sm:p-8 ">
         <h2 className="mb-2 text-2xl font-bold text-foreground ">
-          {submitSuccess ? "Application Submitted" : "Become a Courier"}
+          {submitSuccess ? t("signup.submitted") : t("signup.becomeCourier")}
         </h2>
         <p className="mb-6 text-sm text-muted-foreground ">
-          {submitSuccess ? "" : `Complete all ${totalSteps} steps to apply`}
+          {submitSuccess ? "" : t("signup.completeSteps", { count: totalSteps })}
         </p>
 
         <AnimatePresence mode="wait">
@@ -76,13 +78,13 @@ export default function ApplicationForm({ openAuthModal }) {
               />
 
               <p className="text-center text-xs text-muted-foreground ">
-                Already have a courier account?{" "}
+                {t("auth:register.haveCourierAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => openAuthModal(true)}
                   className="font-medium cursor-pointer text-primary hover:underline "
                 >
-                  Sign in here
+                  {t("auth:login.submit")}
                 </button>
               </p>
             </motion.form>

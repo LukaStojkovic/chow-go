@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { InputField } from "../fields/InputField";
 import { ImageUploadField } from "../fields/ImageUploadField";
 import { RoleSelector } from "./RoleSelector";
@@ -15,6 +16,7 @@ export function RegisterForm({
   removeImage,
   watchedRole,
 }) {
+  const { t } = useTranslation("auth");
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -34,27 +36,27 @@ export function RegisterForm({
 
       <InputField
         register={register("name")}
-        placeholder="Full Name"
+        placeholder={t("fields.fullName")}
         error={errors.name}
       />
       <InputField
         register={register("email")}
         type="email"
-        placeholder="Email"
+        placeholder={t("fields.email")}
         error={errors.email}
       />
       {watchedRole === "customer" && (
         <InputField
           register={register("phoneNumber")}
           type="tel"
-          placeholder="Phone number"
+          placeholder={t("fields.phone")}
           error={errors.phoneNumber}
         />
       )}
       <InputField
         register={register("password")}
         type="password"
-        placeholder="Password (min 6 characters)"
+        placeholder={t("fields.passwordWithMin", { count: 6 })}
         error={errors.password}
       />
 
@@ -64,7 +66,7 @@ export function RegisterForm({
         </div>
         <div className="relative flex justify-center text-sm">
           <span className="px-2 bg-card rounded-full text-muted-foreground">
-            Or continue with
+            {t("login.orContinueWith")}
           </span>
         </div>
       </div>

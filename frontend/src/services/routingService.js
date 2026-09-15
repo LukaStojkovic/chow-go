@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toOsrmCoord } from "@chowgo/shared/geo";
+import { t } from "@chowgo/shared/i18n";
 
 const OSRM_BASE = "https://router.project-osrm.org/route/v1/driving";
 
@@ -28,6 +29,6 @@ export async function fetchDrivingRoute(fromLatLng, toLatLng) {
       duration: route.duration,
     };
   } catch (error) {
-    throw new Error("Failed to fetch route");
+    throw new Error(t("courier:delivery.routeFailed"));
   }
 }

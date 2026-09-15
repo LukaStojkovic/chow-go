@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { haversineMeters } from "@chowgo/shared/geo";
+import { t } from "@chowgo/shared/i18n";
 import { fetchDrivingRoute } from "@/services/routingService";
 
 const REFRESH_MS = 45_000;
@@ -58,7 +59,7 @@ export function useRouteDirections(from, to, enabled = true) {
         setRoute(result);
         setError(null);
       } else {
-        setError("Route unavailable");
+        setError(t("courier:delivery.routeUnavailableShort"));
         setFailures((count) => count + 1);
       }
       setIsLoading(false);

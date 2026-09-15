@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, View } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,14 +47,16 @@ const SNAP_POINTS = ["28%", "58%", "92%"];
 // Clearance for the docked swipe control, which floats over the sheet.
 const ACTION_BAR_H = 104;
 
-// Each status has exactly one next step and one destination.
+// Each status has exactly one next step and one destination. Keys, not copy:
+// module scope runs before a language is picked.
 const STEPS = {
-  assigned: { label: "Swipe when picked up", target: "restaurant" },
-  picked_up: { label: "Swipe when on the way", target: "customer" },
-  in_transit: { label: "Swipe when delivered", target: "customer" },
+  assigned: { labelKey: "delivery.swipePickedUp", target: "restaurant" },
+  picked_up: { labelKey: "delivery.swipeOnTheWay", target: "customer" },
+  in_transit: { labelKey: "delivery.swipeDelivered", target: "customer" },
 };
 
 export default function ActiveDelivery() {
+  const { t } = useTranslation(["courier", "profile", "order", "basket", "seller", "auth", "common"]);
   const { orderId } = useLocalSearchParams();
   const { data, isLoading, isError, refetch } = useCourierOrder(orderId);
   const { color, elevation, scheme } = useTokens();
@@ -76,7 +79,7 @@ export default function ActiveDelivery() {
   if (isLoading) {
     return (
       <Screen>
-        <ScreenHeader title="Delivery" />
+        <ScreenHeader title={t("delivery.title")} />
         <View className="gap-4 px-5">
           <Skeleton className="h-56 w-full rounded-lg" />
           <Skeleton className="h-32 w-full rounded-lg" />
@@ -88,12 +91,12 @@ export default function ActiveDelivery() {
   if (isError || !data) {
     return (
       <Screen>
-        <ScreenHeader title="Delivery" />
+        <ScreenHeader title={t("delivery.title")} />
         <EmptyState
           tone="danger"
-          title="Couldn't load this delivery"
-          description="Check your connection and try again."
-          actionLabel="Retry"
+          title={t("delivery.loadError")}
+          description={t("common:error.networkDescription")}
+          actionLabel={t("common:actions.retry")}
           onAction={refetch}
         />
       </Screen>
@@ -118,12 +121,14 @@ export default function ActiveDelivery() {
       else if (data.status === "picked_up") await inTransit.mutateAsync(orderId);
       else if (data.status === "in_transit") {
         await delivered.mutateAsync(orderId);
-        toast.success("Delivered", { description: `Order #${order.number}` });
+        toast.success(t("order:short.delivered"), {
+          description: t("order:detail.numbered", { number: order.number }),
+        });
         router.replace("/(courier)/(tabs)");
         return;
       }
     } catch (error) {
-      toast.error("Could not update the delivery", { description: errorMessage(error) });
+      toast.error(t("delivery.updateFailed"), { description: errorMessage(error) });
     } finally {
       setBusy(false);
     }
@@ -157,7 +162,7 @@ export default function ActiveDelivery() {
         <IconButton
           icon={ArrowLeft}
           variant="surface"
-          label="Go back"
+          label={t("common:actions.goBack")}
           onPress={() => (router.canGoBack() ? router.back() : router.replace("/(courier)"))}
           style={elevation.raised[scheme]}
         />
@@ -203,7 +208,7 @@ export default function ActiveDelivery() {
             <View className="flex-row items-start gap-3">
               <View className="flex-1">
                 <Text variant="caption" tone="muted">
-                  Collect from
+                  {t("delivery.pickup")}
                 </Text>
                 <Text variant="h3" numberOfLines={1}>
                   {data.restaurant?.name}
@@ -219,7 +224,7 @@ export default function ActiveDelivery() {
             <View className="flex-row items-start gap-3">
               <View className="flex-1">
                 <Text variant="caption" tone="muted">
-                  Deliver to
+                  {t("delivery.dropoff")}
                 </Text>
                 <Text variant="h3" numberOfLines={1}>
                   {data.customer?.name}
@@ -234,7 +239,7 @@ export default function ActiveDelivery() {
               <Button variant="secondary" size="md" className="flex-1" onPress={navigate}>
                 <View className="flex-row items-center gap-2">
                   <Navigation size={15} color={color.foreground} />
-                  <Text variant="label">Navigate</Text>
+                  <Text variant="label">{t("delivery.navigate")}</Text>
                 </View>
               </Button>
               {data.customer?.phoneNumber ? (
@@ -247,7 +252,7 @@ export default function ActiveDelivery() {
                   <View className="flex-row items-center gap-2">
                     <Phone size={15} color={color.primary} />
                     <Text variant="label" tone="primary">
-                      Call
+                      {t("common:actions.call")}
                     </Text>
                   </View>
                 </Button>
@@ -283,7 +288,7 @@ export default function ActiveDelivery() {
               <Banknote size={18} color={collectsCash ? color.tertiary : color.primary} />
               <View className="flex-1">
                 <Text variant="caption" tone={collectsCash ? "tertiary" : "primary"}>
-                  {collectsCash ? "Collect from the customer" : "Already paid"}
+                  {collectsCash ? t("delivery.collectCashLabel") : t("delivery.alreadyPaid")}
                 </Text>
                 {collectsCash ? (
                   <Text variant="price-lg" tone="tertiary">
@@ -291,7 +296,7 @@ export default function ActiveDelivery() {
                   </Text>
                 ) : (
                   <Text variant="body-sm" tone="muted">
-                    Nothing to collect on the doorstep
+                    {t("delivery.nothingToCollect")}
                   </Text>
                 )}
               </View>
@@ -302,7 +307,7 @@ export default function ActiveDelivery() {
             <Card className="flex-row items-start gap-3">
               <View className="flex-1">
                 <Text variant="caption" tone="muted">
-                  Note from the customer
+                  {t("seller:orders.customerNotes")}
                 </Text>
                 <Text variant="body" numberOfLines={4}>
                   {data.customerNotes}
@@ -319,16 +324,19 @@ export default function ActiveDelivery() {
               loading={release.isPending}
               onPress={async () => {
                 try {
-                  await release.mutateAsync({ orderId, reason: "Cannot complete this delivery" });
-                  toast.info("Returned to the pool");
+                  await release.mutateAsync({
+                    orderId,
+                    reason: t("delivery.cannotComplete"),
+                  });
+                  toast.info(t("delivery.returnedToPool"));
                   router.replace("/(courier)/(tabs)");
                 } catch (error) {
-                  toast.error("Could not release it", { description: errorMessage(error) });
+                  toast.error(t("delivery.releaseFailed"), { description: errorMessage(error) });
                 }
               }}
             >
               <Text variant="label" tone="destructive">
-                Return to the pool
+                {t("orders.release")}
               </Text>
             </Button>
           ) : null}

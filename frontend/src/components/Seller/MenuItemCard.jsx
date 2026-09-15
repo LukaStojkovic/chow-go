@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Edit2, Trash2, CheckCircle2, XCircle, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { formatPrice } from "@chowgo/shared/format";
 import { isPromotionLive, resolvePromotion } from "@chowgo/shared/promotion";
 
 export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
+  const { t } = useTranslation(["seller", "common"]);
   // This screen reads raw MenuItem documents, so the promoted price is resolved
   // here rather than read off the response the way customer screens do.
   const { price, basePrice, discountPercent } = resolvePromotion(
@@ -50,7 +52,7 @@ export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
 
           {isScheduled && (
             <Badge variant="outline" className="bg-card/90 backdrop-blur-sm">
-              Promotion scheduled
+              {t("promotion.scheduled")}
             </Badge>
           )}
         </div>
@@ -60,7 +62,7 @@ export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
             menuItem.available ? "bg-primary" : "bg-destructive"
           }`}
         >
-          {menuItem.available ? "Available" : "Sold Out"}
+          {menuItem.available ? t("menu.available") : t("menu.unavailable")}
         </Badge>
 
         <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-card/90 px-3 py-1 text-xs font-bold shadow-md backdrop-blur-md">
@@ -88,13 +90,13 @@ export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
               <XCircle className="h-3 w-3 text-destructive" />
             )}
             <span className="text-xs font-bold">
-              {menuItem.available ? "In Stock" : "Out of Stock"}
+              {menuItem.available ? t("menu.inStock") : t("menu.outOfStock")}
             </span>
           </div>
         </div>
 
         <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
-          {menuItem.description || "No description available."}
+          {menuItem.description || t("menu.noDescription")}
         </p>
 
         <div className="flex items-center justify-between border-t border-border pt-3 text-sm ">

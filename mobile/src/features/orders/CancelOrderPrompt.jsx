@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Ban } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
@@ -6,15 +7,19 @@ import { Chip } from "@/components/ui/Chip";
 import { Sheet, SheetActions } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 
-const REASONS = ["Changed my mind", "Ordered by mistake", "Taking too long", "Something else"];
+// Keys, not copy: the list is built before a language exists. The reason the
+// customer picks is sent to the restaurant as free text, so it is resolved at
+// the moment of sending - in the language the customer chose it in.
+const REASONS = ["changedMind", "byMistake", "tooLong", "other"];
 
 // The reason reaches the restaurant, so it is worth asking rather than sending
 // a hardcoded string on the customer's behalf.
 export function CancelOrderPrompt({ visible, isPending, onConfirm, onCancel }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const [choice, setChoice] = useState(REASONS[0]);
   const [other, setOther] = useState("");
 
-  const reason = choice === "Something else" ? other.trim() : choice;
+  const reason = choice === "other" ? other.trim() : t(`order:cancel.reasons.${choice}`);
 
   return (
     <Sheet
@@ -22,14 +27,14 @@ export function CancelOrderPrompt({ visible, isPending, onConfirm, onCancel }) {
       onClose={onCancel}
       icon={Ban}
       tone="danger"
-      title="Cancel this order?"
-      description="Let the restaurant know why - it reaches their kitchen screen."
+      title={t("order:cancel.title")}
+      description={t("order:cancel.reasonHint")}
     >
       <View className="flex-row flex-wrap justify-center gap-2">
         {REASONS.map((option) => (
           <Chip
             key={option}
-            label={option}
+            label={t(`order:cancel.reasons.${option}`)}
             active={choice === option}
             showCheck
             onPress={() => setChoice(option)}
@@ -37,11 +42,11 @@ export function CancelOrderPrompt({ visible, isPending, onConfirm, onCancel }) {
         ))}
       </View>
 
-      {choice === "Something else" ? (
+      {choice === "other" ? (
         <Input
           value={other}
           onChangeText={setOther}
-          placeholder="Tell them why"
+          placeholder={t("order:cancel.reasonPlaceholder")}
           maxLength={200}
           autoFocus
         />
@@ -56,10 +61,10 @@ export function CancelOrderPrompt({ visible, isPending, onConfirm, onCancel }) {
           disabled={!reason}
           onPress={() => onConfirm(reason)}
         >
-          Cancel order
+          {t("order:actions.cancel")}
         </Button>
         <Button variant="ghost" size="lg" fullWidth onPress={onCancel}>
-          Keep it
+          {t("order:cancel.dismiss")}
         </Button>
       </SheetActions>
     </Sheet>

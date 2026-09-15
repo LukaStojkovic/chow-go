@@ -1,11 +1,13 @@
 import { ShoppingBag } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 export const PopularItems = ({ items }) => {
+  const { t } = useTranslation("seller");
   return (
     <div className="bg-card rounded-3xl border border-border p-8 shadow-sm flex flex-col">
       <h3 className="text-xl font-bold text-foreground mb-6">
-        Popular Items
+        {t("analytics.topDishes")}
       </h3>
 
       <div className="flex-1 space-y-6 mb-6">
@@ -43,10 +45,10 @@ export const PopularItems = ({ items }) => {
           <div className="text-center py-12">
             <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground font-medium">
-              No popular items yet
+              {t("analytics.noTopDishes")}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Your best sellers will appear here
+              {t("analytics.noTopDishesHint")}
             </p>
           </div>
         )}
@@ -56,7 +58,7 @@ export const PopularItems = ({ items }) => {
         to="/seller/menu"
         className="block w-full text-center py-3 text-sm font-semibold text-primary bg-primary-subtle rounded-xl hover:bg-primary-subtle transition-colors"
       >
-        View Menu Items
+        {t("nav.menu")}
       </Link>
     </div>
   );

@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
@@ -40,6 +41,7 @@ export function ScreenHeader({
   className,
   ...props
 }) {
+  const { t } = useTranslation("common");
   const back = onBack ?? (() => (router.canGoBack() ? router.back() : router.replace("/")));
 
   return (
@@ -50,7 +52,12 @@ export function ScreenHeader({
       <View className="w-10 items-start">
         {left ??
           (showBack ? (
-            <IconButton icon={ArrowLeft} variant="muted" label="Go back" onPress={back} />
+            <IconButton
+              icon={ArrowLeft}
+              variant="muted"
+              label={t("common:actions.goBack")}
+              onPress={back}
+            />
           ) : null)}
       </View>
 

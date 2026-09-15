@@ -1,4 +1,5 @@
 import { Modal, ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Clock, MapPin, Phone, X } from "lucide-react-native";
 import { Badge } from "@/components/ui/Badge";
@@ -16,9 +17,9 @@ import { Text } from "@/components/ui/Text";
  * not the raw `{ openingTime, closingTime }` shape the API returns. Reading it
  * directly here keeps one normalisation rather than two.
  */
-function hoursLabel(entry) {
-  if (!entry?.isOpen) return "Closed";
-  if (entry.opens === entry.closes) return "Open 24 hours";
+function hoursLabel(t, entry) {
+  if (!entry?.isOpen) return t("restaurant:hours.closed");
+  if (entry.opens === entry.closes) return t("restaurant:hours.allDay");
   return `${entry.opens} – ${entry.closes}`;
 }
 
@@ -61,6 +62,7 @@ export function RestaurantInfoSheet({ visible, restaurant, onClose }) {
 }
 
 function SheetBody({ restaurant, onClose }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const insets = useSafeAreaInsets();
 
   return (
@@ -74,7 +76,7 @@ function SheetBody({ restaurant, onClose }) {
             {restaurant.cuisine}
           </Text>
         </View>
-        <IconButton icon={X} variant="muted" label="Close" onPress={onClose} />
+        <IconButton icon={X} variant="muted" label={t("common:actions.close")} onPress={onClose} />
       </View>
 
       <ScrollView
@@ -90,21 +92,21 @@ function SheetBody({ restaurant, onClose }) {
           </Card>
         ) : null}
 
-        <Section icon={MapPin} title="Address">
+        <Section icon={MapPin} title={t("restaurant:info.address")}>
           <Text variant="body" tone="muted">
-            {restaurant.address?.oneLine ?? "Not provided"}
+            {restaurant.address?.oneLine ?? t("common:state.notProvided")}
           </Text>
         </Section>
 
         {restaurant.phone ? (
-          <Section icon={Phone} title="Phone">
+          <Section icon={Phone} title={t("restaurant:info.phone")}>
             <Text variant="body" tone="muted">
               {restaurant.phone}
             </Text>
           </Section>
         ) : null}
 
-        <Section icon={Clock} title="Opening hours">
+        <Section icon={Clock} title={t("restaurant:hours.heading")}>
           <View className="gap-0.5">
             {(restaurant.schedule ?? []).map((entry, index) => (
               <View key={entry.day}>
@@ -120,7 +122,7 @@ function SheetBody({ restaurant, onClose }) {
                     </Text>
                     {entry.isToday ? (
                       <Badge tone="mint" size="sm">
-                        Today
+                        {t("restaurant:hours.today")}
                       </Badge>
                     ) : null}
                   </View>
@@ -130,7 +132,7 @@ function SheetBody({ restaurant, onClose }) {
                     numberOfLines={1}
                     className="shrink-0"
                   >
-                    {hoursLabel(entry)}
+                    {hoursLabel(t, entry)}
                   </Text>
                 </View>
               </View>

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { deleteDeliveryAddress } from "../../services/apiAddress";
 import { useState } from "react";
+import { t } from "@chowgo/shared/i18n";
 
 export default function useDeleteDeliveryAddress() {
   const queryClient = useQueryClient();
@@ -14,11 +15,11 @@ export default function useDeleteDeliveryAddress() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deliveryAddresses"] });
-      toast.success("Address deleted successfully");
+      toast.success(t("profile:address.deleted"));
       setLoadingAddressId(null);
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to delete address");
+      toast.error(error?.response?.data?.message || t("profile:address.deleteFailed"));
       setLoadingAddressId(null);
     },
   });

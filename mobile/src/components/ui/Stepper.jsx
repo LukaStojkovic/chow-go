@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import { Minus, Plus, Trash2 } from "lucide-react-native";
 import { Text } from "@/components/ui/Text";
@@ -14,6 +15,7 @@ import { useTokens } from "@/theme/useTokens";
  * from where you already are instead of a swipe you have to discover.
  */
 export function Stepper({ value, onChange, min = 1, max = 99, onRemove, size = "md" }) {
+  const { t } = useTranslation("basket");
   const { color } = useTokens();
   const compact = size === "sm";
   const control = compact ? "h-9 w-9" : "h-11 w-11";
@@ -61,7 +63,7 @@ export function Stepper({ value, onChange, min = 1, max = 99, onRemove, size = "
           }
           step(-1);
         }}
-        label={removable ? "Remove item" : "Decrease quantity"}
+        label={removable ? t("basket:removeItem") : t("basket:decreaseQuantity")}
         disabled={atMin && !onRemove}
         tone={removable ? "danger" : "primary"}
       />
@@ -76,7 +78,7 @@ export function Stepper({ value, onChange, min = 1, max = 99, onRemove, size = "
       <Control
         icon={Plus}
         onPress={() => step(1)}
-        label="Increase quantity"
+        label={t("basket:increaseQuantity")}
         disabled={value >= max}
       />
     </View>

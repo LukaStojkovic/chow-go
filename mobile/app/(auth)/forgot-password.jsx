@@ -1,4 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { errorMessage } from "@/api/client";
@@ -11,6 +12,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation(["auth", "common"]);
   const requestPasswordReset = useAuthStore((state) => state.requestPasswordReset);
   const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -23,21 +25,21 @@ export default function ForgotPassword() {
       // The email is carried forward rather than re-typed at each step.
       router.push({ pathname: "/(auth)/verify-otp", params: { email } });
     } catch (error) {
-      toast.error("Could not send the code", { description: errorMessage(error) });
+      toast.error(t("register.sendCodeFailed"), { description: errorMessage(error) });
     }
   }
 
   return (
     <AuthScreen
-      title="Reset your password"
-      subtitle="Enter your email and we'll send you a six-digit code."
+      title={t("reset.title")}
+      subtitle={t("reset.emailDescription")}
     >
       <Controller
         control={control}
         name="email"
         render={({ field }) => (
           <Input
-            label="Email"
+            label={t("fields.email")}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -46,7 +48,7 @@ export default function ForgotPassword() {
             autoComplete="email"
             keyboardType="email-address"
             textContentType="emailAddress"
-            placeholder="you@example.com"
+            placeholder={t("fields.emailPlaceholder")}
             onSubmitEditing={handleSubmit(onSubmit)}
             returnKeyType="send"
           />
@@ -54,7 +56,7 @@ export default function ForgotPassword() {
       />
 
       <Button size="lg" fullWidth loading={formState.isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Send code
+        {t("reset.sendCode")}
       </Button>
     </AuthScreen>
   );

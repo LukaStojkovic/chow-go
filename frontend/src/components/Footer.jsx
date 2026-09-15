@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Facebook,
   Twitter,
@@ -9,6 +10,7 @@ import {
 import Logo from "./Navbar/Logo";
 
 export default function Footer() {
+  const { t } = useTranslation("landing");
   return (
     <footer className="bg-card border-t border-border pt-16 pb-8 ">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -18,8 +20,7 @@ export default function Footer() {
               <Logo />
             </div>
             <p className="mb-6 max-w-sm text-muted-foreground ">
-              The smartest way to order food. Real-time tracking, AI
-              recommendations, and fast delivery from your favorite local spots.
+              {t("footer.tagline")}
             </p>
             <div className="flex gap-4">
               {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
@@ -57,16 +58,19 @@ export default function Footer() {
 
         <div className="mt-16 border-t border-border pt-8 ">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Chow & Go. All rights reserved.</p>
+            <p>
+              © {new Date().getFullYear()}{" "}
+              {t("common:state.allRightsReserved", { name: t("common:app.name") })}
+            </p>
             <div className="flex gap-8">
               <a href="#" className="hover:text-foreground ">
-                Privacy Policy
+                {t("footer.privacy")}
               </a>
               <a href="#" className="hover:text-foreground ">
-                Terms of Service
+                {t("footer.terms")}
               </a>
               <a href="#" className="hover:text-foreground ">
-                Cookie Settings
+                {t("footer.cookies")}
               </a>
             </div>
           </div>

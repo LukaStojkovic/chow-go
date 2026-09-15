@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function CourierOrderHistoryCard({ order }) {
+  const { t } = useTranslation(["courier", "order", "common"]);
   return (
     <div
       key={order._id}
@@ -11,11 +14,11 @@ export default function CourierOrderHistoryCard({ order }) {
           </p>
           {order.status === "delivered" ? (
             <span className="rounded-full bg-primary-subtle px-2 py-0.5 text-xs font-semibold text-primary ">
-              Delivered
+              {t("order:status.delivered.label")}
             </span>
           ) : (
             <span className="rounded-full bg-destructive-subtle px-2 py-0.5 text-xs font-semibold text-destructive ">
-              Cancelled
+              {t("order:status.cancelled.label")}
             </span>
           )}
         </div>

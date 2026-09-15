@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ export function OrderActionsDropdown({
   isCancelling,
   isUpdating,
 }) {
+  const { t } = useTranslation(["seller", "common"]);
   const getMenuItems = () => {
     switch (order.status) {
       case "pending":
@@ -37,14 +39,14 @@ export function OrderActionsDropdown({
               disabled={isConfirming}
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              Confirm Order
+              {t("orders.actions.accept")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onReject(order._id)}
               disabled={isRejecting}
             >
               <XCircle className="w-4 h-4 mr-2" />
-              Reject Order
+              {t("orders.actions.reject")}
             </DropdownMenuItem>
           </>
         );
@@ -56,7 +58,7 @@ export function OrderActionsDropdown({
               disabled={isUpdating}
             >
               <Clock className="w-4 h-4 mr-2" />
-              Start Preparing
+              {t("orders.actions.startPreparing")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -65,7 +67,7 @@ export function OrderActionsDropdown({
               className="text-destructive focus:text-destructive"
             >
               <Ban className="w-4 h-4 mr-2" />
-              Cancel Order
+              {t("orders.actions.cancel")}
             </DropdownMenuItem>
           </>
         );
@@ -77,7 +79,7 @@ export function OrderActionsDropdown({
               disabled={isUpdating}
             >
               <Package className="w-4 h-4 mr-2" />
-              Mark as Ready
+              {t("orders.actions.markReady")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -86,7 +88,7 @@ export function OrderActionsDropdown({
               className="text-destructive focus:text-destructive"
             >
               <Ban className="w-4 h-4 mr-2" />
-              Cancel Order
+              {t("orders.actions.cancel")}
             </DropdownMenuItem>
           </>
         );
@@ -98,7 +100,7 @@ export function OrderActionsDropdown({
             className="text-destructive focus:text-destructive"
           >
             <Ban className="w-4 h-4 mr-2" />
-            Cancel Order
+            {t("orders.actions.cancel")}
           </DropdownMenuItem>
         );
       default:

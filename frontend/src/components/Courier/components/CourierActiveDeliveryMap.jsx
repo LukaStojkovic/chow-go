@@ -1,4 +1,5 @@
 import { Suspense, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, MapPinOff } from "lucide-react";
 import { lazyNamed } from "@/lib/lazyNamed";
 
@@ -15,6 +16,7 @@ export function CourierActiveDeliveryMap({
   order,
   className = "absolute inset-0",
 }) {
+  const { t } = useTranslation(["courier", "common"]);
   const [followMode, setFollowMode] = useState(true);
   const {
     coords: courierCoords,
@@ -92,21 +94,20 @@ export function CourierActiveDeliveryMap({
                 <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
                 <p className="text-muted-foreground">
                   {isTracking
-                    ? "Getting your location…"
-                    : "Location tracking is off."}
+                    ? t("delivery.locatingYou")
+                    : t("delivery.trackingOff")}
                 </p>
               </>
             ) : isDenied || isUnsupported ? (
               <>
                 <MapPinOff className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
                 <p className="font-medium text-destructive">
-                  Location is blocked, so the route and the customer's live
-                  tracking cannot update.
+                  {t("delivery.locationBlocked")}
                 </p>
               </>
             ) : (
               <p className="text-muted-foreground">
-                Route unavailable right now — showing direct distance. Retrying.
+                {t("delivery.routeUnavailable")}
               </p>
             )}
           </div>

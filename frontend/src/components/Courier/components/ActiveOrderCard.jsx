@@ -1,34 +1,39 @@
 import Spinner from "@/components/Spinner";
+import { useTranslation } from "react-i18next";
 import useMarkAsDeliveredOrder from "@/hooks/Courier/useMarkAsDeliveredOrder";
 import useMarkAsPickedUpOrder from "@/hooks/Courier/useMarkAsPickedUpOrder";
 import { CheckCircle, MapPin, Navigation } from "lucide-react";
 import useMarkAsInTransitOrder from "@/hooks/Courier/useMarkAsInTransitOrder";
 
+// Keys rather than copy: this table is built at module scope, before a
+// language exists, and a resolved string would freeze in whichever one loaded
+// first.
 const STATUS_CONFIG = {
   assigned: {
-    label: "Heading to restaurant",
+    labelKey: "delivery.headingToRestaurant",
     color: "text-warning ",
     bg: "bg-warning-subtle ",
-    nextAction: "Picked Up",
+    nextActionKey: "delivery.markPickedUp",
     nextIcon: CheckCircle,
   },
   picked_up: {
-    label: "Order picked up",
+    labelKey: "delivery.pickedUp",
     color: "text-primary ",
     bg: "bg-primary-subtle ",
-    nextAction: "Start Delivery",
+    nextActionKey: "delivery.markInTransit",
     nextIcon: Navigation,
   },
   in_transit: {
-    label: "On the way",
+    labelKey: "delivery.onTheWay",
     color: "text-primary ",
     bg: "bg-primary-subtle ",
-    nextAction: "Mark Delivered",
+    nextActionKey: "delivery.markDelivered",
     nextIcon: CheckCircle,
   },
 };
 
 export function ActiveOrderCard({ order }) {
+  const { t } = useTranslation(["courier", "common"]);
   const { markPickedUpOrder, isMarkingPickedUp } = useMarkAsPickedUpOrder();
   const { markInTransitOrder, isMarkingInTransit } = useMarkAsInTransitOrder();
   const { markDeliveredOrder, isMarkingDelivered } = useMarkAsDeliveredOrder();
@@ -43,16 +48,16 @@ export function ActiveOrderCard({ order }) {
 
   const restaurantAddress = order.restaurant?.address
     ? `${order.restaurant.address.street}, ${order.restaurant.address.city}`
-    : "Address unavailable";
+    : t("delivery.addressUnavailable");
 
   const deliveryAddress =
-    order.deliveryAddressSnapshot?.fullAddress ?? "Address unavailable";
+    order.deliveryAddressSnapshot?.fullAddress ?? t("delivery.addressUnavailable");
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card ">
       <div className={`px-5 py-3 ${config.bg}`}>
         <span className={`text-sm font-bold uppercase ${config.color}`}>
-          {config.label}
+          {t(config.labelKey)}
         </span>
       </div>
 
@@ -96,7 +101,7 @@ export function ActiveOrderCard({ order }) {
         <div className="flex gap-3">
           <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-muted py-3 font-semibold text-foreground transition hover:bg-secondary ">
             <Navigation className="h-5 w-5" />
-            Navigate
+            {t("delivery.navigate")}
           </button>
           <button
             onClick={() => action.fn(order._id)}
@@ -108,7 +113,7 @@ export function ActiveOrderCard({ order }) {
             ) : (
               <>
                 <NextIcon className="h-5 w-5" />
-                {config.nextAction}
+                {t(config.nextActionKey)}
               </>
             )}
           </button>

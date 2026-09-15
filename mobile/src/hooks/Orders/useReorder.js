@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { router } from "expo-router";
 import { addToCart } from "@/services/apiCart";
 import { useCartStore } from "@/store/useCartStore";
+import { t } from "@chowgo/shared/i18n";
+
 import { toast } from "@/store/useToastStore";
 
 /**
@@ -43,15 +45,17 @@ export function useReorder() {
       setReorderingId(null);
 
       if (added === 0) {
-        toast.error("None of these items are available any more");
+        toast.error(t("basket:reorderNoneAvailable"));
         return;
       }
       if (skipped > 0) {
-        toast.warning(`${added} ${added === 1 ? "item" : "items"} added`, {
-          description: `${skipped} no longer available.`,
+        // Serbian has three plural forms, so the count goes through the
+        // catalog rather than an inline ternary.
+        toast.warning(t("basket:reorderPartial", { count: added }), {
+          description: t("basket:reorderUnavailable", { names: skipped }),
         });
       } else {
-        toast.success("Added to your basket");
+        toast.success(t("basket:addedToBasket"));
       }
 
       router.push("/(customer)/checkout");

@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { ArrowRight, Percent } from "lucide-react-native";
@@ -29,12 +30,15 @@ export function PromoBanner({
   onPress,
   image,
   badge,
-  eyebrow = "Live now",
-  cta = "Browse deals",
+  eyebrow,
+  cta,
   accessibilityLabel,
 }) {
+  const { t } = useTranslation(["discover", "common"]);
   const { color, elevation, scheme } = useTokens();
   const white = color["scrim-foreground"];
+  const eyebrowText = eyebrow ?? t("discover:filters.liveNow");
+  const ctaText = cta ?? t("discover:filters.browseDeals");
 
   return (
     <View style={elevation.glow[scheme]} className="rounded-xl bg-primary">
@@ -89,11 +93,11 @@ export function PromoBanner({
 
         <View className="flex-row items-center gap-4 p-5">
           <View className="flex-1 gap-2">
-            {eyebrow ? (
+            {eyebrowText ? (
               <View className="flex-row items-center gap-1.5 self-start rounded-full border border-white/25 bg-white/15 px-2.5 py-1">
                 <Percent size={11} strokeWidth={2.8} color={white} />
                 <Text variant="overline" tone="scrim">
-                  {eyebrow}
+                  {eyebrowText}
                 </Text>
               </View>
             ) : null}
@@ -110,7 +114,7 @@ export function PromoBanner({
 
             <View className="mt-1 flex-row items-center gap-2 self-start rounded-full border border-white/30 bg-white/20 py-2 pl-4 pr-3">
               <Text variant="label" tone="scrim">
-                {cta}
+                {ctaText}
               </Text>
               <ArrowRight size={15} strokeWidth={2.6} color={white} />
             </View>

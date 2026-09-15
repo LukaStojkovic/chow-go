@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { courierApplicationSchema } from "@chowgo/shared/validation";
@@ -37,12 +38,13 @@ export const useCourierForm = () => {
     },
   });
 
+  const { t } = useTranslation(["courier", "auth", "common"]);
   const watchAllFields = watch();
 
   const stepLabels = {
-    1: "Personal Information",
-    2: "Vehicle Information",
-    3: "Documents & Payment",
+    1: t("courier:signup.steps.personal"),
+    2: t("courier:signup.steps.vehicle"),
+    3: t("courier:signup.steps.documents"),
   };
 
   const handleNextStep = () => setStep((prev) => prev + 1);
@@ -78,7 +80,7 @@ export const useCourierForm = () => {
     } catch (err) {
       setApiError(
         err.response?.data?.message ||
-          "Something went wrong. Please try again.",
+          t("auth:register.somethingWentWrong"),
       );
     }
   };

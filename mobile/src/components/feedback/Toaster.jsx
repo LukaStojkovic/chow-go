@@ -1,10 +1,12 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown, FadeOutUp, LinearTransition } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react-native";
 import { useToastStore } from "@/store/useToastStore";
+import { PressableScale } from "@/components/motion/Pressable";
 import { IconTile } from "@/components/ui/IconTile";
 import { Text } from "@/components/ui/Text";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 const TONES = {
@@ -17,6 +19,7 @@ const TONES = {
 export function Toaster() {
   const { toasts, dismiss } = useToastStore();
   const insets = useSafeAreaInsets();
+  const motion = useMotion();
   const { elevation, scheme } = useTokens();
 
   if (toasts.length === 0) return null;
@@ -32,12 +35,14 @@ export function Toaster() {
         return (
           <Animated.View
             key={item.id}
-            entering={FadeInDown.duration(250)}
-            exiting={FadeOutUp.duration(150)}
-            layout={LinearTransition}
+            entering={motion.enter.top()}
+            exiting={motion.exit.top()}
+            layout={motion.layout}
           >
-            <Pressable
+            <PressableScale
               onPress={() => dismiss(item.id)}
+              haptic="none"
+              scale={motion.press.card}
               accessibilityRole="alert"
               style={elevation.raised[scheme]}
               className="flex-row items-center gap-3 rounded-lg bg-popover p-3"
@@ -53,7 +58,7 @@ export function Toaster() {
                   </Text>
                 ) : null}
               </View>
-            </Pressable>
+            </PressableScale>
           </Animated.View>
         );
       })}

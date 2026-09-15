@@ -1,4 +1,5 @@
 import { FlatList, View } from "react-native";
+import { RevealItem } from "@/components/motion/Reveal";
 import { SectionHeader } from "@/components/ui/Section";
 
 // Horizontal section. FlatList rather than FlashList: these are short, bounded
@@ -19,7 +20,10 @@ export function Rail({ title, subtitle, data, renderItem, keyExtractor, onAction
       <FlatList
         horizontal
         data={data}
-        renderItem={renderItem}
+        // The cards arrive one after the other rather than all at once. The
+        // stagger is capped inside RevealItem, so a long rail does not end with
+        // a card waiting two seconds for its turn.
+        renderItem={(info) => <RevealItem index={info.index}>{renderItem(info)}</RevealItem>}
         keyExtractor={keyExtractor}
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-3 px-5 py-1"

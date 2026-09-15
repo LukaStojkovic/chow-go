@@ -1,13 +1,18 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSocket } from "@/contexts/SocketContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { formatPrice } from "@chowgo/shared/format";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export const useGlobalSocketEvents = () => {
   const { socket, isConnected, connectionEpoch, register } = useSocket();
   const { authUser, checkAuth } = useAuthStore();
   const queryClient = useQueryClient();
+  // The handlers close over `t`, so they are re-registered on a language
+  // switch - a toast fired afterwards has to be in the new language.
+  const { t } = useTranslation(["order", "seller", "common"]);
 
   useEffect(() => {
     if (!isConnected || !authUser) return;
@@ -47,14 +52,18 @@ export const useGlobalSocketEvents = () => {
     const handleOrderConfirmed = (data) => {
       console.log("Order confirmed:", data);
 
-      toast.success("Order Confirmed!", {
-        description: `Order #${data.order?.orderNumber} has been confirmed`,
+      toast.success(t("order:notification.order_confirmed.title"), {
+        description: t("order:notification.order_confirmed.body", {
+          number: data.order?.orderNumber,
+        }),
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("Order Confirmed!", {
-          body: `Your order #${data.order?.orderNumber} has been confirmed by the restaurant`,
+        new Notification(t("order:notification.order_confirmed.title"), {
+          body: t("order:notification.order_confirmed.body", {
+            number: data.order?.orderNumber,
+          }),
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -64,32 +73,32 @@ export const useGlobalSocketEvents = () => {
     };
 
     const handleOrderAssigned = (data) => {
-      toast.success("Courier Assigned", {
-        description: `Order #${data.order?.orderNumber}`,
+      toast.success(t("order:notification.order_assigned.title"), {
+        description: t("order:detail.numbered", { number: data.order?.orderNumber }),
         duration: 4000,
       });
       upsertOrderCaches(data.order);
     };
 
     const handleOrderPickedUp = (data) => {
-      toast.info("Picked Up", {
-        description: `Order #${data.order?.orderNumber}`,
+      toast.info(t("order:notification.order_picked_up.title"), {
+        description: t("order:detail.numbered", { number: data.order?.orderNumber }),
         duration: 4000,
       });
       upsertOrderCaches(data.order);
     };
 
     const handleOrderInTransit = (data) => {
-      toast.info("On the way", {
-        description: `Order #${data.order?.orderNumber}`,
+      toast.info(t("order:notification.order_in_transit.title"), {
+        description: t("order:detail.numbered", { number: data.order?.orderNumber }),
         duration: 4000,
       });
       upsertOrderCaches(data.order);
     };
 
     const handleOrderDelivered = (data) => {
-      toast.success("Delivered", {
-        description: `Order #${data.order?.orderNumber}`,
+      toast.success(t("order:notification.order_delivered.title"), {
+        description: t("order:detail.numbered", { number: data.order?.orderNumber }),
         duration: 4000,
       });
       upsertOrderCaches(data.order);
@@ -98,14 +107,19 @@ export const useGlobalSocketEvents = () => {
     const handleOrderRejected = (data) => {
       console.log("Order rejected:", data);
 
-      toast.error("Order Rejected", {
-        description: data.reason || "Your order was rejected by the restaurant",
+      toast.error(t("order:notification.order_rejected.title"), {
+        description:
+          data.reason ||
+          t("order:notification.order_rejected.body", { number: data.order?.orderNumber }),
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("Order Rejected", {
-          body: `Your order #${data.order?.orderNumber} was rejected: ${data.reason || "No reason provided"}`,
+        new Notification(t("order:notification.order_rejected.title"), {
+          body: t("order:notification.rejectedWithReason", {
+            number: data.order?.orderNumber,
+            reason: data.reason || t("order:notification.noReason"),
+          }),
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -117,14 +131,16 @@ export const useGlobalSocketEvents = () => {
     const handleOrderPreparing = (data) => {
       console.log("Order preparing:", data);
 
-      toast.info("Your order is being prepared", {
-        description: `Order #${data.order?.orderNumber}`,
+      toast.info(t("order:notification.preparingBody"), {
+        description: t("order:detail.numbered", { number: data.order?.orderNumber }),
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("Order Preparing", {
-          body: `Your order #${data.order?.orderNumber} is being prepared`,
+        new Notification(t("order:notification.order_preparing.title"), {
+          body: t("order:notification.order_preparing.body", {
+            number: data.order?.orderNumber,
+          }),
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -136,14 +152,18 @@ export const useGlobalSocketEvents = () => {
     const handleOrderReady = (data) => {
       console.log("Order ready:", data);
 
-      toast.success("Order Ready!", {
-        description: `Order #${data.order?.orderNumber} is ready for pickup`,
+      toast.success(t("order:notification.order_ready.title"), {
+        description: t("order:notification.readyForPickup", {
+          number: data.order?.orderNumber,
+        }),
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("Order Ready!", {
-          body: `Your order #${data.order?.orderNumber} is ready for pickup`,
+        new Notification(t("order:notification.order_ready.title"), {
+          body: t("order:notification.readyForPickup", {
+            number: data.order?.orderNumber,
+          }),
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -155,15 +175,19 @@ export const useGlobalSocketEvents = () => {
     const handleOrderCancelled = (data) => {
       console.log("Order cancelled:", data);
 
-      toast.error("Order Cancelled", {
+      toast.error(t("order:notification.order_cancelled.title"), {
         description:
-          data.reason || `Order #${data.order?.orderNumber} was cancelled`,
+          data.reason ||
+          t("order:notification.order_cancelled.body", { number: data.order?.orderNumber }),
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("Order Cancelled", {
-          body: `Your order #${data.order?.orderNumber} was cancelled: ${data.reason || "No reason provided"}`,
+        new Notification(t("order:notification.order_cancelled.title"), {
+          body: t("order:notification.cancelledWithReason", {
+            number: data.order?.orderNumber,
+            reason: data.reason || t("order:notification.noReason"),
+          }),
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -193,7 +217,7 @@ export const useGlobalSocketEvents = () => {
       socket.off("order:in_transit", handleOrderInTransit);
       socket.off("order:delivered", handleOrderDelivered);
     };
-  }, [socket, authUser, queryClient]);
+  }, [socket, authUser, queryClient, t]);
 
   useEffect(() => {
     if (!socket || authUser?.role !== "seller") return;
@@ -204,14 +228,19 @@ export const useGlobalSocketEvents = () => {
       const audio = new Audio("/sounds/new-order.mp3");
       audio.play().catch((e) => console.log("Audio play failed:", e));
 
-      toast.success("New Order!", {
-        description: `Order #${data.order?.orderNumber} - $${data.order?.total?.toFixed(2) ?? "0.00"}`,
+      const value = t("order:notification.newOrderValue", {
+        number: data.order?.orderNumber,
+        total: formatPrice(data.order?.total ?? 0),
+      });
+
+      toast.success(t("order:notification.order_placed.title"), {
+        description: value,
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("New Order!", {
-          body: `Order #${data.order?.orderNumber} - $${data.order?.total?.toFixed(2) ?? "0.00"}`,
+        new Notification(t("order:notification.order_placed.title"), {
+          body: value,
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -222,14 +251,18 @@ export const useGlobalSocketEvents = () => {
     const handleOrderCancelled = (data) => {
       console.log("Order cancelled by customer:", data);
 
-      toast.error("Order Cancelled", {
-        description: `Order #${data.order?.orderNumber} was cancelled by customer`,
+      const cancelled = t("order:notification.cancelledByCustomer", {
+        number: data.order?.orderNumber,
+      });
+
+      toast.error(t("order:notification.order_cancelled.title"), {
+        description: cancelled,
         duration: 5000,
       });
 
       if (Notification.permission === "granted") {
-        new Notification("Order Cancelled", {
-          body: `Order #${data.order?.orderNumber} was cancelled by customer`,
+        new Notification(t("order:notification.order_cancelled.title"), {
+          body: cancelled,
           icon: "/logos/chow-logo-filled.png",
         });
       }
@@ -264,7 +297,7 @@ export const useGlobalSocketEvents = () => {
       socket.off("order:delivered");
       socket.off("order:courier_unassigned");
     };
-  }, [socket, authUser, queryClient]);
+  }, [socket, authUser, queryClient, t]);
 
   useEffect(() => {
     if (!socket || authUser?.role !== "courier") return;

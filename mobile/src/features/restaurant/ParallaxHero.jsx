@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { interpolate, useAnimatedStyle } from "react-native-reanimated";
@@ -19,6 +20,7 @@ export const HERO_HEIGHT = 260;
  * image from below, so type is never fighting a photograph for contrast.
  */
 export function ParallaxHero({ restaurant, scrollY }) {
+  const { t } = useTranslation(["restaurant", "seller", "common"]);
   const { color } = useTokens();
 
   // Stretches on overscroll and drifts at half speed on the way up - the
@@ -101,10 +103,10 @@ export function ParallaxHero({ restaurant, scrollY }) {
 
             <Badge tone={closed ? "neutral" : "mint"}>
               {restaurant.availability === "unavailable"
-                ? "Not taking orders"
+                ? t("seller:settings.notTakingOrders")
                 : closed
-                  ? "Closed now"
-                  : "Open now"}
+                  ? t("restaurant:availability.closedNow")
+                  : t("restaurant:availability.openNow")}
             </Badge>
 
             {distance ? <Badge tone="neutral" icon={MapPin}>{`${distance} away`}</Badge> : null}

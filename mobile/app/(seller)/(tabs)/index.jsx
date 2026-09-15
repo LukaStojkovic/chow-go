@@ -1,4 +1,5 @@
 import { RefreshControl, ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Clock, Store } from "lucide-react-native";
@@ -88,6 +89,7 @@ function KitchenTile({ label, value, tone, hint }) {
 }
 
 export default function SellerOverview() {
+  const { t } = useTranslation(["seller", "common"]);
   const refreshTint = useRefreshTint();
   const query = useRestaurantStats();
   const { data: restaurant } = useOwnRestaurant();
@@ -138,10 +140,10 @@ export default function SellerOverview() {
           </View>
           <View className="flex-1">
             <Text variant="h2" numberOfLines={1}>
-              {restaurant?.name ?? "Your restaurant"}
+              {restaurant?.name ?? t("settings.yourRestaurant")}
             </Text>
             <Text variant="caption" tone="muted" numberOfLines={1}>
-              Today at a glance
+              {t("dashboard.glance")}
             </Text>
           </View>
         </View>
@@ -156,26 +158,28 @@ export default function SellerOverview() {
         >
           <StatusDot tone={isOpen ? "success" : "muted"} size={10} />
           <View className="flex-1">
-            <Text variant="h3">{isOpen ? "Accepting orders" : "Closed right now"}</Text>
+            <Text variant="h3">
+              {isOpen ? t("settings.acceptingOrdersShort") : t("settings.closedRightNow")}
+            </Text>
             <Text variant="caption" tone="muted">
-              {isOpen ? "Customers can order from you" : "Set your hours in Settings"}
+              {isOpen ? t("dashboard.openHint") : t("dashboard.closedHint")}
             </Text>
           </View>
           <Button variant="mint" size="sm" onPress={() => router.push("/(seller)/(tabs)/settings")}>
-            Hours
+            {t("settings.hours.heading")}
           </Button>
         </Card>
 
         <View className="flex-row gap-3">
           <StatTile
-            label="Revenue this month"
+            label={t("analytics.monthlyRevenue")}
             value={formatPrice(Number(stats?.totalRevenue?.value ?? 0))}
             trend={stats?.totalRevenue?.trend}
             isPositive={stats?.totalRevenue?.isPositive}
           />
 
           <StatTile
-            label="Active orders"
+            label={t("dashboard.stats.activeOrders")}
             value={String(stats?.activeOrders?.value ?? 0)}
             trend={stats?.activeOrders?.trend}
             isPositive={stats?.activeOrders?.isPositive}
@@ -184,21 +188,24 @@ export default function SellerOverview() {
 
         <View className="flex-row gap-3">
           <StatTile
-            label="Customers"
+            label={t("analytics.totalCustomers")}
             value={String(stats?.totalCustomers?.value ?? 0)}
             trend={stats?.totalCustomers?.trend}
             isPositive={stats?.totalCustomers?.isPositive}
           />
 
-          <StatTile label="Store rating" value={String(stats?.rating?.value ?? "—")} />
+          <StatTile
+            label={t("analytics.storeRating")}
+            value={String(stats?.rating?.value ?? "—")}
+          />
         </View>
 
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">Revenue this week</Text>
+              <Text variant="h3">{t("analytics.revenueThisWeek")}</Text>
               <Text variant="caption" tone="muted">
-                Tap a bar for that day
+                {t("analytics.tapBarHint")}
               </Text>
             </View>
           </View>
@@ -209,34 +216,47 @@ export default function SellerOverview() {
               value: entry.revenue ?? 0,
             }))}
             formatValue={(value) => formatPrice(value)}
-            peakLabel="Best day"
+            peakLabel={t("analytics.bestDay")}
           />
         </Card>
 
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              On the pass
+              {t("dashboard.onThePass")}
             </Text>
           </View>
 
           <View className="flex-row gap-2">
             <KitchenTile
-              label="Pending"
+              label={t("dashboard.stats.pending")}
               value={counts.pending ?? 0}
               tone="warning"
-              hint="Needs you"
+              hint={t("dashboard.needsYou")}
             />
 
-            <KitchenTile label="Cooking" value={counts.preparing ?? 0} tone="citrus" />
-            <KitchenTile label="Ready" value={counts.ready ?? 0} tone="mint" hint="For pickup" />
-            <KitchenTile label="Out" value={counts.in_transit ?? 0} tone="muted" />
+            <KitchenTile
+              label={t("dashboard.cooking")}
+              value={counts.preparing ?? 0}
+              tone="citrus"
+            />
+            <KitchenTile
+              label={t("dashboard.ready")}
+              value={counts.ready ?? 0}
+              tone="mint"
+              hint={t("dashboard.forPickup")}
+            />
+            <KitchenTile
+              label={t("dashboard.out")}
+              value={counts.in_transit ?? 0}
+              tone="muted"
+            />
           </View>
 
           <Button size="lg" fullWidth onPress={() => router.push("/(seller)/(tabs)/orders")}>
             <View className="flex-row items-center gap-2">
               <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-                Open the order board
+                {t("dashboard.openBoard")}
               </Text>
               <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
             </View>
@@ -246,9 +266,9 @@ export default function SellerOverview() {
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">Best sellers</Text>
+              <Text variant="h3">{t("analytics.topDishes")}</Text>
               <Text variant="caption" tone="muted">
-                This month
+                {t("dashboard.stats.month")}
               </Text>
             </View>
           </View>
@@ -282,15 +302,15 @@ export default function SellerOverview() {
             ))
           ) : (
             <Text variant="body-sm" tone="muted">
-              Nothing ordered yet this month.
+              {t("dashboard.nothingThisMonth")}
             </Text>
           )}
         </Card>
 
         <SectionHeader
-          title="Recent orders"
-          subtitle="The last few through your kitchen"
-          actionLabel="See all"
+          title={t("dashboard.recentOrders")}
+          subtitle={t("dashboard.recentOrdersHint")}
+          actionLabel={t("common:actions.viewAll")}
           onAction={() => router.push("/(seller)/(tabs)/orders")}
           className="pt-2"
         />
@@ -310,8 +330,8 @@ export default function SellerOverview() {
         ) : (
           <EmptyState
             icon={Clock}
-            title="No orders yet"
-            description="They will appear here the moment one arrives."
+            title={t("dashboard.noRecentOrders")}
+            description={t("dashboard.noRecentOrdersHint")}
           />
         )}
       </ScrollView>

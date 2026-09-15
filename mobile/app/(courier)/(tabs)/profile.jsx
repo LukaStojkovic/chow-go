@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -30,13 +31,15 @@ import { useThemeStore } from "@/store/useThemeStore";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
+// Keys, not copy: module scope runs before a language is picked.
 const VERIFICATION = {
-  verified: { tone: "mint", label: "Verified" },
-  pending: { tone: "warning", label: "Awaiting verification" },
-  rejected: { tone: "danger", label: "Verification rejected" },
+  verified: { tone: "mint", labelKey: "courier:verification.verified" },
+  pending: { tone: "warning", labelKey: "courier:verification.awaiting" },
+  rejected: { tone: "danger", labelKey: "courier:verification.rejected" },
 };
 
 export default function CourierProfile() {
+  const { t } = useTranslation(["courier", "profile", "order", "basket", "seller", "auth", "common"]);
   const { data, isLoading } = useCourierProfile();
   const update = useUpdateCourierProfile();
   const logout = useAuthStore((state) => state.logout);
@@ -57,22 +60,24 @@ export default function CourierProfile() {
     data && (fullName !== (data.fullName ?? "") || phoneNumber !== (data.phoneNumber ?? ""));
   const verification = VERIFICATION[data?.verificationStatus] ?? {
     tone: "neutral",
-    label: "Unknown",
+    labelKey: "common:state.unknown",
   };
 
   async function changePhoto() {
     const result = await pickImages({ limit: 1 });
     if (result.status === "denied") {
-      toast.warning("Photo access needed", { description: "Turn it on in Settings." });
+      toast.warning(t("common:error.photoAccess"), {
+        description: t("common:error.enableInSettings"),
+      });
       return;
     }
     if (!result.images.length) return;
 
     try {
       await update.mutateAsync({ profilePicture: result.images[0] });
-      toast.success("Photo updated");
+      toast.success(t("courier:verification.photoUpdated"));
     } catch (error) {
-      toast.error("Could not update your photo", { description: errorMessage(error) });
+      toast.error(t("courier:verification.photoFailed"), { description: errorMessage(error) });
     }
   }
 
@@ -93,9 +98,9 @@ export default function CourierProfile() {
         showsVerticalScrollIndicator={false}
       >
         <SectionHeader
-          title="Profile"
+          title={t("profile.title")}
           size="lg"
-          subtitle="How customers see you"
+          subtitle={t("profile.subtitle")}
           className="pb-1"
         />
 
@@ -126,7 +131,7 @@ export default function CourierProfile() {
             <IconButton
               icon={ImagePlus}
               variant="mint"
-              label="Change photo"
+              label={t("profile:account.changePhoto")}
               onPress={changePhoto}
             />
           </View>
@@ -135,7 +140,7 @@ export default function CourierProfile() {
             {/* Verification gates whether jobs can be claimed at all, so it is
                   stated plainly rather than buried in a settings list. */}
             <Badge tone={verification.tone} icon={ShieldCheck}>
-              {verification.label}
+              {t(verification.labelKey)}
             </Badge>
             {data?.vehicleType ? (
               <Badge tone="neutral" icon={Bike}>
@@ -151,19 +156,19 @@ export default function CourierProfile() {
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              Your details
+              {t("profile:account.personalDetails")}
             </Text>
           </View>
 
           <Input
-            label="Full name"
+            label={t("auth:fields.fullName")}
             value={fullName}
             onChangeText={setFullName}
             autoComplete="name"
           />
 
           <Input
-            label="Phone number"
+            label={t("profile:account.phone")}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             keyboardType="phone-pad"
@@ -178,13 +183,13 @@ export default function CourierProfile() {
             onPress={async () => {
               try {
                 await update.mutateAsync({ fullName, phoneNumber });
-                toast.success("Profile updated");
+                toast.success(t("courier:verification.profileUpdated"));
               } catch (error) {
-                toast.error("Could not save", { description: errorMessage(error) });
+                toast.error(t("common:error.saveFailed"), { description: errorMessage(error) });
               }
             }}
           >
-            Save changes
+            {t("common:actions.saveChanges")}
           </Button>
         </Card>
 
@@ -203,7 +208,7 @@ export default function CourierProfile() {
           <View className="flex-row items-center gap-2">
             <LogOut size={17} color={color.destructive} />
             <Text variant="label" tone="destructive">
-              Sign out
+              {t("profile:logOut.action")}
             </Text>
           </View>
         </Button>
@@ -213,10 +218,10 @@ export default function CourierProfile() {
           size="md"
           fullWidth
           onPress={() => router.push("/delete-account")}
-          accessibilityLabel="Delete my account"
+          accessibilityLabel={t("profile:deleteAccount.confirm")}
         >
           <Text variant="caption" tone="muted">
-            Delete my account
+            {t("profile:deleteAccount.confirm")}
           </Text>
         </Button>
       </ScrollView>

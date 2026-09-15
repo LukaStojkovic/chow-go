@@ -1,11 +1,13 @@
 import { StatCard } from "@/components/ui/StatCard";
+import { useTranslation } from "react-i18next";
 import { Clock, DollarSign, Users, Utensils } from "lucide-react";
 
 export const DashboardStats = ({ stats }) => {
+  const { t } = useTranslation("seller");
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatCard
-        title="Total Revenue"
+        title={t("analytics.revenue")}
         value={`$${stats.totalRevenue.value}`}
         trend={`${stats.totalRevenue.trend}%`}
         isPositive={stats.totalRevenue.isPositive}
@@ -13,7 +15,7 @@ export const DashboardStats = ({ stats }) => {
         colorClass="bg-primary-subtle text-primary "
       />
       <StatCard
-        title="Active Orders"
+        title={t("dashboard.stats.activeOrders")}
         value={stats.activeOrders.value.toString()}
         trend={`${stats.activeOrders.trend}%`}
         isPositive={stats.activeOrders.isPositive}
@@ -21,7 +23,7 @@ export const DashboardStats = ({ stats }) => {
         colorClass="bg-warning-subtle text-warning "
       />
       <StatCard
-        title="Total Customers"
+        title={t("analytics.totalCustomers")}
         value={stats.totalCustomers.value.toLocaleString()}
         trend={`${stats.totalCustomers.trend}%`}
         isPositive={stats.totalCustomers.isPositive}
@@ -29,7 +31,7 @@ export const DashboardStats = ({ stats }) => {
         colorClass="bg-primary-subtle text-primary "
       />
       <StatCard
-        title="Avg. Rating"
+        title={t("dashboard.stats.rating")}
         value={stats.avgRating.value}
         trend={`${stats.avgRating.totalReviews} reviews`}
         isPositive={true}

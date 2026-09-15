@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { create } from "zustand";
+import { t } from "@chowgo/shared/i18n";
 
 import {
   addToCart,
@@ -52,7 +53,7 @@ const useCartStore = create((set, get) => ({
         set({ pendingConflict: { menuItemId, quantity, specialInstructions } });
         return false;
       }
-      toast.error(err.message || "Could not add this item. Try again.");
+      toast.error(err.message || t("basket:line.addFailedLong"));
       return false;
     }
   },
@@ -78,7 +79,7 @@ const useCartStore = create((set, get) => ({
       const res = await updateCartItemQuantity(menuItemId, quantity, specialInstructions);
       set({ items: res.data.items, totalPrice: res.data.totalPrice });
     } catch (err) {
-      toast.error(err.message || "Could not update the quantity.");
+      toast.error(err.message || t("basket:line.updateFailedLong"));
       get().fetchCart();
       throw err;
     }
@@ -89,7 +90,7 @@ const useCartStore = create((set, get) => ({
       const res = await removeItemFromCart(menuItemId);
       set({ items: res.data.items, totalPrice: res.data.totalPrice });
     } catch (err) {
-      toast.error(err.message || "Could not remove this item.");
+      toast.error(err.message || t("basket:line.removeFailedLong"));
       get().fetchCart();
       throw err;
     }
@@ -105,7 +106,7 @@ const useCartStore = create((set, get) => ({
       await clearCartApi();
       set({ items: [], totalPrice: 0, restaurant: null });
     } catch (err) {
-      toast.error(err.message || "Could not empty your basket.");
+      toast.error(err.message || t("basket:line.clearFailedLong"));
     }
   },
 

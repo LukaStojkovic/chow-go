@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ChevronRight } from "lucide-react-native";
 import { cn } from "@/lib/cn";
 import { useTokens } from "@/theme/useTokens";
@@ -14,6 +15,7 @@ import { Text } from "./Text";
  * unrelated pages rather than one scrollable surface.
  */
 export function SectionHeader({ title, subtitle, size = "md", actionLabel, onAction, className }) {
+  const { t } = useTranslation("common");
   const { color } = useTokens();
 
   return (
@@ -32,13 +34,13 @@ export function SectionHeader({ title, subtitle, size = "md", actionLabel, onAct
       {onAction ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={actionLabel ?? "See all"}
+          accessibilityLabel={actionLabel ?? t("common:state.seeAll")}
           hitSlop={10}
           onPress={onAction}
           className="shrink-0 flex-row items-center gap-0.5 active:opacity-60"
         >
           <Text variant="label" tone="primary" numberOfLines={1}>
-            {actionLabel ?? "See all"}
+            {actionLabel ?? t("common:state.seeAll")}
           </Text>
           <ChevronRight size={16} color={color.primary} />
         </Pressable>

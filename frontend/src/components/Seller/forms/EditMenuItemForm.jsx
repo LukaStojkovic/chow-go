@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+import { categoryOptions } from "@chowgo/shared/constants";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -24,17 +26,11 @@ import { MenuItemImageUploader } from "./MenuItemImageUploader";
 import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
 import { X } from "lucide-react";
 
-const CATEGORIES = [
-  { value: "pizza", label: "Pizza" },
-  { value: "burger", label: "Burger" },
-  { value: "salad", label: "Salad" },
-  { value: "japanese", label: "Japanese" },
-  { value: "dessert", label: "Dessert" },
-  { value: "drinks", label: "Drinks" },
-  { value: "other", label: "Other" },
-];
-
 export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
+  const { t, i18n } = useTranslation(["seller", "common"]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const categories = useMemo(() => categoryOptions(t), [i18n.language]);
+
   const [previews, setPreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const { updateMenuItem, isUpdating } = useUpdateMenuItem();
@@ -115,10 +111,10 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
     >
       <div className="space-y-7">
         <div>
-          <Label htmlFor="name">Dish Name</Label>
+          <Label htmlFor="name">{t("menu.form.nameLabel")}</Label>
           <Input
             id="name"
-            placeholder="e.g. Margherita Pizza"
+            placeholder={t("menu.form.namePlaceholder")}
             className="mt-2 h-12"
             {...register("name")}
           />
@@ -130,20 +126,22 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
         </div>
 
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category">{t("menu.form.categoryLabel")}</Label>
           <Select
             value={watch("category")}
             onValueChange={(v) => setValue("category", v)}
           >
             <SelectTrigger className="mt-2 h-12">
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder={t("menu.form.categoryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
+              {categories
+                .filter((entry) => entry.id !== "all")
+                .map((entry) => (
+                  <SelectItem key={entry.id} value={entry.value}>
+                    {entry.label}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           {errors.category && (
@@ -154,7 +152,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
         </div>
 
         <div>
-          <Label htmlFor="price">Price</Label>
+          <Label htmlFor="price">{t("menu.form.priceLabel")}</Label>
           <Input
             id="price"
             type="number"
@@ -177,16 +175,16 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
             onCheckedChange={(c) => setValue("available", c)}
           />
           <Label htmlFor="available" className="cursor-pointer">
-            Available for sale
+            {t("menu.form.availableLabel")}
           </Label>
         </div>
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t("menu.form.descriptionLabel")}</Label>
         <Textarea
           id="description"
-          placeholder="Describe your dish in detail..."
+          placeholder={t("menu.form.descriptionPlaceholder")}
           rows={6}
           className="mt-2 resize-none"
           {...register("description")}
@@ -202,7 +200,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
 
       <div className="space-y-6">
         <div>
-          <Label>Current Images</Label>
+          <Label>{t("menu.form.currentImages")}</Label>
           {existingImages.length > 0 ? (
             <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
               {existingImages.map((url, index) => (
@@ -212,14 +210,14 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
                 >
                   <img
                     src={url}
-                    alt={`Current dish image ${index + 1}`}
+                    alt={`${t("settings.currentDishImage")} ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                   <button
                     type="button"
                     onClick={() => removeExistingImage(index)}
                     className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Remove image"
+                    aria-label={t("menu.form.removeImage")}
                   >
                     <X className="w-8 h-8 text-white" strokeWidth={3} />
                   </button>
@@ -228,13 +226,13 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground mt-2">
-              No existing images
+              {t("menu.form.noImages")}
             </p>
           )}
         </div>
 
         <div>
-          <Label>Add New Images (optional)</Label>
+          <Label>{t("menu.form.addImages")}</Label>
           <MenuItemImageUploader
             images={newImages}
             setValue={setValue}
@@ -247,7 +245,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
 
       <div className="flex justify-end gap-4 pt-8 border-t">
         <Button type="button" variant="outline" size="lg" onClick={onClose}>
-          Cancel
+          {t("common:actions.cancel")}
         </Button>
         <Button
           type="submit"
@@ -255,7 +253,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
           disabled={isUpdating}
           className="bg-primary hover:bg-primary px-8"
         >
-          {isUpdating ? <Spinner size="sm" /> : "Update Menu Item"}
+          {isUpdating ? <Spinner size="sm" /> : t("settings.updateMenuItem")}
         </Button>
       </div>
     </form>

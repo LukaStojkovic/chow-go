@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -10,6 +11,7 @@ import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { LanguagePicker } from "@/features/settings/LanguagePicker";
 
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
@@ -24,6 +26,7 @@ import { useTokens } from "@/theme/useTokens";
 const AUTOSAVE_MS = 1000;
 
 export default function SellerSettings() {
+  const { t } = useTranslation(["seller", "profile", "order", "basket", "common"]);
   const { data, isLoading } = useOwnRestaurant();
   const update = useUpdateRestaurant();
   const logout = useAuthStore((state) => state.logout);
@@ -60,7 +63,7 @@ export default function SellerSettings() {
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       } catch (error) {
-        toast.error("Could not save", { description: errorMessage(error) });
+        toast.error(t("common:error.saveFailed"), { description: errorMessage(error) });
       }
     }, AUTOSAVE_MS);
 
@@ -75,16 +78,18 @@ export default function SellerSettings() {
   async function changeLogo() {
     const result = await pickImages({ limit: 1 });
     if (result.status === "denied") {
-      toast.warning("Photo access needed", { description: "Turn it on in Settings." });
+      toast.warning(t("common:error.photoAccess"), {
+        description: t("common:error.enableInSettings"),
+      });
       return;
     }
     if (!result.images.length) return;
 
     try {
       await update.mutateAsync({ profilePicture: result.images[0] });
-      toast.success("Logo updated");
+      toast.success(t("seller:settings.logoUpdated"));
     } catch (error) {
-      toast.error("Could not update the logo", { description: errorMessage(error) });
+      toast.error(t("seller:settings.logoFailed"), { description: errorMessage(error) });
     }
   }
 
@@ -109,19 +114,19 @@ export default function SellerSettings() {
               only thing telling the seller their edit landed. */}
         <View className="flex-row items-end justify-between gap-3 pb-1">
           <SectionHeader
-            title="Settings"
+            title={t("settings.title")}
             size="lg"
-            subtitle="Your storefront and hours"
+            subtitle={t("settings.shortSubtitle")}
             className="flex-1"
           />
 
           {update.isPending ? (
             <Badge tone="neutral" icon={Loader} size="sm">
-              Saving
+              {t("common:state.saving")}
             </Badge>
           ) : saved ? (
             <Badge tone="mint" icon={Check} size="sm">
-              Saved
+              {t("settings.savedShort")}
             </Badge>
           ) : null}
         </View>
@@ -138,17 +143,17 @@ export default function SellerSettings() {
           </View>
           <View className="flex-1 gap-1">
             <Text variant="h3" numberOfLines={1}>
-              {draft.name || "Your restaurant"}
+              {draft.name || t("settings.yourRestaurant")}
             </Text>
             <Text variant="caption" tone="muted">
-              Shown on every card and order
+              {t("settings.logoHint")}
             </Text>
           </View>
           <Button variant="mint" size="sm" onPress={changeLogo}>
             <View className="flex-row items-center gap-1.5">
               <ImagePlus size={15} color={color.primary} />
               <Text variant="label-sm" tone="primary">
-                Logo
+                {t("settings.profile.logo")}
               </Text>
             </View>
           </Button>
@@ -157,32 +162,32 @@ export default function SellerSettings() {
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
-              Storefront
+              {t("settings.storefront")}
             </Text>
           </View>
 
           <Input
-            label="Restaurant name"
+            label={t("settings.profile.name")}
             value={draft.name}
             onChangeText={(name) => edit({ name })}
           />
 
           <Input
-            label="Description"
+            label={t("settings.profile.description")}
             value={draft.description}
             onChangeText={(description) => edit({ description })}
             multiline
           />
 
           <Input
-            label="Phone"
+            label={t("settings.profile.phone")}
             value={draft.phone}
             onChangeText={(phone) => edit({ phone })}
             keyboardType="phone-pad"
           />
 
           <Input
-            label="Email"
+            label={t("settings.profile.email")}
             value={draft.email}
             onChangeText={(email) => edit({ email })}
             keyboardType="email-address"
@@ -190,20 +195,20 @@ export default function SellerSettings() {
           />
 
           <Input
-            label="Delivery estimate"
+            label={t("settings.delivery.estimate")}
             value={draft.estimatedDeliveryTime}
             onChangeText={(estimatedDeliveryTime) => edit({ estimatedDeliveryTime })}
-            placeholder="30-45 min"
-            hint="Shown on your restaurant card."
+            placeholder={t("settings.delivery.estimatePlaceholder")}
+            hint={t("settings.delivery.estimateShortHint")}
           />
         </Card>
 
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">Opening hours</Text>
+              <Text variant="h3">{t("settings.hours.heading")}</Text>
               <Text variant="caption" tone="muted">
-                Same opening and closing time means open around the clock
+                {t("settings.hours.allDayHint")}
               </Text>
             </View>
           </View>
@@ -212,6 +217,8 @@ export default function SellerSettings() {
             onChangeDay={(day, entry) => edit({ schedule: { ...draft.schedule, [day]: entry } })}
           />
         </Card>
+
+        <LanguagePicker />
 
         <Button
           variant="outline"
@@ -226,7 +233,7 @@ export default function SellerSettings() {
           <View className="flex-row items-center gap-2">
             <LogOut size={17} color={color.destructive} />
             <Text variant="label" tone="destructive">
-              Sign out
+              {t("profile:logOut.action")}
             </Text>
           </View>
         </Button>
@@ -236,10 +243,10 @@ export default function SellerSettings() {
           size="md"
           fullWidth
           onPress={() => router.push("/delete-account")}
-          accessibilityLabel="Delete my account"
+          accessibilityLabel={t("profile:deleteAccount.confirm")}
         >
           <Text variant="caption" tone="muted">
-            Delete my account
+            {t("profile:deleteAccount.confirm")}
           </Text>
         </Button>
       </ScrollView>

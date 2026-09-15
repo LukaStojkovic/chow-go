@@ -1,4 +1,5 @@
 import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
@@ -21,6 +22,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
 export default function Login() {
+  const { t } = useTranslation(["auth", "common"]);
   const { login, isSubmitting } = useAuthStore();
   const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(loginSchema),
@@ -32,19 +34,19 @@ export default function Login() {
       const user = await login(values);
       router.replace(homeForRole(user?.role));
     } catch (error) {
-      toast.error("Could not sign in", { description: errorMessage(error) });
+      toast.error(t("register.signInFailed"), { description: errorMessage(error) });
     }
   }
 
   return (
     <AuthScreen
-      title="Welcome back"
-      subtitle="Sign in to order, deliver, or run your kitchen."
+      title={t("login.title")}
+      subtitle={t("login.shortDescription")}
       footer={
         <>
           <AuthDivider />
           <GoogleButton />
-          <AuthOptions label="New to Chow" options={[CREATE_ACCOUNT_OPTION, ...PARTNER_OPTIONS]} />
+          <AuthOptions label={t("login.newHere")} options={[CREATE_ACCOUNT_OPTION, ...PARTNER_OPTIONS]} />
           <AuthLegal />
         </>
       }
@@ -54,7 +56,7 @@ export default function Login() {
         name="email"
         render={({ field }) => (
           <Input
-            label="Email"
+            label={t("fields.email")}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -63,7 +65,7 @@ export default function Login() {
             autoComplete="email"
             keyboardType="email-address"
             textContentType="emailAddress"
-            placeholder="you@example.com"
+            placeholder={t("fields.emailPlaceholder")}
           />
         )}
       />
@@ -73,7 +75,7 @@ export default function Login() {
         name="password"
         render={({ field }) => (
           <Input
-            label="Password"
+            label={t("fields.password")}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -81,7 +83,7 @@ export default function Login() {
             secureTextEntry
             autoComplete="current-password"
             textContentType="password"
-            placeholder="Your password"
+            placeholder={t("fields.passwordPlaceholder")}
             onSubmitEditing={handleSubmit(onSubmit)}
             returnKeyType="go"
           />
@@ -95,13 +97,13 @@ export default function Login() {
           className="py-1 active:opacity-60"
         >
           <Text variant="label-sm" tone="primary">
-            Forgot password?
+            {t("login.forgotPassword")}
           </Text>
         </Pressable>
       </View>
 
       <Button size="lg" fullWidth loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
-        Sign in
+        {t("login.submit")}
       </Button>
     </AuthScreen>
   );

@@ -8,6 +8,7 @@
  */
 
 import { Bike, Clock, MapPin, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import {
@@ -57,11 +58,14 @@ export function MetaDot() {
  * @param {boolean} [props.showCount]
  */
 export function RatingDisplay({ rating, reviewCount = 0, size = "sm", showCount = true, className }) {
+  const { t } = useTranslation("common");
   const value = formatRating(rating);
 
   if (!value) {
     return (
-      <span className={cn("text-body-sm text-muted-foreground", className)}>New</span>
+      <span className={cn("text-body-sm text-muted-foreground", className)}>
+        {t("rating.new")}
+      </span>
     );
   }
 
@@ -99,8 +103,9 @@ export function RatingDisplay({ rating, reviewCount = 0, size = "sm", showCount 
  * @param {string} props.estimate
  */
 export function DeliveryEstimate({ estimate, className }) {
+  const { t } = useTranslation("common");
   return (
-    <MetaItem icon={Clock} label="Delivery time" className={className}>
+    <MetaItem icon={Clock} label={t("meta.deliveryTime")} className={className}>
       {estimate}
     </MetaItem>
   );
@@ -113,6 +118,7 @@ export function DeliveryEstimate({ estimate, className }) {
  * @param {number} props.fee
  */
 export function DeliveryFee({ fee, className }) {
+  const { t } = useTranslation("common");
   const isFree = fee === 0;
   return (
     <span
@@ -123,7 +129,7 @@ export function DeliveryFee({ fee, className }) {
       )}
     >
       <Bike className="size-4 shrink-0" aria-hidden="true" />
-      <span className="sr-only">Delivery fee: </span>
+      <span className="sr-only">{t("meta.deliveryFee")} </span>
       {formatFee(fee)}
     </span>
   );
@@ -137,10 +143,11 @@ export function DeliveryFee({ fee, className }) {
  * @param {number | null} props.metres
  */
 export function DistanceLabel({ metres, className }) {
+  const { t } = useTranslation("common");
   const value = formatDistance(metres);
   if (!value) return null;
   return (
-    <MetaItem icon={MapPin} label="Distance" className={className}>
+    <MetaItem icon={MapPin} label={t("meta.distance")} className={className}>
       {value}
     </MetaItem>
   );
@@ -185,6 +192,7 @@ export function Price({ value, size = "md", muted = false, className }) {
  * @param {"sm"|"md"|"lg"} [props.size]
  */
 export function PromoPrice({ price, basePrice, size = "md", className }) {
+  const { t } = useTranslation("common");
   const isDiscounted = typeof basePrice === "number" && basePrice > price;
 
   if (!isDiscounted) {
@@ -195,7 +203,7 @@ export function PromoPrice({ price, basePrice, size = "md", className }) {
     <span className={cn("inline-flex items-baseline gap-1.5", className)}>
       <Price value={price} size={size} className="text-primary" />
       <span className="text-muted-foreground text-body-sm tabular line-through">
-        <span className="sr-only">, reduced from </span>
+        <span className="sr-only">{t("meta.reducedFrom")} </span>
         {formatPrice(basePrice)}
       </span>
     </span>

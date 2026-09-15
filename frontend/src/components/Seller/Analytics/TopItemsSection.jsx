@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next";
+
 export const TopItemsSection = ({ items }) => {
+  const { t } = useTranslation(["seller", "common"]);
   const maxQty = items?.[0]?.totalQuantity || 1;
 
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
       <h3 className="text-lg font-bold mb-6 ">
-        Top Selling Items
+        {t("analytics.topDishes")}
       </h3>
 
       <div className="space-y-4">

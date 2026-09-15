@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import { Clock, History, Search as SearchIcon, X } from "lucide-react";
@@ -35,6 +36,7 @@ import {
 const MIN_QUERY_LENGTH = 2;
 
 export default function SearchPage() {
+  const { t } = useTranslation(["discover", "common"]);
   const [searchParams, setSearchParams] = useSearchParams();
   const { address, coordinates } = useDeliveryStore();
   const { searchRestaurants, searchDishes, isSearching, searchError, search, clearSearch } =
@@ -97,9 +99,9 @@ export default function SearchPage() {
       <PageContainer className="py-5 sm:py-6">
         <Stack gap="xl">
           <div className="space-y-1">
-            <h1 className="text-h1">Search</h1>
+            <h1 className="text-h1">{t("search.heading")}</h1>
             <p className="text-body-sm text-muted-foreground">
-              Restaurants and dishes delivering to {address}
+              {t("pageHeading", { address })}
             </p>
           </div>
 
@@ -109,26 +111,29 @@ export default function SearchPage() {
             onChange={setQuery}
             isSearching={isSearching}
             autoFocus
-            placeholder="Try a restaurant, a cuisine or a dish"
+            placeholder={t("search.hintPlaceholder")}
           />
 
           {/* Announced so a screen-reader user knows the results changed
               without having to go looking for them. */}
           <p aria-live="polite" className="sr-only">
             {isSearching
-              ? "Searching"
+              ? t("common:state.searching")
               : hasQuery
-                ? `${restaurants.length} restaurants and ${searchDishes.length} dishes found`
+                ? t("search.announce", {
+                    restaurants: t("search.countRestaurants", { count: restaurants.length }),
+                    dishes: t("search.countDishes", { count: searchDishes.length }),
+                  })
                 : ""}
           </p>
 
           {!hasQuery ? (
             recentSearches.length > 0 ? (
               <Section
-                title="Recent searches"
+                title={t("search.recent")}
                 action={
                   <Button variant="link" size="sm" onClick={clearRecentSearches}>
-                    Clear all
+                    {t("common:actions.clearAll")}
                   </Button>
                 }
               >
@@ -149,7 +154,7 @@ export default function SearchPage() {
                       <button
                         type="button"
                         onClick={() => removeRecentSearch(term)}
-                        aria-label={`Remove ${term} from recent searches`}
+                        aria-label={t("search.removeRecent", { term })}
                         className="text-muted-foreground hover:text-foreground hover:bg-muted mr-2 flex size-9 shrink-0 items-center justify-center rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                       >
                         <X className="size-4" aria-hidden="true" />
@@ -161,8 +166,8 @@ export default function SearchPage() {
             ) : (
               <EmptyState
                 icon={SearchIcon}
-                title="What are you in the mood for?"
-                description="Search by restaurant, cuisine or a specific dish. We only show places that deliver to your address."
+                title={t("search.prompt.title")}
+                description={t("search.prompt.description")}
               />
             )
           ) : (
@@ -176,20 +181,20 @@ export default function SearchPage() {
 
               {searchError ? (
                 <ErrorState
-                  title="Search is not responding"
-                  description="We could not run that search. Your query is still here - try again."
+                  title={t("search.error.title")}
+                  description={t("search.error.description")}
                   onRetry={() => search(coordinates.lat, coordinates.lon, urlQuery)}
                 />
               ) : isSearching && !hasResults ? (
                 <Stack gap="xl">
-                  <Section title="Restaurants">
+                  <Section title={t("search.restaurantsHeading")}>
                     <ResponsiveGrid aria-busy="true">
                       {[0, 1, 2, 3].map((i) => (
                         <RestaurantCardSkeleton key={i} />
                       ))}
                     </ResponsiveGrid>
                   </Section>
-                  <Section title="Dishes">
+                  <Section title={t("search.dishesHeading")}>
                     <ResponsiveGrid aria-busy="true">
                       {[0, 1, 2, 3].map((i) => (
                         <DishCardSkeleton key={i} />
@@ -202,22 +207,22 @@ export default function SearchPage() {
                   icon={filtersHidEverything ? Clock : SearchIcon}
                   title={
                     filtersHidEverything
-                      ? "No matches with these filters"
-                      : `Nothing found for "${urlQuery}"`
+                      ? t("search.noFilterMatches.title")
+                      : t("search.noResults.title", { query: urlQuery })
                   }
                   description={
                     filtersHidEverything
-                      ? "Your filters ruled out every result. Loosening them should bring some back."
-                      : "Check the spelling, try a broader term, or browse what is delivering to you right now."
+                      ? t("search.noFilterMatches.description")
+                      : t("search.noResults.description")
                   }
                   action={
                     filtersHidEverything ? (
                       <Button variant="outline" onClick={() => setFilters(DEFAULT_SEARCH_FILTERS)}>
-                        Clear filters
+                        {t("filters.clearAll")}
                       </Button>
                     ) : (
                       <Button variant="outline" onClick={() => setQuery("")}>
-                        Start a new search
+                        {t("search.startOver")}
                       </Button>
                     )
                   }
@@ -226,8 +231,8 @@ export default function SearchPage() {
                 <Stack gap="xl">
                   {restaurants.length > 0 && (
                     <Section
-                      title="Restaurants"
-                      description={`${restaurants.length} ${restaurants.length === 1 ? "match" : "matches"}`}
+                      title={t("search.restaurantsHeading")}
+                      description={t("search.matches", { count: restaurants.length })}
                     >
                       <ResponsiveGrid>
                         {restaurants.map((restaurant) => (
@@ -246,8 +251,8 @@ export default function SearchPage() {
 
                   {searchDishes.length > 0 && (
                     <Section
-                      title="Dishes"
-                      description={`${searchDishes.length} ${searchDishes.length === 1 ? "match" : "matches"}`}
+                      title={t("search.dishesHeading")}
+                      description={t("search.matches", { count: searchDishes.length })}
                     >
                       <ResponsiveGrid>
                         {searchDishes.map((dish) => (

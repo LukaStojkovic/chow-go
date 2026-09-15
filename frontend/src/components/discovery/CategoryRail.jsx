@@ -23,12 +23,12 @@ import { Rail } from "@/components/layout/primitives";
  *   the full list; a caller passes a subset only to narrow the rail.
  */
 export function CategoryRail({ value, onChange, categories }) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation(["discover", "common"]);
   const allCategories = useCategories();
   const options = categories ?? allCategories;
 
   return (
-    <Rail role="radiogroup" aria-label={t("discover.categoryRailLabel")}>
+    <Rail role="radiogroup" aria-label={t("discover:categoryRailLabel")}>
       {options.map(({ id, label, value: categoryValue, icon: Icon }) => {
         const isActive = value === categoryValue;
 

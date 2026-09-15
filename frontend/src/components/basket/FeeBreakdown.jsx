@@ -8,6 +8,7 @@
  */
 
 import { Info } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { formatFee, formatPrice } from "@chowgo/shared/format";
@@ -22,6 +23,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
  * @param {"default"|"discount"|"total"} [props.tone]
  */
 function Row({ label, value, hint, tone = "default" }) {
+  const { t } = useTranslation("basket");
+
   return (
     <div
       className={cn(
@@ -37,7 +40,7 @@ function Row({ label, value, hint, tone = "default" }) {
               <button
                 type="button"
                 className="text-muted-foreground hover:text-foreground rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                aria-label={`What is the ${label.toLowerCase()}? ${hint}`}
+                aria-label={t("summary.hintLabel", { label, hint })}
               >
                 <Info className="size-3.5" aria-hidden="true" />
               </button>
@@ -68,43 +71,53 @@ function Row({ label, value, hint, tone = "default" }) {
  * @param {boolean} [props.showTotal]
  * @param {string} [props.totalLabel]
  */
-export function FeeBreakdown({ pricing, showTotal = true, totalLabel = "Total", className }) {
+export function FeeBreakdown({ pricing, showTotal = true, totalLabel, className }) {
+  const { t } = useTranslation("basket");
+
   return (
     <dl className={cn("space-y-2", className)}>
-      <Row label="Subtotal" value={formatPrice(pricing.subtotal)} />
+      <Row label={t("summary.subtotal")} value={formatPrice(pricing.subtotal)} />
 
       <Row
-        label="Delivery fee"
+        label={t("summary.deliveryFee")}
         value={formatFee(pricing.deliveryFee)}
-        hint="A flat fee that goes towards getting your order to you."
+        hint={t("summary.deliveryFeeHint")}
       />
 
       <Row
-        label="Service fee"
+        label={t("summary.serviceFee")}
         value={formatFee(pricing.serviceFee)}
-        hint="Covers running the platform, payment handling and support."
+        hint={t("summary.serviceFeeHint")}
       />
 
       {pricing.priorityFee > 0 && (
         <Row
-          label="Priority delivery"
+          label={t("summary.priorityFee")}
           value={formatPrice(pricing.priorityFee)}
-          hint="Moves your order to the front of the courier queue."
+          hint={t("summary.priorityFeeHint")}
         />
       )}
 
-      {pricing.tax > 0 && <Row label="Tax" value={formatPrice(pricing.tax)} />}
+      {pricing.tax > 0 && <Row label={t("summary.tax")} value={formatPrice(pricing.tax)} />}
 
-      {pricing.tip > 0 && <Row label="Courier tip" value={formatPrice(pricing.tip)} />}
+      {pricing.tip > 0 && <Row label={t("summary.tip")} value={formatPrice(pricing.tip)} />}
 
       {pricing.discount > 0 && (
-        <Row label="Discount" value={`-${formatPrice(pricing.discount)}`} tone="discount" />
+        <Row
+          label={t("summary.discount")}
+          value={`-${formatPrice(pricing.discount)}`}
+          tone="discount"
+        />
       )}
 
       {showTotal && (
         <>
           <div className="border-border border-t pt-2" />
-          <Row label={totalLabel} value={formatPrice(pricing.total)} tone="total" />
+          <Row
+            label={totalLabel ?? t("summary.total")}
+            value={formatPrice(pricing.total)}
+            tone="total"
+          />
         </>
       )}
     </dl>

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { MapPin, Clock } from "lucide-react";
 import { lazyNamed } from "@/lib/lazyNamed";
 import { InputField } from "../fields/InputField";
@@ -11,6 +12,7 @@ const LocationMapSelector = lazyNamed(
 import { TimePicker } from "@/components/ui/TimePicker";
 
 export function RestaurantLocationForm({ register, errors, setValue, watch }) {
+  const { t } = useTranslation(["auth", "seller", "common"]);
   const handleLocationChange = useCallback(
     (lat, lng) => {
       setValue("restaurantLat", lat, { shouldDirty: true });
@@ -28,7 +30,7 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-sm font-medium text-foreground ">
           <MapPin className="w-4 h-4 text-primary" />
-          Select Restaurant Location
+          {t("restaurant.locationTitle")}
         </label>
 
         <Suspense
@@ -47,12 +49,12 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
       <div className="space-y-3 border-t border-border pt-5">
         <label className="flex items-center gap-2 text-sm font-medium text-foreground ">
           <Clock className="w-4 h-4 text-primary" />
-          Operating Hours
+          {t("seller:settings.hours.heading")}
         </label>
         <div className=" flex-col flex grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Opening time
+              {t("restaurant.openingTime")}
             </label>
             <TimePicker
               value={watch ? watch("openingTime") : ""}
@@ -71,7 +73,7 @@ export function RestaurantLocationForm({ register, errors, setValue, watch }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
-              Closing time
+              {t("restaurant.closingTime")}
             </label>
             <TimePicker
               value={watch ? watch("closingTime") : ""}

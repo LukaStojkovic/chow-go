@@ -1,4 +1,5 @@
 import Svg, { Path } from "react-native-svg";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { router } from "expo-router";
 import { errorMessage } from "@/api/client";
@@ -34,6 +35,7 @@ function GoogleMark({ size = 18 }) {
 }
 
 export function GoogleButton() {
+  const { t } = useTranslation("auth");
   const { signInWithGoogle, isSubmitting } = useAuthStore();
 
   async function start() {
@@ -54,10 +56,10 @@ export function GoogleButton() {
         return;
       }
       if (result.status === "failed") {
-        toast.error("Google sign-in failed", { description: "Please try again." });
+        toast.error(t("google.signInFailed"), { description: t("google.tryAgain") });
       }
     } catch (error) {
-      toast.error("Google sign-in failed", { description: errorMessage(error) });
+      toast.error(t("google.signInFailed"), { description: errorMessage(error) });
     }
   }
 
@@ -65,7 +67,7 @@ export function GoogleButton() {
     <Button variant="outline" size="lg" disabled={isSubmitting} onPress={start}>
       <View className="flex-row items-center gap-2.5">
         <GoogleMark />
-        <Text variant="label">Continue with Google</Text>
+        <Text variant="label">{t("login.continueWithGoogle")}</Text>
       </View>
     </Button>
   );

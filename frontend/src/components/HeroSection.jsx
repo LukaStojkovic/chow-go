@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from"react";
+import { useTranslation } from "react-i18next";
 import { Sparkles } from"lucide-react";
 import { motion } from"framer-motion";
 import useDetectLocation from"@/hooks/Location/useDetectLocation";
@@ -9,6 +10,7 @@ import LocationAutocomplete from"./LocationAutocomplete";
 import ReputationStats from"./ReputationStats";
 
 export default function HeroSection() {
+  const { t } = useTranslation(["landing", "common"]);
   const {
     detect,
     address: detectedAddress,
@@ -49,7 +51,7 @@ export default function HeroSection() {
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-primary bg-primary-subtle/50 px-4 py-1.5 text-sm font-semibold text-primary backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Food delivery revolutionized</span>
+              <span>{t("hero.badge")}</span>
             </div>
           </motion.div>
 
@@ -59,10 +61,8 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mb-6 text-5xl font-extrabold tracking-tight leading-[1.1] text-foreground sm:text-6xl md:text-7xl lg:text-8xl "
           >
-            Craving food? <br className="hidden sm:block" />
-            <span className="text-primary">
-              We'll handle it.
-            </span>
+            {t("hero.headline")} <br className="hidden sm:block" />
+            <span className="text-primary">{t("hero.headlineAccent")}</span>
           </motion.h1>
 
           <motion.p
@@ -71,8 +71,7 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl"
           >
-            Order from the best local restaurants with easy, on-demand delivery.
-            Fresh food, delivered straight to your doorstep in minutes.
+            {t("hero.subheadline")}
           </motion.p>
 
           <motion.div
@@ -85,11 +84,10 @@ export default function HeroSection() {
               <div className="rounded-3xl border border-border bg-card p-4 shadow-2xl">
                 <div className="mb-4 text-center">
                   <h2 className="text-3xl font-semibold text-foreground ">
-                    Welcome back, {""} 
-                     {authUser.name}
+                    {t("hero.portalGreeting", { name: authUser.name })}
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Access your administration portal to manage orders, menus, and deliveries.
+                    {t("hero.portalBody")}
                   </p>
                 </div>
                 <button
@@ -97,7 +95,9 @@ export default function HeroSection() {
                   onClick={() => navigate(authUser.role ==="seller" ?"/seller" :"/courier")}
                   className="mx-auto inline-flex h-16 w-full max-w-xs items-center justify-center rounded-full bg-primary px-8 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary focus:outline-none focus:ring-4 focus:ring-ring/20"
                 >
-                  {authUser.role ==="seller" ?"Go to Seller Portal" :"Go to Courier Dashboard"}
+                  {authUser.role === "seller"
+                    ? t("hero.portalSeller")
+                    : t("hero.portalCourier")}
                 </button>
               </div>
             ) : (

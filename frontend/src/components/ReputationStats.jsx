@@ -1,8 +1,10 @@
 import React from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Bike, Star } from "lucide-react";
 
 export default function ReputationStats() {
+  const { t } = useTranslation("landing");
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -16,14 +18,18 @@ export default function ReputationStats() {
             <img
               key={i}
               src={`https://randomuser.me/api/portraits/men/${i}.jpg`}
-              alt="User"
+              alt=""
               className="w-10 h-10 rounded-full border-2 border-border object-cover"
             />
           ))}
         </div>
         <p className="text-sm text-muted-foreground ">
-          <strong className="text-foreground ">2M+</strong> happy
-          customers
+          <Trans
+            t={t}
+            i18nKey="reputation.customers"
+            values={{ count: "2M+" }}
+            components={[<strong key="n" className="text-foreground" />]}
+          />
         </p>
       </div>
 
@@ -39,8 +45,12 @@ export default function ReputationStats() {
       <div className="flex items-center gap-2 text-sm text-muted-foreground ">
         <Bike className="w-5 h-5 text-primary " />
         <span>
-          <strong className="text-foreground ">18 min</strong> avg.
-          delivery
+          <Trans
+            t={t}
+            i18nKey="reputation.averageDelivery"
+            values={{ minutes: 18 }}
+            components={[<strong key="n" className="text-foreground" />]}
+          />
         </span>
       </div>
     </motion.div>

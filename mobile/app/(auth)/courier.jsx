@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,12 +25,14 @@ import { setToken } from "@/lib/secureToken";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
+// Keys rather than titles: module scope runs before a language is picked.
 const STEPS = [
-  { key: "account", title: "Your details", schema: courierAccountStep },
-  { key: "vehicle", title: "How you deliver", schema: courierVehicleStep },
+  { key: "account", titleKey: "courier:signup.stepAccount", schema: courierAccountStep },
+  { key: "vehicle", titleKey: "courier:signup.stepVehicle", schema: courierVehicleStep },
 ];
 
 export default function CourierSignup() {
+  const { t } = useTranslation(["courier", "auth", "common"]);
   const [index, setIndex] = useState(0);
   const [collected, setCollected] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -59,7 +62,7 @@ export default function CourierSignup() {
       }
       router.replace(homeForRole("courier"));
     } catch (error) {
-      toast.error("Could not submit your application", { description: errorMessage(error) });
+      toast.error(t("courier:signup.submitFailed"), { description: errorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -100,9 +103,10 @@ export default function CourierSignup() {
         </View>
         <View className="gap-1.5">
           <Text variant="overline" tone="muted">
-            Deliver with Chow · Step {index + 1} of {STEPS.length}
+            {t("auth:register.partnerCourier")} ·{" "}
+            {t("common:meta.stepOf", { current: index + 1, total: STEPS.length })}
           </Text>
-          <Text variant="h1">{step.title}</Text>
+          <Text variant="h1">{t(step.titleKey)}</Text>
         </View>
       </View>
 
@@ -112,18 +116,20 @@ export default function CourierSignup() {
       >
         {step.key === "account" ? (
           <>
-            {field("name", "Your name", { autoComplete: "name" })}
-            {field("email", "Email", {
+            {field("name", t("auth:fields.yourName"), { autoComplete: "name" })}
+            {field("email", t("auth:fields.email"), {
               autoCapitalize: "none",
               keyboardType: "email-address",
               autoComplete: "email",
             })}
-            {field("phoneNumber", "Phone number", { keyboardType: "phone-pad" })}
-            {field("password", "Password", {
+            {field("phoneNumber", t("auth:fields.phone"), { keyboardType: "phone-pad" })}
+            {field("password", t("auth:fields.password"), {
               secureTextEntry: true,
-              hint: "At least 6 characters",
+              hint: t("auth:fields.passwordHint", { count: 6 }),
             })}
-            {field("confirmPassword", "Confirm password", { secureTextEntry: true })}
+            {field("confirmPassword", t("auth:fields.confirmPassword"), {
+              secureTextEntry: true,
+            })}
           </>
         ) : (
           <>
@@ -136,16 +142,16 @@ export default function CourierSignup() {
                     variant="label-sm"
                     tone={formState.errors.vehicleType ? "destructive" : "muted"}
                   >
-                    What do you deliver on?
+                    {t("courier:profile.vehicleQuestion")}
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
-                    {VEHICLE_TYPES.map((entry) => (
+                    {VEHICLE_TYPES.map((value) => (
                       <Chip
-                        key={entry.value}
-                        label={entry.label}
-                        active={input.value === entry.value}
+                        key={value}
+                        label={t(`common:taxonomy.vehicle.${value}`)}
+                        active={input.value === value}
                         showCheck
-                        onPress={() => input.onChange(entry.value)}
+                        onPress={() => input.onChange(value)}
                       />
                     ))}
                   </View>
@@ -158,17 +164,20 @@ export default function CourierSignup() {
               )}
             />
 
-            {field("vehicleModel", "Model", { placeholder: "Optional" })}
-            {field("vehicleNumber", "Registration", { placeholder: "Optional" })}
+            {field("vehicleModel", t("courier:profile.vehicleModel"), {
+              placeholder: t("common:state.optional"),
+            })}
+            {field("vehicleNumber", t("courier:signup.registration"), {
+              placeholder: t("common:state.optional"),
+            })}
 
             <Inset tone="info" className="flex-row items-start gap-3 p-4">
               <View className="flex-1 gap-1">
                 <Text variant="caption" tone="info">
-                  What happens next
+                  {t("courier:signup.whatNext")}
                 </Text>
                 <Text variant="body-sm">
-                  You can start once we have verified your details. Licence and insurance documents
-                  are checked separately - your profile shows where that has got to.
+                  {t("courier:signup.whatNextBody")}
                 </Text>
               </View>
             </Inset>
@@ -179,7 +188,7 @@ export default function CourierSignup() {
       <DockedBar className="flex-row items-center gap-2.5">
         {index > 0 ? (
           <Button variant="outline" size="lg" onPress={() => setIndex((current) => current - 1)}>
-            Back
+            {t("common:actions.back")}
           </Button>
         ) : null}
         <Button
@@ -195,7 +204,9 @@ export default function CourierSignup() {
             submit(values);
           })}
         >
-          {index < STEPS.length - 1 ? "Continue" : "Apply to deliver"}
+          {index < STEPS.length - 1
+            ? t("common:actions.continue")
+            : t("courier:signup.applyToDeliver")}
         </Button>
       </DockedBar>
     </Screen>

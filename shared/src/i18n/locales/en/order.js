@@ -8,6 +8,29 @@
  */
 
 export default {
+  short: {
+    pending: "Awaiting confirmation",
+    confirmed: "Confirmed",
+    preparing: "Preparing",
+    ready: "Ready",
+    assigned: "Courier assigned",
+    picked_up: "Picked up",
+    in_transit: "On the way",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+    rejected: "Declined",
+  },
+  // Single-word forms for the six-column timeline; the status labels are
+  // written to be read aloud and will not fit a column on a phone.
+  timeline: {
+    received: "Placed",
+    confirmed: "Confirmed",
+    preparing: "Cooking",
+    assigned: "Courier",
+    on_the_way: "On the way",
+    delivered: "Delivered",
+  },
+
   status: {
     pending: {
       label: "Waiting for confirmation",
@@ -86,6 +109,7 @@ export default {
 
   courier: {
     fallbackName: "Your courier",
+    deliveringBy: "Delivering by {{vehicle}}",
     vehicle: {
       bike: "Bicycle",
       scooter: "Scooter",
@@ -126,6 +150,8 @@ export default {
   list: {
     title: "Your orders",
     subtitle: "Everything you have ordered, newest first.",
+    guestTitle: "Sign in to see your orders",
+    guestDescription: "Your order history lives with your account.",
     tabs: {
       active: "Active",
       past: "Past",
@@ -148,9 +174,55 @@ export default {
     },
   },
 
+  history: {
+    loading: "Loading your orders",
+    filterLabel: "Filter orders",
+    showAll: "Show all orders",
+    pagesLabel: "Order history pages",
+    pageOf: "Page {{current}} of {{total}}",
+    error: {
+      description: "This is a connection problem, not a problem with your orders.",
+    },
+    tabs: {
+      all: "All",
+      active: "Active",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+    },
+    empty: {
+      all: {
+        title: "No orders yet",
+        description: "Once you place your first order it will live here, ready to reorder.",
+      },
+      active: {
+        title: "Nothing in progress",
+        description: "You have no orders being prepared or on their way right now.",
+      },
+      delivered: {
+        title: "No delivered orders yet",
+        description: "Orders show up here once they have arrived.",
+      },
+      cancelled: {
+        title: "No cancelled orders",
+        description: "Nothing here - which is exactly how it should be.",
+      },
+    },
+  },
+
   detail: {
     title: "Order",
     itemsHeading: "Your order",
+    helpContact: "Reach us at {{email}}",
+    noLongerActive: "This order is no longer active.",
+    cancelled: "Order cancelled",
+    cancelFailed: "Could not cancel",
+    placeFailed: "Could not place your order",
+    restaurantLost: "We lost track of the restaurant",
+    restaurantLostHint: "Pull up your basket again and retry.",
+    confirmSoon: "{{name}} will confirm it in a moment.",
+    confirmSoonFallback: "The restaurant will confirm it in a moment.",
+    awaitingConfirmation: "Awaiting confirmation",
+    numbered: "Order #{{number}}",
     summaryHeading: "Payment summary",
     deliveryHeading: "Delivery",
     notesHeading: "Delivery instructions",
@@ -158,12 +230,24 @@ export default {
     placedAt: "Placed {{value}}",
     notFound: {
       title: "Order not found",
-      description: "This order does not exist, or it is not yours.",
+      description: "This order does not exist, or it belongs to a different account.",
     },
     error: {
       title: "We could not show this order",
       description: "Check your connection and try again.",
+      connection: "The connection dropped on the way. Your order is not affected.",
     },
+    noAddress: "No address recorded",
+    placed: "Your order was placed.",
+    placeFailedLong:
+      "We could not place your order. Nothing has been charged - please try again.",
+    cancelledSuccess: "Order cancelled",
+    cancelFailedShort: "Could not cancel the order",
+    noReasonRefund: "No reason was given. If you were charged, it will be refunded.",
+    cancelledByCustomerShort: "Cancelled by customer",
+    totalToPay: "Total to pay",
+    estimatedDelivery: "Estimated delivery",
+    youSave: "You save",
   },
 
   actions: {
@@ -182,10 +266,31 @@ export default {
     description:
       "The restaurant will be told straight away. You cannot undo this.",
     confirm: "Yes, cancel it",
-    dismiss: "Keep my order",
+    dismiss: "Keep it",
+    reasonHint: "Let the restaurant know why - it reaches their kitchen screen.",
+    reasonPlaceholder: "Tell them why",
+    reasons: {
+      changedMind: "Changed my mind",
+      byMistake: "Ordered by mistake",
+      tooLong: "Taking too long",
+      other: "Something else",
+    },
     success: "Your order was cancelled.",
     tooLate:
       "This order has gone too far to cancel here - the restaurant can usually fix it fastest.",
+    longDescription:
+      "The restaurant will be told to stop preparing it. This cannot be undone - you would need to place a new order.",
+    cancelling: "Cancelling...",
+  },
+
+  support: {
+    getHelp: "Get help with this order",
+    shortTitle: "Support",
+    messageCourier: "Message your courier",
+    title: "Help with order #{{number}}",
+    description:
+      "Something wrong with this order? The restaurant can usually sort it out fastest while the order is still being prepared.",
+    callNamed: "Call {{name}}",
   },
 
   reorder: {
@@ -202,23 +307,65 @@ export default {
     courierHeading: "The delivery",
     commentLabel: "Anything you want to add?",
     commentPlaceholder: "Tell them what went well, or what did not.",
-    submit: "Submit rating",
+    foodPlaceholder: "How was the food? (optional)",
+    deliveryPlaceholder: "How was the delivery? (optional)",
+    submitting: "Submitting your review",
+    submit: "Submit review",
     skip: "Not now",
     success: "Thanks for the feedback.",
     alreadyRated: "You have already rated this order.",
+    scores: {
+      1: "Poor",
+      2: "Not great",
+      3: "Fine",
+      4: "Good",
+      5: "Excellent",
+    },
+    notGreat: "Not great",
+    tapToRate: "Tap to rate",
+    activeHeading: "Everything on its way to you",
+    pastHeading: "Delivered and cancelled orders",
+    emptyActive: "No active orders",
+    emptyPast: "No past orders",
+    emptyActiveHint: "When you order, you can follow it here from the kitchen to your door.",
+    emptyPastHint: "Delivered and cancelled orders show up here.",
+    thanks: "Thanks for the feedback",
+    submitFailed: "Could not submit your rating",
     stars_one: "{{count}} star",
     stars_other: "{{count}} stars",
+    submitted: "Thank you for your review.",
+    submitFailedShort: "Could not submit your review",
+    yourReview: "Your review",
+    howDidItGo: "How did it go?",
+    thanksHelps: "Thanks - this helps other people choose.",
+    helpsOthers:
+      "Your rating helps the restaurant and the courier, and helps others decide.",
   },
 
   confirmed: {
     title: "Order placed",
     subtitle: "{{name}} has your order and will confirm it in a moment.",
     trackAction: "Follow your order",
-    homeAction: "Back to browsing",
+    homeAction: "Keep browsing",
+    loading: "Loading your order",
+    heading: "Your order is on its way to the restaurant",
+    orderNumber: "Order number",
+    placed: "Placed",
+    payingBy: "Paying by",
+    payingByValue: "Paying by {{method, lowercase}}",
+    error: {
+      title: "We could not load your order",
+      description:
+        "Your order was placed - this page just could not fetch it. It is in your order history.",
+    },
+    confirmSoonLong:
+      "{{name}} will confirm it in the next few minutes. We will keep you posted.",
+    fallbackRestaurant: "The restaurant",
   },
 
   tracking: {
     title: "Tracking",
+    mapHeading: "Order map",
     mapUnavailable: "The map is unavailable right now.",
     courierHeading: "Your courier",
     courierPending: "A courier will be assigned once the food is ready.",
@@ -235,6 +382,8 @@ export default {
    * says where the order is now.
    */
   notification: {
+    preparingBody: "Your order is being prepared",
+    readyBody: "Your order is ready",
     order_placed: {
       title: "New order",
       body: "Order #{{number}} is waiting for you to confirm",
@@ -281,5 +430,15 @@ export default {
     },
     rejectedFallbackReason: "Declined by the restaurant",
     cancelledFallbackReason: "Cancelled by the restaurant",
+    noReason: "No reason provided",
+    rejectedWithReason: "Your order #{{number}} was declined: {{reason}}",
+    cancelledWithReason: "Your order #{{number}} was cancelled: {{reason}}",
+    cancelledByCustomer: "Order #{{number}} was cancelled by the customer",
+    readyForPickup: "Your order #{{number}} is ready for pickup",
+    newOrderValue: "Order #{{number}} - {{total}}",
+    channelOrders: "Order updates",
+    channelOrdersHint: "Confirmations, pickups and deliveries for orders in progress.",
+    channelPromotions: "Offers and news",
+    channelPromotionsHint: "Deals and new restaurants. Never order updates.",
   },
 };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ function navigateByRole(role, navigate) {
 }
 
 export default function GoogleAuthCallbackPage() {
+  const { t } = useTranslation(["auth", "common"]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { checkAuth } = useAuthStore();
@@ -28,7 +30,7 @@ export default function GoogleAuthCallbackPage() {
     const newUser = searchParams.get("newUser");
 
     if (error) {
-      toast.error("Google authentication failed. Please try again.");
+      toast.error(t("google.webFailed"));
       navigate("/", { replace: true });
       return;
     }

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  cancelAnimation,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -10,10 +12,11 @@ import Animated, {
 import * as Haptics from "expo-haptics";
 import { ChevronsRight } from "lucide-react-native";
 import { Text } from "@/components/ui/Text";
+import { gesture as gestureTokens, useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 const THUMB = 56;
-const COMPLETE_AT = 0.75;
+const COMPLETE_AT = gestureTokens.completeRatio;
 
 /**
  * A slider rather than a button, for the steps that cannot be undone.
@@ -30,15 +33,19 @@ const COMPLETE_AT = 0.75;
  * usable control instead of a slider stuck at 100% with nothing to show for it.
  */
 export function SwipeToConfirm({ label, onConfirm, disabled, busy }) {
+  const { t } = useTranslation(["courier", "common"]);
   const { color, elevation, scheme } = useTokens();
+  const motion = useMotion();
   const [width, setWidth] = useState(0);
 
   const offset = useSharedValue(0);
   const travel = Math.max(0, width - THUMB - 8);
+  const settle = { ...motion.spring.snappy };
 
   const reset = useCallback(() => {
-    offset.value = withSpring(0);
-  }, [offset]);
+    cancelAnimation(offset);
+    offset.value = withSpring(0, motion.spring.snappy);
+  }, [motion, offset]);
 
   const finish = useCallback(async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -53,25 +60,35 @@ export function SwipeToConfirm({ label, onConfirm, disabled, busy }) {
   // component instance carries it. Without this the second leg would open with
   // the thumb already at the far end.
   useEffect(() => {
-    offset.value = withSpring(0);
-  }, [label, offset]);
+    cancelAnimation(offset);
+    offset.value = withSpring(0, motion.spring.snappy);
+  }, [label, motion, offset]);
 
   const pan = Gesture.Pan()
     .enabled(!disabled && !busy && travel > 0)
+    // Catching the thumb mid-spring hands it straight back to the finger
+    // rather than letting the two fight over the same value.
+    .onBegin(() => {
+      cancelAnimation(offset);
+    })
     .onChange((event) => {
       offset.value = Math.min(travel, Math.max(0, offset.value + event.changeX));
     })
-    .onEnd(() => {
+    .onEnd((event) => {
       if (offset.value >= travel * COMPLETE_AT) {
-        offset.value = withSpring(travel);
+        offset.value = withSpring(travel, { ...settle, velocity: event.velocityX });
         runOnJS(finish)();
       } else {
-        offset.value = withSpring(0);
+        offset.value = withSpring(0, { ...settle, velocity: event.velocityX });
       }
     });
 
   const thumbStyle = useAnimatedStyle(() => ({ transform: [{ translateX: offset.value }] }));
-  const fillStyle = useAnimatedStyle(() => ({ width: offset.value + THUMB }));
+  // scaleX rather than width: a width change relays out the track on every
+  // frame of the drag, where a transform never leaves the compositor.
+  const fillStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: width > 0 ? (offset.value + THUMB) / width : 0 }],
+  }));
   // The label fades as the thumb passes over it rather than being covered.
   const labelStyle = useAnimatedStyle(() => ({
     opacity: travel > 0 ? 1 - Math.min(1, offset.value / (travel * 0.7)) : 1,
@@ -92,7 +109,7 @@ export function SwipeToConfirm({ label, onConfirm, disabled, busy }) {
       }`}
       accessibilityRole="adjustable"
       accessibilityLabel={label}
-      accessibilityHint="Swipe right to confirm"
+      accessibilityHint={t("delivery.swipeHint")}
       // Swiping a thumb across a track is not something a screen reader can
       // drive, so assistive tech gets the same action as a direct call.
       accessibilityActions={[{ name: "increment" }, { name: "activate" }]}
@@ -100,7 +117,10 @@ export function SwipeToConfirm({ label, onConfirm, disabled, busy }) {
         if (!disabled && !busy) finish();
       }}
     >
-      <Animated.View style={fillStyle} className="absolute left-0 top-0 h-full bg-primary-subtle" />
+      <Animated.View
+        style={[fillStyle, { transformOrigin: "left" }]}
+        className="absolute left-0 top-0 h-full w-full bg-primary-subtle"
+      />
 
       <Animated.View style={labelStyle}>
         <Text variant="label" tone="primary" className="text-center">

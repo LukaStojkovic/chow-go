@@ -1,6 +1,7 @@
 import { cancelOrder as cancelOrderApi } from "@/services/apiOrder";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { t } from "@chowgo/shared/i18n";
 
 export function useCancelOrder() {
   const queryClient = useQueryClient();
@@ -10,10 +11,10 @@ export function useCancelOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customerOrders"] });
       queryClient.invalidateQueries({ queryKey: ["order"] });
-      toast.success("Order cancelled successfully");
+      toast.success(t("order:detail.cancelledSuccess"));
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to cancel order");
+      toast.error(error?.response?.data?.message || t("order:detail.cancelFailedShort"));
     },
   });
 

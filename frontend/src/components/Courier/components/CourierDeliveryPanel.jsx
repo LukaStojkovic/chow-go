@@ -1,34 +1,39 @@
 import Spinner from "@/components/Spinner";
+import { useTranslation } from "react-i18next";
 import useMarkAsDeliveredOrder from "@/hooks/Courier/useMarkAsDeliveredOrder";
 import useMarkAsPickedUpOrder from "@/hooks/Courier/useMarkAsPickedUpOrder";
 import useMarkAsInTransitOrder from "@/hooks/Courier/useMarkAsInTransitOrder";
 import { CheckCircle, MapPin, Navigation, Phone } from "lucide-react";
 
+// Keys rather than copy: this table is built at module scope, before a
+// language exists, and a resolved string would freeze in whichever one loaded
+// first.
 const STATUS_CONFIG = {
   assigned: {
-    label: "Heading to restaurant",
+    labelKey: "delivery.headingToRestaurant",
     color: "text-warning ",
     bg: "bg-warning-subtle ",
-    nextAction: "Picked Up",
+    nextActionKey: "delivery.markPickedUp",
     nextIcon: CheckCircle,
   },
   picked_up: {
-    label: "Order picked up",
+    labelKey: "delivery.pickedUp",
     color: "text-primary ",
     bg: "bg-primary-subtle ",
-    nextAction: "Start Delivery",
+    nextActionKey: "delivery.markInTransit",
     nextIcon: Navigation,
   },
   in_transit: {
-    label: "On the way to customer",
+    labelKey: "delivery.onTheWayToCustomer",
     color: "text-primary ",
     bg: "bg-primary-subtle ",
-    nextAction: "Mark Delivered",
+    nextActionKey: "delivery.markDelivered",
     nextIcon: CheckCircle,
   },
 };
 
 export function CourierDeliveryPanel({ order, onDelivered }) {
+  const { t } = useTranslation(["courier", "common"]);
   const { markPickedUpOrder, isMarkingPickedUp } = useMarkAsPickedUpOrder();
   const { markInTransitOrder, isMarkingInTransit } = useMarkAsInTransitOrder();
   const { markDeliveredOrder, isMarkingDelivered } = useMarkAsDeliveredOrder();
@@ -47,10 +52,10 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
 
   const restaurantAddress = order.restaurant?.address
     ? `${order.restaurant.address.street}, ${order.restaurant.address.city}`
-    : "Address unavailable";
+    : t("delivery.addressUnavailable");
 
   const deliveryAddress =
-    order.deliveryAddressSnapshot?.fullAddress ?? "Address unavailable";
+    order.deliveryAddressSnapshot?.fullAddress ?? t("delivery.addressUnavailable");
 
   const shortNum =
     order.orderNumber?.split("-").pop() ?? order.orderNumber ?? "N/A";
@@ -61,7 +66,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
         <span
           className={`text-xs font-bold uppercase tracking-wide ${config.color}`}
         >
-          {config.label}
+          {t(config.labelKey)}
         </span>
       </div>
 
@@ -72,7 +77,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
               {order.restaurant?.name ?? "Restaurant"}
             </p>
             <p className="text-sm text-muted-foreground ">
-              Order #{shortNum}
+              {t("order:detail.numbered", { number: shortNum })}
             </p>
           </div>
           <span className="shrink-0 text-lg font-bold text-primary ">
@@ -101,7 +106,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
             className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary "
           >
             <Phone className="h-4 w-4" />
-            Call customer
+            {t("delivery.callCustomer")}
           </a>
         )}
 
@@ -116,7 +121,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
           ) : (
             <>
               <NextIcon className="h-5 w-5" />
-              {config.nextAction}
+              {t(config.nextActionKey)}
             </>
           )}
         </button>

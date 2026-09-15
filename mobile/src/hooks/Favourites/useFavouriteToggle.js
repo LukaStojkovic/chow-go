@@ -2,6 +2,8 @@ import { useCallback } from "react";
 import { router } from "expo-router";
 import { useFavourites, useToggleFavourite } from "./useFavourites";
 import { useAuthStore } from "@/store/useAuthStore";
+import { t } from "@chowgo/shared/i18n";
+
 import { toast } from "@/store/useToastStore";
 
 /**
@@ -20,7 +22,7 @@ export function useFavouriteToggle() {
   const toggleFavourite = useCallback(
     (restaurantId) => {
       if (!authUser) {
-        toast.info("Sign in to save favourites");
+        toast.info(t("auth:guard.signInToFavourite"));
         router.push("/(auth)/login");
         return;
       }

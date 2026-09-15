@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 export function OrdersPagination({ pagination, currentPage, onPageChange }) {
+  const { t } = useTranslation(["seller", "common"]);
   if (pagination.totalPages <= 1) {
     return null;
   }
@@ -22,7 +24,7 @@ export function OrdersPagination({ pagination, currentPage, onPageChange }) {
           onClick={() => onPageChange(currentPage - 1)}
           disabled={!pagination.hasPrev}
         >
-          Previous
+          {t("common:a11y.previous")}
         </Button>
         <div className="flex items-center gap-2 px-3">
           <span className="text-sm text-muted-foreground">
@@ -35,7 +37,7 @@ export function OrdersPagination({ pagination, currentPage, onPageChange }) {
           onClick={() => onPageChange(currentPage + 1)}
           disabled={!pagination.hasNext}
         >
-          Next
+          {t("common:a11y.next")}
         </Button>
       </div>
     </div>

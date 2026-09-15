@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock, MapPin } from "lucide-react";
 import Spinner from "@/components/Spinner";
 import { CourierOrderDetailSheet } from "./CourierOrderDetailSheet";
 
 export function CourierOrderCard({ order, onAccept, isAccepting }) {
+  const { t } = useTranslation(["courier", "common"]);
   const [showDetails, setShowDetails] = useState(false);
 
   const distanceKm = order.deliveryDistance
@@ -12,10 +14,10 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
 
   const restaurantAddress = order.restaurant?.address
     ? `${order.restaurant.address.street}, ${order.restaurant.address.city}`
-    : "Address unavailable";
+    : t("delivery.addressUnavailable");
 
   const deliveryAddress =
-    order.deliveryAddressSnapshot?.fullAddress ?? "Address unavailable";
+    order.deliveryAddressSnapshot?.fullAddress ?? t("delivery.addressUnavailable");
 
   return (
     <>
@@ -54,7 +56,7 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="min-w-0">
               <p className="font-medium text-foreground ">
-                Customer dropoff
+                {t("delivery.dropoff")}
               </p>
               <p className="truncate text-sm text-muted-foreground ">
                 {deliveryAddress}
@@ -74,14 +76,14 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
             onClick={() => setShowDetails(true)}
             className="flex-1 rounded-xl border border-border bg-muted py-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted "
           >
-            Details
+            {t("orders.details")}
           </button>
           <button
             onClick={() => onAccept(order._id)}
             disabled={isAccepting}
             className="flex flex-2 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-lg  transition hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isAccepting ? <Spinner /> : "Accept Delivery"}
+            {isAccepting ? <Spinner /> : t("orders.acceptDelivery")}
           </button>
         </div>
       </div>

@@ -5,6 +5,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "../ui/button";
+import { useTranslation } from "react-i18next";
 import { Menu, Moon, Sun } from "lucide-react";
 import MobileSidebarContent from "./MobileSidebarContent";
 
@@ -18,6 +19,7 @@ export default function MobileNav({
   onSignup,
   onLogout,
 }) {
+  const { t } = useTranslation("common");
   return (
     <div className="flex items-center gap-2 md:hidden">
       <Button
@@ -40,10 +42,10 @@ export default function MobileNav({
           side="right"
           className="w-full max-w-sm bg-card/95 border-l border-border/50 p-0 backdrop-blur-xl"
         >
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetTitle className="sr-only">{t("nav.openMenu")}</SheetTitle>
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border/50 ">
-              <h2 className="text-lg sm:text-xl font-bold">Menu</h2>
+              <h2 className="text-lg sm:text-xl font-bold">{t("nav.menu")}</h2>
             </div>
 
             <div className="flex-1 px-4 sm:px-6 py-6 sm:py-8 space-y-6 overflow-y-auto">

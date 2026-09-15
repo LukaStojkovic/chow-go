@@ -8,6 +8,7 @@
  */
 
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -21,6 +22,7 @@ import { BasketPanel } from "@/components/basket/BasketPanel";
  * key press to jump past it to the content.
  */
 function SkipLink() {
+  const { t } = useTranslation("common");
   return (
     <a
       href="#main"
@@ -29,7 +31,7 @@ function SkipLink() {
         "fixed top-3 left-3 z-50 rounded-sm px-4 py-2 text-label font-semibold shadow-overlay",
       )}
     >
-      Skip to content
+      {t("nav.skipToContent")}
     </a>
   );
 }

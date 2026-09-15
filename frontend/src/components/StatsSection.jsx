@@ -7,20 +7,25 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Bike, ShoppingBag, Star, Users } from "lucide-react";
 
 import { listItem, staggerContainer } from "@/lib/motion";
 
+// Labels are keys: this array is module scope, so a resolved word would be
+// frozen in whichever language loaded first.
 const STATS = [
-  { value: "4.9", suffix: "/5", label: "App rating", icon: Star },
-  { value: "2M+", suffix: "", label: "Active customers", icon: Users },
-  { value: "50K+", suffix: "", label: "Orders every day", icon: ShoppingBag },
-  { value: "18", suffix: " min", label: "Average delivery", icon: Bike },
+  { value: "4.9", suffix: "/5", labelKey: "stats.rating", icon: Star },
+  { value: "2M+", suffix: "", labelKey: "stats.customers", icon: Users },
+  { value: "50K+", suffix: "", labelKey: "stats.ordersDaily", icon: ShoppingBag },
+  { value: "18", suffix: " min", labelKey: "stats.averageDelivery", icon: Bike },
 ];
 
 export default function StatsSection() {
+  const { t } = useTranslation("landing");
+
   return (
-    <section aria-label="Chow and Go by the numbers" className="border-border border-y bg-card py-12">
+    <section aria-label={t("stats.sectionLabel")} className="border-border border-y bg-card py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.ul
           variants={staggerContainer}
@@ -29,9 +34,9 @@ export default function StatsSection() {
           viewport={{ once: true, margin: "-80px" }}
           className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6"
         >
-          {STATS.map(({ value, suffix, label, icon: Icon }) => (
+          {STATS.map(({ value, suffix, labelKey, icon: Icon }) => (
             <motion.li
-              key={label}
+              key={labelKey}
               variants={listItem}
               className="bg-muted flex flex-col items-center justify-center rounded-md p-6 text-center"
             >
@@ -40,7 +45,7 @@ export default function StatsSection() {
                 {value}
                 <span className="text-primary text-h1">{suffix}</span>
               </p>
-              <p className="text-body-sm text-muted-foreground mt-1">{label}</p>
+              <p className="text-body-sm text-muted-foreground mt-1">{t(labelKey)}</p>
             </motion.li>
           ))}
         </motion.ul>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Controller } from "react-hook-form";
 import { FormField } from "@/components/BecomeCourier/components/FormField";
@@ -8,6 +9,7 @@ import {
 } from "@/components/BecomeCourier/config/courierFormConfig";
 
 export const DocumentsPaymentStep = ({ control, errors }) => {
+  const { t } = useTranslation(["courier", "common"]);
   return (
     <motion.div
       key="step-3"
@@ -17,7 +19,7 @@ export const DocumentsPaymentStep = ({ control, errors }) => {
       className="space-y-4 max-h-96 overflow-y-auto"
     >
       <h3 className="font-semibold text-foreground ">
-        Documents & Payment
+        {t("signup.steps.documents")}
       </h3>
 
       {Object.entries(STEP_3_DOCUMENTS).map(([docType, docConfig]) => (
@@ -35,10 +37,13 @@ export const DocumentsPaymentStep = ({ control, errors }) => {
   );
 };
 
-const DocumentSection = ({ docType, docConfig, control, errors }) => (
+const DocumentSection = ({ docType, docConfig, control, errors }) => {
+  const { t } = useTranslation(["courier", "common"]);
+
+  return (
   <div className="rounded-lg border border-border p-4 ">
     <h4 className="mb-3 text-sm font-medium text-muted-foreground ">
-      {docConfig.title}
+      {t(docConfig.title)}
     </h4>
     <div className="space-y-3">
       {Object.entries(docConfig.fields).map(([fieldType, fieldConfig]) => (
@@ -48,13 +53,15 @@ const DocumentSection = ({ docType, docConfig, control, errors }) => (
           control={control}
           render={({ field }) => (
             <FormField
-              label={fieldConfig.label}
+              label={t(fieldConfig.label)}
               error={errors.documents?.[docType]?.[fieldType]?.message}
             >
               <input
                 {...field}
                 type={fieldConfig.type}
-                placeholder={fieldConfig.placeholder}
+                placeholder={t(fieldConfig.placeholder, {
+                  defaultValue: fieldConfig.placeholder,
+                })}
                 className="w-full rounded-lg border border-border bg-card/50 px-4 py-2.5 text-foreground outline-none transition focus:border-primary focus:ring-1 focus:ring-ring "
               />
             </FormField>
@@ -63,12 +70,16 @@ const DocumentSection = ({ docType, docConfig, control, errors }) => (
       ))}
     </div>
   </div>
-);
+  );
+};
 
-const PaymentMethodSection = ({ control }) => (
+const PaymentMethodSection = ({ control }) => {
+  const { t } = useTranslation(["courier", "common"]);
+
+  return (
   <div className="rounded-lg border border-primary bg-primary-subtle p-4 ">
     <h4 className="mb-3 text-sm font-medium text-muted-foreground ">
-      {PAYMENT_METHOD.label}
+      {t(PAYMENT_METHOD.label)}
     </h4>
     <Controller
       name={PAYMENT_METHOD.name}
@@ -88,10 +99,11 @@ const PaymentMethodSection = ({ control }) => (
             htmlFor="cod"
             className="cursor-pointer text-sm text-muted-foreground "
           >
-            {PAYMENT_METHOD.subLabel}
+            {t(PAYMENT_METHOD.subLabel)}
           </label>
         </div>
       )}
     />
   </div>
-);
+  );
+};

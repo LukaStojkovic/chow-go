@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ export function CourierOrderDetailSheet({
   onAccept,
   isAccepting,
 }) {
+  const { t } = useTranslation(["courier", "common"]);
   const restaurantCoords = toLatLng(order.restaurant?.location?.coordinates);
   const deliveryCoords = toLatLng(
     order.deliveryAddressSnapshot?.location?.coordinates,
@@ -79,7 +81,7 @@ export function CourierOrderDetailSheet({
           <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0">
             <div className="flex items-center gap-2">
               <DialogTitle className="text-base font-semibold">
-                Order #{shortNum}
+                {t("order:detail.numbered", { number: shortNum })}
               </DialogTitle>
               {distanceKm && (
                 <Badge variant="secondary" className="text-xs font-normal">
@@ -135,7 +137,7 @@ export function CourierOrderDetailSheet({
                 <Spinner />
               ) : (
                 <>
-                  Accept delivery
+                  {t("orders.accept")}
                   <Badge className="bg-primary/40 hover:bg-primary/40 text-primary-foreground border-0 font-medium">
                     +${earnings.toFixed(2)}
                   </Badge>

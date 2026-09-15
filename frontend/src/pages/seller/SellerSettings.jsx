@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,6 +37,7 @@ import {
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 
 export const SellerSettings = () => {
+  const { t } = useTranslation(["seller", "auth", "profile", "restaurant", "common"]);
   const { authUser, apiUpdateRestaurant, isUpdatingProfile } = useAuthStore();
   const restaurant = authUser?.restaurant?.[0] || {};
   const fileInputRef = useRef(null);
@@ -66,12 +68,12 @@ export const SellerSettings = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
 
-    if (!file) return toast.error("No file selected");
+    if (!file) return toast.error(t("settings.noFileSelected"));
     if (file.size > 10 * 1024 * 1024)
-      return toast.error("Max file size is 10MB");
+      return toast.error(t("settings.maxFileSize", { size: 10 }));
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
-      return toast.error("Only JPG, PNG, WEBP allowed");
+      return toast.error(t("settings.allowedTypes"));
 
     setPreviewImage(URL.createObjectURL(file));
 
@@ -146,7 +148,7 @@ export const SellerSettings = () => {
       };
     });
 
-    toast.success("Applied to every day of the week");
+    toast.success(t("settings.appliedToEveryDay"));
   };
 
   const displayImage =
@@ -167,7 +169,7 @@ export const SellerSettings = () => {
               <Avatar className="size-24">
                 <AvatarImage
                   src={displayImage}
-                  alt="Restaurant Logo"
+                  alt={t("settings.profile.logo")}
                   className="w-full h-full object-cover"
                 />
                 <AvatarFallback>
@@ -194,7 +196,7 @@ export const SellerSettings = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUpdatingProfile}
-                aria-label="Change restaurant logo"
+                aria-label={t("settings.profile.changeLogo")}
                 className="absolute bottom-0 right-0 size-8 rounded-full ring-2 ring-card"
               >
                 <Camera className="w-4 h-4" />
@@ -221,15 +223,15 @@ export const SellerSettings = () => {
 
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold">General Information</h3>
+          <h3 className="text-lg font-semibold">{t("settings.profile.heading")}</h3>
           <CardDescription className="text-sm text-muted-foreground">
-            Changes are saved automatically as you type
+            {t("settings.autosaveHint")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Restaurant Name</Label>
+              <Label htmlFor="name">{t("settings.profile.name")}</Label>
               <div className="relative">
                 <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -237,13 +239,13 @@ export const SellerSettings = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Enter restaurant name"
+                  placeholder={t("auth:restaurant.namePlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t("settings.profile.phone")}</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -251,24 +253,24 @@ export const SellerSettings = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Enter phone number"
+                  placeholder={t("auth:restaurant.phonePlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("settings.profile.description")}</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Tell customers about your restaurant..."
+                placeholder={t("settings.profile.descriptionPlaceholder")}
                 className="min-h-[100px] max-h-[200px]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Contact email</Label>
+              <Label htmlFor="email">{t("settings.profile.email")}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -284,7 +286,7 @@ export const SellerSettings = () => {
 
             <div className="space-y-2">
               <Label htmlFor="estimatedDeliveryTime">
-                Estimated Delivery Time
+                {t("settings.delivery.estimate")}
               </Label>
               <div className="relative">
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -292,7 +294,7 @@ export const SellerSettings = () => {
                   id="estimatedDeliveryTime"
                   value={formData.estimatedDeliveryTime}
                   onChange={handleInputChange}
-                  placeholder="e.g., 30-45 min"
+                  placeholder={t("settings.delivery.estimatePlaceholder")}
                   className="pl-10"
                 />
               </div>
@@ -303,12 +305,12 @@ export const SellerSettings = () => {
 
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold">Address</h3>
+          <h3 className="text-lg font-semibold">{t("settings.location.heading")}</h3>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="street">Street</Label>
+              <Label htmlFor="street">{t("settings.location.address")}</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -316,48 +318,48 @@ export const SellerSettings = () => {
                   value={formData.street}
                   onChange={handleInputChange}
                   className="pl-10"
-                  placeholder="Street address"
+                  placeholder={t("auth:restaurant.addressPlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
+              <Label htmlFor="city">{t("settings.location.city")}</Label>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={handleInputChange}
-                placeholder="City"
+                placeholder={t("auth:restaurant.cityPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">State/Region</Label>
+              <Label htmlFor="state">{t("settings.location.state")}</Label>
               <Input
                 id="state"
                 value={formData.state}
                 onChange={handleInputChange}
-                placeholder="State or region"
+                placeholder={t("auth:restaurant.statePlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zipCode">Zip Code</Label>
+              <Label htmlFor="zipCode">{t("settings.location.zip")}</Label>
               <Input
                 id="zipCode"
                 value={formData.zipCode}
                 onChange={handleInputChange}
-                placeholder="Zip code"
+                placeholder={t("auth:restaurant.zipPlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country">{t("settings.location.country")}</Label>
               <Input
                 id="country"
                 value={formData.country}
                 onChange={handleInputChange}
-                placeholder="Country"
+                placeholder={t("settings.location.country")}
               />
             </div>
           </div>
@@ -368,9 +370,9 @@ export const SellerSettings = () => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-lg font-semibold">Operating Hours</h3>
+              <h3 className="text-lg font-semibold">{t("settings.hours.heading")}</h3>
               <CardDescription className="text-sm text-muted-foreground mt-1">
-                Set hours for each day, or switch a day off to close it entirely
+                {t("settings.hours.hint")}
               </CardDescription>
             </div>
             <Button
@@ -381,13 +383,13 @@ export const SellerSettings = () => {
               className="shrink-0"
             >
               <CopyPlus className="w-4 h-4 mr-2" />
-              Copy Monday to all
+              {t("settings.hours.copyMonday")}
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-border">
-            {WEEK_DAYS.map(({ key, label }) => {
+            {WEEK_DAYS.map(({ key }) => {
               const day = formData.schedule[key];
               const isToday = key === todayKey;
 
@@ -408,10 +410,12 @@ export const SellerSettings = () => {
                       htmlFor={`schedule-${key}`}
                       className="flex items-center gap-2 cursor-pointer"
                     >
-                      <span className="font-medium">{label}</span>
+                      <span className="font-medium">
+                        {t(`common:taxonomy.day.${key}.label`)}
+                      </span>
                       {isToday && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-primary-subtle text-primary ">
-                          Today
+                          {t("restaurant:hours.today")}
                         </span>
                       )}
                     </Label>
@@ -422,7 +426,7 @@ export const SellerSettings = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">
-                            Opens
+                            {t("settings.hours.opensAt")}
                           </Label>
                           <TimePicker
                             value={day.openingTime}
@@ -433,7 +437,7 @@ export const SellerSettings = () => {
                         </div>
                         <div className="space-y-1.5">
                           <Label className="text-xs text-muted-foreground">
-                            Closes
+                            {t("settings.hours.closesAt")}
                           </Label>
                           <TimePicker
                             value={day.closingTime}
@@ -447,21 +451,21 @@ export const SellerSettings = () => {
                       {day.openingTime === day.closingTime && (
                         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Clock className="w-3.5 h-3.5" />
-                          Open 24 hours
+                          {t("settings.hours.openAllDay")}
                         </p>
                       )}
 
                       {isOvernight(day) && (
                         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <MoonStar className="w-3.5 h-3.5" />
-                          Closes after midnight, the next morning
+                          {t("settings.hours.overnightHint")}
                         </p>
                       )}
                     </div>
                   ) : (
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground">
-                        Closed all day — customers cannot order.
+                        {t("settings.hours.closedHint")}
                       </p>
                     </div>
                   )}
@@ -474,10 +478,9 @@ export const SellerSettings = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account</CardTitle>
+          <CardTitle>{t("profile:sections.account")}</CardTitle>
           <CardDescription>
-            Deleting your account takes your restaurant offline. Past orders stay
-            on record for your customers and couriers.
+            {t("settings.deleteAccountHint")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -486,7 +489,7 @@ export const SellerSettings = () => {
             className="text-muted-foreground hover:text-destructive px-0"
             onClick={() => setShowDeleteAccount(true)}
           >
-            Delete my account
+            {t("profile:deleteAccount.confirm")}
           </Button>
         </CardContent>
       </Card>

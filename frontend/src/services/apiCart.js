@@ -1,10 +1,11 @@
 import { axiosInstance } from "@/lib/axios";
+import { t } from "@chowgo/shared/i18n";
 
 const handleApiError = (err) => {
   if (err.response?.data?.message) {
     throw new Error(err.response.data.message);
   }
-  throw new Error("Something went wrong");
+  throw new Error(t("common:error.generic"));
 };
 
 export async function getCart() {

@@ -8,6 +8,7 @@
  */
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 import { CardSkeleton } from "@/components/skeletons/CardSkeleton";
 import { OrdersTableSkeleton } from "@/components/skeletons/OrdersTableSkeleton";
 import {
@@ -21,8 +22,9 @@ import {
 } from "@/components/skeletons/primitives";
 
 export function SellerDashboardSkeleton() {
+  const { t } = useTranslation("seller");
   return (
-    <SkeletonScreen label="Loading dashboard" className="space-y-8">
+    <SkeletonScreen label={t("skeleton.dashboard")} className="space-y-8">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <StatCardSkeleton key={i} />
@@ -60,8 +62,9 @@ export function SellerDashboardSkeleton() {
 }
 
 export function SellerOrdersSkeleton() {
+  const { t } = useTranslation("seller");
   return (
-    <SkeletonScreen label="Loading orders" className="space-y-6">
+    <SkeletonScreen label={t("skeleton.orders")} className="space-y-6">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-6 w-20 rounded-full" />
@@ -83,8 +86,9 @@ export function SellerOrdersSkeleton() {
 }
 
 export function SellerMenuSkeleton() {
+  const { t } = useTranslation("seller");
   return (
-    <SkeletonScreen label="Loading menu" className="space-y-8 pb-10">
+    <SkeletonScreen label={t("skeleton.menu")} className="space-y-8 pb-10">
       <div className="bg-card space-y-4 rounded-2xl border border-border p-6 shadow-sm">
         <Skeleton className="h-10 w-full rounded-md" />
         <div className="flex flex-wrap gap-3">
@@ -108,8 +112,9 @@ export function SellerMenuSkeleton() {
 }
 
 export function SellerAnalyticsSkeleton() {
+  const { t } = useTranslation("seller");
   return (
-    <SkeletonScreen label="Loading analytics" className="space-y-6">
+    <SkeletonScreen label={t("skeleton.analytics")} className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <StatCardSkeleton key={i} showTrend={false} />
@@ -148,8 +153,9 @@ export function SellerAnalyticsSkeleton() {
 }
 
 export function SellerSettingsSkeleton() {
+  const { t } = useTranslation("seller");
   return (
-    <SkeletonScreen label="Loading settings" className="space-y-6">
+    <SkeletonScreen label={t("skeleton.settings")} className="space-y-6">
       <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
           <Skeleton className="size-24 shrink-0 rounded-full" />

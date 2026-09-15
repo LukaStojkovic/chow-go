@@ -1,43 +1,45 @@
 import { DollarSign, ShoppingBag, TrendingUp, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { KpiCard } from "./KpiCard";
 
 export const KpiGrid = ({ kpis }) => {
+  const { t } = useTranslation("seller");
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <KpiCard
         icon={DollarSign}
-        label="Today's Revenue"
+        label={t("analytics.todayRevenue")}
         value={`$${kpis.todayRevenue.toFixed(2)}`}
         sub={`${kpis.todayOrders} orders`}
         color="bg-primary"
-        tooltip="Revenue collected since midnight."
+        tooltip={t("analytics.revenueToday")}
       />
 
       <KpiCard
         icon={ShoppingBag}
-        label="Monthly Revenue"
+        label={t("analytics.monthlyRevenue")}
         value={`$${kpis.monthlyRevenue.toFixed(2)}`}
-        sub="Last 30 days"
+        sub={t("analytics.range.month")}
         color="bg-primary"
-        tooltip="Revenue from the past 30 days."
+        tooltip={t("analytics.revenue30Days")}
       />
 
       <KpiCard
         icon={TrendingUp}
-        label="Avg Order Value"
+        label={t("analytics.averageOrderValue")}
         value={`$${(kpis.avgOrderValue || 0).toFixed(2)}`}
-        sub="Today"
+        sub={t("dashboard.stats.today")}
         color="bg-warning"
-        tooltip="Average amount spent per order today."
+        tooltip={t("analytics.averageOrderToday")}
       />
 
       <KpiCard
         icon={Star}
-        label="Rating"
+        label={t("dashboard.stats.rating")}
         value={kpis.averageRating?.toFixed(1) || "—"}
         sub={`${kpis.totalReviews} reviews`}
         color="bg-destructive"
-        tooltip="Average customer rating out of 5."
+        tooltip={t("analytics.averageRatingHint")}
       />
     </div>
   );

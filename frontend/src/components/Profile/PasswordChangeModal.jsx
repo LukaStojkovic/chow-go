@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Lock, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,26 +7,31 @@ import { z } from "zod";
 import { useAuthStore } from "@/store/useAuthStore";
 import Modal from "@/components/Modal";
 import { toast } from "sonner";
+import { msg } from "@chowgo/shared/i18n/fieldErrors";
+
 import PasswordField from "./PasswordField";
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Current password is required"),
+    currentPassword: z
+      .string()
+      .min(1, msg("validation:auth.currentPasswordRequired")),
     newPassword: z
       .string()
-      .min(6, "New password must be at least 6 characters"),
+      .min(6, msg("validation:auth.passwordMin", { count: 6 })),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: msg("validation:auth.passwordsMismatch"),
     path: ["confirmPassword"],
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
-    message: "New password must be different from current password",
+    message: msg("validation:auth.passwordSameAsCurrent"),
     path: ["newPassword"],
   });
 
 export default function PasswordChangeModal({ isOpen, onClose }) {
+  const { t } = useTranslation(["profile", "common"]);
   const { apiUpdateProfile, isUpdatingProfile } = useAuthStore();
 
   const {
@@ -52,7 +58,7 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
 
       handleClose();
     } catch (err) {
-      toast.error(err?.data.message || "Failed to change password");
+      toast.error(err?.data.message || t("account.passwordChangeFailed"));
     }
   };
 
@@ -71,8 +77,8 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Change Password"
-      description="Create a strong new password for your account"
+      title={t("account.changePassword")}
+      description={t("account.changePasswordHint")}
       size="md"
       footer={
         <div className="flex gap-3 w-full">
@@ -81,7 +87,7 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
             disabled={isUpdatingProfile}
             className="flex-1 py-2.5 px-4 bg-muted rounded-lg font-medium hover:bg-secondary transition disabled:opacity-50"
           >
-            Cancel
+            {t("common:actions.cancel")}
           </button>
           <button
             type="submit"
@@ -92,10 +98,10 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
             {isUpdatingProfile ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Updating...
+                {t("common:state.updating")}
               </>
             ) : (
-              "Update Password"
+              t("account.updatePassword")
             )}
           </button>
         </div>
@@ -107,7 +113,7 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
         className="space-y-5"
       >
         <PasswordField
-          label="Current Password"
+          label={t("account.currentPassword")}
           name="currentPassword"
           show={showCurrent}
           setShow={setShowCurrent}
@@ -118,25 +124,25 @@ export default function PasswordChangeModal({ isOpen, onClose }) {
 
         <div>
           <PasswordField
-            label="New Password"
+            label={t("account.newPassword")}
             name="newPassword"
             show={showNew}
             setShow={setShowNew}
-            placeholder="Enter new password"
+            placeholder={t("account.newPasswordPlaceholder")}
             register={register}
             errors={errors}
           />
           <p className="mt-1 text-xs text-muted-foreground ">
-            At least 6 characters
+            {t("account.passwordMinHint", { count: 6 })}
           </p>
         </div>
 
         <PasswordField
-          label="Confirm New Password"
+          label={t("account.confirmPassword")}
           name="confirmPassword"
           show={showConfirm}
           setShow={setShowConfirm}
-          placeholder="Confirm new password"
+          placeholder={t("account.confirmPasswordPlaceholder")}
           register={register}
           errors={errors}
         />

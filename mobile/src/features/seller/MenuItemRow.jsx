@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { ChevronRight, EyeOff } from "lucide-react-native";
 import { isPromotionLive, resolvePromotion } from "@chowgo/shared/promotion";
@@ -10,6 +11,7 @@ import { useTokens } from "@/theme/useTokens";
 // Seller screens read raw documents, unlike every customer-facing read which
 // arrives already decorated, so the promotion is resolved here.
 export function SellerMenuItemRow({ item, onPress }) {
+  const { t } = useTranslation(["seller", "common"]);
   const promo = resolvePromotion(item.price, item.promotion);
   const live = isPromotionLive(item.promotion);
   const unavailable = item.available === false;
@@ -57,7 +59,7 @@ export function SellerMenuItemRow({ item, onPress }) {
       <View className="items-end gap-1.5">
         {unavailable ? (
           <Badge tone="neutral" size="sm" icon={EyeOff}>
-            Hidden
+            {t("menu.unavailable")}
           </Badge>
         ) : null}
         {live ? (

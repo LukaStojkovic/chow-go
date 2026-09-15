@@ -1,13 +1,16 @@
-import { Pressable, View } from "react-native";
-import { FadeInDown, FadeOutDown } from "react-native-reanimated";
+import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, usePathname, useSegments } from "expo-router";
 import { ArrowRight, ShoppingBag } from "lucide-react-native";
 import { formatPrice } from "@chowgo/shared/format";
+import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
+import { PressableScale } from "@/components/motion/Pressable";
 import { FloatingBar } from "@/components/ui/FloatingBar";
 import { Text } from "@/components/ui/Text";
 import { tabBarHeight } from "@/navigation/tabBar";
 import { useCartStore } from "@/store/useCartStore";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -19,10 +22,12 @@ import { useTokens } from "@/theme/useTokens";
  * bottom of a screen.
  */
 export function BasketMiniBar() {
+  const { t } = useTranslation(["basket", "common"]);
   const { items, totalPrice, restaurant } = useCartStore();
   const pathname = usePathname();
   const segments = useSegments();
   const insets = useSafeAreaInsets();
+  const motion = useMotion();
   const { color } = useTokens();
 
   const count = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
@@ -40,27 +45,30 @@ export function BasketMiniBar() {
     <FloatingBar
       tone="dark"
       bottomOffset={overTabs ? tabBarHeight(insets) : 0}
-      entering={FadeInDown.duration(250)}
-      exiting={FadeOutDown.duration(150)}
+      entering={motion.enter.bottom()}
+      exiting={motion.exit.bottom()}
     >
-      <Pressable
+      <PressableScale
         accessibilityRole="button"
-        accessibilityLabel={`View basket, ${count} items, ${formatPrice(totalPrice)}`}
+        haptic="light"
+        scale={motion.press.card}
+        accessibilityLabel={t("openWithCount", {
+          items: t("itemCount", { count }),
+          total: formatPrice(totalPrice),
+        })}
         onPress={() => router.push("/(customer)/basket")}
-        className="flex-1 flex-row items-center gap-3 active:opacity-80"
+        className="flex-1 flex-row items-center gap-3"
       >
         <View className="h-11 w-11 items-center justify-center rounded-full bg-white/10">
           <ShoppingBag size={19} color={color.background} />
           <View className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full bg-primary-bright px-1">
-            <Text variant="caption" className="text-primary-foreground">
-              {count}
-            </Text>
+            <AnimatedCounter value={count} className="text-primary-foreground" />
           </View>
         </View>
 
         <View className="flex-1">
           <Text variant="label" className="text-background" numberOfLines={1}>
-            {restaurant?.name ?? "Your basket"}
+            {restaurant?.name ?? t("basket:title")}
           </Text>
           <Text variant="caption" className="text-background opacity-70">
             {count} {count === 1 ? "item" : "items"} · {formatPrice(totalPrice)}
@@ -69,11 +77,11 @@ export function BasketMiniBar() {
 
         <View className="flex-row items-center gap-1.5 rounded-full bg-primary px-4 py-2.5">
           <Text variant="label" tone="inverse">
-            View basket
+            {t("open")}
           </Text>
           <ArrowRight size={15} strokeWidth={2.6} color={color["primary-foreground"]} />
         </View>
-      </Pressable>
+      </PressableScale>
     </FloatingBar>
   );
 }

@@ -1,9 +1,12 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { Heart, Star } from "lucide-react-native";
 import { formatDistance, formatFee, formatRating } from "@chowgo/shared/format";
+import { PressableScale } from "@/components/motion/Pressable";
 import { Text } from "@/components/ui/Text";
 import { cn } from "@/lib/cn";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -20,7 +23,9 @@ import { useTokens } from "@/theme/useTokens";
  * than rendering empty separators.
  */
 export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavourite, className }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const { color } = useTokens();
+  const motion = useMotion();
   const closed = restaurant.availability !== "open";
 
   const meta = [restaurant.cuisine, formatDistance(restaurant.distance)]
@@ -31,11 +36,13 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
     .join(" · ");
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={restaurant.name}
       onPress={onPress}
-      className={cn("gap-3 active:opacity-70", className)}
+      haptic="selection"
+      scale={motion.press.card}
+      className={cn("gap-3", className)}
     >
       <View className="aspect-[16/10] overflow-hidden rounded-lg bg-muted">
         {restaurant.coverImage ? (
@@ -51,7 +58,11 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
         {onToggleFavourite ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={isFavourite ? "Remove from favourites" : "Save to favourites"}
+            accessibilityLabel={
+              isFavourite
+                ? t("restaurant:favourites.removeShort")
+                : t("restaurant:favourites.saveShort")
+            }
             onPress={onToggleFavourite}
             hitSlop={12}
             className="absolute right-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-black/35 active:opacity-70"
@@ -101,6 +112,6 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
           {delivery}
         </Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

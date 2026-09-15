@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { User, Store, Bike, ArrowLeft, ChevronRight } from "lucide-react";
 import Spinner from "@/components/Spinner";
@@ -10,26 +11,16 @@ import { VehicleInfoStep } from "@/components/BecomeCourier/components/VehicleIn
 import { DocumentsPaymentStep } from "@/components/BecomeCourier/components/DocumentsPaymentStep";
 import { useGoogleRoleForm } from "../hooks/useGoogleRoleForm";
 
+// Keys, not copy: module scope runs before a language is chosen.
 const ROLES = [
-  {
-    id: "customer",
-    label: "Customer",
-    icon: User,
-    description: "Order food from local restaurants",
-  },
-  {
-    id: "seller",
-    label: "Restaurant Owner",
-    icon: Store,
-    description: "Manage your restaurant and orders",
-  },
-  {
-    id: "courier",
-    label: "Courier",
-    icon: Bike,
-    description: "Deliver orders and earn money",
-  },
-];
+  { id: "customer", icon: User },
+  { id: "seller", icon: Store },
+  { id: "courier", icon: Bike },
+].map((role) => ({
+  ...role,
+  labelKey: `auth:roles.${role.id === "seller" ? "seller" : role.id}`,
+  descriptionKey: `auth:roles.${role.id === "seller" ? "seller" : role.id}Description`,
+}));
 
 function StepProgress({ steps, stepIndex }) {
   return (
@@ -50,15 +41,16 @@ function StepProgress({ steps, stepIndex }) {
 }
 
 function CourierPhoneField({ register, errors }) {
+  const { t } = useTranslation(["auth", "common"]);
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-foreground ">
-        Contact Information
+        {t("google.stepContact")}
       </h3>
       <InputField
         register={register("phoneNumber")}
         type="tel"
-        placeholder="Phone number"
+        placeholder={t("fields.phone")}
         error={errors.phoneNumber}
       />
     </div>
@@ -66,6 +58,7 @@ function CourierPhoneField({ register, errors }) {
 }
 
 export function GoogleRoleSelection() {
+  const { t } = useTranslation(["auth", "common"]);
   const {
     role,
     setRole,
@@ -86,8 +79,8 @@ export function GoogleRoleSelection() {
     handleContinueFromRole,
   } = useGoogleRoleForm();
 
-  const stepTitle = steps[stepIndex]?.title ?? "Complete your profile";
-  const submitLabel = isLastStep ? "Create Account" : "Continue";
+  const stepTitle = steps[stepIndex]?.title ?? t("google.completeProfile");
+  const submitLabel = isLastStep ? t("register.submit") : "Continue";
 
   return (
     <div className="min-h-screen bg-muted dark:bg-[#09090B] flex flex-col items-center justify-center p-4">
@@ -113,7 +106,7 @@ export function GoogleRoleSelection() {
             className="flex items-center gap-1 cursor-pointer text-sm text-muted-foreground hover:text-primary mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back
+            {t("common:actions.back")}
           </button>
         )}
 
@@ -123,8 +116,8 @@ export function GoogleRoleSelection() {
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
             {currentStep === "role"
-              ? "How would you like to use Chow & Go?"
-              : "Fill in the details below to finish setting up your account"}
+              ? t("google.roleQuestion")
+              : t("google.roleHint")}
           </p>
         </div>
 
@@ -165,10 +158,10 @@ export function GoogleRoleSelection() {
                       </div>
                       <div>
                         <p className="font-semibold text-foreground ">
-                          {r.label}
+                          {t(r.labelKey)}
                         </p>
                         <p className="text-sm text-muted-foreground ">
-                          {r.description}
+                          {t(r.descriptionKey)}
                         </p>
                       </div>
                     </button>
@@ -187,7 +180,7 @@ export function GoogleRoleSelection() {
                 <InputField
                   register={register("phoneNumber")}
                   type="tel"
-                  placeholder="Phone number"
+                  placeholder={t("fields.phone")}
                   error={errors.phoneNumber}
                 />
               </motion.div>
@@ -272,7 +265,7 @@ export function GoogleRoleSelection() {
             {isRegistering ? (
               <>
                 <Spinner size="sm" />
-                <span>Creating account...</span>
+                <span>{t("register.submitting")}</span>
               </>
             ) : (
               <>

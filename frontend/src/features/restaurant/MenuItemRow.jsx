@@ -20,6 +20,7 @@ import { SmartImage } from "@/components/common/SmartImage";
 import { PromoPrice } from "@/components/common/Meta";
 import { PromoBadge, SoldOutBadge } from "@/components/common/StatusBadges";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 /**
  * @param {Object} props
@@ -29,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * @param {number} [props.inBasketCount] Shown so a repeat add is obvious.
  */
 export function MenuItemRow({ dish, onSelect, isOrderingDisabled = false, inBasketCount = 0 }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const isDisabled = !dish.isAvailable || isOrderingDisabled;
 
   return (
@@ -38,9 +40,15 @@ export function MenuItemRow({ dish, onSelect, isOrderingDisabled = false, inBask
         onClick={() => onSelect(dish)}
         disabled={isDisabled}
         aria-label={`${dish.name}, ${formatPrice(dish.price)}${
-          dish.discountPercent > 0 ? `, ${dish.discountPercent}% off` : ""
+          dish.discountPercent > 0
+            ? `, ${t("common:units.percentOff", { value: dish.discountPercent })}`
+            : ""
         }. ${
-          !dish.isAvailable ? "Sold out." : isOrderingDisabled ? "Restaurant closed." : "Add to basket"
+          !dish.isAvailable
+            ? t("menu.soldOutShort")
+            : isOrderingDisabled
+              ? t("menu.closedShort")
+              : t("menu.addToBasket")
         }`}
         className={cn(
           "group border-border bg-card flex w-full items-start gap-3 rounded-md border p-3 text-left",

@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import {
   CircleAlert,
@@ -71,6 +72,7 @@ function InfoCard({ icon: Icon, title, children, action }) {
 }
 
 export default function OrderTrackingPage() {
+  const { t } = useTranslation(["order", "restaurant", "basket", "profile", "common"]);
   const { orderId } = useParams();
   const { order: raw, isLoadingOrder, error, refetch } = useGetOrderById(orderId);
   const { cancelOrder, isCancelling } = useCancelOrder();
@@ -101,7 +103,7 @@ export default function OrderTrackingPage() {
     return (
       <PageContainer width="reading" className="py-6">
         <span className="sr-only" role="status">
-          Loading your order
+          {t("confirmed.loading")}
         </span>
         <ContentShell
           main={
@@ -120,8 +122,8 @@ export default function OrderTrackingPage() {
     return (
       <PageContainer width="reading" className="py-10">
         <ErrorState
-          title="We could not load this order"
-          description="The connection dropped on the way. Your order is not affected."
+          title={t("detail.error.title")}
+          description={t("detail.error.connection")}
           onRetry={refetch}
         />
       </PageContainer>
@@ -135,11 +137,11 @@ export default function OrderTrackingPage() {
       <PageContainer width="reading" className="py-10">
         <EmptyState
           icon={Package}
-          title="Order not found"
-          description="This order does not exist, or it belongs to a different account."
+          title={t("detail.notFound.title")}
+          description={t("detail.notFound.description")}
           action={
             <Button asChild>
-              <Link to="/orders">View your orders</Link>
+              <Link to="/orders">{t("list.title")}</Link>
             </Button>
           }
         />
@@ -158,7 +160,9 @@ export default function OrderTrackingPage() {
               <Card padded className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h1 className="text-h1 tabular">Order #{order.number}</h1>
+                    <h1 className="text-h1 tabular">
+                      {t("detail.numbered", { number: order.number })}
+                    </h1>
                     <p className="text-body-sm text-muted-foreground mt-0.5">
                       Placed {formatOrderDate(order.placedAt)}
                     </p>
@@ -178,8 +182,7 @@ export default function OrderTrackingPage() {
                     <div>
                       <p className="text-label text-foreground">{order.statusLabel}</p>
                       <p className="text-body-sm text-muted-foreground mt-0.5">
-                        {order.cancellationReason ||
-                          "No reason was given. If you were charged, it will be refunded."}
+                        {order.cancellationReason || t("detail.noReasonRefund")}
                       </p>
                     </div>
                   </div>
@@ -193,13 +196,13 @@ export default function OrderTrackingPage() {
               {order.courier && (
                 <InfoCard
                   icon={Package}
-                  title="Your courier"
+                  title={t("tracking.courierHeading")}
                   action={
                     order.courier.phone ? (
                       <Button variant="outline" size="sm" asChild>
                         <a href={`tel:${order.courier.phone}`}>
                           <Phone aria-hidden="true" />
-                          Call
+                          {t("common:actions.call")}
                         </a>
                       </Button>
                     ) : null
@@ -214,8 +217,8 @@ export default function OrderTrackingPage() {
                           <RatingDisplay rating={order.courier.rating} showCount={false} />
                         )}
                         {order.courier.vehicle && (
-                          <span className="text-body-sm text-muted-foreground capitalize">
-                            {order.courier.vehicle}
+                          <span className="text-body-sm text-muted-foreground">
+                            {order.courier.vehicleLabel}
                           </span>
                         )}
                       </div>
@@ -227,11 +230,13 @@ export default function OrderTrackingPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <InfoCard
                   icon={Store}
-                  title="Restaurant"
+                  title={t("common:taxonomy.cuisine.fallback")}
                   action={
                     order.restaurant?.id ? (
                       <Button variant="link" size="sm" asChild>
-                        <Link to={`/restaurant/${order.restaurant.id}`}>View menu</Link>
+                        <Link to={`/restaurant/${order.restaurant.id}`}>
+                          {t("basket:viewMenu")}
+                        </Link>
                       </Button>
                     ) : null
                   }
@@ -254,9 +259,9 @@ export default function OrderTrackingPage() {
                   </div>
                 </InfoCard>
 
-                <InfoCard icon={MapPin} title="Delivering to">
+                <InfoCard icon={MapPin} title={t("profile:delivery.deliverTo")}>
                   <p className="text-body-sm text-muted-foreground">
-                    {order.deliveryAddress || "No address recorded"}
+                    {order.deliveryAddress || t("detail.noAddress")}
                   </p>
                   {order.deliveryNotes && (
                     <p className="text-caption text-muted-foreground italic">
@@ -267,7 +272,7 @@ export default function OrderTrackingPage() {
               </div>
 
               {order.notes && (
-                <InfoCard icon={LifeBuoy} title="Your instructions">
+                <InfoCard icon={LifeBuoy} title={t("detail.notesHeading")}>
                   <p className="text-body-sm text-muted-foreground">{order.notes}</p>
                 </InfoCard>
               )}
@@ -291,9 +296,14 @@ export default function OrderTrackingPage() {
                   </ul>
                 </div>
                 <div className="border-border border-t p-4">
-                  <FeeBreakdown pricing={order.pricing} totalLabel="Total" />
+                  <FeeBreakdown
+                    pricing={order.pricing}
+                    totalLabel={t("basket:summary.total")}
+                  />
                   <p className="text-caption text-muted-foreground mt-2">
-                    Paying by {order.paymentMethodLabel.toLowerCase()}
+                    {t("confirmed.payingByValue", {
+                      method: order.paymentMethodLabel,
+                    })}
                   </p>
                 </div>
               </Card>
@@ -304,44 +314,46 @@ export default function OrderTrackingPage() {
                     variant="outline"
                     block
                     isLoading={isReordering}
-                    loadingLabel="Adding to basket"
+                    loadingLabel={t("restaurant:reorder.adding")}
                     onClick={() => reorder(raw)}
                   >
                     <RotateCcw aria-hidden="true" />
-                    Order again
+                    {t("actions.reorder")}
                   </Button>
                 )}
 
                 <Button variant="ghost" block onClick={() => setShowSupport(true)}>
                   <LifeBuoy aria-hidden="true" />
-                  Get help with this order
+                  {t("support.getHelp")}
                 </Button>
 
                 {order.canCancel && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" block className="text-destructive hover:bg-destructive-subtle">
-                        Cancel order
+                        {t("actions.cancel")}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Cancel this order?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("cancel.title")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          The restaurant will be told to stop preparing it. This cannot be
-                          undone - you would need to place a new order.
+                          {t("cancel.longDescription")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Keep my order</AlertDialogCancel>
+                        <AlertDialogCancel>{t("cancel.dismiss")}</AlertDialogCancel>
                         <AlertDialogAction
                           disabled={isCancelling}
                           onClick={() =>
-                            cancelOrder({ orderId, reason: "Cancelled by customer" })
+                            cancelOrder({
+                              orderId,
+                              reason: t("detail.cancelledByCustomerShort"),
+                            })
                           }
                           className={cn(buttonVariants({ variant: "destructive" }))}
                         >
-                          {isCancelling ? "Cancelling..." : "Yes, cancel it"}
+                          {isCancelling ? t("cancel.cancelling") : t("cancel.confirm")}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -359,11 +371,10 @@ export default function OrderTrackingPage() {
       <AlertDialog open={showSupport} onOpenChange={setShowSupport}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Help with order #{order.number}</AlertDialogTitle>
-            <AlertDialogDescription>
-              Something wrong with this order? The restaurant can usually sort it out
-              fastest while the order is still being prepared.
-            </AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("support.title", { number: order.number })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("support.description")}</AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-2">
@@ -371,7 +382,7 @@ export default function OrderTrackingPage() {
               <Button variant="outline" block asChild>
                 <a href={`tel:${order.restaurant.phone}`}>
                   <Phone aria-hidden="true" />
-                  Call {order.restaurant.name}
+                  {t("support.callNamed", { name: order.restaurant.name })}
                 </a>
               </Button>
             )}
@@ -379,19 +390,19 @@ export default function OrderTrackingPage() {
               <Button variant="outline" block asChild>
                 <a href={`tel:${order.courier.phone}`}>
                   <Phone aria-hidden="true" />
-                  Call {order.courier.name}
+                  {t("support.callNamed", { name: order.courier.name })}
                 </a>
               </Button>
             )}
             <Button variant="outline" block asChild>
               <a href={`mailto:support@chowandgo.example?subject=Order%20%23${order.number}`}>
-                Email support
+                {t("profile:support.emailSupport")}
               </a>
             </Button>
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogCancel>{t("common:actions.close")}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

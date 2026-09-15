@@ -1,4 +1,5 @@
 import { FlatList, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ArrowRight, Plus, ShoppingBag } from "lucide-react-native";
@@ -36,18 +37,19 @@ function FeeRow({ label, value, tone = "muted", strong = false }) {
 }
 
 export default function Basket() {
+  const { t } = useTranslation(["basket", "restaurant", "common"]);
   const { items, totalPrice, restaurant, updateItemQuantity, removeItem } = useCartStore();
   const { color } = useTokens();
 
   if (items.length === 0) {
     return (
       <Screen>
-        <ScreenHeader title="Your basket" />
+        <ScreenHeader title={t("basket:title")} />
         <EmptyState
           icon={ShoppingBag}
-          title="Your basket is empty"
-          description="Add something from a restaurant near you and it will show up here."
-          actionLabel="Browse restaurants"
+          title={t("basket:empty.title")}
+          description={t("basket:empty.description")}
+          actionLabel={t("basket:empty.action")}
           onAction={() => router.replace("/(customer)/(tabs)")}
         />
       </Screen>
@@ -61,7 +63,7 @@ export default function Basket() {
 
   return (
     <Screen edges={["top", "bottom"]}>
-      <ScreenHeader title="Your basket" subtitle={restaurant?.name} />
+      <ScreenHeader title={t("basket:title")} subtitle={restaurant?.name} />
 
       <FlatList
         data={items}
@@ -73,7 +75,7 @@ export default function Basket() {
             <Card className="gap-3">
               <View className="flex-row items-center gap-3">
                 <View className="flex-1">
-                  <Text variant="h3">Estimated delivery</Text>
+                  <Text variant="h3">{t("order:eta.label")}</Text>
                   <Text variant="body-sm" tone="muted">
                     {restaurant?.estimatedDeliveryTime ?? "30-45 min"}
                   </Text>
@@ -87,7 +89,7 @@ export default function Basket() {
                   <View className="flex-row items-center gap-3">
                     <View className="flex-1">
                       <Text variant="caption" tone="muted">
-                        Ordering from
+                        {t("basket:orderingFrom")}
                       </Text>
                       <Text variant="h3" numberOfLines={1}>
                         {restaurant.name}
@@ -96,7 +98,7 @@ export default function Basket() {
                     <IconButton
                       icon={Plus}
                       variant="mint"
-                      label="Add more items"
+                      label={t("basket:addMore")}
                       onPress={() =>
                         router.push(`/(customer)/restaurant/${restaurant._id ?? restaurant.id}`)
                       }
@@ -107,7 +109,7 @@ export default function Basket() {
             </Card>
 
             <View className="flex-row items-center justify-between pt-1">
-              <Text variant="h1">Items</Text>
+              <Text variant="h1">{t("seller:orders.table.items")}</Text>
               <Text variant="label-sm" tone="muted">
                 {count} {count === 1 ? "item" : "items"}
               </Text>
@@ -149,7 +151,7 @@ export default function Basket() {
 
               <View className="flex-row items-center justify-between">
                 <Text variant="label-sm" tone="muted">
-                  Quantity
+                  {t("basket:line.quantity")}
                 </Text>
                 <Stepper
                   value={item.quantity}
@@ -164,15 +166,15 @@ export default function Basket() {
         ListFooterComponent={
           <Card className="mt-2">
             <Text variant="h3" className="mb-2">
-              Price breakdown
+              {t("basket:summary.title")}
             </Text>
-            <FeeRow label="Subtotal" value={breakdown.subtotal} />
-            <FeeRow label="Delivery" value={breakdown.deliveryFee} />
-            <FeeRow label="Service" value={breakdown.serviceFee} />
+            <FeeRow label={t("basket:summary.subtotal")} value={breakdown.subtotal} />
+            <FeeRow label={t("basket:summary.deliveryFee")} value={breakdown.deliveryFee} />
+            <FeeRow label={t("basket:summary.serviceFee")} value={breakdown.serviceFee} />
             <Divider className="my-2" />
-            <FeeRow label="Total" value={breakdown.total} strong />
+            <FeeRow label={t("basket:summary.total")} value={breakdown.total} strong />
             <Text variant="caption" tone="muted">
-              Tip and any priority fee are added at checkout.
+              {t("basket:summary.extrasAtCheckout")}
             </Text>
           </Card>
         }
@@ -182,7 +184,7 @@ export default function Basket() {
         <Button size="lg" fullWidth onPress={() => router.push("/(customer)/checkout")}>
           <View className="flex-row items-center gap-2">
             <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              Go to checkout
+              {t("basket:goToCheckout")}
             </Text>
             <Text
               variant="body-lg"

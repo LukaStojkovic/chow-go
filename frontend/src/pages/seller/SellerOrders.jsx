@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import {
   Table,
   TableBody,
@@ -33,6 +34,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useSocket } from "@/contexts/SocketContext";
 
 export const SellerOrders = () => {
+  const { t } = useTranslation(["seller", "common"]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
   const [currentPage, setCurrentPage] = useState(1);
@@ -156,9 +158,9 @@ export const SellerOrders = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">No Restaurant Found</h2>
+          <h2 className="text-xl font-bold mb-2">{t("noRestaurant.title")}</h2>
           <p className="text-muted-foreground">
-            Please create a restaurant first to manage orders.
+            {t("noRestaurant.description")}
           </p>
         </div>
       </div>
@@ -169,49 +171,47 @@ export const SellerOrders = () => {
     <>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Orders</h1>
+          <h1 className="text-2xl font-bold">{t("orders.title")}</h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge variant={isConnected ? "success" : "destructive"}>
                 {isConnected ? (
                   <>
                     <Wifi className="w-3 h-3 mr-1" />
-                    Live
+                    {t("common:state.live")}
                   </>
                 ) : (
                   <>
                     <WifiOff className="w-3 h-3 mr-1" />
-                    Offline
+                    {t("common:state.offline")}
                   </>
                 )}
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
-              {isConnected
-                ? "Connected – orders update in real time"
-                : "Disconnected – you may not see new orders until you refresh"}
+              {isConnected ? t("orders.liveHint") : t("orders.offlineHint")}
             </TooltipContent>
           </Tooltip>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
           <OrderStatsCard
-            label="Active Orders"
+            label={t("dashboard.stats.activeOrders")}
             value={counts.active}
             isLoading={isLoadingOrders}
           />
           <OrderStatsCard
-            label="Pending"
+            label={t("dashboard.stats.pending")}
             value={counts.pending}
             isLoading={isLoadingOrders}
           />
           <OrderStatsCard
-            label="Preparing"
+            label={t("dashboard.stats.preparing")}
             value={counts.preparing}
             isLoading={isLoadingOrders}
           />
           <OrderStatsCard
-            label="Delivered Today"
+            label={t("dashboard.stats.deliveredToday")}
             value={counts.delivered}
             isLoading={isLoadingOrders}
           />
@@ -243,12 +243,12 @@ export const SellerOrders = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t("orders.table.id")}</TableHead>
+                      <TableHead>{t("orders.table.customer")}</TableHead>
+                      <TableHead>{t("orders.table.items")}</TableHead>
+                      <TableHead>{t("orders.table.status")}</TableHead>
+                      <TableHead>{t("orders.table.total")}</TableHead>
+                      <TableHead className="text-right">{t("orders.table.actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

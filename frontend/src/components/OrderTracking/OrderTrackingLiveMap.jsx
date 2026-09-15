@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { Bike, MapPin, UtensilsCrossed } from "lucide-react";
 import { lazyNamed } from "@/lib/lazyNamed";
 import { useOrderCourierLocation } from "@/hooks/Map/useOrderCourierLocation";
@@ -13,6 +14,7 @@ const NavigationMap = lazyNamed(
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
 export function OrderTrackingLiveMap({ orderId, order }) {
+  const { t } = useTranslation(["order", "courier", "common"]);
   const showLive = Boolean(order.courier) && LIVE_STATUSES.includes(order.status);
 
   const restaurantCoords = toLatLng(order.restaurant?.location?.coordinates);
@@ -38,8 +40,8 @@ export function OrderTrackingLiveMap({ orderId, order }) {
   if (!hasAnyCoords && !showLive) return null;
 
   const liveLabel = headingToRestaurant
-    ? "Heading to the restaurant"
-    : "On the way to you";
+    ? t("courier:delivery.headingToRestaurantShort")
+    : t("order:status.in_transit.label");
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm ">
@@ -58,13 +60,13 @@ export function OrderTrackingLiveMap({ orderId, order }) {
                 />
               </div>
               <h3 className="truncate font-bold text-foreground ">
-                {isStale ? "Last known position" : liveLabel}
+                {isStale ? t("courier:delivery.lastKnownPosition") : liveLabel}
               </h3>
             </>
           ) : (
             <>
               <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <h3 className="font-bold text-foreground ">Order map</h3>
+              <h3 className="font-bold text-foreground ">{t("tracking.mapHeading")}</h3>
             </>
           )}
         </div>
@@ -95,19 +97,19 @@ export function OrderTrackingLiveMap({ orderId, order }) {
         {restaurantCoords && (
           <span className="flex items-center gap-1.5">
             <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
-            Restaurant
+            {t("common:taxonomy.cuisine.fallback")}
           </span>
         )}
         {showLive && (
           <span className="flex items-center gap-1.5">
             <Bike className="h-3.5 w-3.5 text-primary" />
-            {order.courier?.fullName ?? "Courier"}
+            {order.courier?.fullName ?? t("courier.fallbackName")}
           </span>
         )}
         {deliveryCoords && (
           <span className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-destructive" />
-            Drop-off
+            {t("courier:delivery.dropoff")}
           </span>
         )}
       </div>

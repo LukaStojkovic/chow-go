@@ -19,6 +19,7 @@ import common from "./common.js";
 import courier from "./courier.js";
 import discover from "./discover.js";
 import errors from "./errors.js";
+import landing from "./landing.js";
 import order from "./order.js";
 import profile from "./profile.js";
 import restaurant from "./restaurant.js";
@@ -32,6 +33,7 @@ export default {
   courier,
   discover,
   errors,
+  landing,
   order,
   profile,
   restaurant,

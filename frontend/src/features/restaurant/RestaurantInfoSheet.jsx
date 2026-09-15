@@ -9,6 +9,7 @@
  */
 
 import { Clock, MapPin, Phone } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { ResponsiveSheet } from "@/components/basket/ResponsiveSheet";
@@ -16,14 +17,19 @@ import { AvailabilityBadge } from "@/components/common/StatusBadges";
 import { formatFee } from "@chowgo/shared/format";
 
 /**
+ * Takes `t` rather than closing over one: this runs at module scope, where no
+ * language exists yet.
+ *
  * @param {import("@chowgo/shared/adapters/types").DayScheduleView} day
+ * @param {(key: string, options?: Object) => string} t
  * @returns {string}
  */
-function describeHours(day) {
-  if (!day.isOpen) return "Closed";
-  if (day.opens === day.closes) return "Open 24 hours";
-  if (day.closes < day.opens) return `${day.opens} - ${day.closes} (next day)`;
-  return `${day.opens} - ${day.closes}`;
+function describeHours(day, t) {
+  if (!day.isOpen) return t("hours.closed");
+  if (day.opens === day.closes) return t("hours.allDay");
+
+  const range = t("hours.range", { from: day.opens, to: day.closes });
+  return day.closes < day.opens ? `${range} (${t("hours.overnight")})` : range;
 }
 
 /**
@@ -33,19 +39,20 @@ function describeHours(day) {
  * @param {import("@chowgo/shared/adapters/types").RestaurantView} props.restaurant
  */
 export function RestaurantInfoSheet({ open, onClose, restaurant }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   return (
     <ResponsiveSheet
       open={open}
       onOpenChange={(next) => !next && onClose()}
-      title={`${restaurant.name} - hours and information`}
-      description="Opening hours, address and delivery details."
+      title={t("info.sheetTitle", { name: restaurant.name })}
+      description={t("info.sheetDescription")}
     >
       <div className="space-y-6 p-4 sm:p-5">
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-h3 flex items-center gap-2">
               <Clock className="text-muted-foreground size-4" aria-hidden="true" />
-              Opening hours
+              {t("hours.heading")}
             </h3>
             <AvailabilityBadge availability={restaurant.availability} />
           </div>
@@ -75,29 +82,33 @@ export function RestaurantInfoSheet({ open, onClose, restaurant }) {
                       day.isOpen ? "text-foreground" : "text-muted-foreground",
                     )}
                   >
-                    {describeHours(day)}
+                    {describeHours(day, t)}
                   </dd>
                 </div>
               ))}
             </dl>
           ) : (
             <p className="text-body-sm text-muted-foreground">
-              This restaurant has not published its opening hours.
+              {t("hours.unpublished")}
             </p>
           )}
         </section>
 
         <section className="space-y-2">
-          <h3 className="text-h3">Delivery</h3>
+          <h3 className="text-h3">{t("info.delivery")}</h3>
           <dl className="space-y-1.5">
             <div className="flex justify-between gap-4">
-              <dt className="text-body-sm text-muted-foreground">Estimated time</dt>
+              <dt className="text-body-sm text-muted-foreground">
+                {t("info.deliveryEstimate")}
+              </dt>
               <dd className="text-body-sm text-foreground tabular">
                 {restaurant.deliveryEstimate}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-body-sm text-muted-foreground">Delivery fee</dt>
+              <dt className="text-body-sm text-muted-foreground">
+                {t("info.deliveryFee")}
+              </dt>
               <dd className="text-body-sm text-foreground tabular">
                 {formatFee(restaurant.deliveryFee)}
               </dd>
@@ -111,7 +122,7 @@ export function RestaurantInfoSheet({ open, onClose, restaurant }) {
           <section className="space-y-2">
             <h3 className="text-h3 flex items-center gap-2">
               <MapPin className="text-muted-foreground size-4" aria-hidden="true" />
-              Address
+              {t("info.address")}
             </h3>
             <address className="text-body-sm text-muted-foreground not-italic">
               {restaurant.address.oneLine}
@@ -123,7 +134,7 @@ export function RestaurantInfoSheet({ open, onClose, restaurant }) {
           <section className="space-y-2">
             <h3 className="text-h3 flex items-center gap-2">
               <Phone className="text-muted-foreground size-4" aria-hidden="true" />
-              Contact
+              {t("info.phone")}
             </h3>
             <a
               href={`tel:${restaurant.phone}`}

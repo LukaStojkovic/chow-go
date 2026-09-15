@@ -5,6 +5,8 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { cuisineOptions } from "@chowgo/shared/constants";
+import { translateFieldError } from "@chowgo/shared/i18n/fieldErrors";
+
 import { errorMessage } from "@/api/client";
 import { CheckCircle2 } from "lucide-react-native";
 import { Badge } from "@/components/ui/Badge";
@@ -22,11 +24,12 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { toast } from "@/store/useToastStore";
 
+// Keys rather than titles: module scope runs before a language is picked.
 const STEPS = [
-  { key: "account", title: "Your account", schema: accountStep },
-  { key: "restaurant", title: "Your restaurant", schema: restaurantStep },
-  { key: "location", title: "Where you are", schema: locationStep },
-  { key: "images", title: "Photos", schema: null },
+  { key: "account", titleKey: "restaurant.stepAccount", schema: accountStep },
+  { key: "restaurant", titleKey: "restaurant.stepRestaurant", schema: restaurantStep },
+  { key: "location", titleKey: "restaurant.stepLocation", schema: locationStep },
+  { key: "images", titleKey: "restaurant.stepPhotos", schema: null },
 ];
 
 function Progress({ index }) {
@@ -47,7 +50,7 @@ function Progress({ index }) {
 }
 
 export default function SellerSignup() {
-  const { t, i18n } = useTranslation(["auth", "common"]);
+  const { t, i18n } = useTranslation(["auth", "seller", "validation", "common"]);
   const cuisines = useMemo(() => cuisineOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [index, setIndex] = useState(0);
@@ -86,7 +89,7 @@ export default function SellerSignup() {
   // would leave orphaned accounts behind on every failure.
   async function submit() {
     if (!images.length) {
-      toast.warning("Add at least one photo of your restaurant");
+      toast.warning(t("register.restaurantPhotoRequired"));
       return;
     }
 
@@ -105,7 +108,7 @@ export default function SellerSignup() {
       }
       router.replace("/(seller)");
     } catch (error) {
-      toast.error("Could not create your restaurant", { description: errorMessage(error) });
+      toast.error(t("register.restaurantCreateFailed"), { description: errorMessage(error) });
     } finally {
       setSubmitting(false);
     }
@@ -139,9 +142,10 @@ export default function SellerSignup() {
         <Progress index={index} />
         <View className="gap-1.5">
           <Text variant="overline" tone="muted">
-            List your restaurant · Step {index + 1} of {STEPS.length}
+            {t("restaurant.listYourRestaurant")} ·{" "}
+            {t("common:meta.stepOf", { current: index + 1, total: STEPS.length })}
           </Text>
-          <Text variant="h1">{step.title}</Text>
+          <Text variant="h1">{t(step.titleKey)}</Text>
         </View>
       </View>
 
@@ -151,24 +155,24 @@ export default function SellerSignup() {
       >
         {step.key === "account" ? (
           <>
-            {field("name", "Your name", { autoComplete: "name" })}
-            {field("email", "Email", {
+            {field("name", t("fields.yourName"), { autoComplete: "name" })}
+            {field("email", t("fields.email"), {
               autoCapitalize: "none",
               keyboardType: "email-address",
               autoComplete: "email",
             })}
-            {field("phoneNumber", "Phone number", { keyboardType: "phone-pad" })}
-            {field("password", "Password", {
+            {field("phoneNumber", t("fields.phone"), { keyboardType: "phone-pad" })}
+            {field("password", t("fields.password"), {
               secureTextEntry: true,
-              hint: "At least 6 characters",
+              hint: t("fields.passwordHint", { count: 6 }),
             })}
-            {field("confirmPassword", "Confirm password", { secureTextEntry: true })}
+            {field("confirmPassword", t("fields.confirmPassword"), { secureTextEntry: true })}
           </>
         ) : null}
 
         {step.key === "restaurant" ? (
           <>
-            {field("restaurantName", "Restaurant name")}
+            {field("restaurantName", t("restaurant.namePlaceholder"))}
             <Controller
               control={control}
               name="cuisineType"
@@ -178,7 +182,7 @@ export default function SellerSignup() {
                     variant="label-sm"
                     tone={formState.errors.cuisineType ? "destructive" : "muted"}
                   >
-                    Cuisine
+                    {t("restaurant.cuisineLabel")}
                   </Text>
                   <View className="flex-row flex-wrap gap-2">
                     {cuisines.map(({ value, label }) => (
@@ -199,20 +203,22 @@ export default function SellerSignup() {
                 </View>
               )}
             />
-            {field("restaurantPhone", "Restaurant phone", { keyboardType: "phone-pad" })}
-            {field("restaurantDescription", "Description", {
+            {field("restaurantPhone", t("restaurant.phoneLabel"), {
+              keyboardType: "phone-pad",
+            })}
+            {field("restaurantDescription", t("seller:menu.form.descriptionLabel"), {
               multiline: true,
             })}
             <View className="flex-row gap-3">
               <View className="flex-1">
-                {field("openingTime", "Opens", { placeholder: "09:00" })}
+                {field("openingTime", t("restaurant.opens"), { placeholder: "09:00" })}
               </View>
               <View className="flex-1">
-                {field("closingTime", "Closes", { placeholder: "22:00" })}
+                {field("closingTime", t("restaurant.closes"), { placeholder: "22:00" })}
               </View>
             </View>
             <Text variant="caption" tone="muted">
-              These hours apply to every day at first — change them per day in settings later.
+              {t("restaurant.hoursHint")}
             </Text>
           </>
         ) : null}
@@ -220,16 +226,18 @@ export default function SellerSignup() {
         {step.key === "location" ? (
           <>
             <Button variant="mint" size="lg" loading={isDetecting} onPress={detect}>
-              Use my current location
+              {t("profile:delivery.useCurrent")}
             </Button>
             {coordinates ? (
               <Badge tone="mint" icon={CheckCircle2}>
-                {detectedAddress ? `Pinned: ${detectedAddress}` : "Location pinned"}
+                {detectedAddress
+                  ? t("restaurant.pinnedAt", { address: detectedAddress })
+                  : t("restaurant.locationPinned")}
               </Badge>
             ) : null}
-            {field("restaurantAddress", "Street address")}
-            {field("restaurantCity", "City")}
-            {field("restaurantZipCode", "Postcode")}
+            {field("restaurantAddress", t("seller:settings.location.address"))}
+            {field("restaurantCity", t("seller:settings.location.city"))}
+            {field("restaurantZipCode", t("seller:settings.location.zip"))}
             <Controller
               control={control}
               name="restaurantLat"
@@ -238,8 +246,8 @@ export default function SellerSignup() {
                   variant="caption"
                   tone={formState.errors.restaurantLat ? "destructive" : "muted"}
                 >
-                  {formState.errors.restaurantLat?.message ??
-                    "Your pin decides which customers can order from you."}
+                  {translateFieldError(formState.errors.restaurantLat, t) ??
+                    t("restaurant.pinHint")}
                 </Text>
               )}
             />
@@ -249,7 +257,7 @@ export default function SellerSignup() {
         {step.key === "images" ? (
           <>
             <Text variant="body" tone="muted">
-              Customers see the first photo on your restaurant card.
+              {t("restaurant.firstPhotoHint")}
             </Text>
             <MenuItemImages
               existing={[]}
@@ -264,13 +272,13 @@ export default function SellerSignup() {
       <DockedBar className="flex-row items-center gap-2.5">
         {index > 0 ? (
           <Button variant="outline" size="lg" onPress={() => setIndex((current) => current - 1)}>
-            Back
+            {t("common:actions.back")}
           </Button>
         ) : null}
 
         {step.key === "images" ? (
           <Button className="flex-1" size="lg" loading={submitting} onPress={submit}>
-            Create restaurant
+            {t("restaurant.create")}
           </Button>
         ) : (
           <Button
@@ -292,7 +300,7 @@ export default function SellerSignup() {
               next(values);
             })}
           >
-            Continue
+            {t("common:actions.continue")}
           </Button>
         )}
       </DockedBar>

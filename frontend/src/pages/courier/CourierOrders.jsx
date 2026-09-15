@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Navigation, Package } from "lucide-react";
@@ -13,6 +14,7 @@ import PaginationSelector from "@/components/ui/PaginationSelector";
 const HISTORY_LIMIT = 10;
 
 export function CourierOrders() {
+  const { t } = useTranslation(["courier", "order", "common"]);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("available");
   const [historyPage, setHistoryPage] = useState(1);
@@ -43,8 +45,8 @@ export function CourierOrders() {
   }
 
   const tabs = [
-    { id: "available", label: `Available (${totalAvailable})` },
-    { id: "history", label: "History" },
+    { id: "available", label: `${t("orders.available")} (${totalAvailable})` },
+    { id: "history", label: t("order:list.tabs.past") },
   ];
 
   return (
@@ -56,15 +58,16 @@ export function CourierOrders() {
         >
           <div>
             <p className="text-sm font-bold text-primary ">
-              Active delivery in progress
+              {t("orders.activeInProgress")}
             </p>
             <p className="text-sm text-primary/80 ">
-              {activeOrder.restaurant?.name ?? "Restaurant"} → customer
+              {activeOrder.restaurant?.name ?? t("common:taxonomy.cuisine.fallback")} →{" "}
+              {t("delivery.customer")}
             </p>
           </div>
           <span className="flex items-center gap-1.5 text-sm font-semibold text-primary ">
             <Navigation className="h-4 w-4" />
-            Resume
+            {t("orders.resume")}
           </span>
         </Link>
       )}
@@ -98,7 +101,7 @@ export function CourierOrders() {
             {geoFiltered && (
               <p className="flex items-center gap-1.5 text-xs font-medium text-primary ">
                 <MapPin className="h-3.5 w-3.5" />
-                Showing orders near your location
+                {t("orders.nearYou")}
               </p>
             )}
 
@@ -111,10 +114,10 @@ export function CourierOrders() {
               <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center ">
                 <Package className="h-10 w-10 text-muted-foreground " />
                 <p className="font-medium text-muted-foreground ">
-                  No available orders nearby
+                  {t("orders.empty.title")}
                 </p>
                 <p className="text-sm text-muted-foreground ">
-                  New orders will appear here automatically
+                  {t("orders.empty.description")}
                 </p>
               </div>
             )}
@@ -142,7 +145,7 @@ export function CourierOrders() {
               <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center ">
                 <Package className="h-10 w-10 text-muted-foreground " />
                 <p className="font-medium text-muted-foreground ">
-                  No completed deliveries yet
+                  {t("orders.noCompleted")}
                 </p>
               </div>
             )}

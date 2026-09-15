@@ -1,18 +1,20 @@
 import { PIE_COLORS } from "@/constants/colorConstants";
+import { useTranslation } from "react-i18next";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Tooltip as UiTooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
 export const PaymentMethodChart = ({ data }) => {
+  const { t } = useTranslation(["seller", "common"]);
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
       <h3 className="text-lg font-bold mb-6 flex items-center">
-        Payment Methods
+        {t("analytics.paymentMethods")}
         <UiTooltip>
           <TooltipTrigger>
             <Info className="w-4 h-4 ml-2 text-muted-foreground cursor-pointer" />
           </TooltipTrigger>
-          <TooltipContent>Which payment options customers used for orders.</TooltipContent>
+          <TooltipContent>{t("analytics.paymentMethodsHint")}</TooltipContent>
         </UiTooltip>
       </h3>
 

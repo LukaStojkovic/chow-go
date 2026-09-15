@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Linking, ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { CircleHelp, MapPin, MessageSquare, NotebookPen, Phone, Star } from "lucide-react-native";
@@ -26,7 +27,7 @@ import { makeRouteErrorBoundary } from "@/components/feedback/routeErrorBoundary
 
 export const ErrorBoundary = makeRouteErrorBoundary(
   "order-tracking",
-  "We could not show this order",
+  "order:detail.error.title",
 );
 
 // The adapter's status tones, mapped onto the badge's own vocabulary.
@@ -39,6 +40,7 @@ const BADGE_TONE = {
 };
 
 export default function OrderTracking() {
+  const { t } = useTranslation(["profile", "order", "basket", "errors", "common"]);
   const { orderId } = useLocalSearchParams();
   const { data, isLoading, isError, refetch } = useOrder(orderId);
   const cancel = useCancelOrder(orderId);
@@ -48,7 +50,7 @@ export default function OrderTracking() {
   if (isLoading) {
     return (
       <Screen>
-        <ScreenHeader title="Order tracking" />
+        <ScreenHeader title={t("order:tracking.title")} />
         <View className="gap-4 px-5">
           <Skeleton className="h-40 w-full rounded-lg" />
           <Skeleton className="h-56 w-full rounded-lg" />
@@ -61,12 +63,12 @@ export default function OrderTracking() {
   if (isError || !data) {
     return (
       <Screen>
-        <ScreenHeader title="Order tracking" />
+        <ScreenHeader title={t("order:tracking.title")} />
         <EmptyState
           tone="danger"
-          title="Couldn't load this order"
-          description="Check your connection and try again."
-          actionLabel="Retry"
+          title={t("order:detail.error.title")}
+          description={t("common:error.networkDescription")}
+          actionLabel={t("common:actions.retry")}
           onAction={refetch}
         />
       </Screen>
@@ -79,14 +81,18 @@ export default function OrderTracking() {
   return (
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader
-        title="Order tracking"
+        title={t("order:tracking.title")}
         subtitle={`#${order.number}`}
         right={
           <IconButton
             icon={CircleHelp}
             variant="muted"
-            label="Get help with this order"
-            onPress={() => toast.info("Support", { description: "Reach us at help@chowgo.app" })}
+            label={t("order:support.getHelp")}
+            onPress={() =>
+              toast.info(t("support.shortTitle"), {
+                description: t("helpContact", { email: "help@chowgo.app" }),
+              })
+            }
           />
         }
       />
@@ -113,7 +119,7 @@ export default function OrderTracking() {
           {cancelled ? (
             <Inset tone="danger" className="flex-row items-center gap-3">
               <Text variant="body-sm" className="flex-1 text-destructive">
-                {order.cancellationReason ?? "This order is no longer active."}
+                {order.cancellationReason ?? t("noLongerActive")}
               </Text>
             </Inset>
           ) : (
@@ -152,8 +158,8 @@ export default function OrderTracking() {
                 </View>
                 <Text variant="body-sm" tone="muted" numberOfLines={1}>
                   {order.courier.vehicle
-                    ? `Delivering by ${order.courier.vehicle}`
-                    : "Your courier"}
+                    ? t("courier.deliveringBy", { vehicle: order.courier.vehicleLabel ?? order.courier.vehicle })
+                    : t("tracking.courierHeading")}
                 </Text>
               </View>
 
@@ -163,7 +169,7 @@ export default function OrderTracking() {
                     icon={MessageSquare}
                     variant="mint"
                     size={44}
-                    label="Message your courier"
+                    label={t("order:support.messageCourier")}
                     onPress={() => Linking.openURL(`sms:${order.courier.phone}`)}
                   />
 
@@ -171,7 +177,7 @@ export default function OrderTracking() {
                     icon={Phone}
                     variant="primary"
                     size={44}
-                    label="Call your courier"
+                    label={t("order:actions.callCourier")}
                     onPress={() => Linking.openURL(`tel:${order.courier.phone}`)}
                   />
                 </View>
@@ -228,7 +234,7 @@ export default function OrderTracking() {
           <Divider />
 
           <View className="flex-row items-end justify-between">
-            <Text variant="h3">Total</Text>
+            <Text variant="h3">{t("basket:summary.total")}</Text>
             <Text variant="price-lg">{formatPrice(order.pricing?.total ?? 0)}</Text>
           </View>
 
@@ -237,7 +243,7 @@ export default function OrderTracking() {
               <MapPin size={16} color={color.primary} style={{ marginTop: 2 }} />
               <View className="flex-1">
                 <Text variant="caption" tone="muted">
-                  Delivering to
+                  {t("profile:delivery.deliverTo")}
                 </Text>
                 <Text variant="body-sm" numberOfLines={3}>
                   {order.deliveryAddress}
@@ -254,13 +260,13 @@ export default function OrderTracking() {
               fullWidth
               onPress={() => router.push(`/(customer)/order/${orderId}/rate`)}
             >
-              Rate your order
+              {t("order:actions.rate")}
             </Button>
           ) : null}
 
           {order.canCancel ? (
             <Button size="lg" variant="outline" fullWidth onPress={() => setCancelOpen(true)}>
-              Cancel order
+              {t("order:actions.cancel")}
             </Button>
           ) : null}
         </View>
@@ -274,9 +280,9 @@ export default function OrderTracking() {
           try {
             await cancel.mutateAsync(reason);
             setCancelOpen(false);
-            toast.success("Order cancelled");
+            toast.success(t("cancelled"));
           } catch (error) {
-            toast.error("Could not cancel", { description: errorMessage(error) });
+            toast.error(t("cancelFailed"), { description: errorMessage(error) });
           }
         }}
       />

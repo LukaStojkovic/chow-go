@@ -8,15 +8,17 @@
  */
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 /**
  * Wraps a whole screen's placeholder. One busy announcement per route, rather
  * than one per skeleton block.
  */
-export function SkeletonScreen({ label = "Loading", className, children }) {
+export function SkeletonScreen({ label, className, children }) {
+  const { t } = useTranslation("common");
   return (
-    <div role="status" aria-label={label} aria-busy="true" className={className}>
+    <div role="status" aria-label={label ?? t("a11y.loading")} aria-busy="true" className={className}>
       {children}
     </div>
   );

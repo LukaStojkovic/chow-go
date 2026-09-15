@@ -9,20 +9,22 @@ import {
 } from "recharts";
 
 import { ORDER_STATUS_COLORS } from "@/constants/colorConstants";
+import { useTranslation } from "react-i18next";
 import { CustomTooltip } from "./CustomTooltip";
 import { Tooltip as UiTooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
 export const OrderBreakdownChart = ({ data }) => {
+  const { t } = useTranslation(["seller", "common"]);
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
       <h3 className="text-lg font-bold mb-6 flex items-center">
-        Order Breakdown
+        {t("analytics.orderBreakdown")}
         <UiTooltip>
           <TooltipTrigger>
             <Info className="w-4 h-4 ml-2 text-muted-foreground cursor-pointer" />
           </TooltipTrigger>
-          <TooltipContent>Statuses of orders and how many are in each state.</TooltipContent>
+          <TooltipContent>{t("analytics.orderBreakdownHint")}</TooltipContent>
         </UiTooltip>
       </h3>
 

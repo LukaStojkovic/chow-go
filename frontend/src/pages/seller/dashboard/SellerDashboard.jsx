@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTranslation } from "react-i18next";
 import useGetRestaurantStats from "@/hooks/Restaurants/useGetRestaurantStats";
 import { SellerDashboardSkeleton } from "@/components/skeletons/SellerSkeletons";
 import {
@@ -12,6 +13,7 @@ import { PopularItems } from "./PopularItems";
 import { RecentOrders } from "./RecentOrders";
 
 export const SellerDashboard = () => {
+  const { t } = useTranslation(["seller", "common"]);
   const { authUser } = useAuthStore();
   const restaurantId = authUser?.restaurant[0]?._id;
 
@@ -27,7 +29,7 @@ export const SellerDashboard = () => {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <p className="text-destructive mb-4">
-            {error.response?.data?.message || "Failed to load dashboard data"}
+            {error.response?.data?.message || t("settings.dashboardLoadFailed")}
           </p>
           <Tooltip>
             <TooltipTrigger>
@@ -35,10 +37,10 @@ export const SellerDashboard = () => {
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary transition-colors"
               >
-                Retry
+                {t("common:actions.retry")}
               </button>
             </TooltipTrigger>
-            <TooltipContent>Reload dashboard data</TooltipContent>
+            <TooltipContent>{t("dashboard.reload")}</TooltipContent>
           </Tooltip>
         </div>
       </div>

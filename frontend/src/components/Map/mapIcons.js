@@ -42,6 +42,7 @@ function token(name, fallback) {
  * @param {string} options.bg
  * @param {string} options.shadow
  * @param {string} options.label Rendered under the pin and used as its title.
+ *   Already translated - see the exported factories below.
  * @param {number} [options.size]
  * @param {boolean} [options.pulse] Only the live courier marker pulses.
  */
@@ -110,24 +111,29 @@ if (typeof document !== "undefined" && !document.getElementById("marker-ping-sty
   document.head.appendChild(style);
 }
 
-export const restaurantIcon = createLabeledIcon({
-  glyph: "restaurant",
-  bg: token("--primary", "#0e7a4b"),
-  shadow: "rgba(14,122,75,.35)",
-  label: "Restaurant",
-});
+// Factories rather than ready-made icons: the label is baked into the marker's
+// HTML, so one built at import time would keep whichever language loaded first.
+export const restaurantIcon = (t) =>
+  createLabeledIcon({
+    glyph: "restaurant",
+    bg: token("--primary", "#0e7a4b"),
+    shadow: "rgba(14,122,75,.35)",
+    label: t("courier:delivery.restaurant"),
+  });
 
-export const deliveryIcon = createLabeledIcon({
-  glyph: "dropoff",
-  bg: token("--destructive", "#c4342b"),
-  shadow: "rgba(196,52,43,.35)",
-  label: "Drop-off",
-});
+export const deliveryIcon = (t) =>
+  createLabeledIcon({
+    glyph: "dropoff",
+    bg: token("--destructive", "#c4342b"),
+    shadow: "rgba(196,52,43,.35)",
+    label: t("courier:delivery.dropoff"),
+  });
 
-export const courierIcon = createLabeledIcon({
-  glyph: "courier",
-  bg: token("--info", "#1e6fa8"),
-  shadow: "rgba(30,111,168,.35)",
-  label: "Courier",
-  pulse: true,
-});
+export const courierIcon = (t) =>
+  createLabeledIcon({
+    glyph: "courier",
+    bg: token("--info", "#1e6fa8"),
+    shadow: "rgba(30,111,168,.35)",
+    label: t("courier:delivery.courier"),
+    pulse: true,
+  });

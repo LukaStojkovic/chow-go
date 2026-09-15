@@ -1,4 +1,5 @@
 import { ScrollView, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 
@@ -12,6 +13,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Divider, SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { AppearanceSettings } from "@/features/settings/AppearanceSettings";
+import { MAX_SAVED_ADDRESSES } from "@chowgo/shared/constants";
 import { useAddresses } from "@/hooks/Address/useAddresses";
 import { useCustomerOrders } from "@/hooks/Orders/useOrders";
 import { useFavourites } from "@/hooks/Favourites/useFavourites";
@@ -36,6 +38,7 @@ function StatTile({ icon, label, value, tone }) {
 }
 
 export default function Profile() {
+  const { t } = useTranslation(["profile", "order", "auth", "common"]);
   const { authUser, logout } = useAuthStore();
   const theme = useThemeStore();
   const motion = useMotionStore();
@@ -50,9 +53,9 @@ export default function Profile() {
       <Screen edges={["top"]} className="justify-center">
         <EmptyState
           icon={UserRound}
-          title="You're browsing as a guest"
-          description="Sign in to order, track deliveries and save the places you like."
-          actionLabel="Sign in"
+          title={t("profile:guest.title")}
+          description={t("profile:guest.description")}
+          actionLabel={t("auth:login.submit")}
           onAction={() => router.push("/(auth)/login")}
         />
       </Screen>
@@ -66,10 +69,10 @@ export default function Profile() {
         showsVerticalScrollIndicator={false}
       >
         <SectionHeader
-          title="Account"
+          title={t("profile:sections.account")}
           size="lg"
-          subtitle="Your details, addresses and order history"
-          actionLabel="Edit"
+          subtitle={t("profile:sections.accountHint")}
+          actionLabel={t("common:actions.edit")}
           onAction={() => router.push("/(customer)/settings/profile")}
         />
 
@@ -102,34 +105,40 @@ export default function Profile() {
         </Card>
 
         <View className="flex-row gap-2.5">
-          <StatTile label="Orders" value={orders.data?.orders?.length ?? 0} />
+          <StatTile label={t("common:nav.orders")} value={orders.data?.orders?.length ?? 0} />
 
-          <StatTile label="Saved" value={favourites.data?.length ?? 0} />
-          <StatTile label="Addresses" value={addresses.data?.length ?? 0} />
+          <StatTile label={t("common:nav.favourites")} value={favourites.data?.length ?? 0} />
+          <StatTile
+            label={t("profile:sections.addresses")}
+            value={addresses.data?.length ?? 0}
+          />
         </View>
 
         <Card className="p-0">
           <View className="px-4">
             <ListRow
               icon={UserRound}
-              title="Your details"
-              subtitle="Name, email and phone number"
+              title={t("profile:account.personalDetails")}
+              subtitle={t("profile:account.personalDetailsHint")}
               onPress={() => router.push("/(customer)/settings/profile")}
             />
 
             <Divider />
             <ListRow
               icon={Receipt}
-              title="Your orders"
-              subtitle="Track live orders and reorder past ones"
+              title={t("order:list.title")}
+              subtitle={t("profile:sections.ordersHint")}
               onPress={() => router.push("/(customer)/(tabs)/orders")}
             />
 
             <Divider />
             <ListRow
               icon={MapPin}
-              title="Delivery addresses"
-              subtitle={`${addresses.data?.length ?? 0} of 5 saved`}
+              title={t("profile:address.deliveryHeading")}
+              subtitle={t("profile:address.savedOf", {
+                count: addresses.data?.length ?? 0,
+                max: MAX_SAVED_ADDRESSES,
+              })}
               onPress={() => router.push("/(customer)/address")}
             />
           </View>
@@ -143,16 +152,16 @@ export default function Profile() {
           <View className="px-4">
             <ListRow
               icon={Store}
-              title="Partner your restaurant"
-              subtitle="List your kitchen on Chow"
+              title={t("profile:partner.seller")}
+              subtitle={t("profile:partner.sellerHint")}
               onPress={() => router.push("/(auth)/seller")}
             />
 
             <Divider />
             <ListRow
               icon={Bike}
-              title="Deliver with Chow"
-              subtitle="Earn on your own schedule"
+              title={t("profile:becomeCourier.cta")}
+              subtitle={t("profile:becomeCourier.description")}
               onPress={() => router.push("/(auth)/courier")}
             />
           </View>
@@ -170,7 +179,7 @@ export default function Profile() {
           <View className="flex-row items-center gap-2">
             <LogOut size={17} color={color.destructive} />
             <Text variant="label" tone="destructive">
-              Sign out
+              {t("profile:logOut.action")}
             </Text>
           </View>
         </Button>
@@ -180,10 +189,10 @@ export default function Profile() {
           size="md"
           fullWidth
           onPress={() => router.push("/delete-account")}
-          accessibilityLabel="Delete my account"
+          accessibilityLabel={t("profile:deleteAccount.confirm")}
         >
           <Text variant="caption" tone="muted">
-            Delete my account
+            {t("profile:deleteAccount.confirm")}
           </Text>
         </Button>
       </ScrollView>

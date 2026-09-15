@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { MapPin, Navigation } from "lucide-react";
 import Spinner from "@/components/Spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +11,7 @@ export function ActiveDeliveryCard({
   onAccept,
   isAccepting,
 }) {
+  const { t } = useTranslation(["courier", "common"]);
   const payout =
     activeOrder?.total != null ? `$${activeOrder.total.toFixed(2)}` : "—";
   const navigate = useNavigate();
@@ -29,17 +31,17 @@ export function ActiveDeliveryCard({
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
             </span>
-            ACTIVE DELIVERY
+            {t("dashboard.inProgress")}
           </span>
           <span className="rounded-full bg-primary-subtle px-3 py-1 text-xs font-bold text-primary ">
-            Est. Payout: {payout}
+            {t("orders.estimatedPayoutLabel")} {payout}
           </span>
         </div>
       </div>
 
       <div className="p-6">
         {isLoadingOrders ? (
-          <div className="h-72 space-y-6" role="status" aria-label="Loading delivery" aria-busy="true">
+          <div className="h-72 space-y-6" role="status" aria-label={t("skeleton.delivery")} aria-busy="true">
             <div className="relative space-y-6 pl-6">
               <div className="absolute bottom-2 left-[11px] top-2 w-2px bg-secondary" />
               {Array.from({ length: 2 }).map((_, i) => (
@@ -69,18 +71,18 @@ export function ActiveDeliveryCard({
                 <p className="text-sm text-muted-foreground ">
                   {activeOrder?.restaurant?.address
                     ? `${activeOrder.restaurant.address.street} • ${activeOrder.restaurant.address.city}`
-                    : "Address unavailable"}
+                    : t("delivery.addressUnavailable")}
                 </p>
               </div>
 
               <div className="relative">
                 <MapPin className="absolute -left-7 top-0.5 h-5 w-5 text-destructive" />
                 <h4 className="font-semibold text-foreground ">
-                  Delivery Address
+                  {t("delivery.dropoff")}
                 </h4>
                 <p className="text-sm text-muted-foreground ">
                   {activeOrder?.deliveryAddressSnapshot?.fullAddress ??
-                    "Address unavailable"}
+                    t("delivery.addressUnavailable")}
                 </p>
               </div>
             </div>
@@ -90,7 +92,7 @@ export function ActiveDeliveryCard({
                 to="/courier/orders"
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-muted py-3 font-semibold text-foreground transition hover:bg-secondary "
               >
-                View all deliveries
+                {t("orders.title")}
               </Link>
               <button
                 onClick={() => handleAcceptOrder(activeOrder._id)}
@@ -98,7 +100,7 @@ export function ActiveDeliveryCard({
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition hover:bg-primary shadow-lg "
               >
                 <Navigation className="h-5 w-5" />
-                {isAccepting ? <Spinner size={14} /> : "Accept Delivery"}
+                {isAccepting ? <Spinner size={14} /> : t("orders.acceptDelivery")}
               </button>
             </div>
           </>

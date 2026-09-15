@@ -7,12 +7,14 @@
  */
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 export function PortalShellSkeleton() {
+  const { t } = useTranslation("common");
   return (
     <div
       role="status"
-      aria-label="Loading"
+      aria-label={t("a11y.loading")}
       aria-busy="true"
       className="bg-muted flex min-h-screen overflow-hidden"
     >

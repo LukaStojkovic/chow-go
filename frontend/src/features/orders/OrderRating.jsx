@@ -11,6 +11,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -85,6 +86,7 @@ function StarRating({ name, value, onChange, label, readOnly = false }) {
  * @param {import("@chowgo/shared/adapters/types").OrderView} props.order
  */
 export function OrderRating({ order }) {
+  const { t } = useTranslation(["order", "common"]);
   const { rateOrder, isRating } = useRateOrder(order.id);
 
   const existing = order.rating;
@@ -114,11 +116,11 @@ export function OrderRating({ order }) {
   return (
     <Card padded className="space-y-5">
       <div>
-        <h2 className="text-h2">{hasRated ? "Your review" : "How did it go?"}</h2>
+        <h2 className="text-h2">
+          {hasRated ? t("rating.yourReview") : t("rating.howDidItGo")}
+        </h2>
         <p className="text-body-sm text-muted-foreground mt-0.5">
-          {hasRated
-            ? "Thanks - this helps other people choose."
-            : "Your rating helps the restaurant and the courier, and helps others decide."}
+          {hasRated ? t("rating.thanksHelps") : t("rating.helpsOthers")}
         </p>
       </div>
 
@@ -131,7 +133,7 @@ export function OrderRating({ order }) {
               name={order.restaurant?.name || "Restaurant"}
             />
             <span className="text-label min-w-0 flex-1 truncate">
-              {order.restaurant?.name || "The restaurant"}
+              {order.restaurant?.name || t("rating.restaurantHeading")}
             </span>
             <StarRating
               name="restaurant-rating"
@@ -145,7 +147,7 @@ export function OrderRating({ order }) {
           {!hasRated && restaurantRating > 0 && (
             <>
               <Label htmlFor="restaurant-review" className="sr-only">
-                Tell us about the food
+                {t("rating.restaurantHeading")}
               </Label>
               <Textarea
                 id="restaurant-review"
@@ -153,7 +155,7 @@ export function OrderRating({ order }) {
                 maxLength={500}
                 value={restaurantReview}
                 onChange={(event) => setRestaurantReview(event.target.value)}
-                placeholder="How was the food? (optional)"
+                placeholder={t("rating.foodPlaceholder")}
               />
             </>
           )}
@@ -184,7 +186,7 @@ export function OrderRating({ order }) {
             {!hasRated && courierRating > 0 && (
               <>
                 <Label htmlFor="courier-review" className="sr-only">
-                  Tell us about the delivery
+                  {t("rating.courierHeading")}
                 </Label>
                 <Textarea
                   id="courier-review"
@@ -192,7 +194,7 @@ export function OrderRating({ order }) {
                   maxLength={500}
                   value={courierReview}
                   onChange={(event) => setCourierReview(event.target.value)}
-                  placeholder="How was the delivery? (optional)"
+                  placeholder={t("rating.deliveryPlaceholder")}
                 />
               </>
             )}
@@ -211,9 +213,9 @@ export function OrderRating({ order }) {
             block
             disabled={!canSubmit}
             isLoading={isRating}
-            loadingLabel="Submitting your review"
+            loadingLabel={t("rating.submitting")}
           >
-            Submit review
+            {t("rating.submit")}
           </Button>
         )}
       </form>

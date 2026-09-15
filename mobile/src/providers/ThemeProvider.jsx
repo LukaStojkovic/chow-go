@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -9,14 +9,16 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useColorScheme } from "nativewind";
+import { BlurView } from "expo-blur";
 import * as SystemUI from "expo-system-ui";
 import { StatusBar } from "expo-status-bar";
 import { useThemeStore } from "@/store/useThemeStore";
 import { applyPreference, currentScheme, resolveScheme } from "@/theme/scheme";
-import { colors, easing } from "@/theme/tokens";
+import { curve, duration as motionDuration } from "@/theme/motion";
+import { colors } from "@/theme/tokens";
 
 /**
- * Theme host, and the cross-fade that covers a scheme swap.
+ * Theme host, and the defocus that covers a scheme swap.
  *
  * A swap is neither instant nor cheap. The call has to travel out through the
  * native Appearance module and come back as an `appearanceChanged` event
@@ -25,47 +27,74 @@ import { colors, easing } from "@/theme/tokens";
  * screen in a single commit. Bare, a tap on the appearance control buys a beat
  * of nothing at all followed by a hard snap.
  *
- * So the veil goes up first, in the same tick as the tap, which is why the
- * store is subscribed to directly rather than read as state: an effect on
- * `preference` would spend a render pass before the animation could start. The
- * scheme is applied once the veil is opaque, the echo and the re-render happen
- * out of sight, and the veil lifts on the frame after the new theme commits.
- * Reanimated runs the fade on the UI thread, so it stays smooth while the JS
- * thread is busy re-rendering the tree underneath it.
+ * So something has to cover the gap, and the question is what. An opaque veil
+ * hides the snap by hiding the app: the screen goes blank, then comes back in
+ * the other theme, and the beat reads as a load rather than a change. Instead
+ * the screen defocuses - the blur comes up, the colours change *behind* it in
+ * full view, and it sharpens again. Nothing is ever hidden, and the recolour
+ * itself is the thing you watch.
  *
- * The veil is painted in the *outgoing* background and never recoloured, so the
- * two halves read as one dissolve from the old canvas to the new one.
+ * The blur is tinted toward the scheme being switched *to*, so the first half
+ * reads as a wash toward the destination and the second half has nothing left
+ * to show: by the time it clears, the frost and the new canvas are the same
+ * colour.
  *
- * It is a fade with no movement in it, so it survives reduced motion for the
- * same reason the web keeps its colour and opacity transitions there.
+ * It goes up in the same tick as the tap, which is why the store is subscribed
+ * to directly rather than read as state: an effect on `preference` would spend
+ * a render pass before the animation could start. The scheme is applied once
+ * the blur is at full strength, the echo and the re-render happen behind it,
+ * and it clears on the frame after the new theme commits.
+ *
+ * What animates is the pane's opacity, not the blur's `intensity`. Intensity
+ * is a prop on expo-blur's inner native view, so driving it means a prop
+ * update per frame on the JS thread - which is the one thread that is
+ * guaranteed to be busy here, restyling every node in the tree. Opacity is a
+ * transform Reanimated owns outright on the UI thread, and it keeps the
+ * transition at frame rate no matter how long the re-render takes.
+ *
+ * Nothing moves, so it survives reduced motion for the same reason the web
+ * keeps its colour and opacity transitions there.
+ *
+ * On Android the blur is left as expo-blur's `none` method, which renders a
+ * tinted translucent pane rather than a real blur: a live full-screen blur
+ * there costs more frames than the transition is worth, and a translucent
+ * wash reads the same way at this duration.
  *
  * Only one apply may be outstanding at a time. Two taps in quick succession
  * would otherwise put two overrides on the wire and the echoes can come back
  * in either order, leaving the app on a scheme nobody asked for; instead the
- * later tap waits under the veil for the first echo and is issued after it.
+ * later tap waits behind the blur for the first echo and is issued after it.
  */
-const FADE_IN = { duration: 110, easing: Easing.bezier(...easing.exit) };
-const FADE_OUT = { duration: 210, easing: Easing.bezier(...easing.standard) };
+const BLUR_INTENSITY = 64;
+const FADE_IN = { duration: 140, easing: Easing.bezier(...curve.exit) };
+const FADE_OUT = { duration: motionDuration.panel, easing: Easing.bezier(...curve.standard) };
 
 // The echo can go missing - a preference that resolves to the scheme already
-// on screen, a device change under an override - and the veil still has to
-// come down.
+// on screen, a device change under an override - and the blur still has to
+// clear.
 const ECHO_TIMEOUT = 600;
 
 export function ThemeProvider({ children }) {
   const { colorScheme } = useColorScheme();
   const scheme = colorScheme === "dark" ? "dark" : "light";
 
-  const opacity = useSharedValue(0);
-  const veil = useSharedValue(colors[scheme].background);
+  const progress = useSharedValue(0);
+  // The blur pane is mounted only while a swap is in flight. A full-screen
+  // visual effect view left in the tree costs compositing on every frame the
+  // app draws, for the sake of a transition that runs for half a second.
+  const [covering, setCovering] = useState(null);
   const request = useRef(null); // the tap we still owe a swap to
   const inFlight = useRef(false); // an apply is out, waiting on its echo
+
+  const uncover = useCallback(() => setCovering(null), []);
 
   const lift = useCallback(() => {
     if (request.current) clearTimeout(request.current.timer);
     request.current = null;
-    opacity.value = withTiming(0, FADE_OUT);
-  }, [opacity]);
+    progress.value = withTiming(0, FADE_OUT, (finished) => {
+      if (finished) runOnJS(uncover)();
+    });
+  }, [progress, uncover]);
 
   const bail = useCallback(() => {
     inFlight.current = false;
@@ -93,20 +122,20 @@ export function ThemeProvider({ children }) {
       }
 
       if (request.current) clearTimeout(request.current.timer);
-      else veil.value = colors[currentScheme()].background;
       request.current = { preference, target, timer: setTimeout(bail, ECHO_TIMEOUT) };
+      setCovering(target);
 
-      if (opacity.value >= 1) {
+      if (progress.value >= 1) {
         if (!inFlight.current) issue();
         return;
       }
 
-      cancelAnimation(opacity);
-      opacity.value = withTiming(1, FADE_IN, (finished) => {
+      cancelAnimation(progress);
+      progress.value = withTiming(1, FADE_IN, (finished) => {
         if (finished) runOnJS(issue)();
       });
     },
-    [bail, issue, opacity, veil],
+    [bail, issue, progress],
   );
 
   useEffect(
@@ -134,21 +163,22 @@ export function ThemeProvider({ children }) {
     }
 
     // One frame of slack lets the restyled tree reach the screen before the
-    // veil starts dissolving off it.
+    // blur starts clearing off it.
     const frame = requestAnimationFrame(lift);
     return () => cancelAnimationFrame(frame);
   }, [scheme, issue, lift]);
 
-  const veilStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    backgroundColor: veil.value,
-  }));
+  const paneStyle = useAnimatedStyle(() => ({ opacity: progress.value }));
 
   return (
     <View style={styles.host}>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />
       {children}
-      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, veilStyle]} />
+      {covering ? (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, paneStyle]}>
+          <BlurView tint={covering} intensity={BLUR_INTENSITY} style={StyleSheet.absoluteFill} />
+        </Animated.View>
+      ) : null}
     </View>
   );
 }

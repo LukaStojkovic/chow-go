@@ -1,5 +1,6 @@
 import { Redirect, Stack } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
+import { stackScreenOptions } from "@/navigation/transitions";
 import { useTokens } from "@/theme/useTokens";
 
 export default function CourierLayout() {
@@ -10,12 +11,7 @@ export default function CourierLayout() {
   if (authUser.role !== "courier") return <Redirect href="/(customer)" />;
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: color.background },
-      }}
-    >
+    <Stack screenOptions={stackScreenOptions({ color })}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="delivery/[orderId]" />
     </Stack>

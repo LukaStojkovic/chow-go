@@ -1,9 +1,12 @@
 import { Pressable, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { Plus } from "lucide-react-native";
 import { formatPrice } from "@chowgo/shared/format";
 import { Text } from "@/components/ui/Text";
+import { PressableScale } from "@/components/motion/Pressable";
 import { cn } from "@/lib/cn";
+import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -13,14 +16,18 @@ import { useTokens } from "@/theme/useTokens";
  * information is the whole card, and every one of them truncates.
  */
 export function DishCard({ dish, onPress, onAdd, className }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const { color } = useTokens();
+  const motion = useMotion();
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`${dish.name}, ${formatPrice(dish.price)}`}
       onPress={onPress}
-      className={cn("w-44 gap-2.5 active:opacity-70", className)}
+      haptic="selection"
+      scale={motion.press.card}
+      className={cn("w-44 gap-2.5", className)}
     >
       <View className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
         {dish.image ? (
@@ -76,7 +83,7 @@ export function DishCard({ dish, onPress, onAdd, className }) {
           </Text>
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -92,17 +99,21 @@ export function DishCard({ dish, onPress, onAdd, className }) {
  * what used to happen.
  */
 export function DishRow({ dish, onPress, onAdd, tag, meta, disabled = false, className }) {
+  const { t } = useTranslation(["restaurant", "common"]);
   const { color, elevation, scheme } = useTokens();
+  const motion = useMotion();
   const unavailable = disabled || dish.isAvailable === false;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityLabel={`${dish.name}, ${formatPrice(dish.price)}`}
       onPress={onPress}
+      haptic="selection"
+      scale={motion.press.card}
       style={elevation.subtle[scheme]}
       className={cn(
-        "flex-row items-center gap-3.5 rounded-lg bg-card p-3.5 active:opacity-80",
+        "flex-row items-center gap-3.5 rounded-lg bg-card p-3.5",
         unavailable && "opacity-55",
         className,
       )}
@@ -175,11 +186,11 @@ export function DishRow({ dish, onPress, onAdd, tag, meta, disabled = false, cla
         {unavailable ? (
           <View className="absolute inset-0 items-center justify-center rounded-md bg-black/50">
             <Text variant="label-sm" tone="scrim">
-              Sold out
+              {t("menu.soldOut")}
             </Text>
           </View>
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

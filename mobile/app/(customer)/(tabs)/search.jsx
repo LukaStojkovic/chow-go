@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Clock, Search as SearchIcon, X } from "lucide-react-native";
@@ -24,6 +25,7 @@ import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useTokens } from "@/theme/useTokens";
 
 export default function Search() {
+  const { t } = useTranslation(["discover", "common"]);
   const coordinates = useDeliveryStore((state) => state.coordinates);
   const { isFavourite, toggleFavourite } = useFavouriteToggle();
   const { recent, remember, clear } = useRecentSearches();
@@ -65,24 +67,24 @@ export default function Search() {
       <View className="gap-3 pb-3 pt-2">
         <View className="gap-3 px-5">
           <SectionHeader
-            title="Browse"
+            title={t("discover:search.heading")}
             size="lg"
-            subtitle="Restaurants and dishes delivering to you"
+            subtitle={t("discover:feed.allSubtitle")}
           />
           <SearchInput
             value={text}
             onChangeText={setText}
-            placeholder="Search dishes, restaurants…"
+            placeholder={t("discover:search.placeholder")}
             autoCorrect={false}
             clearButtonMode="while-editing"
-            accessibilityLabel="Search restaurants and dishes"
+            accessibilityLabel={t("discover:search.label")}
             right={
               text ? (
                 <IconButton
                   icon={X}
                   variant="muted"
                   size={30}
-                  label="Clear search"
+                  label={t("discover:search.clear")}
                   onPress={() => setText("")}
                 />
               ) : null
@@ -101,7 +103,7 @@ export default function Search() {
         ListHeaderComponent={
           dishes.length ? (
             <Rail
-              title="Dishes"
+              title={t("discover:search.dishesHeading")}
               subtitle={`${dishes.length} matching ${dishes.length === 1 ? "dish" : "dishes"}`}
               data={dishes}
               keyExtractor={(item) => item.id}
@@ -118,7 +120,7 @@ export default function Search() {
           <View className="gap-3 px-5">
             {index === 0 ? (
               <SectionHeader
-                title="Restaurants"
+                title={t("discover:search.restaurantsHeading")}
                 subtitle={`${restaurants.length} ${restaurants.length === 1 ? "place" : "places"} match`}
               />
             ) : null}
@@ -140,16 +142,16 @@ export default function Search() {
           ) : nothingFound ? (
             <EmptyState
               icon={SearchIcon}
-              title={`Nothing for "${term}"`}
-              description="Try a different dish or restaurant name, or clear your filters."
-              actionLabel="Clear filters"
+              title={t("discover:search.noResults.title", { query: term })}
+              description={t("discover:search.noFilterMatches.description")}
+              actionLabel={t("discover:filters.clearAll")}
               onAction={() => setFilters(DEFAULT_SEARCH_FILTERS)}
             />
           ) : !searching && recent.length ? (
             <View className="gap-1 px-5">
               <View className="flex-row items-center justify-between pb-1">
                 <Text variant="caption" tone="muted">
-                  Recent searches
+                  {t("discover:search.recent")}
                 </Text>
                 <Pressable
                   accessibilityRole="button"
@@ -158,7 +160,7 @@ export default function Search() {
                   className="active:opacity-60"
                 >
                   <Text variant="label-sm" tone="primary">
-                    Clear
+                    {t("common:actions.clear")}
                   </Text>
                 </Pressable>
               </View>
@@ -181,8 +183,8 @@ export default function Search() {
           ) : !searching ? (
             <EmptyState
               icon={SearchIcon}
-              title="Find something to eat"
-              description="Search restaurants and dishes delivering to your address."
+              title={t("discover:search.prompt.title")}
+              description={t("discover:search.prompt.description")}
             />
           ) : null
         }

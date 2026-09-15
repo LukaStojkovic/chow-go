@@ -38,6 +38,17 @@ export function tabScreenOptions({ color, isDark, insets }) {
 
   return {
     headerShown: false,
+    // The navigator paints its own container behind whichever screen is
+    // active, and it takes that colour from the React Navigation theme - which
+    // is the default light one, i.e. white. Nothing normally shows it, because
+    // an opaque screen sits on top; the moment a transition makes a screen
+    // even briefly translucent, the white flashes through in dark mode.
+    sceneStyle: { backgroundColor: color.background },
+    // Tabs are siblings and switch instantly, the same as on iOS. A cross-fade
+    // is a window in which neither screen is fully opaque, which is exactly
+    // when the container behind them becomes visible - and there is nothing
+    // for the animation to express in the first place.
+    animation: "none",
     tabBarActiveTintColor: color.primary,
     tabBarInactiveTintColor: color["muted-foreground"],
     tabBarStyle: {

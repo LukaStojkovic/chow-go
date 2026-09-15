@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin } from "lucide-react-native";
@@ -17,12 +18,13 @@ import { useTokens } from "@/theme/useTokens";
  * sets the coordinates the geo-scoped endpoints require.
  */
 export function AddressAutocomplete({
-  label = "Search for an address",
-  placeholder = "Street and number",
+  label,
+  placeholder,
   onSelect,
   hint,
   className,
 }) {
+  const { t } = useTranslation(["profile", "common"]);
   const [text, setText] = useState("");
   const [term, setTerm] = useState("");
   const [dismissed, setDismissed] = useState(false);
@@ -45,13 +47,13 @@ export function AddressAutocomplete({
   return (
     <View className={cn("gap-2", className)}>
       <Input
-        label={label}
+        label={label ?? t("delivery.searchLabel")}
         value={text}
         onChangeText={(next) => {
           setText(next);
           setDismissed(false);
         }}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("delivery.searchStreet")}
         autoCorrect={false}
         hint={isFetching && term.length >= 3 ? "Searching…" : hint}
       />

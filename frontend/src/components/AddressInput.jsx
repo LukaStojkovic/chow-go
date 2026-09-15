@@ -1,4 +1,5 @@
 import { LocateFixed, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { Input } from "./ui/input";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ export default function AddressInput({
   isDetecting,
   handleSubmit,
 }) {
+  const { t } = useTranslation(["profile", "common"]);
   return (
     <motion.form
       initial={{ opacity: 0, scale: 0.95 }}
@@ -24,7 +26,7 @@ export default function AddressInput({
 
           <Input
             type="text"
-            placeholder="Enter delivery address (e.g. 123 Main St, New York)"
+            placeholder={t("delivery.searchPlaceholder")}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className="pl-12 pr-16 py-7 text-lg bg-card/90 backdrop-blur-xl border-border/30 shadow-xl focus:border-primary focus:ring-4 focus:ring-ring/20 rounded-2xl w-full"
@@ -36,7 +38,7 @@ export default function AddressInput({
             onClick={detect}
             disabled={isDetecting}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-primary-subtle transition-colors disabled:opacity-50"
-            aria-label="Auto-detect location"
+            aria-label={t("delivery.useCurrent")}
           >
             {isDetecting ? (
               <motion.div
@@ -60,7 +62,7 @@ export default function AddressInput({
           size="lg"
           className="h-14 px-8      text-white font-semibold shadow-xl rounded-2xl"
         >
-          Find Food
+          {t("delivery.findFood")}
           <Bike className="ml-2 w-5 h-5" />
         </GlowButton> */}
       </div>

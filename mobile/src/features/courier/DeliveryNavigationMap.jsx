@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { Clock, MapPinOff, Navigation, Store } from "lucide-react-native";
 import { formatDistance, formatDuration, haversineMeters } from "@chowgo/shared/geo";
@@ -33,6 +34,7 @@ export function DeliveryNavigationMap({
   isDenied,
   topOffset = 0,
 }) {
+  const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const { color, elevation, scheme } = useTokens();
   const [follow, setFollow] = useState(true);
 
@@ -65,7 +67,7 @@ export function DeliveryNavigationMap({
       >
         <RouteLine coordinates={route?.coordinates} color={color["primary-bright"]} />
 
-        <MapMarker id="pickup" position={restaurant} title="Pickup">
+        <MapMarker id="pickup" position={restaurant} title={t("delivery.pickup")}>
           <Pin
             icon={Store}
             background={headingToRestaurant ? color.primary : color.muted}
@@ -73,7 +75,7 @@ export function DeliveryNavigationMap({
           />
         </MapMarker>
 
-        <MapMarker id="dropoff" position={destination} title="Delivery address">
+        <MapMarker id="dropoff" position={destination} title={t("delivery.dropoff")}>
           <Pin
             icon={Navigation}
             background={headingToRestaurant ? color.muted : color.info}
@@ -81,7 +83,7 @@ export function DeliveryNavigationMap({
           />
         </MapMarker>
 
-        <MapMarker id="courier" position={courier} title="You">
+        <MapMarker id="courier" position={courier} title={t("delivery.you")}>
           <View
             style={{ backgroundColor: color["primary-bright"] }}
             className="h-6 w-6 rounded-full border-[3px] border-scrim-foreground"
@@ -104,7 +106,7 @@ export function DeliveryNavigationMap({
 
           <View className="min-w-0 flex-1">
             <Text variant="overline" tone="muted">
-              Navigating to
+              {t("delivery.navigatingTo")}
             </Text>
             <Text variant="h3" numberOfLines={1}>
               {destinationLabel}
@@ -141,7 +143,8 @@ export function DeliveryNavigationMap({
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ selected: follow }}
-              accessibilityLabel={follow ? "Stop following your position" : "Recentre on you"}
+              accessibilityLabel={follow ? t("courier:delivery.stopFollowing")
+              : t("courier:delivery.recentre")}
               onPress={() => setFollow((value) => !value)}
               className={`h-9 shrink-0 items-center justify-center rounded-full px-3.5 active:opacity-70 ${
                 follow ? "bg-primary" : "bg-muted"
@@ -163,19 +166,20 @@ export function DeliveryNavigationMap({
               <>
                 <ActivityIndicator size="small" color={color["muted-foreground"]} />
                 <Text variant="body-sm" tone="muted" className="flex-1">
-                  {isTracking ? "Getting your location…" : "Location tracking is off."}
+                  {isTracking ? t("courier:delivery.locatingYou")
+              : t("courier:delivery.trackingOff")}
                 </Text>
               </>
             ) : isDenied ? (
               <>
                 <MapPinOff size={16} color={color.destructive} />
                 <Text variant="body-sm" tone="destructive" className="flex-1">
-                  Location is blocked, so the route and the customer's tracking cannot update.
+                  {t("delivery.locationBlocked")}
                 </Text>
               </>
             ) : (
               <Text variant="body-sm" tone="muted" className="flex-1">
-                Route unavailable right now — showing direct distance. Retrying.
+                {t("delivery.routeUnavailable")}
               </Text>
             )}
           </View>

@@ -1,13 +1,15 @@
 import { MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SectionLabel } from "./CourierOrderDetailSheet";
 
 export function CourierOrderRoute({ restaurant, deliveryAddressSnapshot }) {
+  const { t } = useTranslation(["courier", "common"]);
   const restaurantAddress = restaurant?.address
     ? `${restaurant.address.street}, ${restaurant.address.city}`
-    : "Address unavailable";
+    : t("delivery.addressUnavailable");
 
   const snap = deliveryAddressSnapshot ?? {};
-  const deliveryAddress = snap.fullAddress ?? "Address unavailable";
+  const deliveryAddress = snap.fullAddress ?? t("delivery.addressUnavailable");
   const deliveryDetails = [
     snap.floor && `Floor ${snap.floor}`,
     snap.entrance && `Entrance ${snap.entrance}`,
@@ -18,7 +20,7 @@ export function CourierOrderRoute({ restaurant, deliveryAddressSnapshot }) {
 
   return (
     <div className="px-5 py-4">
-      <SectionLabel>Route</SectionLabel>
+      <SectionLabel>{t("delivery.route")}</SectionLabel>
       <div className="space-y-3">
         <div className="flex items-start gap-3">
           <div className="mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-background" />
@@ -37,7 +39,7 @@ export function CourierOrderRoute({ restaurant, deliveryAddressSnapshot }) {
         <div className="flex items-start gap-3">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
           <div className="min-w-0">
-            <p className="font-medium text-foreground">Customer dropoff</p>
+            <p className="font-medium text-foreground">{t("delivery.dropoff")}</p>
             <p className="text-sm text-muted-foreground truncate">
               {deliveryAddress}
             </p>

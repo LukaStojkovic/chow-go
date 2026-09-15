@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -34,6 +35,7 @@ const PREP_TIMES = [15, 20, 30, 45];
  * purpose - every second this sits unanswered is a customer waiting.
  */
 export default function IncomingOrder() {
+  const { t } = useTranslation(["seller", "profile", "order", "basket", "common"]);
   const { orderId } = useLocalSearchParams();
   const confirm = useConfirmOrder();
   const reject = useRejectOrder();
@@ -60,10 +62,12 @@ export default function IncomingOrder() {
     silenceAlert();
     try {
       await confirm.mutateAsync({ orderId, estimatedPreparationTime: prepTime });
-      toast.success("Order confirmed", { description: `${prepTime} min` });
+      toast.success(t("order:status.confirmed.label"), {
+        description: t("common:units.minutes", { value: prepTime }),
+      });
       router.back();
     } catch (error) {
-      toast.error("Could not confirm", { description: errorMessage(error) });
+      toast.error(t("seller:orders.confirmFailed"), { description: errorMessage(error) });
     }
   }
 
@@ -80,7 +84,7 @@ export default function IncomingOrder() {
             <StatusDot tone="success" />
             <Bell size={12} color={color["primary-foreground"]} />
             <Text variant="caption" tone="inverse">
-              New order
+              {t("orders.newOrder")}
             </Text>
           </View>
 
@@ -123,7 +127,7 @@ export default function IncomingOrder() {
               <View className="flex-row items-center gap-2">
                 <AlertTriangle size={14} color={color.warning} />
                 <Text variant="caption" tone="warning">
-                  Special instructions
+                  {t("basket:line.instructions")}
                 </Text>
               </View>
               {notes.map((line) => (
@@ -137,7 +141,7 @@ export default function IncomingOrder() {
           {order?.notes ? (
             <Inset tone="citrus" className="gap-1">
               <Text variant="caption" tone="tertiary">
-                Note from the customer
+                {t("orders.customerNotes")}
               </Text>
               <Text variant="body-sm">{order.notes}</Text>
             </Inset>
@@ -148,7 +152,7 @@ export default function IncomingOrder() {
           <Card className="flex-row items-center gap-3">
             <View className="flex-1">
               <Text variant="caption" tone="muted">
-                Delivering to
+                {t("profile:delivery.deliverTo")}
               </Text>
               <Text variant="body-sm" numberOfLines={2}>
                 {order.deliveryAddress}
@@ -160,9 +164,9 @@ export default function IncomingOrder() {
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
-              <Text variant="h3">How long will it take?</Text>
+              <Text variant="h3">{t("orders.prepTimeQuestion")}</Text>
               <Text variant="caption" tone="muted">
-                The customer sees this as their estimate
+                {t("orders.prepTimeCustomerHint")}
               </Text>
             </View>
           </View>
@@ -186,7 +190,7 @@ export default function IncomingOrder() {
           <View className="flex-row items-center gap-2">
             <Check size={20} strokeWidth={3} color={color["primary-foreground"]} />
             <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              {`Accept · ${prepTime} min`}
+              {t("orders.acceptWithTime", { minutes: prepTime })}
             </Text>
           </View>
         </Button>
@@ -200,7 +204,7 @@ export default function IncomingOrder() {
           }}
         >
           <Text variant="label" tone="destructive">
-            Reject order
+            {t("orders.actions.reject")}
           </Text>
         </Button>
       </DockedBar>
@@ -213,10 +217,10 @@ export default function IncomingOrder() {
           try {
             await reject.mutateAsync({ orderId, reason });
             setRejecting(false);
-            toast.info("Order rejected");
+            toast.info(t("seller:orders.rejected"));
             router.back();
           } catch (error) {
-            toast.error("Could not reject", { description: errorMessage(error) });
+            toast.error(t("seller:orders.rejectFailed"), { description: errorMessage(error) });
           }
         }}
       />

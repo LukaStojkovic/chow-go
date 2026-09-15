@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ import { ResponsiveSheet } from "@/components/basket/ResponsiveSheet";
 import AddAddressModal from "@/components/Profile/AddAddressModal";
 
 export function SavedAddressesCard() {
+  const { t } = useTranslation(["profile", "common"]);
   const { deliveryAddresses, isLoadingAddresses } = useGetDeliveryAddresses();
   const { addDeliveryAddressAsync, isAddingDeliveryAddress } = useAddDeliveryAddress();
   const { updateDeliveryAddressAsync, isUpdatingDeliveryAddress } =
@@ -66,11 +68,11 @@ export function SavedAddressesCard() {
     <Card padded className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-h2">Delivery addresses</h2>
+          <h2 className="text-h2">{t("address.deliveryHeading")}</h2>
           <p className="text-body-sm text-muted-foreground mt-0.5">
             {atLimit
-              ? `You have reached the limit of ${MAX_SAVED_ADDRESSES} saved addresses.`
-              : `${addresses.length} of ${MAX_SAVED_ADDRESSES} saved`}
+              ? t("address.limitReached", { max: MAX_SAVED_ADDRESSES })
+              : t("address.savedOf", { count: addresses.length, max: MAX_SAVED_ADDRESSES })}
           </p>
         </div>
 
@@ -81,7 +83,7 @@ export function SavedAddressesCard() {
           onClick={() => setEditorTarget("new")}
         >
           <Plus aria-hidden="true" />
-          Add
+          {t("common:actions.add")}
         </Button>
       </div>
 
@@ -94,9 +96,11 @@ export function SavedAddressesCard() {
         <EmptyState
           icon={MapPin}
           size="sm"
-          title="No addresses saved"
-          description="Add one so checkout knows where to send your order."
-          action={<Button onClick={() => setEditorTarget("new")}>Add an address</Button>}
+          title={t("address.empty.title")}
+          description={t("address.empty.description")}
+          action={
+            <Button onClick={() => setEditorTarget("new")}>{t("address.addTitle")}</Button>
+          }
         />
       ) : (
         <ul className="space-y-2">
@@ -118,7 +122,9 @@ export function SavedAddressesCard() {
                   <span className="text-label truncate">
                     {titleCase(address.label) || "Address"}
                   </span>
-                  {address.isDefault && <Badge variant="primary">Default</Badge>}
+                  {address.isDefault && (
+                    <Badge variant="primary">{t("address.isDefault")}</Badge>
+                  )}
                 </div>
                 <p className="text-body-sm text-muted-foreground mt-0.5 break-words">
                   {address.fullAddress}
@@ -161,8 +167,12 @@ export function SavedAddressesCard() {
       <ResponsiveSheet
         open={Boolean(editorTarget)}
         onOpenChange={(next) => !next && setEditorTarget(null)}
-        title={editorTarget && editorTarget !== "new" ? "Edit address" : "Add an address"}
-        description="Pin the location on the map, then add the details a courier needs to find you."
+        title={
+          editorTarget && editorTarget !== "new"
+            ? t("address.editTitle")
+            : t("address.addTitle")
+        }
+        description={t("address.editorHint")}
       >
         {editorTarget && (
           <AddAddressModal
@@ -182,15 +192,16 @@ export function SavedAddressesCard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Delete {titleCase(pendingDelete?.label) || "this address"}?
+              {t("address.deleteNamed", {
+                name: titleCase(pendingDelete?.label) || t("address.thisAddress"),
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete?.fullAddress} will be removed from your account. Orders
-              already placed to it are not affected.
+              {t("address.deleteBody", { address: pendingDelete?.fullAddress })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogCancel>{t("address.keepIt")}</AlertDialogCancel>
             <AlertDialogAction
               className={cn(buttonVariants({ variant: "destructive" }))}
               onClick={() => {
@@ -198,7 +209,7 @@ export function SavedAddressesCard() {
                 setPendingDelete(null);
               }}
             >
-              Delete address
+              {t("address.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

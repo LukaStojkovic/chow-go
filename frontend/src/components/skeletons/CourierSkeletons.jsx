@@ -4,6 +4,7 @@
  */
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 import {
   CardBlockSkeleton,
   ChartSkeleton,
@@ -59,9 +60,10 @@ function CourierStatsGridSkeleton() {
 }
 
 export function CourierDashboardSkeleton() {
+  const { t } = useTranslation("courier");
   return (
     <SkeletonScreen
-      label="Loading dashboard"
+      label={t("skeleton.dashboard")}
       className="mx-auto max-w-5xl space-y-6"
     >
       <CourierStatsGridSkeleton />
@@ -83,8 +85,9 @@ export function CourierDashboardSkeleton() {
 }
 
 export function CourierOrdersSkeleton() {
+  const { t } = useTranslation("courier");
   return (
-    <SkeletonScreen label="Loading deliveries" className="space-y-6">
+    <SkeletonScreen label={t("skeleton.deliveries")} className="space-y-6">
       <div className="bg-secondary/50 flex gap-1 rounded-xl p-1">
         <Skeleton className="h-10 flex-1 rounded-lg" />
         <Skeleton className="h-10 flex-1 rounded-lg" />
@@ -100,8 +103,9 @@ export function CourierOrdersSkeleton() {
 }
 
 export function CourierProfileSkeleton() {
+  const { t } = useTranslation("courier");
   return (
-    <SkeletonScreen label="Loading profile" className="mx-auto max-w-3xl space-y-6">
+    <SkeletonScreen label={t("skeleton.profile")} className="mx-auto max-w-3xl space-y-6">
       <div className="bg-card rounded-2xl border border-border p-6">
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
           <Skeleton className="size-28 shrink-0 rounded-full" />
@@ -149,9 +153,10 @@ export function CourierProfileSkeleton() {
  * has to fill the same flex column rather than sit in the scrolling body.
  */
 export function CourierDeliverySkeleton() {
+  const { t } = useTranslation("courier");
   return (
     <SkeletonScreen
-      label="Loading delivery"
+      label={t("skeleton.delivery")}
       className="relative flex min-h-0 flex-1 flex-col"
     >
       <Skeleton className="min-h-0 flex-1 rounded-none" />
