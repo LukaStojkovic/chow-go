@@ -20,9 +20,14 @@ config.watchFolders = [path.resolve(__dirname, "../shared")];
  * `shared/node_modules/i18next` while `react-i18next` here finds this project's
  * copy - two singletons, and a language switch that moves one of them.
  *
+ * `zod` is pinned for a second reason: EAS installs only this project's
+ * dependencies, so `shared/node_modules` does not exist in the build container
+ * and `shared/src/menuItemSchema.js` has nothing to resolve `zod` against.
+ * Pinning it makes a clean CI checkout resolve the same way a local one does.
+ *
  * This is the same reason a React Native monorepo pins `react` to one copy.
  */
-const SINGLETONS = ["i18next", "react", "react-dom"];
+const SINGLETONS = ["i18next", "zod", "react", "react-dom"];
 
 const resolveSingleton = Object.fromEntries(
   SINGLETONS.map((name) => {
