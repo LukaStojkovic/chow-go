@@ -157,7 +157,7 @@ console.log("\nweb path must not change");
 }
 
 console.log("\nmobile path");
-const mobileState = signOAuthState("mobile", CHALLENGE);
+const mobileState = signOAuthState("mobile", { challenge: CHALLENGE });
 let existingCode = null;
 let newUserCode = null;
 {
@@ -375,6 +375,7 @@ console.log("\nGET /google requires a challenge from native");
   process.env.GOOGLE_CALLBACK_URL ||= "http://localhost/api/auth/google/callback";
   configurePassport();
   const app = express();
+  app.use((await import("cookie-parser")).default());
   app.use(passport.initialize());
   app.use("/api/auth", authRoutes);
   const server = app.listen(0);
@@ -400,6 +401,42 @@ console.log("\nGET /google requires a challenge from native");
   );
   const web = await location("");
   ok("the web flow needs no challenge", web.includes("accounts.google.com"), web.slice(0, 60));
+
+  console.log("\nweb callback is bound to the browser that started it");
+  const start = await fetch(base, { redirect: "manual" });
+  const setCookie = start.headers.get("set-cookie") ?? "";
+  const nonce = /g_oauth_nonce=([a-f0-9]+)/.exec(setCookie)?.[1];
+  const webState = new URL(start.headers.get("location")).searchParams.get("state");
+  ok("GET /google sets an httpOnly nonce cookie", Boolean(nonce) && /HttpOnly/i.test(setCookie), setCookie);
+  ok("and the same nonce rides in the signed state", jwt.decode(webState)?.nonce === nonce);
+
+  const callback = async (state, cookie, code = "&code=x") =>
+    (
+      await fetch(`${base}/callback?state=${encodeURIComponent(state)}${code}`, {
+        redirect: "manual",
+        headers: cookie ? { cookie: `g_oauth_nonce=${cookie}` } : {},
+      })
+    ).headers.get("location") ?? "";
+
+  const failed = `${process.env.FRONTEND_URL}/auth/google/callback?error=auth_failed`;
+  ok("a callback with no nonce cookie is refused", (await callback(webState)) === failed);
+  ok(
+    "a callback with someone else's nonce is refused",
+    (await callback(webState, randomBytes(32).toString("hex"))) === failed,
+  );
+  ok("a callback with a forged state is refused", (await callback("forged", nonce)) === failed);
+  const passes = await callback(webState, nonce, "");
+  ok(
+    "the browser that started the flow gets past the guard",
+    passes.includes("accounts.google.com"),
+    passes,
+  );
+  const native = await callback(mobileState, null, "");
+  ok(
+    "native callbacks need no cookie (the challenge binds them)",
+    native.includes("accounts.google.com"),
+    native,
+  );
   server.close();
 }
 

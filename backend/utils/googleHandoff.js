@@ -1,4 +1,4 @@
-import { createHash, randomUUID, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from "crypto";
 import jwt from "jsonwebtoken";
 
 /**
@@ -62,15 +62,39 @@ export const signSignupState = (googleProfile) =>
  * Carries which client started the flow through the Google round-trip.
  * Signing it also buys CSRF protection the flow does not have today.
  */
-export const signOAuthState = (client, challenge) =>
-  sign({ client, challenge, typ: "oauth_state" }, STATE_TTL);
+export const signOAuthState = (client, { challenge, nonce } = {}) =>
+  sign({ client, challenge, nonce, typ: "oauth_state" }, STATE_TTL);
 
-/** Anything unsigned or expired falls back to the existing web behaviour. */
+/** Anything unsigned or expired falls back to the web redirect, marked invalid. */
 export function readOAuthState(state) {
   try {
-    const { client, challenge } = verifyTyped(state, "oauth_state");
-    return { client, challenge };
+    const { client, challenge, nonce } = verifyTyped(state, "oauth_state");
+    return { valid: true, client, challenge, nonce };
   } catch {
-    return { client: "web" };
+    return { valid: false, client: "web" };
   }
+}
+
+/**
+ * The web half of login-CSRF protection: /google sets this cookie and puts the
+ * same nonce in the state, and the callback refuses a state this browser did
+ * not start. Lax, because Google's redirect back is a cross-site top-level GET.
+ */
+export const OAUTH_NONCE_COOKIE = "g_oauth_nonce";
+
+export const oauthNonceCookieOptions = () => ({
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV !== "development",
+  path: "/api/auth/google",
+  maxAge: 10 * 60 * 1000,
+});
+
+export const newOAuthNonce = () => randomBytes(32).toString("hex");
+
+export function nonceMatches(cookieNonce, stateNonce) {
+  if (typeof cookieNonce !== "string" || typeof stateNonce !== "string") return false;
+  const a = Buffer.from(cookieNonce);
+  const b = Buffer.from(stateNonce);
+  return a.length === b.length && timingSafeEqual(a, b);
 }

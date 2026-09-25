@@ -17,7 +17,15 @@ import { createUpload } from "../middlewares/upload.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import passport from "passport";
 import { accountLimiter, loginLimiter } from "../middlewares/rateLimit.js";
-import { isValidChallenge, signOAuthState } from "../utils/googleHandoff.js";
+import {
+  OAUTH_NONCE_COOKIE,
+  isValidChallenge,
+  newOAuthNonce,
+  nonceMatches,
+  oauthNonceCookieOptions,
+  readOAuthState,
+  signOAuthState,
+} from "../utils/googleHandoff.js";
 
 const router = express.Router();
 const uploadUser = createUpload("users");
@@ -52,23 +60,43 @@ router.get("/google", (req, res, next) => {
     const base = process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google";
     return res.redirect(`${base}?error=auth_failed`);
   }
-  return passport.authenticate("google", {
-    scope: ["profile", "email"],
-    state: isMobile
-      ? signOAuthState("mobile", req.query.challenge)
-      : signOAuthState("web"),
-  })(req, res, next);
+  let state;
+  if (isMobile) {
+    state = signOAuthState("mobile", { challenge: req.query.challenge });
+  } else {
+    const nonce = newOAuthNonce();
+    res.cookie(OAUTH_NONCE_COOKIE, nonce, oauthNonceCookieOptions());
+    state = signOAuthState("web", { nonce });
+  }
+  return passport.authenticate("google", { scope: ["profile", "email"], state })(
+    req,
+    res,
+    next,
+  );
 });
 
 router.post("/google/exchange", loginLimiter, googleExchange);
-router.get("/google/callback", (req, res, next) =>
-  passport.authenticate("google", { session: false }, (err, user, info) => {
+router.get("/google/callback", (req, res, next) => {
+  const state = readOAuthState(req.query.state);
+  // Native is protected by the PKCE challenge instead: a forged callback
+  // carries a challenge the victim's app cannot answer.
+  if (state.client !== "mobile") {
+    const cookieNonce = req.cookies?.[OAUTH_NONCE_COOKIE];
+    const { maxAge, ...clearOptions } = oauthNonceCookieOptions();
+    res.clearCookie(OAUTH_NONCE_COOKIE, clearOptions);
+    if (!state.valid || !nonceMatches(cookieNonce, state.nonce)) {
+      req.user = null;
+      req.googleAuthFailure = "auth_failed";
+      return googleCallback(req, res, next);
+    }
+  }
+  return passport.authenticate("google", { session: false }, (err, user, info) => {
     if (err) return next(err);
     req.user = user || null;
     req.googleAuthFailure = user ? null : info?.reason;
     return googleCallback(req, res, next);
-  })(req, res, next),
-);
+  })(req, res, next);
+});
 router.post(
   "/google/complete-profile",
   accountLimiter,
