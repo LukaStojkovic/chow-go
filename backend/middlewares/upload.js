@@ -1,6 +1,6 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../utils/cloudinary.js";
+import { cloudinaryStorage } from "../utils/cloudinaryStorage.js";
 import { deleteMultipleCloudinaryImages } from "../services/image.service.js";
 import { logger } from "../utils/logger.js";
 
@@ -42,12 +42,10 @@ export function cleanupUploadsOnFailure(req, res, next) {
 }
 
 export function createUpload(folder) {
-  const storage = new CloudinaryStorage({
+  const storage = cloudinaryStorage({
     cloudinary,
-    params: {
-      folder,
-      allowed_formats: ["jpg", "png", "jpeg", "webp"],
-    },
+    folder,
+    allowedFormats: ["jpg", "png", "jpeg", "webp"],
   });
 
   const upload = multer({

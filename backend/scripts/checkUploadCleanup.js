@@ -27,9 +27,23 @@ try {
   await mongoose.connect(process.env.MONGODB_URL);
   const cloudinary = (await import("../utils/cloudinary.js")).default;
   const destroyed = [];
-  cloudinary.uploader.destroy = async (publicId) => {
+  cloudinary.uploader.destroy = (publicId, _options, callback) => {
     destroyed.push(publicId);
-    return { result: "ok" };
+    if (typeof callback === "function") callback(null, { result: "ok" });
+    return Promise.resolve({ result: "ok" });
+  };
+  const uploaded = [];
+  const { PassThrough } = await import("stream");
+  cloudinary.uploader.upload_stream = (options, callback) => {
+    const sink = new PassThrough();
+    let bytes = 0;
+    sink.on("data", (chunk) => (bytes += chunk.length));
+    sink.on("end", () => {
+      const id = `${options.folder}/up-${uploaded.length + 1}`;
+      uploaded.push({ id, options, bytes });
+      callback(null, { secure_url: img(id.split("/")[1]), bytes, public_id: id });
+    });
+    return sink;
   };
 
   const express = (await import("express")).default;
@@ -65,6 +79,10 @@ try {
   }, () => {
     throw new Error("boom");
   });
+  const realUpload = createUpload("users");
+  app.post("/real", realUpload.single("profilePicture"), (req, res) => res.status(200).json(req.file));
+  app.post("/real-rejected", realUpload.single("profilePicture"), (_req, res) => res.status(400).json({}));
+  app.post("/real-too-many", realUpload.array("images", 2), (_req, res) => res.status(200).json({}));
   app.use(handleError);
   server = app.listen(0);
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -127,6 +145,44 @@ try {
   ok("a valid signup succeeds", good === 201, String(good));
   ok("and nothing is deleted", destroyed.length === 0, destroyed.join());
   ok("a successful single upload is kept", (await post("/single-ok")) === 200 && (await settle(), destroyed.length === 0));
+
+  console.log("\nthe Cloudinary storage engine");
+  const png = () => new Blob([Buffer.from("89504e470d0a1a0a" + "00".repeat(64), "hex")], { type: "image/png" });
+  const multipart = async (p, files) => {
+    const form = new FormData();
+    for (const [field, blob, name] of files) form.append(field, blob, name);
+    const res = await fetch(base + p, { method: "POST", body: form });
+    return { status: res.status, body: await res.json().catch(() => ({})) };
+  };
+  destroyed.length = 0;
+  const real = await multipart("/real", [["profilePicture", png(), "a.png"]]);
+  ok("a real multipart upload streams through", real.status === 200 && uploaded.length === 1, String(real.status));
+  ok("req.file.path is the secure URL", real.body.path === img("up-1"), real.body.path);
+  ok("into the route's folder, images only", uploaded[0]?.options.folder === "users" && uploaded[0]?.options.resource_type === "image");
+  ok("with the bytes intact", uploaded[0]?.bytes === 72, String(uploaded[0]?.bytes));
+
+  destroyed.length = 0;
+  await multipart("/real-rejected", [["profilePicture", png(), "b.png"]]);
+  await settle();
+  ok("a rejected request destroys its upload", destroyed.join() === "users/up-2", destroyed.join());
+
+  destroyed.length = 0;
+  const tooMany = await multipart("/real-too-many", [
+    ["images", png(), "1.png"],
+    ["images", png(), "2.png"],
+    ["images", png(), "3.png"],
+  ]);
+  await settle();
+  ok("one file over the limit is refused", tooMany.status === 400, String(tooMany.status));
+  ok(
+    "and the files already uploaded are removed",
+    destroyed.length >= 2 && destroyed.every((id) => id.startsWith("users/up-")),
+    destroyed.join(),
+  );
+
+  const beforeWrongType = uploaded.length;
+  const wrongType = await multipart("/real", [["profilePicture", new Blob(["hi"], { type: "text/plain" }), "a.txt"]]);
+  ok("a non-image never reaches Cloudinary", wrongType.status === 400 && uploaded.length === beforeWrongType, `${wrongType.status} ${uploaded.length}`);
 
   console.log("\na crash cleans up too");
   destroyed.length = 0;
