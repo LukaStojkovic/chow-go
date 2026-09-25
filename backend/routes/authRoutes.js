@@ -54,10 +54,13 @@ router.get("/google", (req, res, next) =>
 );
 
 router.post("/google/exchange", loginLimiter, googleExchange);
-router.get(
-  "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  googleCallback
+router.get("/google/callback", (req, res, next) =>
+  passport.authenticate("google", { session: false }, (err, user, info) => {
+    if (err) return next(err);
+    req.user = user || null;
+    req.googleAuthFailure = user ? null : info?.reason;
+    return googleCallback(req, res, next);
+  })(req, res, next),
 );
 router.post(
   "/google/complete-profile",

@@ -10,6 +10,38 @@ function getGoogleProfilePicture(profile) {
   return photo.replace("=s96-c", "=s400-c");
 }
 
+export async function resolveGoogleProfile(profile) {
+  const email = profile.emails?.[0]?.value?.trim().toLowerCase();
+  const emailVerified =
+    profile.emails?.[0]?.verified === true ||
+    profile._json?.email_verified === true;
+  const googleId = profile.id;
+  const profilePicture = getGoogleProfilePicture(profile);
+  const name = profile.displayName;
+
+  const user = await User.findOne({ googleId });
+  if (user) {
+    if (profilePicture && user.profilePicture !== profilePicture) {
+      user.profilePicture = profilePicture;
+      await user.save();
+    }
+    return { user };
+  }
+
+  if (!email || !emailVerified) return { failure: "email_unverified" };
+
+  // Linking by email alone let anyone who registered the address first
+  // share the account with its real owner.
+  if (await User.exists({ email })) return { failure: "account_exists" };
+
+  return {
+    user: {
+      isNewUser: true,
+      googleProfile: { googleId, email, name, profilePicture },
+    },
+  };
+}
+
 export function configurePassport() {
   passport.use(
     new GoogleStrategy(
@@ -20,34 +52,8 @@ export function configurePassport() {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          const email = profile.emails?.[0]?.value;
-          const googleId = profile.id;
-          const profilePicture = getGoogleProfilePicture(profile);
-          const name = profile.displayName;
-
-          let user = await User.findOne({ googleId });
-          if (user) {
-            if (profilePicture && user.profilePicture !== profilePicture) {
-              user.profilePicture = profilePicture;
-              await user.save();
-            }
-            return done(null, user);
-          }
-
-          user = await User.findOne({ email });
-          if (user) {
-            user.googleId = googleId;
-            if (profilePicture && !user.profilePicture) {
-              user.profilePicture = profilePicture;
-            }
-            await user.save();
-            return done(null, user);
-          }
-
-          return done(null, {
-            isNewUser: true,
-            googleProfile: { googleId, email, name, profilePicture },
-          });
+          const { user, failure } = await resolveGoogleProfile(profile);
+          return user ? done(null, user) : done(null, false, { reason: failure });
         } catch (error) {
           return done(error, null);
         }

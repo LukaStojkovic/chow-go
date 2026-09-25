@@ -248,17 +248,17 @@ console.log("\nexchange");
 console.log("\ntyp guard on protectedRoute");
 {
   const { protectedRoute } = await import("../middlewares/authMiddleware.js");
-  const res = fakeRes();
+  const [captured, next] = nextError();
   const signupToken = signSignupState(PROFILE);
   await protectedRoute(
     { headers: { authorization: `Bearer ${signupToken}` }, cookies: {} },
-    res,
-    () => {},
+    fakeRes(),
+    next,
   );
   ok(
     "a signup token is rejected as an access token",
-    res.statusCode === 401,
-    String(res.statusCode),
+    captured.error?.statusCode === 401,
+    String(captured.error?.statusCode),
   );
 }
 

@@ -27,7 +27,7 @@ export async function signInWithGoogle() {
   if (result.type !== "success") return { status: "cancelled" };
 
   const { queryParams } = Linking.parse(result.url);
-  if (queryParams?.error) return { status: "failed" };
+  if (queryParams?.error) return { status: "failed", reason: queryParams.error };
   if (!queryParams?.code) return { status: "failed" };
 
   // The deep link carries a 90-second code, never the session itself.

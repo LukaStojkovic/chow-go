@@ -177,6 +177,10 @@ export default {
     signingInAs: "Prijavljivanje kao {{email}}",
     cancelled: "Prijava je otkazana.",
     webFailed: "Google prijava nije uspela. Pokušajte ponovo.",
+    accountExists:
+      "Ova e-adresa već ima Chow & Go nalog. Prijavite se e-adresom i lozinkom.",
+    emailUnverified:
+      "Vaša Google e-adresa nije potvrđena. Potvrdite je kod Google-a ili se registrujte e-adresom.",
     completeProfile: "Dovršite svoj profil",
     roleQuestion: "Kako želite da koristite Chow & Go?",
     roleHint: "Popunite podatke ispod da biste dovršili podešavanje naloga",

@@ -30,7 +30,9 @@ export default function GoogleAuthCallbackPage() {
     const newUser = searchParams.get("newUser");
 
     if (error) {
-      toast.error(t("google.webFailed"));
+      if (error === "account_exists") toast.error(t("google.accountExists"));
+      else if (error === "email_unverified") toast.error(t("google.emailUnverified"));
+      else toast.error(t("google.webFailed"));
       navigate("/", { replace: true });
       return;
     }

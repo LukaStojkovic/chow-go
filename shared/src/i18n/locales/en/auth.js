@@ -176,6 +176,10 @@ export default {
     signingInAs: "Signing in as {{email}}",
     cancelled: "Sign-in was cancelled.",
     webFailed: "Google authentication failed. Please try again.",
+    accountExists:
+      "This email already has a Chow & Go account. Log in with your email and password instead.",
+    emailUnverified:
+      "Your Google email address isn't verified. Verify it with Google, or sign up with email instead.",
     completeProfile: "Complete your profile",
     roleQuestion: "How would you like to use Chow & Go?",
     roleHint: "Fill in the details below to finish setting up your account",

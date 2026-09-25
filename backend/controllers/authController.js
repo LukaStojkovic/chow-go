@@ -568,6 +568,8 @@ export const checkAuth = (req, res) => {
   res.status(200).json(response);
 };
 
+const GOOGLE_FAILURE_REASONS = new Set(["account_exists", "email_unverified"]);
+
 export const googleCallback = async (req, res, next) => {
   const data = req.user;
   const isMobile = readOAuthState(req.query.state) === "mobile";
@@ -576,7 +578,10 @@ export const googleCallback = async (req, res, next) => {
     : `${process.env.FRONTEND_URL}/auth/google/callback`;
 
   if (!data) {
-    return res.redirect(`${base}?error=auth_failed`);
+    const reason = GOOGLE_FAILURE_REASONS.has(req.googleAuthFailure)
+      ? req.googleAuthFailure
+      : "auth_failed";
+    return res.redirect(`${base}?error=${reason}`);
   }
 
   if (isMobile) {

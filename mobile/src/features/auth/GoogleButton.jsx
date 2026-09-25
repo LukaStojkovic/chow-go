@@ -56,7 +56,13 @@ export function GoogleButton() {
         return;
       }
       if (result.status === "failed") {
-        toast.error(t("google.signInFailed"), { description: t("google.tryAgain") });
+        const description =
+          result.reason === "account_exists"
+            ? t("google.accountExists")
+            : result.reason === "email_unverified"
+              ? t("google.emailUnverified")
+              : t("google.tryAgain");
+        toast.error(t("google.signInFailed"), { description });
       }
     } catch (error) {
       toast.error(t("google.signInFailed"), { description: errorMessage(error) });

@@ -15,12 +15,13 @@
     "check:cancel": "node scripts/checkOrderCancel.js",
     "check:rating": "node scripts/checkRating.js",
     "check:money": "node scripts/checkOrderMoney.js",
-    "check:all": "node scripts/checkObservability.js && node scripts/checkPasswordReset.js && node scripts/checkAccountDeletion.js && node scripts/checkCourierPoolPrivacy.js && node scripts/checkOrderCancel.js && node scripts/checkOrderTransitions.js && node scripts/checkRating.js && node scripts/checkOrderMoney.js && node scripts/checkCheckout.js && node scripts/checkPushRouting.js && node scripts/checkSchedule.js",
+    "check:all": "node scripts/checkObservability.js && node scripts/checkPasswordReset.js && node scripts/checkGoogleLinking.js && node scripts/checkAccountDeletion.js && node scripts/checkCourierPoolPrivacy.js && node scripts/checkOrderCancel.js && node scripts/checkOrderTransitions.js && node scripts/checkRating.js && node scripts/checkOrderMoney.js && node scripts/checkCheckout.js && node scripts/checkPushRouting.js && node scripts/checkSchedule.js",
     "check:transitions": "node scripts/checkOrderTransitions.js",
     "check:checkout": "node scripts/checkCheckout.js",
     "check:schedule": "node scripts/checkSchedule.js",
     "check:deletion": "node scripts/checkAccountDeletion.js",
-    "check:push": "node scripts/checkPushRouting.js"
+    "check:push": "node scripts/checkPushRouting.js",
+    "check:google-linking": "node scripts/checkGoogleLinking.js"
   },
   "dependencies": {
     "@chowgo/shared": "file:../shared",
