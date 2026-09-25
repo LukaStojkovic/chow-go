@@ -5,6 +5,7 @@ import { AppError } from "../utils/AppError.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
 import { isUsableCoordinatePair } from "./locationTracking.service.js";
+import { parsePagination } from "../utils/pagination.js";
 
 const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
@@ -49,16 +50,45 @@ export async function getCourierByUserId(userId) {
   return courier;
 }
 
-export async function listAvailableOrders({
-  courierUserId,
-  page = 1,
-  limit = 20,
-}) {
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
+// About 220 m of latitude; less of longitude away from the equator.
+const APPROXIMATE_GRID_DEGREES = 0.002;
+const APPROXIMATE_DISTANCE_METERS = 500;
+
+const roundTo = (value, step) => Math.round(value / step) * step;
+
+// Anyone can sign up as a courier, and only accepting an order checks
+// verification, so an unverified courier browsing the pool gets an area, not
+// an address. The distance is rounded too: a courier controls their own
+// reported position, and exact distances from a few positions pin the door.
+function approximateForUnverified(order) {
+  const doc = typeof order.toJSON === "function" ? order.toJSON() : order;
+  const coords = doc.deliveryAddressSnapshot?.location?.coordinates;
+  return {
+    ...doc,
+    deliveryAddressSnapshot: {
+      approximate: true,
+      location: isUsableCoordinatePair(coords)
+        ? {
+            type: "Point",
+            coordinates: coords.map((c) => Number(roundTo(c, APPROXIMATE_GRID_DEGREES).toFixed(3))),
+          }
+        : undefined,
+    },
+    deliveryDistance:
+      typeof doc.deliveryDistance === "number"
+        ? Math.max(APPROXIMATE_DISTANCE_METERS, roundTo(doc.deliveryDistance, APPROXIMATE_DISTANCE_METERS))
+        : undefined,
+  };
+}
+
+export async function listAvailableOrders({ courierUserId, page, limit }) {
+  const { page: pageNum, limit: limitNum, skip } = parsePagination({ page, limit });
 
   const courier = await getCourierByUserId(courierUserId);
+  const present =
+    courier.verificationStatus === "verified"
+      ? (orders) => orders
+      : (orders) => orders.map(approximateForUnverified);
 
   const coords = courier.currentLocation?.coordinates;
   const hasLocation = isUsableCoordinatePair(coords);
@@ -114,7 +144,7 @@ export async function listAvailableOrders({
     ];
 
     const [result] = await Order.aggregate(pipeline);
-    const orders = result.orders;
+    const orders = present(result.orders);
     const totalItems = result.total[0]?.count ?? 0;
 
     return {
@@ -133,7 +163,7 @@ export async function listAvailableOrders({
 
   const query = { status: "ready", courier: null };
 
-  const [orders, totalItems] = await Promise.all([
+  const [found, totalItems] = await Promise.all([
     Order.find(query)
       .select(POOL_ORDER_FIELDS)
       .populate("restaurant", "name profilePicture address phone location")
@@ -144,7 +174,7 @@ export async function listAvailableOrders({
   ]);
 
   return {
-    orders,
+    orders: present(found),
     geoFiltered: false,
     pagination: {
       currentPage: pageNum,

@@ -85,14 +85,19 @@ try {
     paymentMethod: "cash",
   });
 
-  async function assertPool(label, withLocation) {
+  async function setLocation(withLocation) {
     if (withLocation) {
-      courier.currentLocation = { type: "Point", coordinates: [20.45, 44.8] };
-      await courier.save();
+      await Courier.updateOne(
+        { _id: courier._id },
+        { $set: { currentLocation: { type: "Point", coordinates: [20.45, 44.8] } } },
+      );
     } else {
       await Courier.updateOne({ _id: courier._id }, { $unset: { currentLocation: 1 } });
     }
+  }
 
+  async function assertPool(label, withLocation) {
+    await setLocation(withLocation);
     const { orders, geoFiltered } = await listAvailableOrders({ courierUserId: courierUser._id });
     ok(`${label}: one order returned (geoFiltered=${geoFiltered})`, orders.length === 1, `got ${orders.length}`);
     if (orders.length !== 1) return;
@@ -114,9 +119,72 @@ try {
     ok(`${label}: paymentMethod still present`, doc.paymentMethod === "cash");
   }
 
-  console.log("\ncourier pool privacy");
+  async function assertApproximate(label, withLocation) {
+    await setLocation(withLocation);
+    const { orders } = await listAvailableOrders({ courierUserId: courierUser._id });
+    ok(`${label}: one order returned`, orders.length === 1, `got ${orders.length}`);
+    if (orders.length !== 1) return;
+    const doc = orders[0];
+    const snapshot = doc.deliveryAddressSnapshot ?? {};
+    ok(`${label}: fullAddress withheld`, snapshot.fullAddress === undefined, `got "${snapshot.fullAddress}"`);
+    for (const field of [...Object.keys(SECRET), "label"]) {
+      ok(`${label}: ${field} withheld`, snapshot[field] === undefined);
+    }
+    ok(`${label}: marked approximate`, snapshot.approximate === true);
+    const [lng, lat] = snapshot.location?.coordinates ?? [];
+    ok(
+      `${label}: coordinates snapped to the grid`,
+      Math.abs(lng / 0.002 - Math.round(lng / 0.002)) < 1e-6 &&
+        Math.abs(lat / 0.002 - Math.round(lat / 0.002)) < 1e-6,
+      `got ${lng},${lat}`,
+    );
+    ok(
+      `${label}: still within ~150 m of the real point`,
+      Math.abs(lng - 20.4613) <= 0.0011 && Math.abs(lat - 44.8127) <= 0.0011,
+    );
+    if (withLocation) {
+      ok(
+        `${label}: distance rounded to 500 m`,
+        doc.deliveryDistance % 500 === 0,
+        `got ${doc.deliveryDistance}`,
+      );
+    }
+    ok(`${label}: restaurant still joined`, Boolean(doc.restaurant?.name));
+    ok(`${label}: total still present`, Number(doc.total) === 13.5);
+  }
+
+  console.log("\ncourier pool privacy: verified courier sees the address");
+  await Courier.updateOne({ _id: courier._id }, { $set: { verificationStatus: "verified" } });
   await assertPool("geo branch", true);
   await assertPool("fallback branch", false);
+
+  console.log("\ncourier pool privacy: unverified courier sees an area");
+  await Order.updateOne(
+    { status: "ready" },
+    { $set: { "deliveryAddressSnapshot.location.coordinates": [20.4613, 44.8127] } },
+  );
+  for (const status of ["pending", "rejected"]) {
+    await Courier.updateOne({ _id: courier._id }, { $set: { verificationStatus: status } });
+    await assertApproximate(`${status}, geo branch`, true);
+    await assertApproximate(`${status}, fallback branch`, false);
+  }
+
+  console.log("\npool pagination is clamped");
+  await Courier.updateOne({ _id: courier._id }, { $set: { verificationStatus: "verified" } });
+  for (const [limit, page, expectLimit] of [["0", "1", 20], ["-5", "0", 20], ["abc", "x", 20], ["100000", "1", 50]]) {
+    let result = null;
+    let error = null;
+    try {
+      result = await listAvailableOrders({ courierUserId: courierUser._id, limit, page });
+    } catch (err) {
+      error = err.message;
+    }
+    ok(
+      `limit=${limit} page=${page} -> limit ${expectLimit}, page 1`,
+      result?.pagination?.limit === expectLimit && result?.pagination?.currentPage === 1,
+      error ?? JSON.stringify(result?.pagination),
+    );
+  }
 
   // verificationStatus was written at signup and read nowhere, so an
   // unverified courier could take custody of a paid order.
