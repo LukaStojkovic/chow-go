@@ -129,6 +129,12 @@ export const register = async (req, res, next) => {
     return next(new AppError("Phone number is required for customers", 400));
   }
 
+  // Only a seller signup stores these; on any other role they would upload,
+  // succeed, and never be referenced by anything.
+  if (role !== "seller" && req.files?.restaurantImages?.length) {
+    return next(new AppError("Restaurant images are only accepted for sellers", 400, "UNEXPECTED_UPLOAD"));
+  }
+
   const policyError = passwordPolicyError(password);
   if (policyError) return next(policyError);
 
@@ -783,6 +789,10 @@ export const googleCompleteProfile = async (req, res, next) => {
 
   if (!role || !["customer", "seller", "courier"].includes(role)) {
     return next(new AppError("Valid role is required", 400));
+  }
+
+  if (role !== "seller" && req.files?.restaurantImages?.length) {
+    return next(new AppError("Restaurant images are only accepted for sellers", 400, "UNEXPECTED_UPLOAD"));
   }
 
   if (await User.exists({ email: normalizeEmail(googleProfile.email) })) {

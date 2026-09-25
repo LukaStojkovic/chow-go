@@ -42,7 +42,7 @@ no running server and never touching a real database. Run it after any change to
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:images`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:schedule`.
+`check:images`, `check:upload-cleanup`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
 
@@ -186,7 +186,7 @@ Native cannot use that session: the OAuth leg runs in the system browser, a sepa
 
 **The app never talks to Google directly** — it opens the *backend's* route in a browser — so there are no iOS/Android OAuth client ids and `chowgo://` never appears in Google's console. The one sharp edge is development: Google rejects private-network redirect URIs, so a LAN IP cannot complete sign-in and a stable HTTPS tunnel must be registered as a second authorized redirect URI.
 
-Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload(folder)`; the resulting `req.file.path` **is** the Cloudinary URL and is stored directly on the document. `services/image.service.js` handles deletes and add/remove diffing by parsing the public id back out of the URL. An update may only keep `existingImages` the document already holds (`keepExistingImages`), and `utils/formatData.js#isOwnCloudinaryUrl` gates every delete to `res.cloudinary.com/<CLOUDINARY_CLOUD_NAME>/…` — a substring check once let one seller adopt and then destroy another restaurant's images.
+Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload(folder)`; the resulting `req.file.path` **is** the Cloudinary URL and is stored directly on the document. Files land before the handler validates anything, so `createUpload`'s `.single/.array/.fields` each return `[cleanupUploadsOnFailure, multer]`: when the response ends ≥400, whatever the request uploaded is destroyed. A handler that accepts a file it will not store on success must refuse it instead (as signup does for `restaurantImages` on non-seller roles). `services/image.service.js` handles deletes and add/remove diffing by parsing the public id back out of the URL. An update may only keep `existingImages` the document already holds (`keepExistingImages`), and `utils/formatData.js#isOwnCloudinaryUrl` gates every delete to `res.cloudinary.com/<CLOUDINARY_CLOUD_NAME>/…` — a substring check once let one seller adopt and then destroy another restaurant's images.
 
 ## `shared/` conventions
 
