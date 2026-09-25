@@ -26,20 +26,14 @@ export function getUploadedImageUrls(files) {
   return files?.map((file) => file.path) || [];
 }
 
-export function filterValidCloudinaryUrls(urls) {
-  if (!urls) return [];
-
-  if (Array.isArray(urls)) {
-    return urls.filter(
-      (url) => typeof url === "string" && url.includes("res.cloudinary.com"),
-    );
-  }
-
-  if (typeof urls === "string" && urls.includes("res.cloudinary.com")) {
-    return [urls];
-  }
-
-  return [];
+// "Existing" images are ones this document already holds. Accepting any
+// Cloudinary URL let a seller adopt another restaurant's image and then delete
+// it from the shared account by removing it from their own item.
+export function keepExistingImages(oldUrls, submitted) {
+  if (submitted === undefined || submitted === null) return [];
+  const list = Array.isArray(submitted) ? submitted : [submitted];
+  const owned = new Set(oldUrls);
+  return [...new Set(list.filter((url) => typeof url === "string" && owned.has(url)))];
 }
 
 export function mergeImageUrls(existingUrls, newUrls) {
@@ -56,8 +50,7 @@ export async function replaceImages(oldUrls, existingImages, newFiles) {
   let imageUrls = [];
 
   if (existingImages !== undefined) {
-    const validUrls = filterValidCloudinaryUrls(existingImages);
-    imageUrls = validUrls;
+    imageUrls = keepExistingImages(oldUrls, existingImages);
   }
 
   if (newFiles && newFiles.length > 0) {

@@ -42,7 +42,7 @@ no running server and never touching a real database. Run it after any change to
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:push`, `check:schedule`.
+`check:images`, `check:push`, `check:schedule`.
 
 The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
@@ -176,7 +176,7 @@ Native cannot use that session: the OAuth leg runs in the system browser, a sepa
 
 **The app never talks to Google directly** — it opens the *backend's* route in a browser — so there are no iOS/Android OAuth client ids and `chowgo://` never appears in Google's console. The one sharp edge is development: Google rejects private-network redirect URIs, so a LAN IP cannot complete sign-in and a stable HTTPS tunnel must be registered as a second authorized redirect URI.
 
-Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload(folder)`; the resulting `req.file.path` **is** the Cloudinary URL and is stored directly on the document. `services/image.service.js` handles deletes and add/remove diffing by parsing the public id back out of the URL.
+Every upload goes straight to Cloudinary via `middlewares/upload.js#createUpload(folder)`; the resulting `req.file.path` **is** the Cloudinary URL and is stored directly on the document. `services/image.service.js` handles deletes and add/remove diffing by parsing the public id back out of the URL. An update may only keep `existingImages` the document already holds (`keepExistingImages`), and `utils/formatData.js#isOwnCloudinaryUrl` gates every delete to `res.cloudinary.com/<CLOUDINARY_CLOUD_NAME>/…` — a substring check once let one seller adopt and then destroy another restaurant's images.
 
 ## `shared/` conventions
 

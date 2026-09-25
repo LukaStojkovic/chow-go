@@ -102,6 +102,9 @@ ok(
   JSON.stringify(Object.keys(created.body?.data ?? {})).slice(0, 80),
 );
 
+// Updates may only keep images the item already holds, so give it one.
+await MenuItem.updateOne({ _id: createdId }, { $set: { imageUrls: [IMAGE] } });
+
 console.log("\nfilters the list screen uses");
 const search = await json(
   "GET",
