@@ -4,11 +4,15 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { isMobileClient, withAuthToken } from "../utils/clientType.js";
 import {
+  HANDOFF_TTL_MS,
+  isValidChallenge,
   readOAuthState,
   signHandoff,
   signSignupState,
+  verifierMatches,
   verifyTyped,
 } from "../utils/googleHandoff.js";
+import ConsumedHandoff from "../models/ConsumedHandoff.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -572,7 +576,8 @@ const GOOGLE_FAILURE_REASONS = new Set(["account_exists", "email_unverified"]);
 
 export const googleCallback = async (req, res, next) => {
   const data = req.user;
-  const isMobile = readOAuthState(req.query.state) === "mobile";
+  const state = readOAuthState(req.query.state);
+  const isMobile = state.client === "mobile";
   const base = isMobile
     ? process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google"
     : `${process.env.FRONTEND_URL}/auth/google/callback`;
@@ -585,11 +590,14 @@ export const googleCallback = async (req, res, next) => {
   }
 
   if (isMobile) {
+    if (!isValidChallenge(state.challenge)) {
+      return res.redirect(`${base}?error=auth_failed`);
+    }
     // One opaque parameter for both cases: the app does not branch until after
     // the exchange, which keeps the deep-link surface as small as possible.
     const code = data.isNewUser
-      ? signHandoff({ newUser: true, googleProfile: data.googleProfile })
-      : signHandoff({ newUser: false, userId: String(data._id) });
+      ? signHandoff({ newUser: true, googleProfile: data.googleProfile }, state.challenge)
+      : signHandoff({ newUser: false, userId: String(data._id) }, state.challenge);
 
     return res.redirect(`${base}?code=${encodeURIComponent(code)}`);
   }
@@ -607,14 +615,34 @@ export const googleCallback = async (req, res, next) => {
  * Native only; the web never calls this.
  */
 export const googleExchange = async (req, res, next) => {
-  const { code } = req.body;
-  if (!code) return next(new AppError("Missing code", 400));
+  const { code, codeVerifier } = req.body;
+  if (typeof code !== "string" || !code) return next(new AppError("Missing code", 400));
 
   let payload;
   try {
     payload = verifyTyped(code, "google_handoff");
   } catch {
     return next(new AppError("Sign-in link expired. Please try again.", 400));
+  }
+
+  if (!payload.jti || !verifierMatches(codeVerifier, payload.challenge)) {
+    return next(
+      new AppError("Sign-in could not be verified. Please try again.", 400, "HANDOFF_INVALID"),
+    );
+  }
+
+  try {
+    await ConsumedHandoff.create({
+      _id: payload.jti,
+      expiresAt: new Date(Date.now() + HANDOFF_TTL_MS),
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return next(
+        new AppError("This sign-in link was already used. Please try again.", 400, "HANDOFF_USED"),
+      );
+    }
+    throw error;
   }
 
   if (payload.newUser) {

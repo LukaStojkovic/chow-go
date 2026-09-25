@@ -6,14 +6,19 @@
  * test is what this codebase does with the profile passport hands back.
  *
  * The first block is the one that matters: native support must not change a
- * single byte of the web redirect contract.
+ * single byte of the web redirect contract. Runs against a throwaway
+ * in-memory database.
  *
  *   node scripts/checkGoogleAuth.js
  */
-import dotenv from "dotenv";
-dotenv.config();
+import { MongoMemoryServer } from "mongodb-memory-server";
+import { createHash, randomBytes } from "crypto";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+
+const mongo = await MongoMemoryServer.create();
+process.env.MONGODB_URL = mongo.getUri();
+process.env.FRONTEND_URL ||= "http://localhost:5173";
 
 let passed = 0;
 let failed = 0;
@@ -71,9 +76,23 @@ const nextError = () => {
   ];
 };
 
-const existing = await User.findOne({ role: "customer" })
-  .select("_id email role")
-  .lean();
+const existing = (
+  await User.create({
+    email: "existing-customer@google.test",
+    name: "Existing Customer",
+    googleId: "existing-google-id",
+    authProvider: "google",
+    phoneNumber: "0600000000",
+    role: "customer",
+  })
+).toObject();
+
+const VERIFIER = randomBytes(32).toString("hex");
+const CHALLENGE = createHash("sha256").update(VERIFIER).digest("hex");
+const codeFrom = (url) =>
+  decodeURIComponent(
+    new URL(url.replace("chowgo://", "https://")).searchParams.get("code"),
+  );
 
 console.log("\nweb path must not change");
 {
@@ -138,7 +157,7 @@ console.log("\nweb path must not change");
 }
 
 console.log("\nmobile path");
-const mobileState = signOAuthState("mobile");
+const mobileState = signOAuthState("mobile", CHALLENGE);
 let existingCode = null;
 let newUserCode = null;
 {
@@ -157,15 +176,32 @@ let newUserCode = null;
     res.redirectedTo.startsWith("chowgo://auth/google?code="),
     res.redirectedTo?.slice(0, 40),
   );
-  existingCode = decodeURIComponent(
-    new URL(res.redirectedTo.replace("chowgo://", "https://")).searchParams.get(
-      "code",
-    ),
-  );
+  existingCode = codeFrom(res.redirectedTo);
   ok(
     "the code is not an access token",
     jwt.decode(existingCode)?.typ === "google_handoff",
     jwt.decode(existingCode)?.typ,
+  );
+  ok(
+    "the code carries the app's challenge and a jti",
+    jwt.decode(existingCode)?.challenge === CHALLENGE && Boolean(jwt.decode(existingCode)?.jti),
+  );
+}
+{
+  const res = fakeRes();
+  await googleCallback(
+    {
+      user: { ...existing, isNewUser: false },
+      query: { state: signOAuthState("mobile") },
+      session: {},
+    },
+    res,
+    () => {},
+  );
+  ok(
+    "a mobile state without a challenge gets no code",
+    res.redirectedTo === "chowgo://auth/google?error=auth_failed",
+    res.redirectedTo,
   );
 }
 {
@@ -185,17 +221,41 @@ let newUserCode = null;
     res.redirectedTo.startsWith("chowgo://auth/google?code="),
   );
   ok("nothing is written to the session", session.googleProfile === undefined);
-  newUserCode = decodeURIComponent(
-    new URL(res.redirectedTo.replace("chowgo://", "https://")).searchParams.get(
-      "code",
-    ),
+  newUserCode = codeFrom(res.redirectedTo);
+}
+
+console.log("\nexchange is bound to the app that started the flow");
+{
+  const [captured, next] = nextError();
+  await googleExchange({ body: { code: existingCode } }, fakeRes(), next);
+  ok(
+    "a code without the verifier is rejected",
+    captured.error?.code === "HANDOFF_INVALID",
+    captured.error?.code,
+  );
+}
+{
+  const [captured, next] = nextError();
+  await googleExchange(
+    { body: { code: existingCode, codeVerifier: randomBytes(32).toString("hex") } },
+    fakeRes(),
+    next,
+  );
+  ok(
+    "a code with the wrong verifier is rejected",
+    captured.error?.code === "HANDOFF_INVALID",
+    captured.error?.code,
   );
 }
 
 console.log("\nexchange");
 {
   const res = fakeRes();
-  await googleExchange({ body: { code: existingCode } }, res, () => {});
+  await googleExchange(
+    { body: { code: existingCode, codeVerifier: VERIFIER } },
+    res,
+    () => {},
+  );
   ok(
     "existing user exchanges for a session",
     res.body?.status === "authenticated",
@@ -207,10 +267,28 @@ console.log("\nexchange");
     jwt.decode(res.body?.token ?? "")?.typ === "access",
   );
   ok("the user object is included", res.body?.user?.email === existing.email);
+  ok("a failed attempt did not burn the code", res.body?.status === "authenticated");
+}
+{
+  const [captured, next] = nextError();
+  await googleExchange(
+    { body: { code: existingCode, codeVerifier: VERIFIER } },
+    fakeRes(),
+    next,
+  );
+  ok(
+    "the same code cannot be exchanged twice",
+    captured.error?.code === "HANDOFF_USED",
+    captured.error?.code,
+  );
 }
 {
   const res = fakeRes();
-  await googleExchange({ body: { code: newUserCode } }, res, () => {});
+  await googleExchange(
+    { body: { code: newUserCode, codeVerifier: VERIFIER } },
+    res,
+    () => {},
+  );
   ok(
     "new user exchanges for a signup token",
     res.body?.status === "newUser",
@@ -286,6 +364,46 @@ console.log("\ncomplete-profile accepts either source");
   );
 }
 
+console.log("\nGET /google requires a challenge from native");
+{
+  const express = (await import("express")).default;
+  const passport = (await import("passport")).default;
+  const { configurePassport } = await import("../config/passport.js");
+  const authRoutes = (await import("../routes/authRoutes.js")).default;
+  process.env.GOOGLE_CLIENT_ID ||= "check-client-id";
+  process.env.GOOGLE_CLIENT_SECRET ||= "check-client-secret";
+  process.env.GOOGLE_CALLBACK_URL ||= "http://localhost/api/auth/google/callback";
+  configurePassport();
+  const app = express();
+  app.use(passport.initialize());
+  app.use("/api/auth", authRoutes);
+  const server = app.listen(0);
+  const base = `http://127.0.0.1:${server.address().port}/api/auth/google`;
+  const location = async (qs) =>
+    (await fetch(`${base}${qs}`, { redirect: "manual" })).headers.get("location") ?? "";
+
+  const noChallenge = await location("?client=mobile");
+  ok(
+    "native without a challenge is sent back with an error",
+    noChallenge.endsWith("?error=auth_failed") && !noChallenge.includes("accounts.google.com"),
+    noChallenge,
+  );
+  const badChallenge = await location("?client=mobile&challenge=abc");
+  ok("a malformed challenge is refused", badChallenge.endsWith("?error=auth_failed"), badChallenge);
+
+  const good = await location(`?client=mobile&challenge=${CHALLENGE}`);
+  const state = new URL(good).searchParams.get("state");
+  ok(
+    "a valid challenge goes to Google and rides in the signed state",
+    good.includes("accounts.google.com") && jwt.decode(state)?.challenge === CHALLENGE,
+    good.slice(0, 60),
+  );
+  const web = await location("");
+  ok("the web flow needs no challenge", web.includes("accounts.google.com"), web.slice(0, 60));
+  server.close();
+}
+
 await mongoose.disconnect();
+await mongo.stop();
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);

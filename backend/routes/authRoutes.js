@@ -17,7 +17,7 @@ import { createUpload } from "../middlewares/upload.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import passport from "passport";
 import { accountLimiter, loginLimiter } from "../middlewares/rateLimit.js";
-import { signOAuthState } from "../utils/googleHandoff.js";
+import { isValidChallenge, signOAuthState } from "../utils/googleHandoff.js";
 
 const router = express.Router();
 const uploadUser = createUpload("users");
@@ -46,12 +46,19 @@ router.put(
 );
 
 // The signed state is how the callback knows which client started the flow.
-router.get("/google", (req, res, next) =>
-  passport.authenticate("google", {
+router.get("/google", (req, res, next) => {
+  const isMobile = req.query.client === "mobile";
+  if (isMobile && !isValidChallenge(req.query.challenge)) {
+    const base = process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google";
+    return res.redirect(`${base}?error=auth_failed`);
+  }
+  return passport.authenticate("google", {
     scope: ["profile", "email"],
-    state: signOAuthState(req.query.client === "mobile" ? "mobile" : "web"),
-  })(req, res, next),
-);
+    state: isMobile
+      ? signOAuthState("mobile", req.query.challenge)
+      : signOAuthState("web"),
+  })(req, res, next);
+});
 
 router.post("/google/exchange", loginLimiter, googleExchange);
 router.get("/google/callback", (req, res, next) =>

@@ -1,4 +1,5 @@
 import * as AuthSession from "expo-auth-session";
+import * as Crypto from "expo-crypto";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { api } from "@/api/client";
@@ -19,8 +20,17 @@ export async function signInWithGoogle() {
     path: "auth/google",
   });
 
+  // Another app can claim chowgo:// and read the code; without this verifier,
+  // which never leaves the app, the code cannot be exchanged.
+  const codeVerifier = `${Crypto.randomUUID()}${Crypto.randomUUID()}`.replaceAll("-", "");
+  const challenge = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    codeVerifier,
+    { encoding: Crypto.CryptoEncoding.HEX },
+  );
+
   const result = await WebBrowser.openAuthSessionAsync(
-    `${API_URL}/auth/google?client=mobile`,
+    `${API_URL}/auth/google?client=mobile&challenge=${challenge}`,
     redirectUri,
   );
 
@@ -31,7 +41,10 @@ export async function signInWithGoogle() {
   if (!queryParams?.code) return { status: "failed" };
 
   // The deep link carries a 90-second code, never the session itself.
-  const { data } = await api.post("/auth/google/exchange", { code: queryParams.code });
+  const { data } = await api.post("/auth/google/exchange", {
+    code: queryParams.code,
+    codeVerifier,
+  });
   return data.status === "authenticated"
     ? { status: "authenticated", token: data.token, user: data.user }
     : { status: "newUser", signupToken: data.signupToken, profile: data.profile };

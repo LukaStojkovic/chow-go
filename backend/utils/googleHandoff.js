@@ -1,3 +1,4 @@
+import { createHash, randomUUID, timingSafeEqual } from "crypto";
 import jwt from "jsonwebtoken";
 
 /**
@@ -26,13 +27,32 @@ export function verifyTyped(token, typ) {
   return decoded;
 }
 
+export const HANDOFF_TTL_MS = 90_000;
+
 /**
- * The opaque `code` placed in the chowgo:// deep link. Deliberately not the
- * access token: on Android any app can claim a custom scheme, and URLs end up
- * in OS logs. It is useless on its own and must be exchanged over HTTPS.
+ * The opaque `code` placed in the chowgo:// deep link. On Android any app can
+ * claim a custom scheme, so the code alone must be worthless: it carries the
+ * PKCE-style challenge the app sent when it opened the flow, and only the app
+ * holding the matching verifier can exchange it. The jti makes it single-use.
  */
-export const signHandoff = (payload) =>
-  sign({ ...payload, typ: "google_handoff" }, HANDOFF_TTL);
+export const signHandoff = (payload, challenge) =>
+  sign(
+    { ...payload, challenge, jti: randomUUID(), typ: "google_handoff" },
+    HANDOFF_TTL,
+  );
+
+const CHALLENGE = /^[a-f0-9]{64}$/;
+export const isValidChallenge = (value) =>
+  typeof value === "string" && CHALLENGE.test(value);
+
+export function verifierMatches(verifier, challenge) {
+  if (typeof verifier !== "string" || verifier.length < 43 || verifier.length > 128) {
+    return false;
+  }
+  if (!isValidChallenge(challenge)) return false;
+  const digest = createHash("sha256").update(verifier).digest();
+  return timingSafeEqual(digest, Buffer.from(challenge, "hex"));
+}
 
 /** Replaces req.session.googleProfile for native. */
 export const signSignupState = (googleProfile) =>
@@ -42,14 +62,15 @@ export const signSignupState = (googleProfile) =>
  * Carries which client started the flow through the Google round-trip.
  * Signing it also buys CSRF protection the flow does not have today.
  */
-export const signOAuthState = (client) =>
-  sign({ client, typ: "oauth_state" }, STATE_TTL);
+export const signOAuthState = (client, challenge) =>
+  sign({ client, challenge, typ: "oauth_state" }, STATE_TTL);
 
 /** Anything unsigned or expired falls back to the existing web behaviour. */
 export function readOAuthState(state) {
   try {
-    return verifyTyped(state, "oauth_state").client;
+    const { client, challenge } = verifyTyped(state, "oauth_state");
+    return { client, challenge };
   } catch {
-    return "web";
+    return { client: "web" };
   }
 }

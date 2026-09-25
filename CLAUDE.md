@@ -25,7 +25,7 @@ cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
 cd mobile && npm run sync-theme  # regenerate the theme from mobile/src/theme/palette.js
 node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
 node backend/scripts/checkPushFallback.js   # push-vs-socket delivery (needs --keep fixtures)
-node backend/scripts/checkGoogleAuth.js     # web + native Google flow (no server needed)
+node backend/scripts/checkGoogleAuth.js     # web + native Google flow (in-memory, part of check:all)
 node backend/scripts/checkMenuCrud.js       # seller menu CRUD + multipart promotions
 node backend/scripts/checkSellerSettings.js # partial restaurant update + schedule merge
 node backend/scripts/checkSellerStats.js    # dashboard + analytics payload shapes
@@ -37,11 +37,12 @@ node backend/scripts/backfillSchedule.js             # apply it (idempotent, alr
 
 There is **no test framework and no CI** anywhere in the repo, and no `npm test`. There is,
 however, a suite of self-contained check scripts — `cd backend && npm run check:all` runs
-all nine against a throwaway in-memory MongoDB, needing no running server and never
-touching a real database. Run it after any change to the order lifecycle, auth, or
-pricing. Individually: `check:observability`, `check:reset`, `check:courier-access`,
+every one listed in its `check:all` script against a throwaway in-memory MongoDB, needing
+no running server and never touching a real database. Run it after any change to the
+order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
+`check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:schedule`.
+`check:push`, `check:schedule`.
 
 The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
@@ -171,7 +172,7 @@ Google sign-in never links to an existing account by email: `config/passport.js#
 
 Google OAuth is two-phase and easy to misread: the passport callback does **not** create a user for a new email. It stashes the profile in `req.session.googleProfile` and redirects to `${FRONTEND_URL}/auth/google/callback?newUser=true`; the frontend then POSTs `/api/auth/google/complete-profile` with the chosen role and role-specific fields to actually create the account.
 
-Native cannot use that session: the OAuth leg runs in the system browser, a separate cookie jar the app's fetch never sees. `GET /api/auth/google?client=mobile` signs the client into the OAuth `state`, and `googleCallback` reads it back to redirect to `chowgo://auth/google?code=…` instead — the **same URL shape for new and returning users**, so the deep link is one opaque parameter. That code is a 90-second `google_handoff` token, deliberately not the session: on Android any app can claim a custom scheme. `POST /api/auth/google/exchange` trades it for either a real token or a 15-minute `google_signup` token that replaces the session in `complete-profile`. All of these are signed with `JWT_SECRET`, which is why the `typ` guard in `protectedRoute` matters. An unsigned or tampered `state` falls back to the web redirect.
+Native cannot use that session: the OAuth leg runs in the system browser, a separate cookie jar the app's fetch never sees. `GET /api/auth/google?client=mobile` signs the client into the OAuth `state`, and `googleCallback` reads it back to redirect to `chowgo://auth/google?code=…` instead — the **same URL shape for new and returning users**, so the deep link is one opaque parameter. That code is a 90-second `google_handoff` token, deliberately not the session: on Android any app can claim a custom scheme. It is PKCE-bound and single-use: the app opens the flow with `challenge=sha256(verifier)` (hex), the challenge rides in the signed state into the code, `/exchange` requires the matching `codeVerifier`, and the code's `jti` is recorded in `ConsumedHandoff` (as `_id`, TTL-expired) so a replay is refused. `POST /api/auth/google/exchange` trades it for either a real token or a 15-minute `google_signup` token that replaces the session in `complete-profile`. All of these are signed with `JWT_SECRET`, which is why the `typ` guard in `protectedRoute` matters. An unsigned or tampered `state` falls back to the web redirect.
 
 **The app never talks to Google directly** — it opens the *backend's* route in a browser — so there are no iOS/Android OAuth client ids and `chowgo://` never appears in Google's console. The one sharp edge is development: Google rejects private-network redirect URIs, so a LAN IP cannot complete sign-in and a stable HTTPS tunnel must be registered as a second authorized redirect URI.
 
