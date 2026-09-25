@@ -13,6 +13,10 @@ import {
   verifyTyped,
 } from "../utils/googleHandoff.js";
 import ConsumedHandoff from "../models/ConsumedHandoff.js";
+import jwt from "jsonwebtoken";
+import { extractToken } from "../middlewares/authMiddleware.js";
+import { revokeToken } from "../utils/revokedTokens.js";
+import { disconnectUserSockets } from "../socket/socketServer.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -318,7 +322,20 @@ export const register = async (req, res, next) => {
   return res.status(201).json(withAuthToken(req, response, token));
 };
 
-export function logout(req, res) {
+export async function logout(req, res) {
+  // Public route: an expired or garbage token still gets its cookie cleared.
+  const token = extractToken(req);
+  if (token) {
+    let decoded = null;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {}
+    if (decoded?.typ === "access" || (decoded && !decoded.typ)) {
+      await revokeToken(decoded);
+      if (decoded.jti) disconnectUserSockets(decoded.userId, { jti: decoded.jti });
+    }
+  }
+
   res.clearCookie("jwt", {
     httpOnly: true,
     sameSite: "strict",
@@ -394,11 +411,23 @@ export const updateProfile = async (req, res, next) => {
     new: true,
   }).select("-password");
 
-  return res.status(200).json({
+  const body = {
     status: "success",
     message: "Profile updated successfully",
     data: updatedUser,
-  });
+  };
+
+  if (updateData.tokenVersion === undefined) return res.status(200).json(body);
+
+  // Every other device is signed out; this one gets a fresh token at the new
+  // version instead of being logged out by its own password change, and keeps
+  // its socket, which the client would not reconnect after a server kick.
+  disconnectUserSockets(userId, { exceptJti: req.tokenJti });
+  const rememberMe =
+    isMobileClient(req) ||
+    (Boolean(req.tokenExp) && req.tokenExp * 1000 - Date.now() > 7 * 24 * 60 * 60 * 1000);
+  const token = generateToken(updatedUser, res, rememberMe);
+  return res.status(200).json(withAuthToken(req, body, token));
 };
 
 export const forgotPassword = async (req, res, next) => {
@@ -524,6 +553,7 @@ export async function resetPassword(req, res, next) {
   // The whole point of a reset is usually that someone else holds a session.
   user.tokenVersion = (user.tokenVersion ?? 0) + 1;
   await user.save();
+  disconnectUserSockets(user._id);
 
   res.status(200).json({
     status: "success",
@@ -537,6 +567,7 @@ export async function resetPassword(req, res, next) {
  */
 export async function deleteAccount(req, res, next) {
   await deleteAccountOperation({ user: req.user, password: req.body?.password });
+  disconnectUserSockets(req.user._id);
 
   res.clearCookie("jwt", {
     httpOnly: true,

@@ -1,5 +1,6 @@
 import { api } from "@/api/client";
 import { toFormData } from "@/api/uploads";
+import { setToken } from "@/lib/secureToken";
 
 export async function checkAuth() {
   const { data } = await api.get("/auth/check");
@@ -51,13 +52,18 @@ export async function resetPassword(resetToken, newPassword) {
  * a form-data round trip.
  */
 export async function updateProfile({ profilePicture, ...fields } = {}) {
-  if (!profilePicture) {
-    const { data } = await api.put("/auth/update-profile", fields);
-    return data;
-  }
+  const payload = profilePicture
+    ? toFormData(fields, { profilePicture: [profilePicture] })
+    : fields;
+  const { data } = await api.put("/auth/update-profile", payload);
 
-  const form = toFormData(fields, { profilePicture: [profilePicture] });
-  const { data } = await api.put("/auth/update-profile", form);
+  // A password change revokes every existing token, this device's included,
+  // and hands back a replacement for this one.
+  if (data?.token) {
+    await setToken(data.token);
+    const { token, ...rest } = data;
+    return rest;
+  }
   return data;
 }
 

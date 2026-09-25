@@ -3,6 +3,7 @@ import Courier from "../models/Courier.js";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/AppError.js";
 import { isTokenVersionCurrent } from "../utils/generateToken.js";
+import { isTokenRevoked } from "../utils/revokedTokens.js";
 import { refineLocaleFromUser } from "./locale.js";
 
 export function extractToken(req) {
@@ -48,7 +49,7 @@ export async function protectedRoute(req, res, next) {
 
   // A password reset or change bumps tokenVersion, so every credential minted
   // before it stops working here.
-  if (!isTokenVersionCurrent(decoded, user)) {
+  if (!isTokenVersionCurrent(decoded, user) || (await isTokenRevoked(decoded.jti))) {
     return next(
       new AppError("errors:auth.tokenRevoked", 401, "TOKEN_REVOKED"),
     );
@@ -67,6 +68,7 @@ export async function protectedRoute(req, res, next) {
 
   req.user = user;
   req.tokenExp = decoded.exp;
+  req.tokenJti = decoded.jti;
   // A stored preference now beats Accept-Language; an explicit X-Locale still
   // wins, because that is the language on screen right now.
   refineLocaleFromUser(req);

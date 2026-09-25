@@ -42,7 +42,7 @@ no running server and never touching a real database. Run it after any change to
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:images`, `check:push`, `check:schedule`.
+`check:images`, `check:sessions`, `check:push`, `check:schedule`.
 
 The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
@@ -161,6 +161,14 @@ Tokens also carry `ver`, the user's `tokenVersion` at mint time; `protectedRoute
 socket handshake reject a token whose `ver` is behind the user's current value, which is
 how a password reset or change revokes sessions already issued. A token minted before
 `ver` existed reads as 0 and keeps working until the version is actually raised.
+
+Each token also carries a `jti`. Logout revokes only that token (a `RevokedToken` row keyed
+by the jti, TTL-expired at the token's own `exp`), so signing out on the web leaves the phone
+signed in; `protectedRoute` and the handshake both check it. Tokens are only checked at the
+socket handshake, so every revocation also calls `socket/socketServer.js#disconnectUserSockets`:
+logout drops that token's sockets, a reset or deletion drops all of them, and a password
+change drops all but the current device's, which also gets a fresh token back (mobile stores
+it in `apiAuth.updateProfile`). A server-side disconnect is not auto-reconnected by the client.
 
 Tokens carry `typ: "access"`. `protectedRoute` and the socket middleware reject any other `typ`, but only when the claim is present, so pre-existing cookies keep working. This guard matters because other short-lived tokens are signed with the same `JWT_SECRET`.
 

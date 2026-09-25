@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
 
 // `typ` separates access tokens from the Google handoff tokens signed with the
@@ -13,8 +14,9 @@ export function generateToken(userOrId, res, rememberMe = false, opts = {}) {
     ? 30 * 24 * 60 * 60 * 1000
     : 7 * 24 * 60 * 60 * 1000;
 
+  // jti lets logout revoke this one token without ending the user's other devices.
   const token = jwt.sign(
-    { userId, typ: "access", ver: tokenVersion },
+    { userId, typ: "access", ver: tokenVersion, jti: randomUUID() },
     process.env.JWT_SECRET,
     { expiresIn },
   );

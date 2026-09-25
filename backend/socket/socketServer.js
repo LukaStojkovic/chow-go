@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { isTokenVersionCurrent } from "../utils/generateToken.js";
+import { isTokenRevoked } from "../utils/revokedTokens.js";
 import User from "../models/User.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -78,11 +79,12 @@ class SocketServer {
           return next(new Error("Authentication error: User not found"));
         }
 
-        if (!isTokenVersionCurrent(decoded, user)) {
+        if (!isTokenVersionCurrent(decoded, user) || (await isTokenRevoked(decoded.jti))) {
           return next(new Error("Authentication error: Token revoked"));
         }
 
         socket.userId = user._id.toString();
+        socket.tokenJti = decoded.jti;
         socket.userRole = user.role;
         socket.userName = user.name;
 
@@ -400,6 +402,20 @@ class SocketServer {
     return ids;
   }
 
+  // Tokens are only checked at the handshake, so revoking one does nothing to
+  // a socket already open with it. With a jti, only that token's sockets go.
+  disconnectUser(userId, { jti, exceptJti } = {}) {
+    let count = 0;
+    for (const socket of this.io.sockets.sockets.values()) {
+      if (socket.userId !== String(userId)) continue;
+      if (jti && socket.tokenJti !== jti) continue;
+      if (exceptJti && socket.tokenJti === exceptJti) continue;
+      socket.disconnect(true);
+      count++;
+    }
+    return count;
+  }
+
   getStats() {
     return {
       totalConnections: this.io.sockets.sockets.size,
@@ -427,5 +443,17 @@ export const getSocketServer = () => {
   }
   return socketServerInstance;
 };
+
+// Session changes must never fail the HTTP request that caused them, and the
+// socket server does not exist in scripts that drive services directly.
+export function disconnectUserSockets(userId, options) {
+  if (!socketServerInstance) return 0;
+  try {
+    return socketServerInstance.disconnectUser(userId, options);
+  } catch (error) {
+    console.error("Failed to disconnect sockets:", error);
+    return 0;
+  }
+}
 
 export default SocketServer;
