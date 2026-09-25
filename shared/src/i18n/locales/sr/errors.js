@@ -3,7 +3,8 @@
 export default {
   auth: {
     allFieldsRequired: "Sva polja su obavezna",
-    invalidCredentials: "Ta imejl adresa i lozinka se ne poklapaju",
+    invalidCredentials:
+      "Ta imejl adresa i lozinka se ne poklapaju. Ako ste se registrovali preko Google-a, izaberite Nastavi sa Google-om.",
     useGoogle:
       "Ovaj nalog je napravljen preko Google-a. Prijavite se pomoću Google-a.",
     missingFields: "Nedostaju neka obavezna polja",
@@ -191,7 +192,8 @@ export default {
   byCode: {
     NO_TOKEN: "Morate biti prijavljeni",
     INVALID_TOKEN: "Vaša sesija više nije ispravna",
-    TOKEN_REVOKED: "Vaša sesija je prekinuta jer je lozinka promenjena",
+    TOKEN_REVOKED: "Vaša sesija je završena. Prijavite se ponovo.",
+    INVALID_CREDENTIALS: "Ta imejl adresa i lozinka se ne poklapaju",
     USER_GONE: "Vaš nalog više ne postoji",
     ORDER_STATUS_CONFLICT:
       "Neko je upravo ažurirao ovu porudžbinu. Osvežite i pokušajte ponovo.",

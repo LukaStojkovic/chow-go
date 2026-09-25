@@ -14,7 +14,8 @@
 export default {
   auth: {
     allFieldsRequired: "All fields are required",
-    invalidCredentials: "That email and password do not match",
+    invalidCredentials:
+      "That email and password do not match. If you signed up with Google, use Continue with Google.",
     useGoogle: "This account was created with Google. Sign in with Google instead.",
     missingFields: "Some required fields are missing",
     phoneRequiredCustomer: "A phone number is required for customers",
@@ -201,7 +202,8 @@ export default {
   byCode: {
     NO_TOKEN: "You need to be signed in",
     INVALID_TOKEN: "Your session is no longer valid",
-    TOKEN_REVOKED: "Your session ended because the password changed",
+    TOKEN_REVOKED: "Your session has ended. Please sign in again.",
+    INVALID_CREDENTIALS: "That email and password do not match",
     USER_GONE: "Your account no longer exists",
     ORDER_STATUS_CONFLICT:
       "Someone else just updated this order. Reload and try again.",

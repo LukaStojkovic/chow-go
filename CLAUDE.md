@@ -42,7 +42,9 @@ no running server and never touching a real database. Run it after any change to
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:images`, `check:sessions`, `check:push`, `check:schedule`.
+`check:images`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:schedule`.
+Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
+without it they send real mail through the Gmail account in `.env`.
 
 The one exception is `backend/scripts/smokeRealtime.js`, which drives a single order through the full lifecycle over HTTP while customer, seller and courier sockets listen, and asserts each event lands in the right room. Realtime is the only surface where a regression is completely silent — a renamed event or a broken room mapping just stops updating the UI. It needs the server already running, creates everything it needs under an `@smoke.test` email suffix, and removes it afterwards even on failure (`--keep` to inspect). Run it against a dev database, and after any change to `orderSocket.service.js`, the socket rooms, or the order lifecycle.
 
@@ -225,7 +227,7 @@ Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else li
 
 ## Known drift — check before touching these
 
-1. Rate limits in `middlewares/rateLimit.js` all key off `req.ip`. Mobile carriers put thousands of subscribers behind one address, so `accountLimiter` (20 per 15 min, counting successes) and `loginLimiter` (10 failed logins) will collide for real cellular traffic — rekey on email before shipping a mobile client. `TRUST_PROXY` must also be set in production or every user lands in one bucket.
+1. Rate limits in `middlewares/rateLimit.js` mostly key off `req.ip`. Mobile carriers put thousands of subscribers behind one address, so `accountLimiter` (20 per 15 min, counting successes) and `loginLimiter` (10 failed logins) will collide for real cellular traffic. Login now also has `loginAccountLimiter` (10 failed logins per email, any IP), and reset codes are capped at 3 per account per hour in the controller, so the per-IP limits can be loosened without opening brute force. `TRUST_PROXY` must also be set in production or every user lands in one bucket.
 2. Signup (both the local and Google seller paths) still collects a single opening/closing range rather than a full week; the backend expands it across all 7 days. Per-day control lives only in seller settings.
 3. **A seller signup creates a live restaurant.** `isActive: true` from the first request, so it appears in discovery with no approval step. Couriers are gated — `acceptOrderOperation` refuses an order unless `verificationStatus === "verified"`, approved with `scripts/verifyCourier.js` until there is an admin surface — but restaurants are not. An unverified courier can still browse `/api/courier/available`, but `listAvailableOrders` strips the address and returns only coordinates snapped to a ~200 m grid and a distance rounded to 500 m (`approximate: true`); verified couriers get the exact dropoff.
 4. **No online payment exists.** `paymentMethod` is `cash` or `card`, and both mean the courier collects at the door. `paymentStatus` never leaves `"pending"`, so nothing records that money changed hands.

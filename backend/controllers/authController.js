@@ -17,6 +17,7 @@ import jwt from "jsonwebtoken";
 import { extractToken } from "../middlewares/authMiddleware.js";
 import { revokeToken } from "../utils/revokedTokens.js";
 import { disconnectUserSockets } from "../socket/socketServer.js";
+import { logger } from "../utils/logger.js";
 import { sendOtpEmail } from "../utils/mail.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
@@ -31,6 +32,12 @@ import {
 const OTP_TTL_MS = 5 * 60 * 1000;
 const RESET_WINDOW_MS = 15 * 60 * 1000;
 const MAX_OTP_ATTEMPTS = 5;
+const MAX_OTP_REQUESTS = 3;
+const OTP_REQUEST_WINDOW_MS = 60 * 60 * 1000;
+
+// Compared against when there is no password to check, so an unknown email or
+// a Google-only account costs the same bcrypt round as a wrong password.
+const TIMING_HASH = bcrypt.hashSync(randomBytes(16).toString("hex"), 12);
 
 // User.email is unique but not lowercased, while Restaurant.email is - so
 // "A@b.com" and "a@b.com" could become two accounts and a user who signed up
@@ -67,18 +74,18 @@ export async function login(req, res, next) {
     return next(new AppError("All fields are required", 400));
   }
 
+  if (typeof email !== "string" || typeof password !== "string") {
+    return next(new AppError("errors:auth.invalidCredentials", 400, "INVALID_CREDENTIALS"));
+  }
+
   const user = await User.findOne({ email: normalizeEmail(email), isDeleted: { $ne: true } });
-  if (!user) {
-    return next(new AppError("Invalid credentials", 400));
-  }
 
-  if (!user.password && user.authProvider === "google") {
-    return next(new AppError("Please login with Google", 400));
-  }
-
-  const isCorrectPassword = await bcrypt.compare(password, user.password);
-  if (!isCorrectPassword) {
-    return next(new AppError("Invalid credentials", 400));
+  // One answer and one bcrypt round for every failure: "Please login with
+  // Google" and an early return for unknown emails each told an attacker which
+  // addresses have accounts.
+  const isCorrectPassword = await bcrypt.compare(password, user?.password || TIMING_HASH);
+  if (!user?.password || !isCorrectPassword) {
+    return next(new AppError("errors:auth.invalidCredentials", 400, "INVALID_CREDENTIALS"));
   }
 
   const token = generateToken(user, res, !!rememberMe || isMobileClient(req));
@@ -437,33 +444,62 @@ export const forgotPassword = async (req, res, next) => {
     return next(new AppError("Email is required", 400, "EMAIL_REQUIRED"));
   }
 
-  const user = await User.findOne({ email: normalizeEmail(email) });
+  const user = await User.findOne({ email: normalizeEmail(email) }).select("_id");
 
-  // Deliberately uniform: "User not found" here told an attacker which
-  // addresses have accounts.
-  const sent = {
+  // Deliberately uniform, in body and in timing: "User not found" told an
+  // attacker which addresses have accounts, and so did a response that waited
+  // on bcrypt and SMTP only for real ones. The work happens after replying.
+  res.status(200).json({
     status: "success",
     message: "If that email has an account, a reset code is on its way.",
-  };
+  });
 
-  if (!user) return res.status(200).json(sent);
+  if (user) {
+    issueResetCode(user._id).catch((error) =>
+      logger.error({ err: error }, "Failed to issue a password reset code"),
+    );
+  }
+};
+
+async function claimResetCodeSlot(userId) {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - OTP_REQUEST_WINDOW_MS);
+  const fresh = await User.findOneAndUpdate(
+    {
+      _id: userId,
+      $or: [{ otpWindowStart: { $exists: false } }, { otpWindowStart: { $lt: windowStart } }],
+    },
+    { $set: { otpWindowStart: now, otpRequestCount: 1 } },
+  );
+  if (fresh) return true;
+  const counted = await User.findOneAndUpdate(
+    { _id: userId, otpRequestCount: { $lt: MAX_OTP_REQUESTS } },
+    { $inc: { otpRequestCount: 1 } },
+  );
+  return Boolean(counted);
+}
+
+async function issueResetCode(userId) {
+  if (!(await claimResetCodeSlot(userId))) return;
 
   // crypto.randomInt, not Math.random - a predictable PRNG over a 10^6 space
   // is guessable.
   const otpCode = String(randomInt(100000, 1000000));
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        otpHash: await bcrypt.hash(otpCode, 10),
+        otpExpiry: new Date(Date.now() + OTP_TTL_MS),
+        otpAttempts: 0,
+      },
+      $unset: { resetTokenHash: 1, resetTokenExpiry: 1 },
+    },
+    { new: true },
+  ).select("email");
 
-  user.otpHash = await bcrypt.hash(otpCode, 10);
-  user.otpExpiry = new Date(Date.now() + OTP_TTL_MS);
-  user.otpAttempts = 0;
-  user.resetTokenHash = undefined;
-  user.resetTokenExpiry = undefined;
-
-  await user.save();
-
-  await sendOtpEmail(user.email, otpCode);
-
-  res.status(200).json(sent);
-};
+  if (user) await sendOtpEmail(user.email, otpCode);
+}
 
 export const verifyOtp = async (req, res, next) => {
   const { email, code } = req.body;

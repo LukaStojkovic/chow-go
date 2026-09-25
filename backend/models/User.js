@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema(
     otpHash: { type: String, select: false },
     otpExpiry: { type: Date, select: false },
     otpAttempts: { type: Number, default: 0, select: false },
+    // Each new code resets otpAttempts, so without a cap on issuing codes the
+    // five-guess limit was unlimited guesses and an unlimited stream of mail.
+    otpRequestCount: { type: Number, default: 0, select: false },
+    otpWindowStart: { type: Date, select: false },
 
     // verifyOtp used to set a sticky isVerifiedOtp boolean with no expiry, so a
     // verified reset window stayed open forever and resetPassword needed only

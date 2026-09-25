@@ -31,6 +31,7 @@ const child = spawn(process.execPath, ["index.js"], {
     JWT_SECRET: randomBytes(48).toString("base64url"),
     NODE_ENV: "development",
     LOG_LEVEL: "silent",
+    MAIL_DISABLED: "true",
   },
   stdio: ["ignore", "ignore", "inherit"],
 });

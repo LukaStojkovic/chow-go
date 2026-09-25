@@ -35,6 +35,7 @@ const child = spawn(process.execPath, ["index.js"], {
     JWT_SECRET: randomBytes(48).toString("base64url"),
     NODE_ENV: "development",
     LOG_LEVEL: "silent",
+    MAIL_DISABLED: "true",
   },
   stdio: ["ignore", "ignore", "inherit"],
 });
@@ -52,6 +53,18 @@ try {
   for (let i = 0; i < 60; i++) {
     try { if ((await fetch(`${BASE}/healthz`)).ok) break; } catch {}
     await new Promise((r) => setTimeout(r, 500));
+  }
+
+  const { default: mongoose } = await import("mongoose");
+  await mongoose.connect(mongo.getUri());
+  const { default: User } = await import("../models/User.js");
+  async function waitForOtp(ready) {
+    for (let i = 0; i < 40; i++) {
+      const u = await User.findOne({ email: EMAIL }).select("+otpHash +otpExpiry +otpRequestCount");
+      if (u && ready(u)) return u;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    return User.findOne({ email: EMAIL }).select("+otpHash +otpExpiry +otpRequestCount");
   }
 
   // Register, capturing the bearer token so we can prove a reset revokes it.
@@ -100,18 +113,18 @@ try {
   );
 
   // --- brute force -------------------------------------------------------
+  // The code is issued after the response, so wait for it to exist.
+  await waitForOtp((u) => Boolean(u.otpHash));
   for (let i = 0; i < 5; i++) await post("/api/auth/verify-otp", { email: EMAIL, code: "000000" });
   const locked = await post("/api/auth/verify-otp", { email: EMAIL, code: "000000" });
   ok("the code locks after repeated wrong guesses", locked.body.code === "OTP_LOCKED", locked.body.code);
 
   // --- the happy path, reading the real code out of the database ---------
-  const { default: mongoose } = await import("mongoose");
-  await mongoose.connect(mongo.getUri());
-  const { default: User } = await import("../models/User.js");
   const { default: bcrypt } = await import("bcrypt");
 
+  const before = await User.findOne({ email: EMAIL }).select("+otpHash");
   await post("/api/auth/forgot-password", { email: EMAIL });
-  let stored = await User.findOne({ email: EMAIL }).select("+otpHash +otpExpiry");
+  let stored = await waitForOtp((u) => u.otpHash && u.otpHash !== before?.otpHash);
   ok("the account exists to reset", Boolean(stored));
   if (!stored) throw new Error("registration did not create the user - aborting");
   ok("the stored code is hashed, not the code itself", Boolean(stored.otpHash) && stored.otpHash.startsWith("$2"));

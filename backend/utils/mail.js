@@ -13,6 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendOtpEmail = async (toEmail, otpCode) => {
+  // Check scripts set this; they used to send real mail through the account in .env.
+  if (process.env.MAIL_DISABLED === "true") return;
   await transporter.sendMail({
     from: `"ChowGo Support" <${process.env.NODE_MAILER_EMAIL}>`,
     to: toEmail,

@@ -32,6 +32,22 @@ export const loginLimiter = rateLimit({
 });
 
 /**
+ * The same budget keyed on the account instead of the address, so a guesser
+ * rotating IPs still gets 10 wrong passwords per quarter hour per account.
+ * The cost is that someone can lock a victim out for 15 minutes; that beats
+ * unlimited guessing.
+ */
+export const loginAccountLimiter = rateLimit({
+  ...base,
+  windowMs: 15 * 60_000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) =>
+    `login:${typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : ""}`,
+  message: tooMany("Too many sign-in attempts. Please try again in 15 minutes."),
+});
+
+/**
  * Account creation and password resets. Successful requests count here - the
  * point is to cap how many accounts or reset mails one address can trigger.
  */

@@ -16,7 +16,7 @@ import {
 import { createUpload } from "../middlewares/upload.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import passport from "passport";
-import { accountLimiter, loginLimiter } from "../middlewares/rateLimit.js";
+import { accountLimiter, loginAccountLimiter, loginLimiter } from "../middlewares/rateLimit.js";
 import {
   OAUTH_NONCE_COOKIE,
   isValidChallenge,
@@ -30,7 +30,7 @@ import {
 const router = express.Router();
 const uploadUser = createUpload("users");
 
-router.post("/login", loginLimiter, login);
+router.post("/login", loginLimiter, loginAccountLimiter, login);
 router.post(
   "/register",
   accountLimiter,
