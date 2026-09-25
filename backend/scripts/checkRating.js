@@ -54,7 +54,7 @@ try {
       status: "delivered",
       items: [{ menuItem: new mongoose.Types.ObjectId(), name: "P", price: 9.5, quantity: 1 }],
       deliveryAddress: new mongoose.Types.ObjectId(),
-      deliveryAddressSnapshot: { fullAddress: "A 1" },
+      deliveryAddressSnapshot: { fullAddress: "A 1", location: { type: "Point", coordinates: [20.46, 44.81] } },
       subtotal: 9.5, deliveryFee: 2.5, tax: 0, total: 13.5, paymentMethod: "cash",
     });
 

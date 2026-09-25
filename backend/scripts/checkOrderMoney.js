@@ -52,7 +52,7 @@ try {
       status: "pending",
       items: [{ menuItem: new mongoose.Types.ObjectId(), name: "P", price: 1, quantity: 1 }],
       deliveryAddress: new mongoose.Types.ObjectId(),
-      deliveryAddressSnapshot: { fullAddress: "A 1" },
+      deliveryAddressSnapshot: { fullAddress: "A 1", location: { type: "Point", coordinates: [20.46, 44.81] } },
       subtotal: toMoney(subtotal),
       deliveryFee: PRICING.deliveryFee,
       serviceFee: PRICING.serviceFee,
