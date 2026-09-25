@@ -59,6 +59,18 @@ export const accountLimiter = rateLimit({
 });
 
 /**
+ * The geocoding proxies are public (the address picker runs before sign-in)
+ * and each miss costs a Nominatim call or a paid LocationIQ one. A person
+ * picking an address makes a handful; 30 a minute leaves plenty of room.
+ */
+export const geocodeLimiter = rateLimit({
+  ...base,
+  windowMs: 60_000,
+  limit: 30,
+  message: tooMany("Too many location lookups. Please wait a moment."),
+});
+
+/**
  * Discovery search runs an unindexed scan per call, so it is the cheapest
  * endpoint to abuse and the one worth capping tightest. The client debounces
  * typing, so 60 a minute is far above real use.

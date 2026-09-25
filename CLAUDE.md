@@ -42,7 +42,7 @@ no running server and never touching a real database. Run it after any change to
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:images`, `check:upload-cleanup`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:schedule`.
+`check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
 
@@ -236,7 +236,7 @@ Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else li
 
 The backend currently cannot run more than one process correctly. Anything touching these areas should account for it:
 
-- Socket.IO has **no Redis adapter**, and `connections` is a plain in-memory Map, so a customer connected to instance B never receives an event emitted from instance A. `locationTracking.service.js`'s throttle Map has the same problem.
+- Socket.IO has **no Redis adapter**, and `connections` is a plain in-memory Map, so a customer connected to instance B never receives an event emitted from instance A. `locationTracking.service.js`'s throttle Map has the same problem, as do the geocoding caches and the one-per-second Nominatim spacing in `locationController.js` (N instances make N requests per second to Nominatim).
 - `express-session` uses the default `MemoryStore`, which breaks the two-phase Google signup across instances and loses sessions on restart.
 - The cron job runs per instance, so N instances race on the same `bulkWrite`.
 - `emitNewOrderAvailable` / `emitOrderTaken` / `emitOrderBackToPool` loop over *every* connected courier per event.

@@ -12,7 +12,7 @@ export default function useLocationAutocomplete(input) {
   } = useQuery({
     queryKey: ["location-prediction", debouncedInput],
     queryFn: () => getLocationPrediction(debouncedInput),
-    enabled: debouncedInput.trim().length >= 2,
+    enabled: debouncedInput.trim().length >= 3,
     retry: false,
   });
 
