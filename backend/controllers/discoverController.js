@@ -5,6 +5,10 @@ import { withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
 import { parsePagination } from "../utils/pagination.js";
 import { escapeRegex } from "../utils/regex.js";
+import { createTtlCache } from "../utils/ttlCache.js";
+
+const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const popularCache = createTtlCache({ ttlMs: 5 * 60 * 1000, maxEntries: 500 });
 
 async function getNearbyRestaurantIds(
   lat,
@@ -93,18 +97,33 @@ export async function getPopularItems(req, res, next) {
     const restaurantIds = await getNearbyRestaurantIds(lat, lon);
     if (!restaurantIds.length) return res.status(200).json({ data: [] });
 
-    const popularItemIds = await Order.aggregate([
-      { $match: { restaurant: { $in: restaurantIds } } },
-      { $unwind: "$items" },
-      {
-        $group: {
-          _id: "$items.menuItem",
-          orderCount: { $sum: "$items.quantity" },
+    // This unwound every order the nearby restaurants had ever received, on
+    // every discover load, so its cost grew forever. Delivered orders from the
+    // last 30 days match the {restaurant, status, createdAt} index, and the
+    // ranking barely moves minute to minute, so it is cached per area too.
+    const cacheKey = `${Number(lat).toFixed(2)},${Number(lon).toFixed(2)}`;
+    let popularItemIds = popularCache.get(cacheKey);
+    if (!popularItemIds) {
+      popularItemIds = await Order.aggregate([
+        {
+          $match: {
+            restaurant: { $in: restaurantIds },
+            status: "delivered",
+            createdAt: { $gte: new Date(Date.now() - POPULAR_WINDOW_MS) },
+          },
         },
-      },
-      { $sort: { orderCount: -1 } },
-      { $limit: 15 },
-    ]);
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.menuItem",
+            orderCount: { $sum: "$items.quantity" },
+          },
+        },
+        { $sort: { orderCount: -1 } },
+        { $limit: 15 },
+      ]);
+      popularCache.set(cacheKey, popularItemIds);
+    }
 
     const itemIds = popularItemIds.map((pi) => pi._id);
 

@@ -110,6 +110,33 @@ try {
       ok(`${label}: between 1 and 50 rows, no error`, !error && count >= 1 && count <= 50, error?.message ?? String(count));
     }
   }
+
+  console.log("\npopular items count recent delivered orders only");
+  {
+    const { getPopularItems } = await import("../controllers/discoverController.js");
+    const [recent, old, pending] = await MenuItem.insertMany(
+      ["Recent hit", "Old hit", "Pending hit"].map((name) => ({
+        restaurant: restaurant._id, owner: owner._id, name, description: "d", price: 9,
+        category: "pizza", available: true, imageUrls: ["https://res.cloudinary.com/demo/image/upload/p.jpg"],
+      })),
+    );
+    const orderDoc = (menuItem, quantity, status, createdAt) => ({
+      orderNumber: `ORD-POP-${menuItem}`, customer: customer._id, restaurant: restaurant._id, status,
+      items: [{ menuItem, name: "P", price: 9, quantity }], deliveryAddress: new mongoose.Types.ObjectId(),
+      deliveryAddressSnapshot: { fullAddress: "A", location: { type: "Point", coordinates: [20.46, 44.81] } },
+      subtotal: 9, deliveryFee: 2.5, tax: 0, total: 11.5, paymentMethod: "cash", createdAt, updatedAt: createdAt,
+    });
+    await Order.collection.insertMany([
+      orderDoc(recent._id, 3, "delivered", new Date()),
+      orderDoc(old._id, 500, "delivered", new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)),
+      orderDoc(pending._id, 500, "pending", new Date()),
+    ]);
+    const result = await viaHandler(getPopularItems, { lat: "44.8", lon: "20.45" });
+    const names = (result.payload?.data ?? []).map((i) => i.name);
+    ok("a recent delivered dish ranks first", names[0] === "Recent hit", names.slice(0, 3).join(", "));
+    ok("a huge order from two months ago does not", names.indexOf("Old hit") !== 0);
+    ok("a huge pending order does not", names.indexOf("Pending hit") !== 0);
+  }
 } finally {
   await mongoose.disconnect();
   await mongo.stop();
