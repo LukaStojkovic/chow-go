@@ -7,6 +7,7 @@ import {
   Linkedin,
   ShoppingBag,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import Logo from "./Navbar/Logo";
 
 export default function Footer() {
@@ -63,15 +64,17 @@ export default function Footer() {
               {t("common:state.allRightsReserved", { name: t("common:app.name") })}
             </p>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-foreground ">
+              <Link to="/privacy" className="hover:text-foreground ">
                 {t("footer.privacy")}
-              </a>
-              <a href="#" className="hover:text-foreground ">
+              </Link>
+              <Link to="/terms" className="hover:text-foreground ">
                 {t("footer.terms")}
-              </a>
-              <a href="#" className="hover:text-foreground ">
+              </Link>
+              {/* Only strictly necessary cookies are set, so there is nothing
+                  to configure: this links to where they are explained. */}
+              <Link to="/privacy#section-7" className="hover:text-foreground ">
                 {t("footer.cookies")}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

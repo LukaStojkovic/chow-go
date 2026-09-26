@@ -82,6 +82,6 @@ export default {
       "The smartest way to order food. Real-time tracking, AI recommendations, and fast delivery from your favourite local spots.",
     privacy: "Privacy policy",
     terms: "Terms of service",
-    cookies: "Cookie settings",
+    cookies: "Cookies",
   },
 };

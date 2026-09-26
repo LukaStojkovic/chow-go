@@ -21,6 +21,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useMotionStore } from "@/store/useMotionStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useTokens } from "@/theme/useTokens";
+import { LegalLinks } from "@/features/legal/LegalLinks";
 
 // Three counts drawn from what the account actually holds. No invented wallet
 // balance or points total: every figure on this screen is one the API returns.
@@ -145,6 +146,8 @@ export default function Profile() {
         </Card>
 
         <AppearanceSettings />
+
+        <LegalLinks />
 
         {/* The other two sides of Chow. Anyone signed in as a customer can
                still apply, and this is the only place in the app that says so. */}

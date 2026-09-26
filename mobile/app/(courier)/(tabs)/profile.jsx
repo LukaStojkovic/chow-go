@@ -32,6 +32,7 @@ import { useMotionStore } from "@/store/useMotionStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
+import { LegalLinks } from "@/features/legal/LegalLinks";
 
 // Keys, not copy: module scope runs before a language is picked.
 const VERIFICATION = {
@@ -200,6 +201,8 @@ export default function CourierProfile() {
         <ConnectGoogle />
 
         <DownloadMyData />
+
+        <LegalLinks />
 
         <Button
           variant="outline"

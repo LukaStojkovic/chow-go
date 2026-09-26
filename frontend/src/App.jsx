@@ -33,6 +33,7 @@ import MyOrdersPage from "./pages/MyOrdersPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminRoute from "./components/Auth/components/AdminRoute";
 const AdminPage = lazyWithReload(() => import("./pages/admin/AdminPage"));
+const LegalPage = lazyWithReload(() => import("./pages/LegalPage"));
 import BecomeCourierPage from "./pages/BecomeCourierPage";
 import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
 import AuthModal from "./components/Auth/AuthModal";
@@ -114,6 +115,8 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth/google/callback" element={<GoogleAuthCallbackPage />} />
+          <Route path="/terms" element={<LegalPage kind="terms" />} />
+          <Route path="/privacy" element={<LegalPage kind="privacy" />} />
 
           {/* Browsable without an account. Signing in is required at the point
               it actually matters - adding to the basket. */}

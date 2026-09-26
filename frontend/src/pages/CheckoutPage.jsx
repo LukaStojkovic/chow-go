@@ -35,6 +35,7 @@ import { EmptyState } from "@/components/common/StateViews";
 import { CheckoutSection, OptionRow } from "@/features/checkout/CheckoutSection";
 import { AddressStep } from "@/features/checkout/AddressStep";
 import { OrderSummaryCard } from "@/features/checkout/OrderSummaryCard";
+import { LegalConsent } from "@/components/common/LegalConsent";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -278,9 +279,7 @@ export default function CheckoutPage() {
           }
         />
 
-        <p className="text-caption text-muted-foreground mt-6 text-center">
-          {t("checkout.terms")}
-        </p>
+        <LegalConsent i18nKey="basket:checkout.terms" className="text-caption text-muted-foreground mt-6 text-center" />
       </PageContainer>
 
       {/* On mobile the total travels with the button, so the amount being

@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
+import { LegalConsent } from "@/features/legal/LegalConsent";
 
 /**
  * Shared shell for the auth stack.
@@ -166,11 +167,9 @@ export const CREATE_ACCOUNT_OPTION = {
  * equivalent of "By {verb} you agree..." to fill in.
  */
 export function AuthLegal({ action = "continuing" }) {
-  const { t } = useTranslation("auth");
-
   return (
-    <Text variant="caption" tone="muted">
-      {t("legal." + action)}
-    </Text>
+    <LegalConsent
+      i18nKey={action === "creatingAccount" ? "auth:legal.creatingAccount" : "auth:legal.continuing"}
+    />
   );
 }

@@ -24,6 +24,7 @@ import { useOwnRestaurant, useUpdateRestaurant } from "@/hooks/Restaurants/useOw
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
+import { LegalLinks } from "@/features/legal/LegalLinks";
 
 const AUTOSAVE_MS = 1000;
 
@@ -225,6 +226,8 @@ export default function SellerSettings() {
         <ConnectGoogle />
 
         <DownloadMyData />
+
+        <LegalLinks />
 
         <Button
           variant="outline"

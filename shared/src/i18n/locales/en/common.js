@@ -296,6 +296,13 @@ export default {
     fallbackName: "Your account",
   },
 
+  legal: {
+    terms: "Terms of Service",
+    privacy: "Privacy Policy",
+    updated: "Last updated {{date}}",
+    contents: "Contents",
+    backHome: "Back to Chow & Go",
+  },
   a11y: {
     switchToDark: "Switch to dark theme",
     switchToLight: "Switch to light theme",

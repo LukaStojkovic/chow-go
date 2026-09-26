@@ -114,7 +114,7 @@ export default {
     secureHint: "Vaši podaci se šalju preko šifrovane veze.",
     placing: "Slanje porudžbine",
     terms:
-      "Slanjem porudžbine prihvatate naše Uslove korišćenja i Politiku privatnosti. Možete otkazati bez naknade sve dok kurir ne preuzme hranu.",
+      "Slanjem porudžbine prihvatate naše <terms>Uslove korišćenja</terms> i <privacy>Politiku privatnosti</privacy>. Možete otkazati bez naknade dok restoran ne počne da je priprema.",
 
     error: {
       title: "Došlo je do problema pri plaćanju",

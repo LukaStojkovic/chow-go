@@ -113,7 +113,7 @@ export default {
     secureHint: "Your details are sent over an encrypted connection.",
     placing: "Placing your order",
     terms:
-      "Placing an order means you accept our Terms of Service and Privacy Policy. You can cancel free of charge until the courier collects your food.",
+      "Placing an order means you accept our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>. You can cancel free of charge until the restaurant starts preparing it.",
 
     error: {
       title: "Checkout hit a problem",

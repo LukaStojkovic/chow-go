@@ -157,9 +157,10 @@ export default {
   },
 
   legal: {
-    continuing: "Nastavkom prihvatate Uslove korišćenja i Politiku privatnosti Chow & Go.",
+    continuing:
+      "Nastavkom prihvatate <terms>Uslove korišćenja</terms> i <privacy>Politiku privatnosti</privacy> Chow & Go.",
     creatingAccount:
-      "Kreiranjem naloga prihvatate Uslove korišćenja i Politiku privatnosti Chow & Go.",
+      "Kreiranjem naloga prihvatate <terms>Uslove korišćenja</terms> i <privacy>Politiku privatnosti</privacy> Chow & Go.",
   },
 
   google: {

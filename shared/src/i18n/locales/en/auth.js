@@ -156,9 +156,10 @@ export default {
   },
 
   legal: {
-    continuing: "By continuing you agree to the Chow & Go Terms of Service and Privacy Policy.",
+    continuing:
+      "By continuing you agree to the Chow & Go <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
     creatingAccount:
-      "By creating an account you agree to the Chow & Go Terms of Service and Privacy Policy.",
+      "By creating an account you agree to the Chow & Go <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
   },
 
   google: {

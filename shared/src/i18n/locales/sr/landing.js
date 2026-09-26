@@ -82,6 +82,6 @@ export default {
       "Najpametniji način da poručite hranu. Praćenje uživo, AI preporuke i brza dostava iz vaših omiljenih lokalnih mesta.",
     privacy: "Politika privatnosti",
     terms: "Uslovi korišćenja",
-    cookies: "Podešavanja kolačića",
+    cookies: "Kolačići",
   },
 };

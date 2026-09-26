@@ -295,6 +295,13 @@ export default {
     fallbackName: "Vaš nalog",
   },
 
+  legal: {
+    terms: "Uslovi korišćenja",
+    privacy: "Politika privatnosti",
+    updated: "Poslednja izmena: {{date}}",
+    contents: "Sadržaj",
+    backHome: "Nazad na Chow & Go",
+  },
   a11y: {
     switchToDark: "Prebaci na tamnu temu",
     switchToLight: "Prebaci na svetlu temu",

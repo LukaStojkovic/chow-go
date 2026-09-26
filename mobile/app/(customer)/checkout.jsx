@@ -27,6 +27,7 @@ import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
 import { makeRouteErrorBoundary } from "@/components/feedback/routeErrorBoundary";
+import { LegalConsent } from "@/features/legal/LegalConsent";
 
 export const ErrorBoundary = makeRouteErrorBoundary(
   "checkout",
@@ -258,6 +259,8 @@ export default function Checkout() {
             <Text variant="price-lg">{formatPrice(breakdown.total, { currency })}</Text>
           </View>
         </Card>
+
+        <LegalConsent i18nKey="basket:checkout.terms" className="text-center" />
       </ScrollView>
 
       <DockedBar>

@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";
 import { InputField } from "./fields/InputField";
+import { LegalConsent } from "@/components/common/LegalConsent";
 
 const STEPS = {
   LOGIN: "login",
@@ -85,58 +86,67 @@ export default function AuthModal({
   }, [authUser, isOpen, setIsOpen]);
 
   const footer = (
-    <div className="flex gap-2 sm:gap-3 justify-end">
-      {step !== STEPS.LOGIN && !isForgotFlow && (
+    <div className="space-y-3">
+      {(step === STEPS.LOGIN || step === STEPS.REGISTER) && !isForgotFlow && (
+        <LegalConsent
+          i18nKey={step === STEPS.LOGIN ? "auth:legal.continuing" : "auth:legal.creatingAccount"}
+          className="text-caption text-muted-foreground text-center"
+        />
+      )}
+      <div className="flex gap-2 sm:gap-3 justify-end">
+        {step !== STEPS.LOGIN && !isForgotFlow && (
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+          >
+            {t("common:actions.back")}
+          </Button>
+        )}
         <Button
           variant="outline"
-          onClick={handleBack}
+          onClick={() => setIsOpen(false)}
           className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
         >
-          {t("common:actions.back")}
+          {t("common:actions.cancel")}
         </Button>
-      )}
-      <Button
-        variant="outline"
-        onClick={() => setIsOpen(false)}
-        className="h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm"
-      >
-        {t("common:actions.cancel")}
-      </Button>
-      {!isForgotFlow && (
-        <Button
-          type="submit"
-          form="auth-form"
-          disabled={isLoading}
-          className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg "
-        >
-          {isLoading ? (
-            <>
-              <Spinner size="sm" />
-              <span className="hidden sm:inline">
+        {!isForgotFlow && (
+          <Button
+            type="submit"
+            form="auth-form"
+            disabled={isLoading}
+            className="min-w-28 sm:min-w-32 h-10 sm:h-12 bg-primary hover:bg-primary text-primary-foreground font-semibold rounded-lg sm:rounded-xl flex items-center justify-center gap-2 px-4 sm:px-8 text-xs sm:text-sm transition-all shadow-lg "
+          >
+            {isLoading ? (
+              <>
+                <Spinner size="sm" />
+                <span className="hidden sm:inline">
+                  {step === STEPS.LOGIN
+                    ? t("auth:login.submitting")
+                    : step === STEPS.REGISTER && auth.watchedRole === "customer"
+                      ? t("auth:register.submitting")
+                      : step === STEPS.RESTAURANT_IMAGES
+                        ? t("common:state.saving")
+                        : t("common:actions.next")}
+                </span>
+              </>
+            ) : (
+              <>
                 {step === STEPS.LOGIN
-                  ? t("auth:login.submitting")
+                  ? t("auth:login.submit")
                   : step === STEPS.REGISTER && auth.watchedRole === "customer"
-                    ? t("auth:register.submitting")
+                    ? t("auth:register.submit")
                     : step === STEPS.RESTAURANT_IMAGES
-                      ? t("common:state.saving")
+                      ? t("auth:register.complete")
                       : t("common:actions.next")}
-              </span>
-            </>
-          ) : (
-            <>
-              {step === STEPS.LOGIN
-                ? t("auth:login.submit")
-                : step === STEPS.REGISTER && auth.watchedRole === "customer"
-                  ? t("auth:register.submit")
-                  : step === STEPS.RESTAURANT_IMAGES
-                    ? t("auth:register.complete")
-                    : t("common:actions.next")}
-            </>
-          )}
-        </Button>
-      )}
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
+
 
   if (!isOpen) return null;
 
