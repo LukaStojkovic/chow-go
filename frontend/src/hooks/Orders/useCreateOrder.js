@@ -52,6 +52,12 @@ export function useCreateOrder() {
     },
 
     onError: (error) => {
+      // Nothing was placed: the server repriced the basket, so show the new
+      // total before the customer confirms again.
+      const code = error?.response?.data?.code;
+      if (code === "PRICE_CHANGED" || code === "ITEM_UNAVAILABLE") {
+        useCartStore.getState().fetchCart();
+      }
       toast.error(
         error?.response?.data?.message ||
           t("order:detail.placeFailedLong"),

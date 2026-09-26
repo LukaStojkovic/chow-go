@@ -10,6 +10,7 @@ import { rateOrderOperation } from "../services/orderRating.service.js";
 import * as orderStatus from "../utils/orderStatus.js";
 import { toMoney } from "../utils/money.js";
 import * as orderSocketService from "../services/orderSocket.service.js";
+import { repriceCartLines } from "../services/cartPricing.service.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -74,6 +75,26 @@ export async function createOrder(req, res, next) {
       return next(new AppError("Restaurant is currently closed", 400));
     }
 
+    // The cart holds the price from when each dish was added; the order is
+    // charged what the menu charges now. A difference is shown to the customer
+    // before anything is placed rather than silently applied.
+    const { changes, unavailable } = repriceCartLines(cart);
+    if (unavailable.length > 0) {
+      return next(
+        new AppError("errors:order.itemUnavailable", 400, "ITEM_UNAVAILABLE", {
+          name: unavailable[0],
+        }),
+      );
+    }
+    if (changes.length > 0) {
+      await cart.save();
+      return next(
+        new AppError("errors:order.priceChanged", 409, "PRICE_CHANGED", undefined, {
+          priceChanges: changes,
+        }),
+      );
+    }
+
     // Every figure is rounded to cents. Unrounded float arithmetic persisted
     // totals like 28.090000000000003, which display code hid but reporting and
     // any future reconciliation would not.
@@ -84,17 +105,6 @@ export async function createOrder(req, res, next) {
     const tax = 0;
     const tipAmount = toMoney(Math.max(0, parseFloat(tip) || 0));
     const total = toMoney(subtotal + deliveryFee + serviceFee + priorityFee + tax + tipAmount);
-
-    for (const item of cart.items) {
-      if (!item.menuItem.available) {
-        return next(
-          new AppError(
-            `Item "${item.menuItem.name}" is no longer available`,
-            400,
-          ),
-        );
-      }
-    }
 
     const order = new Order({
       customer: userId,

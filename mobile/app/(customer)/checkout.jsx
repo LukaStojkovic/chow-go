@@ -96,6 +96,8 @@ export default function Checkout() {
       clearLocalCart();
       router.replace(`/(customer)/order/${order._id}/confirmed`);
     } catch (error) {
+      const code = error?.response?.data?.code;
+      if (code === "PRICE_CHANGED" || code === "ITEM_UNAVAILABLE") fetchCart();
       toast.error(t("order:detail.placeFailed"), { description: errorMessage(error) });
     }
   }

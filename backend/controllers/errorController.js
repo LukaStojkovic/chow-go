@@ -82,6 +82,7 @@ function translate(err) {
       key: err.messageKey,
       params: err.messageParams,
       message: err.messageKey ? undefined : err.message,
+      details: err.details,
     };
   }
 
@@ -121,6 +122,7 @@ export function handleError(err, req, res, _next) {
     message,
     requestId: req.id,
     ...(translated.fields ? { fields: translated.fields } : {}),
+    ...(translated.details ? { details: translated.details } : {}),
     ...(env.isProduction ? {} : { stack: err.stack }),
   });
 }

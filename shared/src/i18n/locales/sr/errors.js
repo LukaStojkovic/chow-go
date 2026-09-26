@@ -95,6 +95,8 @@ export default {
     restaurantUnavailable: "Taj restoran trenutno ne prima porudžbine",
     restaurantClosed: "Taj restoran je trenutno zatvoren",
     itemUnavailable: "{{name}} više nije dostupno",
+    priceChanged:
+      "Neke cene u vašoj korpi su se promenile. Proverite novi iznos i ponovo pošaljite porudžbinu.",
     notFound: "Ta porudžbina nije pronađena",
     cancelNotAllowed: "Ova porudžbina je previše odmakla da bi se otkazala",
     statusConflict:
@@ -194,6 +196,8 @@ export default {
     INVALID_TOKEN: "Vaša sesija više nije ispravna",
     TOKEN_REVOKED: "Vaša sesija je završena. Prijavite se ponovo.",
     INVALID_CREDENTIALS: "Ta imejl adresa i lozinka se ne poklapaju",
+    PRICE_CHANGED: "Neke cene u vašoj korpi su se promenile",
+    ITEM_UNAVAILABLE: "Nešto u vašoj korpi više nije dostupno",
     USER_GONE: "Vaš nalog više ne postoji",
     ORDER_STATUS_CONFLICT:
       "Neko je upravo ažurirao ovu porudžbinu. Osvežite i pokušajte ponovo.",

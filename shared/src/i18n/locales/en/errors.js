@@ -104,6 +104,8 @@ export default {
     restaurantUnavailable: "That restaurant is not taking orders right now",
     restaurantClosed: "That restaurant is closed right now",
     itemUnavailable: "{{name}} is no longer available",
+    priceChanged:
+      "Some prices in your basket have changed. Check the new total and place your order again.",
     notFound: "That order was not found",
     cancelNotAllowed: "This order has gone too far to cancel",
     statusConflict: "Someone else just updated this order. Reload and try again.",
@@ -204,6 +206,8 @@ export default {
     INVALID_TOKEN: "Your session is no longer valid",
     TOKEN_REVOKED: "Your session has ended. Please sign in again.",
     INVALID_CREDENTIALS: "That email and password do not match",
+    PRICE_CHANGED: "Some prices in your basket have changed",
+    ITEM_UNAVAILABLE: "Something in your basket is no longer available",
     USER_GONE: "Your account no longer exists",
     ORDER_STATUS_CONFLICT:
       "Someone else just updated this order. Reload and try again.",

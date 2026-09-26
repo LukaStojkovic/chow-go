@@ -156,6 +156,62 @@ try {
   ok("a new key places a second order", second.status === 201, String(second.status));
   ok("there are now two orders", (await Order.countDocuments({})) === 2, String(await Order.countDocuments({})));
 
+  console.log("\na basket filled during a promotion is charged today's price");
+  const cartLine = async () =>
+    (await Cart.findOne({ restaurant: restaurant._id }).lean())?.items?.find((i) => String(i.menuItem) === String(item._id));
+  await MenuItem.updateOne({ _id: item._id }, { $set: { promotion: { isActive: true, type: "percentage", value: 50 } } });
+  await stockCart();
+  ok("the line was added at the promotional price", (await cartLine())?.price === 4.75, String((await cartLine())?.price));
+  await MenuItem.updateOne({ _id: item._id }, { $set: { "promotion.isActive": false } });
+  const stale = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+  ok("checkout after the promotion ended is refused with 409", stale.status === 409 && stale.body.code === "PRICE_CHANGED", `${stale.status} ${stale.body.code}`);
+  const change = stale.body.details?.priceChanges?.[0];
+  ok("and names what changed", change?.name === "Pizza" && change.from === 4.75 && change.to === 9.5, JSON.stringify(stale.body.details));
+  ok("nothing was placed", (await Order.countDocuments({})) === 2);
+  ok("the basket now holds the current price", (await cartLine())?.price === 9.5 && (await cartLine())?.basePrice === undefined);
+  const retried = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+  ok("placing again succeeds", retried.status === 201, String(retried.status));
+  ok("at the current price", retried.body?.data?.order?.subtotal === 19, String(retried.body?.data?.order?.subtotal));
+
+  console.log("\na price rise reaches a basket that already holds the dish");
+  await stockCart();
+  await MenuItem.updateOne({ _id: item._id }, { $set: { price: 12 } });
+  const viewed = await call("GET", "/api/cart");
+  ok("viewing the basket reports the change", viewed.body.priceChanges?.[0]?.to === 12, JSON.stringify(viewed.body).slice(0, 400));
+  ok("and shows the new price", viewed.body.data?.items?.[0]?.price === 12);
+  const afterView = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+  ok("a customer who saw the new price checks out without a 409", afterView.status === 201, String(afterView.status));
+  ok("charged at the new price", afterView.body?.data?.order?.subtotal === 24, String(afterView.body?.data?.order?.subtotal));
+
+  console.log("\nadding a dish again reprices its line");
+  await stockCart();
+  await MenuItem.updateOne({ _id: item._id }, { $set: { price: 13 } });
+  await stockCart();
+  const readded = await cartLine();
+  ok("the line takes the current price", readded?.price === 13 && readded?.quantity === 4, JSON.stringify(readded));
+  await Cart.deleteMany({});
+
+  console.log("\nunavailable and deleted dishes are refused cleanly");
+  await stockCart();
+  await MenuItem.updateOne({ _id: item._id }, { $set: { available: false } });
+  const off = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+  ok("an unavailable dish is a 400 ITEM_UNAVAILABLE", off.status === 400 && off.body.code === "ITEM_UNAVAILABLE", `${off.status} ${off.body.code}`);
+  await MenuItem.updateOne({ _id: item._id }, { $set: { available: true } });
+  await Cart.updateOne(
+    { restaurant: restaurant._id },
+    { $push: { items: { menuItem: new mongoose.Types.ObjectId(), name: "Removed dish", price: 5, quantity: 1 } } },
+  );
+  const gone = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+  ok("a deleted dish is a 400, not a crash", gone.status === 400 && gone.body.code === "ITEM_UNAVAILABLE", `${gone.status} ${gone.body.code}`);
+  ok("naming the dish", gone.body.message?.includes("Removed dish"), gone.body.message);
+  await MenuItem.updateOne({ _id: item._id }, { $set: { price: 14 } });
+  const mixed = await call("GET", "/api/cart");
+  ok(
+    "a basket holding a deleted dish still reprices the rest",
+    mixed.status === 200 && mixed.body.priceChanges?.[0]?.to === 14,
+    `${mixed.status} ${JSON.stringify(mixed.body).slice(0, 160)}`,
+  );
+
   await mongoose.disconnect();
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;

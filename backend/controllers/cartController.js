@@ -2,6 +2,7 @@ import Cart from "../models/Cart.js";
 import MenuItem from "../models/MenuItem.js";
 import { AppError } from "../utils/AppError.js";
 import { effectivePrice } from "../utils/promotion.js";
+import { repriceCartLines } from "../services/cartPricing.service.js";
 
 export async function getCart(req, res, next) {
   const cart = await Cart.findOne({ user: req.user.id })
@@ -19,9 +20,15 @@ export async function getCart(req, res, next) {
     });
   }
 
+  // The basket shows what checkout will charge, so the PRICE_CHANGED refusal
+  // there only happens when a price moves between viewing and ordering.
+  const { changes } = repriceCartLines(cart);
+  if (changes.length > 0) await cart.save();
+
   res.status(200).json({
     status: "success",
     data: cart,
+    ...(changes.length > 0 ? { priceChanges: changes } : {}),
   });
 }
 
@@ -71,15 +78,17 @@ export async function addToCart(req, res, next) {
 
   if (existingItem) {
     existingItem.quantity += quantity;
+    const unitPrice = effectivePrice(menuItem.price, menuItem.promotion);
+    existingItem.price = unitPrice;
+    existingItem.basePrice = unitPrice < menuItem.price ? menuItem.price : undefined;
     // A note supplied on a later add replaces the line's note; sending none
     // leaves whatever was already there untouched.
     if (specialInstructions !== undefined) {
       existingItem.specialInstructions = specialInstructions;
     }
   } else {
-    // Priced from the menu item at the moment it is added, never from the
-    // client. A promotion that ends later does not reprice a line already in
-    // the basket - which is the behaviour the price snapshot already had.
+    // Priced from the menu item, never from the client. getCart and checkout
+    // bring it back to the current price if the menu changes afterwards.
     const unitPrice = effectivePrice(menuItem.price, menuItem.promotion);
 
     cart.items.push({

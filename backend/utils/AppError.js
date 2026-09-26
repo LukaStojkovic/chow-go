@@ -18,8 +18,9 @@ export class AppError extends Error {
    * @param {number} statusCode
    * @param {string} [code] Stable machine-readable identifier for clients.
    * @param {Object} [params] Interpolation values for the catalog key.
+   * @param {Object} [details] Structured data sent to the client as `details`.
    */
-  constructor(message, statusCode, code, params) {
+  constructor(message, statusCode, code, params, details) {
     // `super` needs *something* readable: a log line, a Sentry issue and a
     // stack trace all print `error.message`, and a bare key there would make
     // the backend's own diagnostics harder to read than they were before.
@@ -29,6 +30,7 @@ export class AppError extends Error {
     this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
     this.isOperational = true;
     if (code) this.code = code;
+    if (details !== undefined) this.details = details;
     if (AppError.isKey(message)) {
       this.messageKey = message;
       if (params) this.messageParams = params;

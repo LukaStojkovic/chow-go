@@ -58,12 +58,16 @@ cartSchema.pre("save", function (next) {
   if (this.items.length > 0) {
     const restaurantIds = [
       ...new Set(
-        this.items.map((item) => item.menuItem.restaurant?.toString())
+        this.items
+          .map((item) => item.menuItem?.restaurant?.toString())
+          .filter(Boolean)
       ),
     ];
+    // Either side may be populated: compare ids, not a document's toString().
+    const cartRestaurant = String(this.restaurant?._id ?? this.restaurant);
     if (
       restaurantIds.length > 1 ||
-      (restaurantIds[0] && restaurantIds[0] !== this.restaurant.toString())
+      (restaurantIds[0] && restaurantIds[0] !== cartRestaurant)
     ) {
       return next(new Error("All items must belong to the same restaurant"));
     }
