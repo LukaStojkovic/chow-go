@@ -203,6 +203,25 @@ try {
     ok(`a "${status}" courier cannot accept an order`, code === "COURIER_NOT_VERIFIED", code ?? "it was accepted");
   }
 
+  await Order.syncIndexes();
+  const plan = JSON.stringify(
+    await Order.aggregate([
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [20.46, 44.81] },
+          distanceField: "d",
+          spherical: true,
+          query: { status: "ready", courier: null },
+          key: "deliveryAddressSnapshot.location",
+        },
+      },
+    ]).explain(),
+  );
+  ok(
+    "the pool query uses the compound status/courier/location index",
+    plan.includes("status_1_courier_1_deliveryAddressSnapshot.location_2dsphere"),
+  );
+
   await Courier.updateOne(
     { _id: courier._id },
     { $set: { verificationStatus: "verified", isAvailable: true } },

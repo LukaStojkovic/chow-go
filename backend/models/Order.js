@@ -185,7 +185,11 @@ orderSchema.index(
 orderSchema.index({ restaurant: 1, status: 1, createdAt: -1 });
 orderSchema.index({ courier: 1, status: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
-orderSchema.index({ "deliveryAddressSnapshot.location": "2dsphere" });
+// The courier pool's $geoNear filters on status and courier; leading with
+// them keeps it from walking every delivered order near the courier. The
+// pool query names its key, so the old single-field index can coexist until
+// scripts/migrateOrderGeoIndex.js drops it.
+orderSchema.index({ status: 1, courier: 1, "deliveryAddressSnapshot.location": "2dsphere" });
 
 orderSchema.pre("validate", function (next) {
   if (this.isNew && !this.orderNumber) {

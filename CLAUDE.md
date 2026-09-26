@@ -34,6 +34,7 @@ node backend/scripts/menuItemSeeds.js   # seed menu items for existing restauran
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
 node backend/scripts/migrateIdempotencyIndex.js --dry-run   # report, then run without the flag once per database
+node backend/scripts/migrateOrderGeoIndex.js --dry-run        # same; drops the single-field order geo index
 ```
 
 There is **no test framework** and no `npm test`. `.github/workflows/ci.yml` runs the shared
@@ -72,7 +73,7 @@ Three roles live on one `User` document (`role: customer | seller | courier`), e
 - **courier → Courier** via `Courier.userId` (unique). `protectedRoute` attaches it as `req.user.courier`.
 - **customer** owns `Addresses` (max 5, enforced in a pre-save hook), `Cart`, and `favouriteRestaurants`.
 
-All GeoJSON is `[lng, lat]`. 2dsphere indexes exist on `Restaurant.location`, `Addresses.location`, `Courier.currentLocation`, and `Order.deliveryAddressSnapshot.location`.
+All GeoJSON is `[lng, lat]`. 2dsphere indexes exist on `Restaurant.location`, `Addresses.location`, `Courier.currentLocation`, and `Order.deliveryAddressSnapshot.location` (compound behind `status, courier` for the courier pool, whose `$geoNear` names its `key` so an old single-field index can coexist until `migrateOrderGeoIndex.js` drops it).
 
 ## Order lifecycle — the core of the app
 
