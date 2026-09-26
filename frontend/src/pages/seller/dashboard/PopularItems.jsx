@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { formatPrice } from "@chowgo/shared/format";
 import { useCurrency } from "@/hooks/useCurrency";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 export const PopularItems = ({ items }) => {
   const currency = useCurrency();
   const { t } = useTranslation("seller");
@@ -18,7 +19,7 @@ export const PopularItems = ({ items }) => {
           items.map((item, i) => (
             <div key={i} className="flex items-center gap-4">
               <img
-                src={item.image}
+                src={cloudinaryUrl(item.image, { width: 96, height: 96, crop: "fill" })}
                 alt={item.name}
                 className="w-12 h-12 rounded-full object-cover ring-2 ring-border "
                 onError={(e) => {

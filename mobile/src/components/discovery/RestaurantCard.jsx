@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/Text";
 import { cn } from "@/lib/cn";
 import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 /**
  * A restaurant in a feed.
@@ -47,7 +48,7 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
       <View className="aspect-[16/10] overflow-hidden rounded-lg bg-muted">
         {restaurant.coverImage ? (
           <Image
-            source={restaurant.coverImage}
+            source={cloudinaryUrl(restaurant.coverImage, { width: 1080 })}
             style={{ flex: 1 }}
             contentFit="cover"
             transition={400}

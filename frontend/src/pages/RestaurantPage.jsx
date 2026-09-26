@@ -49,6 +49,17 @@ export default function RestaurantPage() {
   const cartTotal = useCartStore((state) => state.totalPrice);
   const cartRestaurant = useCartStore((state) => state.restaurant);
 
+  // A shared or bookmarked tab should say which restaurant it is.
+  const restaurantName = restaurant?.name;
+  useEffect(() => {
+    if (!restaurantName) return undefined;
+    const previous = document.title;
+    document.title = `${restaurantName} - Chow & Go`;
+    return () => {
+      document.title = previous;
+    };
+  }, [restaurantName]);
+
   const [query, setQuery] = useState("");
   // Empty until something is scrolled to or clicked; the first visible section
   // is used as the fallback below rather than being written in on mount.
@@ -149,7 +160,7 @@ export default function RestaurantPage() {
 
   const isThisRestaurantsBasket =
     cartItems.length > 0 && String(cartRestaurant?._id) === String(restaurantId);
-  const basketPricing = buildPriceBreakdown({ subtotal: cartTotal });
+  const basketPricing = buildPriceBreakdown({ subtotal: cartTotal, currency: cartRestaurant?.currency });
 
   return (
     <>
@@ -245,7 +256,7 @@ export default function RestaurantPage() {
               </span>
             </span>
             <span className="tabular ml-auto flex items-center gap-2">
-              {formatPrice(basketPricing.total)}
+              {formatPrice(basketPricing.total, { currency: basketPricing.currency })}
               <ArrowRight className="size-4" aria-hidden="true" />
             </span>
           </Button>

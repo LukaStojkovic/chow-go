@@ -7,6 +7,7 @@ import { formatPrice } from "@chowgo/shared/format";
 import { Badge } from "@/components/ui/Badge";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 // Seller screens read raw documents, unlike every customer-facing read which
 // arrives already decorated, so the promotion is resolved here.
@@ -28,7 +29,7 @@ export function SellerMenuItemRow({ item, onPress }) {
       <View className="h-16 w-16 overflow-hidden rounded-sm bg-muted">
         {item.imageUrls?.[0] ? (
           <Image
-            source={item.imageUrls[0]}
+            source={cloudinaryUrl(item.imageUrls[0], { width: 240, height: 240, crop: "fill" })}
             style={{ flex: 1, opacity: unavailable ? 0.45 : 1 }}
             contentFit="cover"
             cachePolicy="memory-disk"

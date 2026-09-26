@@ -6,6 +6,7 @@ import { t } from "@chowgo/shared/i18n";
 
 import { createOrder as createOrderApi } from "@/services/apiOrder";
 import useCartStore from "@/store/useCartStore";
+import { askForNotifications } from "@/hooks/Sockets/useGlobalSocketEvents";
 
 // One key per checkout attempt, held until the order lands, so two taps send the
 // same key and the backend hands the second the first one's order. It lives in
@@ -59,6 +60,7 @@ export function useCreateOrder() {
 
       useCartStore.setState({ items: [], totalPrice: 0, restaurant: null });
       queryClient.invalidateQueries({ queryKey: ["customerOrders"] });
+      askForNotifications();
 
       if (orderId) {
         navigate(`/orders/${orderId}/confirmed`, { replace: true });

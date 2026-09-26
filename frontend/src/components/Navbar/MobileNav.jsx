@@ -27,14 +27,15 @@ export default function MobileNav({
         size="icon"
         onClick={toggleTheme}
         className="rounded-full"
+        aria-label={isDark ? t("a11y.switchToLight") : t("a11y.switchToDark")}
       >
-        {isDark ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+        {isDark ? <Moon className="w-5 h-5" aria-hidden="true" /> : <Sun className="w-5 h-5" aria-hidden="true" />}
       </Button>
 
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative z-50">
-            <Menu className="w-6 h-6" />
+          <Button variant="ghost" size="icon" className="relative z-50" aria-label={t("nav.openMenu")}>
+            <Menu className="w-6 h-6" aria-hidden="true" />
           </Button>
         </SheetTrigger>
 

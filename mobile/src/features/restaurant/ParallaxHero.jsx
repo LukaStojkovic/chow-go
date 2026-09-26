@@ -8,6 +8,7 @@ import { formatDistance, formatFee, formatRating, formatReviewCount } from "@cho
 import { Badge } from "@/components/ui/Badge";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 export const HERO_HEIGHT = 260;
 
@@ -47,7 +48,7 @@ export function ParallaxHero({ restaurant, scrollY }) {
         <Animated.View style={[{ flex: 1 }, style]}>
           {restaurant?.coverImage ? (
             <Image
-              source={restaurant.coverImage}
+              source={cloudinaryUrl(restaurant.coverImage, { width: 1440 })}
               style={{ flex: 1 }}
               contentFit="cover"
               transition={500}

@@ -78,6 +78,7 @@ export function OrdersTableHeader({
             onRefresh();
           }}
           disabled={isRefreshing}
+          aria-label={t("common:actions.refresh")}
         >
           {isRefreshing ? (
             <Spinner size="sm" />

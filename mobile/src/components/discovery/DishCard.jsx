@@ -8,6 +8,7 @@ import { PressableScale } from "@/components/motion/Pressable";
 import { cn } from "@/lib/cn";
 import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 /**
  * A dish in a feed - rails and the two-column grid.
@@ -32,7 +33,7 @@ export function DishCard({ dish, onPress, onAdd, className }) {
       <View className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
         {dish.image ? (
           <Image
-            source={dish.image}
+            source={cloudinaryUrl(dish.image, { width: 600 })}
             style={{ flex: 1 }}
             contentFit="cover"
             transition={400}
@@ -161,7 +162,7 @@ export function DishRow({ dish, onPress, onAdd, tag, meta, disabled = false, cla
         <View className="h-full w-full overflow-hidden rounded-md bg-muted">
           {dish.image ? (
             <Image
-              source={dish.image}
+              source={cloudinaryUrl(dish.image, { width: 600 })}
               style={{ flex: 1 }}
               contentFit="cover"
               transition={400}

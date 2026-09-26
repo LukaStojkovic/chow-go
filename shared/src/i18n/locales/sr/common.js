@@ -296,6 +296,11 @@ export default {
   },
 
   a11y: {
+    switchToDark: "Prebaci na tamnu temu",
+    switchToLight: "Prebaci na svetlu temu",
+    moreActions: "Više radnji",
+    editItem: "Izmeni: {{name}}",
+    deleteItem: "Obriši: {{name}}",
     currentPage: "(trenutna stranica)",
     loading: "Učitavanje",
     close: "Zatvori",

@@ -13,6 +13,16 @@ import { useAuthStore } from "@/store/useAuthStore";
 const canNotify = () =>
   typeof Notification !== "undefined" && Notification.permission === "granted";
 
+// Asked when there is something to be told about: at sign-in for sellers and
+// couriers, whose work arrives as notifications, and after a customer's first
+// order. Asked cold on the landing page - as this used to be, signed in or
+// not - most people refuse, and the browser never asks again.
+export function askForNotifications() {
+  if (typeof Notification !== "undefined" && Notification.permission === "default") {
+    Notification.requestPermission().catch(() => {});
+  }
+}
+
 function showNotification(title, options) {
   try {
     new Notification(title, options);
@@ -44,14 +54,10 @@ export const useGlobalSocketEvents = () => {
     }
   }, [isConnected, authUser, register]);
 
+  const role = authUser?.role;
   useEffect(() => {
-    if (
-      typeof Notification !== "undefined" &&
-      Notification.permission === "default"
-    ) {
-      Notification.requestPermission();
-    }
-  }, []);
+    if (role === "seller" || role === "courier") askForNotifications();
+  }, [role]);
   useEffect(() => {
     if (!socket || authUser?.role !== "customer") return;
 

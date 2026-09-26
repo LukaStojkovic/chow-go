@@ -43,6 +43,7 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
         src={line.image}
         alt=""
         ratio="square"
+        width={72}
         fallbackIcon={UtensilsCrossed}
         className="size-16 shrink-0 rounded-sm sm:size-[4.5rem]"
       />

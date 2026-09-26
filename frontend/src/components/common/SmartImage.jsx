@@ -11,6 +11,8 @@
 import { useState } from "react";
 import { ImageOff } from "lucide-react";
 
+import { cloudinarySrcSet, cloudinaryUrl } from "@chowgo/shared/image";
+
 import { cn } from "@/lib/utils";
 
 const RATIOS = {
@@ -24,6 +26,10 @@ const RATIOS = {
   none: "",
 };
 
+// The widest each ratio is rendered at, in CSS pixels. A 2x variant is
+// offered alongside, so these only need to be right to within a card or so.
+const RENDER_WIDTHS = { card: 480, square: 240, hero: 1600, none: 800 };
+
 /**
  * @param {Object} props
  * @param {string | null | undefined} props.src
@@ -32,6 +38,8 @@ const RATIOS = {
  * @param {keyof typeof RATIOS} [props.ratio]
  * @param {import("lucide-react").LucideIcon} [props.fallbackIcon]
  * @param {"lazy"|"eager"} [props.loading]
+ * @param {number} [props.width] Rendered width in CSS pixels, when the ratio's
+ *   default is far off; picks the Cloudinary size to request.
  */
 export function SmartImage({
   src,
@@ -39,6 +47,7 @@ export function SmartImage({
   ratio = "card",
   fallbackIcon: FallbackIcon = ImageOff,
   loading = "lazy",
+  width,
   className,
   imgClassName,
   children,
@@ -48,6 +57,7 @@ export function SmartImage({
   // image's loaded state, and an effect would let that frame through.
   const [loadState, setLoadState] = useState({ src, status: "loading" });
   const status = !src ? "error" : loadState.src === src ? loadState.status : "loading";
+  const renderWidth = width ?? RENDER_WIDTHS[ratio] ?? 800;
 
   return (
     <div
@@ -59,7 +69,9 @@ export function SmartImage({
     >
       {src && status !== "error" && (
         <img
-          src={src}
+          src={cloudinaryUrl(src, { width: renderWidth })}
+          srcSet={cloudinarySrcSet(src, renderWidth)}
+          sizes={`${renderWidth}px`}
           alt={alt}
           loading={loading}
           decoding="async"
@@ -120,8 +132,9 @@ export function Avatar({ src, name, size = "md", className }) {
     >
       {src && !failed ? (
         <img
-          src={src}
+          src={cloudinaryUrl(src, { width: 112, height: 112, crop: "fill" })}
           alt={name || ""}
+          loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => setFailedSrc(src)}
           className="size-full object-cover"

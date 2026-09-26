@@ -18,6 +18,7 @@ import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { useCartStore } from "@/store/useCartStore";
 import { useTokens } from "@/theme/useTokens";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 function FeeRow({ label, value, tone = "muted", strong = false, currency }) {
   return (
@@ -126,7 +127,11 @@ export default function Basket() {
                 <View className="h-16 w-16 overflow-hidden rounded-sm bg-muted">
                   {item.menuItem?.imageUrls?.[0] ? (
                     <Image
-                      source={item.menuItem.imageUrls[0]}
+                      source={cloudinaryUrl(item.menuItem.imageUrls[0], {
+                        width: 240,
+                        height: 240,
+                        crop: "fill",
+                      })}
                       style={{ flex: 1 }}
                       contentFit="cover"
                       cachePolicy="memory-disk"

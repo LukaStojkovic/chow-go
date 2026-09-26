@@ -39,6 +39,7 @@ export default function DesktopNav({
               size="icon"
               onClick={toggleTheme}
               className="rounded-full"
+              aria-label={isDark ? t("common:a11y.switchToLight") : t("common:a11y.switchToDark")}
             >
               <motion.div
                 key={isDark ? "moon" : "sun"}

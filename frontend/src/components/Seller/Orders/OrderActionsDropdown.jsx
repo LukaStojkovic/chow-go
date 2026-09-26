@@ -112,8 +112,8 @@ export function OrderActionsDropdown({
 
   if (!menuItems) {
     return (
-      <Button variant="ghost" size="icon" disabled>
-        <MoreVertical className="w-4 h-4" />
+      <Button variant="ghost" size="icon" disabled aria-label={t("common:a11y.moreActions")}>
+        <MoreVertical className="w-4 h-4" aria-hidden="true" />
       </Button>
     );
   }
@@ -121,8 +121,8 @@ export function OrderActionsDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreVertical className="w-4 h-4" />
+        <Button variant="ghost" size="icon" aria-label={t("common:a11y.moreActions")}>
+          <MoreVertical className="w-4 h-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">{menuItems}</DropdownMenuContent>

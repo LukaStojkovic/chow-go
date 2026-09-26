@@ -22,6 +22,19 @@
 
     <title>Chow &amp; Go - Food Delivery</title>
 
+    <!-- Link previews. The backend rewrites these per restaurant for
+         /restaurant/:id (services/pageMeta.service.js); crawlers never run
+         the app, so this is all they see. -->
+    <meta property="og:site_name" content="Chow &amp; Go" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Chow &amp; Go - Food Delivery" />
+    <meta
+      property="og:description"
+      content="Order food from restaurants near you and follow every step of the delivery, live."
+    />
+    <meta property="og:image" content="/logos/chow-logo-filled.png" />
+    <meta name="twitter:card" content="summary" />
+
     <!--
       Motion preference, resolved before first paint.
 

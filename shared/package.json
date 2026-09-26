@@ -11,6 +11,7 @@
     "./format": "./src/format.js",
     "./geo": "./src/geo.js",
     "./i18n": "./src/i18n/index.js",
+    "./image": "./src/image.js",
     "./i18n/config": "./src/i18n/config.js",
     "./i18n/fieldErrors": "./src/i18n/fieldErrors.js",
     "./menuItemSchema": "./src/menuItemSchema.js",

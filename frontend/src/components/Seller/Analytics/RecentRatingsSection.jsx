@@ -1,6 +1,8 @@
 import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { Avatar } from "@/components/common/SmartImage";
+
 export const RecentRatingsSection = ({ ratings }) => {
   const { t } = useTranslation(["seller", "common"]);
   return (
@@ -14,15 +16,9 @@ export const RecentRatingsSection = ({ ratings }) => {
 
         {ratings.map((order, i) => (
           <div key={i} className="flex items-start gap-3">
-            <img
-              src={
-                order.customer?.profilePicture ||
-                `https://ui-avatars.com/api/?name=${order.customer?.name}`
-              }
-              referrerPolicy="no-referrer"
-              alt=""
-              className="w-8 h-8 rounded-full object-cover shrink-0"
-            />
+            {/* The initial fallback used to be ui-avatars.com, which sent every
+                reviewer's name to a third party to draw two letters. */}
+            <Avatar src={order.customer?.profilePicture} name={order.customer?.name} size="sm" />
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">

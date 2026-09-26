@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { formatPrice } from "@chowgo/shared/format";
 import { isPromotionLive, resolvePromotion } from "@chowgo/shared/promotion";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
   const { t } = useTranslation(["seller", "common"]);
@@ -31,7 +32,7 @@ export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
     >
       <div className="relative h-48 w-full overflow-hidden">
         <img
-          src={menuItem.imageUrls?.[0] || "/placeholder-menu.jpg"}
+          src={cloudinaryUrl(menuItem.imageUrls?.[0], { width: 640 }) || "/placeholder-menu.jpg"}
           alt={menuItem.name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -112,16 +113,18 @@ export default function MenuItemCard({ menuItem, onDelete, onEdit, index }) {
               size="icon"
               className="h-8 w-8"
               onClick={onEdit}
+              aria-label={t("common:a11y.editItem", { name: menuItem.name })}
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-destructive hover:bg-destructive-subtle hover:text-destructive"
               onClick={() => onDelete()}
+              aria-label={t("common:a11y.deleteItem", { name: menuItem.name })}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ArrowRight, Percent } from "lucide-react-native";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 /**
  * The one promotional panel in the app.
@@ -50,7 +51,7 @@ export function PromoBanner({
       >
         {image ? (
           <Image
-            source={image}
+            source={cloudinaryUrl(image, { width: 1080 })}
             blurRadius={32}
             style={StyleSheet.absoluteFill}
             contentFit="cover"
@@ -127,7 +128,7 @@ export function PromoBanner({
                 className="h-full w-full overflow-hidden rounded-lg border border-white/30 bg-white/10"
               >
                 <Image
-                  source={image}
+                  source={cloudinaryUrl(image, { width: 1080 })}
                   style={{ flex: 1 }}
                   contentFit="cover"
                   transition={400}

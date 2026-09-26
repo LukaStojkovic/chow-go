@@ -108,6 +108,7 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
           src={dish.image}
           alt={dish.name}
           ratio="card"
+          width={640}
           fallbackIcon={UtensilsCrossed}
           loading="eager"
         />

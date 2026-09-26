@@ -93,6 +93,7 @@ export function MenuItemRow({ dish, onSelect, isOrderingDisabled = false, inBask
             src={dish.image}
             alt=""
             ratio="square"
+            width={112}
             fallbackIcon={UtensilsCrossed}
             className="size-24 rounded-sm sm:size-28"
             imgClassName={cn(

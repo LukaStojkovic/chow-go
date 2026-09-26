@@ -20,6 +20,7 @@ import favouriteRoutes from "./routes/favouriteRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import opsRoutes from "./routes/opsRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import { restaurantPreviewPage } from "./services/pageMeta.service.js";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -166,6 +167,10 @@ app.use("/api", (req, _res, next) => {
 
 if (env.isProduction) {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  app.get(
+    "/restaurant/:restaurantId",
+    restaurantPreviewPage(path.join(__dirname, "../frontend", "dist", "index.html")),
+  );
 
   app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));

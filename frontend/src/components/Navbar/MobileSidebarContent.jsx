@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 export default function MobileSidebarContent({
   authUser,
@@ -24,7 +25,7 @@ export default function MobileSidebarContent({
         <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-card/50 rounded-lg sm:rounded-xl border border-border/50 ">
             <img
-              src={profilePicture}
+              src={cloudinaryUrl(profilePicture, { width: 96, height: 96, crop: "fill" })}
               referrerPolicy="no-referrer"
               alt={authUser.name}
               className="w-12 sm:w-14 h-12 sm:h-14 rounded-full object-cover ring-2 ring-ring/40"

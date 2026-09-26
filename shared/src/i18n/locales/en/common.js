@@ -297,6 +297,11 @@ export default {
   },
 
   a11y: {
+    switchToDark: "Switch to dark theme",
+    switchToLight: "Switch to light theme",
+    moreActions: "More actions",
+    editItem: "Edit {{name}}",
+    deleteItem: "Delete {{name}}",
     currentPage: "(current page)",
     loading: "Loading",
     close: "Close",

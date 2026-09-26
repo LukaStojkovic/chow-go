@@ -18,6 +18,7 @@ import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "@/store/useToastStore";
+import { cloudinaryUrl } from "@chowgo/shared/image";
 
 export default function ItemCustomization() {
   const { t } = useTranslation(["order", "restaurant", "basket", "profile", "auth", "errors", "validation", "courier", "common"]);
@@ -83,7 +84,7 @@ export default function ItemCustomization() {
       >
         <View className="aspect-[16/10] bg-muted">
           {dish.image ? (
-            <Image source={dish.image} style={{ flex: 1 }} contentFit="cover" transition={500} />
+            <Image source={cloudinaryUrl(dish.image, { width: 1440 })} style={{ flex: 1 }} contentFit="cover" transition={500} />
           ) : null}
 
           {dish.discountPercent > 0 ? (
