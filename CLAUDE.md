@@ -33,6 +33,7 @@ node backend/scripts/checkCourierFlow.js    # pool, atomic claim, delivery lifec
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
+node backend/scripts/backfillCourierEarnings.js --dry-run   # recompute Courier.totalEarnings from delivered orders; idempotent
 node backend/scripts/migrateIdempotencyIndex.js --dry-run   # report, then run without the flag once per database
 node backend/scripts/migrateOrderGeoIndex.js --dry-run        # same; drops the single-field order geo index
 node backend/scripts/reviewGoogleLinks.js   # report accounts auto-linked before the Google fix; --apply <id> to secure
@@ -47,7 +48,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`, `check:cart-quantity`, `check:pagination`, `check:search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:cart-quantity`, `check:pagination`, `check:search`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -124,6 +125,8 @@ a subtotal under `MIN_ORDER_SUBTOTAL` (default 0 = off; if you turn it on, also 
 `PRICING.minimumOrder` so the clients show it). `serviceFee` and
 `priorityFee` are each stored on their own field, so the stored order itemises exactly
 like the checkout preview.
+
+Reporting splits an order three ways (`utils/earnings.js`): the restaurant earns `subtotal`, the courier `deliveryFee + priorityFee + tip`, the platform `serviceFee` — and only once `delivered`. Seller dashboards and analytics sum delivered subtotals (in-flight orders still count as orders, not revenue); courier analytics and `Courier.totalEarnings`, `$inc`ed on delivery, use the courier share. Day and hour buckets go through `utils/zonedTime.js` in the restaurant's `timezone` (couriers use `DEFAULT_TIMEZONE`), never the host clock. The payment-method split alone still sums `total`, because that is what is collected at the door.
 
 ## Realtime (Socket.IO)
 

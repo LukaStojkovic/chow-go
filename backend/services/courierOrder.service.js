@@ -1,4 +1,8 @@
 import Order from "../models/Order.js";
+import { COURIER_EARNINGS_EXPR, courierEarningsOf } from "../utils/earnings.js";
+import { toMoney } from "../utils/money.js";
+import { DEFAULT_TIMEZONE } from "../utils/schedule.js";
+import { startOfDay, startOfMonth, startOfWeek } from "../utils/zonedTime.js";
 import Courier from "../models/Courier.js";
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
@@ -456,7 +460,11 @@ export async function markDeliveredOperation({ orderId, courierUserId }) {
     { _id: courier._id },
     {
       $set: { currentOrder: null, isAvailable: true },
-      $inc: { totalDeliveries: 1, successfulDeliveries: 1 },
+      $inc: {
+        totalDeliveries: 1,
+        successfulDeliveries: 1,
+        totalEarnings: courierEarningsOf(order),
+      },
     },
   );
 
@@ -498,16 +506,11 @@ export async function changeCourierDutyStatusOperation({
 export async function getCourierAnalytics({ courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
 
+  // Couriers have no zone of their own; they work where the platform does.
   const now = new Date();
-  const startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  );
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-  startOfWeek.setHours(0, 0, 0, 0);
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const todayStart = startOfDay(now, DEFAULT_TIMEZONE);
+  const weekStart = startOfWeek(now, DEFAULT_TIMEZONE);
+  const monthStart = startOfMonth(now, DEFAULT_TIMEZONE);
 
   const baseMatch = {
     courier: courier._id,
@@ -523,11 +526,11 @@ export async function getCourierAnalytics({ courierUserId }) {
     ratingStats,
   ] = await Promise.all([
     Order.aggregate([
-      { $match: { ...baseMatch, deliveredAt: { $gte: startOfToday } } },
+      { $match: { ...baseMatch, deliveredAt: { $gte: todayStart } } },
       {
         $group: {
           _id: null,
-          earnings: { $sum: "$deliveryFee" },
+          earnings: { $sum: COURIER_EARNINGS_EXPR },
           deliveries: { $sum: 1 },
           totalTime: {
             $sum: {
@@ -548,22 +551,22 @@ export async function getCourierAnalytics({ courierUserId }) {
     ]),
 
     Order.aggregate([
-      { $match: { ...baseMatch, deliveredAt: { $gte: startOfWeek } } },
+      { $match: { ...baseMatch, deliveredAt: { $gte: weekStart } } },
       {
         $group: {
           _id: null,
-          earnings: { $sum: "$deliveryFee" },
+          earnings: { $sum: COURIER_EARNINGS_EXPR },
           deliveries: { $sum: 1 },
         },
       },
     ]),
 
     Order.aggregate([
-      { $match: { ...baseMatch, deliveredAt: { $gte: startOfMonth } } },
+      { $match: { ...baseMatch, deliveredAt: { $gte: monthStart } } },
       {
         $group: {
           _id: null,
-          earnings: { $sum: "$deliveryFee" },
+          earnings: { $sum: COURIER_EARNINGS_EXPR },
           deliveries: { $sum: 1 },
         },
       },
@@ -573,15 +576,15 @@ export async function getCourierAnalytics({ courierUserId }) {
       {
         $match: {
           ...baseMatch,
-          deliveredAt: { $gte: startOfWeek },
+          deliveredAt: { $gte: weekStart },
         },
       },
       {
         $group: {
           _id: {
-            $dayOfWeek: "$deliveredAt",
+            $dayOfWeek: { date: "$deliveredAt", timezone: DEFAULT_TIMEZONE },
           },
-          earnings: { $sum: "$deliveryFee" },
+          earnings: { $sum: COURIER_EARNINGS_EXPR },
           deliveries: { $sum: 1 },
         },
       },
@@ -593,7 +596,8 @@ export async function getCourierAnalytics({ courierUserId }) {
       .populate("customer", "name")
       .sort({ deliveredAt: -1 })
       .limit(5)
-      .select("orderNumber total deliveryFee deliveredAt restaurant customer"),
+      .select("orderNumber total deliveryFee priorityFee tip deliveredAt restaurant customer")
+      .lean(),
 
     Order.aggregate([
       {
@@ -621,7 +625,7 @@ export async function getCourierAnalytics({ courierUserId }) {
   );
   const chartData = DAY_NAMES.map((day, i) => ({
     day,
-    earnings: earningsMap[i]?.earnings ?? 0,
+    earnings: toMoney(earningsMap[i]?.earnings ?? 0),
     deliveries: earningsMap[i]?.deliveries ?? 0,
   }));
 
@@ -645,28 +649,28 @@ export async function getCourierAnalytics({ courierUserId }) {
 
   return {
     today: {
-      earnings: today.earnings,
+      earnings: toMoney(today.earnings),
       deliveries: today.deliveries,
       avgDeliveryTime,
     },
     week: {
-      earnings: week.earnings,
+      earnings: toMoney(week.earnings),
       deliveries: week.deliveries,
     },
     month: {
-      earnings: month.earnings,
+      earnings: toMoney(month.earnings),
       deliveries: month.deliveries,
     },
     allTime: {
       totalDeliveries: courier.totalDeliveries,
       successfulDeliveries: courier.successfulDeliveries,
       cancelledDeliveries: courier.cancelledDeliveries,
-      totalEarnings: courier.totalEarnings,
+      totalEarnings: toMoney(courier.totalEarnings ?? 0),
       averageRating: Math.round((rating.avgRating ?? 0) * 10) / 10,
       totalRatings: rating.totalRatings,
       acceptanceRate,
     },
     chartData,
-    recentOrders,
+    recentOrders: recentOrders.map((order) => ({ ...order, earnings: courierEarningsOf(order) })),
   };
 }

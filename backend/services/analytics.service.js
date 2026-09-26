@@ -2,33 +2,30 @@ import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError.js";
-
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
+import { DELIVERED_SUBTOTAL_EXPR } from "../utils/earnings.js";
+import { toMoney } from "../utils/money.js";
+import { lastDateKeys, resolveTimeZone, startOfDay } from "../utils/zonedTime.js";
 
 function daysAgo(n) {
   return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 }
 
-async function fetchKpis(restaurantId, restaurant) {
+async function fetchKpis(restaurantId, restaurant, timeZone) {
   const [todayResult, monthlyResult] = await Promise.all([
     Order.aggregate([
       {
         $match: {
           restaurant: new mongoose.Types.ObjectId(restaurantId),
           status: "delivered",
-          createdAt: { $gte: startOfToday() },
+          createdAt: { $gte: startOfDay(new Date(), timeZone) },
         },
       },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$total" },
+          totalRevenue: { $sum: "$subtotal" },
           totalOrders: { $count: {} },
-          avgOrderValue: { $avg: "$total" },
+          avgOrderValue: { $avg: "$subtotal" },
         },
       },
     ]),
@@ -43,7 +40,7 @@ async function fetchKpis(restaurantId, restaurant) {
       {
         $group: {
           _id: null,
-          total: { $sum: "$total" },
+          total: { $sum: "$subtotal" },
         },
       },
     ]),
@@ -56,16 +53,16 @@ async function fetchKpis(restaurantId, restaurant) {
   };
 
   return {
-    todayRevenue: today.totalRevenue,
+    todayRevenue: toMoney(today.totalRevenue),
     todayOrders: today.totalOrders,
-    avgOrderValue: today.avgOrderValue,
-    monthlyRevenue: monthlyResult[0]?.total ?? 0,
+    avgOrderValue: toMoney(today.avgOrderValue ?? 0),
+    monthlyRevenue: toMoney(monthlyResult[0]?.total ?? 0),
     averageRating: restaurant.averageRating,
     totalReviews: restaurant.totalReviews,
   };
 }
 
-async function fetchPeakHours(restaurantId) {
+async function fetchPeakHours(restaurantId, timeZone) {
   const raw = await Order.aggregate([
     {
       $match: {
@@ -76,9 +73,9 @@ async function fetchPeakHours(restaurantId) {
     },
     {
       $group: {
-        _id: { $hour: "$createdAt" },
+        _id: { $hour: { date: "$createdAt", timezone: timeZone } },
         orders: { $count: {} },
-        revenue: { $sum: "$total" },
+        revenue: { $sum: DELIVERED_SUBTOTAL_EXPR },
       },
     },
     { $sort: { _id: 1 } },
@@ -89,37 +86,38 @@ async function fetchPeakHours(restaurantId) {
     return {
       hour: `${hour}:00`,
       orders: found?.orders ?? 0,
-      revenue: found?.revenue ?? 0,
+      revenue: toMoney(found?.revenue ?? 0),
     };
   });
 }
 
-async function fetchDailyRevenue(restaurantId) {
+async function fetchDailyRevenue(restaurantId, timeZone) {
   const raw = await Order.aggregate([
     {
       $match: {
         restaurant: new mongoose.Types.ObjectId(restaurantId),
         status: { $nin: ["cancelled", "rejected"] },
-        createdAt: { $gte: daysAgo(7) },
+        createdAt: { $gte: startOfDay(new Date(), timeZone, 6) },
       },
     },
     {
       $group: {
-        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-        revenue: { $sum: "$total" },
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timeZone } },
+        revenue: { $sum: DELIVERED_SUBTOTAL_EXPR },
         orders: { $count: {} },
       },
     },
     { $sort: { _id: 1 } },
   ]);
 
-  return Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
-    const key = date.toISOString().split("T")[0];
+  return lastDateKeys(7, timeZone).map((key) => {
     const found = raw.find((d) => d._id === key);
     return {
-      date: date.toLocaleDateString("en-US", { weekday: "short" }),
-      revenue: found?.revenue ?? 0,
+      date: new Date(`${key}T12:00:00Z`).toLocaleDateString("en-US", {
+        weekday: "short",
+        timeZone: "UTC",
+      }),
+      revenue: toMoney(found?.revenue ?? 0),
       orders: found?.orders ?? 0,
     };
   });
@@ -205,6 +203,7 @@ export async function getRestaurantAnalytics(restaurantId, userId) {
   if (!restaurant) throw new AppError("Restaurant not found", 404);
   if (restaurant.ownerId.toString() !== userId.toString())
     throw new AppError("Unauthorized", 403);
+  const timeZone = resolveTimeZone(restaurant.timezone);
 
   const [
     kpis,
@@ -215,9 +214,9 @@ export async function getRestaurantAnalytics(restaurantId, userId) {
     topItems,
     recentRatings,
   ] = await Promise.all([
-    fetchKpis(restaurantId, restaurant),
-    fetchPeakHours(restaurantId),
-    fetchDailyRevenue(restaurantId),
+    fetchKpis(restaurantId, restaurant, timeZone),
+    fetchPeakHours(restaurantId, timeZone),
+    fetchDailyRevenue(restaurantId, timeZone),
     fetchOrderStatusBreakdown(restaurantId),
     fetchPaymentMethodSplit(restaurantId),
     fetchTopItems(restaurantId),

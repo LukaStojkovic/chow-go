@@ -2,7 +2,10 @@ import Order from "../models/Order.js";
 import MenuItem from "../models/MenuItem.js";
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
-import { getDateRanges, getLast7Days } from "../utils/dateHelpers.js";
+import { getDateRanges } from "../utils/dateHelpers.js";
+import { DELIVERED_SUBTOTAL_EXPR } from "../utils/earnings.js";
+import { toMoney } from "../utils/money.js";
+import { lastDateKeys, resolveTimeZone, startOfDay } from "../utils/zonedTime.js";
 import mongoose from "mongoose";
 
 export async function validateRestaurantAccess(restaurantId, userId) {
@@ -25,7 +28,16 @@ export async function validateRestaurantAccess(restaurantId, userId) {
 
 // Only what the dashboard reads. These were four unprojected, hydrated finds -
 // every field of every order this month, twice over, on each dashboard load.
-const STATS_ORDER_FIELDS = "total status customer createdAt items orderNumber";
+const STATS_ORDER_FIELDS = "total subtotal status customer createdAt items orderNumber";
+
+// What the restaurant has actually earned: the food on delivered orders. Fees
+// and the tip belong to the courier and the platform.
+const deliveredSubtotal = (orders) =>
+  toMoney(
+    orders
+      .filter((order) => order.status === "delivered")
+      .reduce((sum, order) => sum + (order.subtotal ?? 0), 0),
+  );
 
 export async function fetchOrdersData(restaurantId, dateRanges) {
   const { startOfWeek, startOfMonth, startOfLastWeek, startOfLastMonth } =
@@ -106,21 +118,21 @@ export async function fetchPopularItems(restaurantId, startOfMonth) {
   ]);
 }
 
-export async function fetchDailyRevenue(restaurantId, startOfWeek) {
+export async function fetchDailyRevenue(restaurantId, since, timeZone) {
   return Order.aggregate([
     {
       $match: {
         restaurant: new mongoose.Types.ObjectId(restaurantId),
-        createdAt: { $gte: startOfWeek },
+        createdAt: { $gte: since },
         status: { $nin: ["cancelled", "rejected"] },
       },
     },
     {
       $group: {
         _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timeZone },
         },
-        revenue: { $sum: "$total" },
+        revenue: { $sum: DELIVERED_SUBTOTAL_EXPR },
         orders: { $sum: 1 },
       },
     },
@@ -184,13 +196,12 @@ export function calculateCustomersTrend(currentCount, previousCount) {
   return currentCount > 0 ? 100 : 0;
 }
 
-export function buildRevenueByDay(dailyData) {
-  const last7Days = getLast7Days();
-  return last7Days.map((date) => {
+export function buildRevenueByDay(dailyData, timeZone) {
+  return lastDateKeys(7, timeZone).map((date) => {
     const dayData = dailyData.find((d) => d._id === date);
     return {
       date,
-      revenue: dayData ? dayData.revenue : 0,
+      revenue: dayData ? toMoney(dayData.revenue) : 0,
       orders: dayData ? dayData.orders : 0,
     };
   });
@@ -294,6 +305,7 @@ export async function getRestaurantStats(restaurantId, userId) {
   const restaurant = await validateRestaurantAccess(restaurantId, userId);
 
   const dateRanges = getDateRanges();
+  const timeZone = resolveTimeZone(restaurant.timezone);
 
   const [
     ordersData,
@@ -306,7 +318,7 @@ export async function getRestaurantStats(restaurantId, userId) {
     fetchOrdersData(restaurantId, dateRanges),
     fetchActiveOrders(restaurantId),
     fetchPopularItems(restaurantId, dateRanges.startOfMonth),
-    fetchDailyRevenue(restaurantId, dateRanges.startOfWeek),
+    fetchDailyRevenue(restaurantId, startOfDay(new Date(), timeZone, 6), timeZone),
     fetchCustomerData(restaurantId, dateRanges),
     fetchRecentOrders(restaurantId),
   ]);
@@ -315,11 +327,8 @@ export async function getRestaurantStats(restaurantId, userId) {
     ordersData;
   const { uniqueCustomers, lastMonthUniqueCustomers } = customerData;
 
-  const totalRevenue = monthOrders.reduce((sum, order) => sum + order.total, 0);
-  const lastMonthRevenue = lastMonthOrders.reduce(
-    (sum, order) => sum + order.total,
-    0,
-  );
+  const totalRevenue = deliveredSubtotal(monthOrders);
+  const lastMonthRevenue = deliveredSubtotal(lastMonthOrders);
 
   const lastWeekActiveOrders = lastWeekOrders.filter((order) =>
     [
@@ -340,7 +349,7 @@ export async function getRestaurantStats(restaurantId, userId) {
     lastMonthUniqueCustomers.length,
   );
 
-  const revenueByDay = buildRevenueByDay(dailyRevenue);
+  const revenueByDay = buildRevenueByDay(dailyRevenue, timeZone);
   const chartData = buildChartData(revenueByDay);
   const popularItemsWithImages =
     await enrichPopularItemsWithImages(popularItems);

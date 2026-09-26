@@ -16,17 +16,4 @@ export function getDateDaysAgo(referenceDate, days) {
   return date;
 }
 
-export function getLast7Days() {
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split("T")[0];
-    days.push(dateStr);
-  }
-  return days;
-}
 
-export function formatDateAsString(date) {
-  return date.toISOString().split("T")[0];
-}

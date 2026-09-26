@@ -109,7 +109,7 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-foreground ">
-                    ${o.deliveryFee?.toFixed(2)}
+                    ${(o.earnings ?? o.deliveryFee ?? 0).toFixed(2)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatDateAgo(o.deliveredAt)}
