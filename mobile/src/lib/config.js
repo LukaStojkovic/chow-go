@@ -57,4 +57,10 @@ function resolve(envValue, kind) {
 }
 
 export const API_URL = resolve(process.env.EXPO_PUBLIC_API_URL, "api");
-export const SOCKET_URL = resolve(process.env.EXPO_PUBLIC_SOCKET_URL, "socket");
+
+// The socket server is the API's own origin. Requiring a second variable that
+// no build profile set made every preview and production build throw here, at
+// module load, before the first screen.
+export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL?.trim()
+  ? resolve(process.env.EXPO_PUBLIC_SOCKET_URL, "socket")
+  : API_URL.replace(/\/api$/, "");
