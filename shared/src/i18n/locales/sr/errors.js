@@ -54,7 +54,7 @@ export default {
     menuItemNotFound: "To jelo više nije na meniju",
     notFound: "Vaša korpa je prazna",
     itemNotFound: "To jelo nije u vašoj korpi",
-    quantityInvalid: "Količina mora biti 0 ili veća",
+    quantityInvalid: "Izaberite ceo broj porcija, najviše {{max}}",
     differentRestaurant:
       "U vašoj korpi su jela iz drugog restorana. Prvo je ispraznite.",
   },
@@ -198,6 +198,7 @@ export default {
     INVALID_CREDENTIALS: "Ta imejl adresa i lozinka se ne poklapaju",
     PRICE_CHANGED: "Neke cene u vašoj korpi su se promenile",
     ITEM_UNAVAILABLE: "Nešto u vašoj korpi više nije dostupno",
+    QUANTITY_INVALID: "Izaberite ceo broj porcija",
     USER_GONE: "Vaš nalog više ne postoji",
     ORDER_STATUS_CONFLICT:
       "Neko je upravo ažurirao ovu porudžbinu. Osvežite i pokušajte ponovo.",

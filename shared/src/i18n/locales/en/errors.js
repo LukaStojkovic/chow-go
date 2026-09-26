@@ -64,7 +64,7 @@ export default {
     menuItemNotFound: "That dish is no longer on the menu",
     notFound: "Your basket is empty",
     itemNotFound: "That dish is not in your basket",
-    quantityInvalid: "Quantity must be 0 or greater",
+    quantityInvalid: "Choose a whole number of portions, up to {{max}}",
     differentRestaurant:
       "Your basket has dishes from another restaurant. Empty it first.",
   },
@@ -208,6 +208,7 @@ export default {
     INVALID_CREDENTIALS: "That email and password do not match",
     PRICE_CHANGED: "Some prices in your basket have changed",
     ITEM_UNAVAILABLE: "Something in your basket is no longer available",
+    QUANTITY_INVALID: "Choose a whole number of portions",
     USER_GONE: "Your account no longer exists",
     ORDER_STATUS_CONFLICT:
       "Someone else just updated this order. Reload and try again.",

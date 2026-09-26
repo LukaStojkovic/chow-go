@@ -4,6 +4,19 @@ import { AppError } from "../utils/AppError.js";
 import { effectivePrice } from "../utils/promotion.js";
 import { repriceCartLines } from "../services/cartPricing.service.js";
 
+export const MAX_LINE_QUANTITY = 50;
+
+// Quantities arrived unchecked: 1.5 and 1e6 were stored as-is, and a string
+// "5" added to an existing 1 concatenated to "15".
+export function parseQuantity(value, { min }) {
+  const number =
+    typeof value === "number" ? value : typeof value === "string" && /^\d+$/.test(value) ? Number(value) : NaN;
+  return Number.isInteger(number) && number >= min && number <= MAX_LINE_QUANTITY ? number : null;
+}
+
+const quantityError = () =>
+  new AppError("errors:cart.quantityInvalid", 400, "QUANTITY_INVALID", { max: MAX_LINE_QUANTITY });
+
 export async function getCart(req, res, next) {
   const cart = await Cart.findOne({ user: req.user.id })
     .populate("items.menuItem")
@@ -33,11 +46,13 @@ export async function getCart(req, res, next) {
 }
 
 export async function addToCart(req, res, next) {
-  const { menuItemId, quantity = 1, specialInstructions } = req.body;
+  const { menuItemId, specialInstructions } = req.body;
+  const quantity = parseQuantity(req.body.quantity ?? 1, { min: 1 });
 
   if (!menuItemId) {
     return next(new AppError("Menu item ID is required", 400));
   }
+  if (quantity === null) return next(quantityError());
 
   const menuItem = await MenuItem.findById(menuItemId).populate("restaurant");
 
@@ -77,6 +92,7 @@ export async function addToCart(req, res, next) {
   );
 
   if (existingItem) {
+    if (existingItem.quantity + quantity > MAX_LINE_QUANTITY) return next(quantityError());
     existingItem.quantity += quantity;
     const unitPrice = effectivePrice(menuItem.price, menuItem.promotion);
     existingItem.price = unitPrice;
@@ -151,11 +167,10 @@ export const clearCart = async (req, res, next) => {
 
 export const updateCartItemQuantity = async (req, res, next) => {
   const { menuItemId } = req.params;
-  const { quantity, specialInstructions } = req.body;
+  const { specialInstructions } = req.body;
+  const quantity = parseQuantity(req.body.quantity, { min: 0 });
 
-  if (quantity == null || quantity < 0) {
-    return next(new AppError("Quantity must be 0 or greater", 400));
-  }
+  if (quantity === null) return next(quantityError());
 
   const cart = await Cart.findOne({ user: req.user.id });
 

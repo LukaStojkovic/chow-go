@@ -16,7 +16,14 @@ const cartItemSchema = new mongoose.Schema(
      * whose promotion may have ended in the meantime.
      */
     basePrice: { type: Number, min: 0 },
-    quantity: { type: Number, required: true, min: 1, default: 1 },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 50,
+      default: 1,
+      validate: { validator: Number.isInteger, message: "Quantity must be a whole number" },
+    },
     // Carried through to Order.items.specialInstructions on checkout. Notes are
     // per menu item, matching how the cart identifies a line.
     specialInstructions: { type: String, trim: true, maxlength: 200 },

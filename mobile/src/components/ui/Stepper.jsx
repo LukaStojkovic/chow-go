@@ -14,7 +14,7 @@ import { useTokens } from "@/theme/useTokens";
  * At the minimum the decrement turns into a bin, so removing a line is one tap
  * from where you already are instead of a swipe you have to discover.
  */
-export function Stepper({ value, onChange, min = 1, max = 99, onRemove, size = "md" }) {
+export function Stepper({ value, onChange, min = 1, max = 50, onRemove, size = "md" }) {
   const { t } = useTranslation("basket");
   const { color } = useTokens();
   const compact = size === "sm";

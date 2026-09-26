@@ -29,7 +29,7 @@ export function QuantityStepper({
   value,
   onChange,
   min = 1,
-  max = 99,
+  max = 50,
   itemName,
   onRemove,
   disabled = false,
