@@ -2,6 +2,7 @@ import express from "express";
 import {
   checkAuth,
   deleteAccount,
+  exportAccount,
   forgotPassword,
   login,
   logout,
@@ -140,6 +141,7 @@ router.post(
 );
 
 router.get("/check", protectedRoute, checkAuth);
+router.get("/account/export", accountLimiter, protectedRoute, exportAccount);
 router.delete("/account", protectedRoute, deleteAccount);
 
 export default router;

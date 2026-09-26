@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LanguagePicker } from "@/features/settings/LanguagePicker";
 import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
+import { DownloadMyData } from "@/features/settings/DownloadMyData";
 
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
@@ -222,6 +223,8 @@ export default function SellerSettings() {
         <LanguagePicker />
 
         <ConnectGoogle />
+
+        <DownloadMyData />
 
         <Button
           variant="outline"

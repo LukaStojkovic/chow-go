@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
+import { DownloadMyData } from "@/features/settings/DownloadMyData";
 import { updateProfile } from "@/services/apiAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
@@ -201,6 +202,8 @@ export default function EditProfile() {
         ) : null}
 
         <ConnectGoogle />
+
+        <DownloadMyData />
       </ScrollView>
 
       <DockedBar>

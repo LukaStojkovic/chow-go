@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { DownloadMyData } from "@/features/settings/DownloadMyData";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
 
@@ -64,6 +65,8 @@ export default function DeleteAccount() {
         <Text variant="caption" tone="muted">
           {t("deleteAccount.body3")}
         </Text>
+
+        <DownloadMyData />
 
         {needsPassword ? (
           <Input

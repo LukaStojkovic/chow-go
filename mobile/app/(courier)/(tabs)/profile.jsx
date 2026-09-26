@@ -25,6 +25,7 @@ import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { AppearanceSettings } from "@/features/settings/AppearanceSettings";
 import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
+import { DownloadMyData } from "@/features/settings/DownloadMyData";
 import { useCourierProfile, useUpdateCourierProfile } from "@/hooks/Courier/useCourier";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMotionStore } from "@/store/useMotionStore";
@@ -197,6 +198,8 @@ export default function CourierProfile() {
         <AppearanceSettings />
 
         <ConnectGoogle />
+
+        <DownloadMyData />
 
         <Button
           variant="outline"

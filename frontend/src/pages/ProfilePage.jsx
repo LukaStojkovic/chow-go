@@ -55,6 +55,7 @@ import { PersonalDetailsCard } from "@/features/profile/PersonalDetailsCard";
 import { SavedAddressesCard } from "@/features/profile/SavedAddressesCard";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
+import { DownloadMyData } from "@/components/Profile/DownloadMyData";
 
 // Keys, not copy: module scope runs before a language is chosen.
 const THEMES = [
@@ -228,6 +229,7 @@ export default function ProfilePage() {
               </>
             )}
             <ConnectGoogle className="border-t border-border pt-3" />
+            <DownloadMyData className="border-t border-border pt-3" />
           </Card>
 
           <Card padded className="space-y-3">

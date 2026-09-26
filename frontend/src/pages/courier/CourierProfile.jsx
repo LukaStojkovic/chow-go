@@ -20,6 +20,7 @@ import useUpdateCourierProfile from "@/hooks/Courier/useUpdateCourierProfile";
 import { Button } from "@/components/ui/button";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
+import { DownloadMyData } from "@/components/Profile/DownloadMyData";
 
 import { formatPrice } from "@chowgo/shared/format";
 // Vehicle wording comes from the shared taxonomy, so a courier's vehicle
@@ -351,6 +352,7 @@ export function CourierProfile() {
         </div>
 
         <ConnectGoogle className="mt-6 border-t border-border pt-4" />
+        <DownloadMyData className="mt-6 border-t border-border pt-4" />
 
         <div className="mt-6 border-t border-border pt-4">
           <Button

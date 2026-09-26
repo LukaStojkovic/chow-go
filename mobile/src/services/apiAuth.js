@@ -17,6 +17,11 @@ export async function registerCustomer(payload) {
   return data;
 }
 
+export async function exportAccountData() {
+  const { data } = await api.get("/auth/account/export");
+  return data;
+}
+
 export async function deleteAccount(password) {
   const { data } = await api.delete("/auth/account", {
     data: password ? { password } : {},

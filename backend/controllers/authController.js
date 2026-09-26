@@ -25,6 +25,7 @@ import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
 import { deleteAccountOperation } from "../services/accountDeletion.service.js";
+import { exportAccountData } from "../services/accountExport.service.js";
 import { linkGoogleAccount } from "../services/googleLink.service.js";
 import {
   buildScheduleFromRange,
@@ -620,6 +621,14 @@ export async function resetPassword(req, res, next) {
  * Required by App Store Review Guideline 5.1.1(v) for any app that lets people
  * create an account, and by GDPR regardless of the stores.
  */
+export async function exportAccount(req, res) {
+  const data = await exportAccountData(req.user._id);
+  const day = data.exportedAt.slice(0, 10);
+  res.set("Content-Disposition", `attachment; filename="chowgo-data-${day}.json"`);
+  res.set("Cache-Control", "no-store");
+  res.status(200).json(data);
+}
+
 export async function deleteAccount(req, res, next) {
   await deleteAccountOperation({ user: req.user, password: req.body?.password });
   disconnectUserSockets(req.user._id);

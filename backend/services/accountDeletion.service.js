@@ -9,6 +9,7 @@ import Courier from "../models/Courier.js";
 import Restaurant from "../models/Restaurant.js";
 import Notification from "../models/OrderNotification.js";
 import { AppError } from "../utils/AppError.js";
+import { deleteMultipleCloudinaryImages } from "./image.service.js";
 import { ACTIVE_STATUSES } from "../utils/orderStatus.js";
 
 /**
@@ -88,6 +89,11 @@ export async function deleteAccountOperation({ user, password }) {
 
   await assertNoActiveWork(user);
 
+  const courier = user.role === "courier" ? await Courier.findOne({ userId: user._id }).lean() : null;
+  // Photos of the person, not of the business: restaurant images stay with
+  // the restaurant's history. Only our own Cloudinary URLs are ever deleted.
+  const photos = [user.profilePicture, courier?.profilePicture].filter(Boolean);
+
   const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
@@ -139,16 +145,32 @@ export async function deleteAccountOperation({ user, password }) {
               fullName: "Deleted account",
               email: `deleted-${suffix}@${TOMBSTONE_DOMAIN}`,
               phoneNumber: "",
+              profilePicture: "",
+              vehicleNumber: "",
+              vehicleModel: "",
               isAvailable: false,
               currentOrder: null,
               verificationStatus: "rejected",
               documents: {},
               bankDetails: {},
             },
-            $unset: { currentLocation: 1 },
+            $unset: { currentLocation: 1, lastLocationUpdate: 1 },
           },
           { session },
         );
+
+        if (courier) {
+          await Order.updateMany(
+            { courier: courier._id },
+            { $unset: { courierNotes: 1 } },
+            { session },
+          );
+          await Order.updateMany(
+            { courier: courier._id, cancelledBy: "courier" },
+            { $unset: { cancellationReason: 1 } },
+            { session },
+          );
+        }
       }
 
       if (user.role === "seller") {
@@ -156,7 +178,15 @@ export async function deleteAccountOperation({ user, password }) {
         // ratings are the other parties' records too.
         await Restaurant.updateOne(
           { ownerId: user._id },
-          { $set: { isActive: false, isOpenNow: false } },
+          {
+            // The contact details are the seller's own more often than not.
+            $set: {
+              isActive: false,
+              isOpenNow: false,
+              email: `deleted-${suffix}@${TOMBSTONE_DOMAIN}`,
+              phone: "",
+            },
+          },
           { session },
         );
       }
@@ -179,12 +209,27 @@ export async function deleteAccountOperation({ user, password }) {
             "deliveryAddressSnapshot.doorCode": 1,
             "deliveryAddressSnapshot.notes": 1,
             "deliveryAddressSnapshot.location": 1,
+            // Free text the customer wrote. The star ratings stay: they are
+            // already folded into the restaurant's and courier's averages.
+            "items.$[].specialInstructions": 1,
+            "customerRating.restaurantReview": 1,
+            "customerRating.courierReview": 1,
+            deviceInfo: 1,
           },
         },
+        { session },
+      );
+      await Order.updateMany(
+        { customer: user._id, cancelledBy: "customer" },
+        { $unset: { cancellationReason: 1 } },
         { session },
       );
     });
   } finally {
     await session.endSession();
   }
+
+  // After the commit, and best-effort: a Cloudinary outage must not undo an
+  // erasure that has already happened in the database.
+  await deleteMultipleCloudinaryImages(photos);
 }
