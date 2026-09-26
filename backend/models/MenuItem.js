@@ -56,6 +56,11 @@ const menuItemSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+
+    // Deleting a dish sets this instead of removing the document: past orders
+    // populate items.menuItem for its image, and a hard delete left baskets
+    // pointing at nothing, which crashed checkout.
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

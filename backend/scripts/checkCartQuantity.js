@@ -80,6 +80,12 @@ try {
   r = await update("0");
   ok("0 removes the line", r.ok && (await lineQuantity()) === undefined);
 
+  console.log("\nan unavailable dish");
+  await MenuItem.updateOne({ _id: dish._id }, { $set: { available: false } });
+  r = await add(1);
+  ok("cannot be added to a basket", !r.ok && r.error?.code === "ITEM_UNAVAILABLE", r.error?.code ?? "accepted");
+  await MenuItem.updateOne({ _id: dish._id }, { $set: { available: true } });
+
   console.log("\nthe schema backs it up");
   let schemaError = null;
   try {

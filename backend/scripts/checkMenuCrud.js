@@ -240,7 +240,8 @@ ok(
   deleted.status < 400,
   `${deleted.status} ${deleted.body.message}`,
 );
-ok("the dish is gone", !(await MenuItem.findById(createdId)));
+ok("the dish is soft-deleted", Boolean((await MenuItem.findById(createdId).lean())?.deletedAt));
+await MenuItem.deleteOne({ _id: createdId });
 
 await mongoose.disconnect();
 console.log(`\n${passed} passed, ${failed} failed`);

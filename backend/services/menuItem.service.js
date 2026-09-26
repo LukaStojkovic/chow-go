@@ -1,5 +1,6 @@
 import MenuItem from "../models/MenuItem.js";
 import Restaurant from "../models/Restaurant.js";
+import Cart from "../models/Cart.js";
 import { AppError } from "../utils/AppError.js";
 import * as imageService from "./image.service.js";
 import { normalizePromotionInput, withPromotion } from "../utils/promotion.js";
@@ -125,7 +126,7 @@ export async function getAllMenuItems({
 
   const { page: pageNum, limit: limitNum, skip } = parsePagination({ page, limit }, { defaultLimit: 12 });
 
-  let query = { restaurant: restaurantId };
+  let query = { restaurant: restaurantId, deletedAt: null };
 
   if (search) {
     query.$or = [
@@ -190,6 +191,7 @@ export async function updateMenuItem({
   const menuItem = await MenuItem.findOne({
     _id: menuItemId,
     restaurant: restaurantId,
+    deletedAt: null,
   });
 
   if (!menuItem) {
@@ -222,20 +224,25 @@ export async function updateMenuItem({
 }
 
 export async function deleteMenuItemById({ restaurantId, menuItemId, userId }) {
-  const menuItem = await MenuItem.findOne({
-    _id: menuItemId,
-    restaurant: restaurantId,
-  });
+  // Ownership first: checking existence first told any seller which ids exist
+  // in other restaurants (404 versus 403).
+  await validateRestaurantOwnership(restaurantId, userId);
+
+  // Soft delete, and the images stay: past orders still show the dish.
+  const menuItem = await MenuItem.findOneAndUpdate(
+    { _id: menuItemId, restaurant: restaurantId, deletedAt: null },
+    { $set: { deletedAt: new Date(), available: false } },
+    { new: true },
+  );
 
   if (!menuItem) {
     throw new AppError("Menu item not found", 404);
   }
 
-  await validateRestaurantOwnership(restaurantId, userId);
-
-  await imageService.deleteMultipleCloudinaryImages(menuItem.imageUrls);
-
-  await MenuItem.deleteOne({ _id: menuItemId });
+  await Cart.updateMany(
+    { "items.menuItem": menuItem._id },
+    { $pull: { items: { menuItem: menuItem._id } } },
+  );
 
   return true;
 }

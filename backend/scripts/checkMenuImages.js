@@ -84,22 +84,57 @@ try {
     ok("a single string is accepted", updated.imageUrls.join() === img("a1"));
   }
 
-  console.log("\ndeleting an item");
+  console.log("\ndeleting an item is a soft delete");
   {
-    await MenuItem.updateOne(
-      { _id: itemA._id },
-      {
-        $set: {
-          imageUrls: [
-            img("a1"),
-            "https://evil.test/?res.cloudinary.com/chowtest/image/upload/menu/b1",
-            "https://res.cloudinary.com/othercloud/image/upload/menu/b1.jpg",
-          ],
-        },
-      },
-    );
+    const { default: Cart } = await import("../models/Cart.js");
+    const { getAllMenuItems } = await import("../services/menuItem.service.js");
+    const { addToCart } = await import("../controllers/cartController.js");
+    const shopper = await User.create({ name: "S", email: "s@images.test", password: "x", role: "customer", phoneNumber: "0600000000" });
+    await Cart.create({
+      user: shopper._id, restaurant: a.restaurant._id,
+      items: [{ menuItem: itemA._id, name: "A dish", price: 9, quantity: 2 }],
+    });
+
+    let foreign = null;
+    try {
+      await deleteMenuItemById({ restaurantId: b.restaurant._id, menuItemId: itemB._id, userId: a.owner._id });
+    } catch (err) {
+      foreign = err;
+    }
+    ok("another seller's dish is a 403, before any lookup", foreign?.statusCode === 403, String(foreign?.statusCode));
+
+    destroyed.length = 0;
     await deleteMenuItemById({ restaurantId: a.restaurant._id, menuItemId: itemA._id, userId: a.owner._id });
-    ok("only its own Cloudinary image is destroyed", destroyed.join() === "menu/a1", destroyed.join());
+    const tombstone = await MenuItem.findById(itemA._id).lean();
+    ok("the document stays, marked deleted and unavailable", Boolean(tombstone?.deletedAt) && tombstone.available === false);
+    ok("its images are kept for past orders", destroyed.length === 0 && tombstone.imageUrls.length > 0, destroyed.join());
+    ok("it leaves every basket", (await Cart.findOne({ user: shopper._id }).lean()).items.length === 0);
+    const list = await getAllMenuItems({ restaurantId: a.restaurant._id });
+    ok("it is gone from the seller's menu", !list.menuItems.some((m) => String(m._id) === String(itemA._id)));
+
+    let again = null;
+    try {
+      await deleteMenuItemById({ restaurantId: a.restaurant._id, menuItemId: itemA._id, userId: a.owner._id });
+    } catch (err) {
+      again = err;
+    }
+    ok("deleting it twice is a 404", again?.statusCode === 404);
+    let revive = null;
+    try {
+      await update([img("a1")]);
+    } catch (err) {
+      revive = err;
+    }
+    ok("it cannot be edited back to life", revive?.statusCode === 404, String(revive?.statusCode));
+
+    const addResult = await new Promise((resolve) =>
+      addToCart(
+        { body: { menuItemId: String(itemA._id) }, user: { id: String(shopper._id), _id: shopper._id } },
+        { status: () => ({ json: () => resolve(null) }) },
+        (err) => resolve(err),
+      ),
+    );
+    ok("it cannot be added to a basket", addResult?.statusCode === 404, String(addResult?.statusCode));
     ok("the other restaurant's item is untouched", (await MenuItem.findById(itemB._id)).imageUrls.join() === img("b1"));
   }
 

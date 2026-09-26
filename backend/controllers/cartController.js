@@ -54,10 +54,15 @@ export async function addToCart(req, res, next) {
   }
   if (quantity === null) return next(quantityError());
 
-  const menuItem = await MenuItem.findById(menuItemId).populate("restaurant");
+  const menuItem = await MenuItem.findOne({ _id: menuItemId, deletedAt: null }).populate("restaurant");
 
   if (!menuItem) {
     return next(new AppError("Menu item not found", 404));
+  }
+  if (!menuItem.available) {
+    return next(
+      new AppError("errors:order.itemUnavailable", 400, "ITEM_UNAVAILABLE", { name: menuItem.name }),
+    );
   }
 
   let cart = await Cart.findOne({ user: req.user.id });
