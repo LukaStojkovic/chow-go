@@ -30,9 +30,11 @@ const ok = (label, cond, detail = "") => {
 
 try {
   console.log("\nthe backend and shared agree on the fees");
-  ok("deliveryFee", PRICING.deliveryFee === 2.5);
-  ok("serviceFee", PRICING.serviceFee === 1.5);
-  ok("priorityFee", PRICING.priorityFee === 1.99);
+  const { pricingFor } = await import("../../shared/src/adapters/pricing.js");
+  ok("the default currency is RSD", PRICING.currency === "RSD");
+  ok("dinar fees are whole dinars", [PRICING.deliveryFee, PRICING.serviceFee, PRICING.priorityFee].every(Number.isInteger));
+  ok("each currency has its own fees", pricingFor("EUR").deliveryFee === 2.5 && pricingFor("RSD").deliveryFee === 250);
+  ok("an unknown currency falls back to the default", pricingFor("XYZ").currency === "RSD");
 
   for (const [label, subtotal, deliveryType, tip] of [
     ["standard", 9.5, "standard", 0],
@@ -118,7 +120,16 @@ try {
   ok("a non-numeric price still fails validation", Boolean(bad.validateSync()?.errors?.price));
 
   const withCurrency = await Order.findOne().lean();
-  ok("orders record their currency", withCurrency.currency === "USD", String(withCurrency.currency));
+  ok("orders record their currency", withCurrency.currency === "RSD", String(withCurrency.currency));
+
+  console.log("\ncurrency follows the restaurant");
+  const { default: Restaurant } = await import("../models/Restaurant.js");
+  const serbian = new Restaurant({ address: { country: "Serbia" } });
+  ok("a Serbian restaurant prices in RSD", serbian.currency === "RSD");
+  const { formatPrice } = await import("../../shared/src/format.js");
+  ok("dinars format without decimals", !/[.,]\d{2}\D*$/.test(formatPrice(250, { currency: "RSD" })), formatPrice(250, { currency: "RSD" }));
+  ok("euros keep cents", /50/.test(formatPrice(9.5, { currency: "EUR" })));
+  ok("the breakdown carries its currency", buildPriceBreakdown({ subtotal: 900, currency: "RSD" }).currency === "RSD");
 
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;

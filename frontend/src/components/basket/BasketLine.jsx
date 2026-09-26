@@ -26,7 +26,7 @@ import { QuantityStepper } from "@/components/common/QuantityStepper";
  * @param {() => void} [props.onRemove]
  * @param {boolean} [props.disabled]
  */
-export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, disabled }) {
+export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, disabled, currency }) {
   const { t } = useTranslation(["basket", "common"]);
   return (
     <motion.li
@@ -55,7 +55,7 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
             )}
             {line.name}
           </p>
-          <Price value={line.lineTotal} size="sm" />
+          <Price value={line.lineTotal} size="sm" currency={currency} />
         </div>
 
         {line.savings > 0 && (
@@ -64,11 +64,11 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
               {t("line.deal")}
             </Badge>
             <span className="text-primary tabular font-semibold">
-              {t("summary.savings", { amount: formatPrice(line.savings) })}
+              {t("summary.savings", { amount: formatPrice(line.savings, { currency }) })}
             </span>
             <span className="text-muted-foreground tabular line-through">
               <span className="sr-only">{t("common:meta.reducedFrom")} </span>
-              {formatPrice(line.baseUnitPrice * line.quantity)}
+              {formatPrice(line.baseUnitPrice * line.quantity, { currency })}
             </span>
           </p>
         )}
@@ -96,7 +96,7 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
             />
             {line.quantity > 1 && (
               <span className="text-caption text-muted-foreground tabular">
-                <Price value={line.unitPrice} size="sm" muted className="font-normal" /> each
+                <Price value={line.unitPrice} size="sm" muted className="font-normal" currency={currency} /> each
               </span>
             )}
           </div>

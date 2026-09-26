@@ -2,6 +2,8 @@
  * Menu item and menu section adapters.
  */
 
+import { normalizeCurrency } from "../currency.js";
+import { lineTotal, sumMoney } from "../money.js";
 import { t } from "../i18n/index.js";
 import { titleCase } from "../format.js";
 
@@ -66,6 +68,7 @@ export function toDishView(raw) {
     restaurantId: restaurant?._id ? String(restaurant._id) : raw.restaurant ? String(raw.restaurant) : null,
     restaurantName: restaurant?.name || null,
     restaurantLogo: restaurant?.profilePicture || null,
+    currency: normalizeCurrency(restaurant?.currency ?? raw.currency),
   };
 }
 
@@ -165,11 +168,9 @@ export function toBasketLines(items) {
         description: menuItem?.description || line.description || "",
         unitPrice,
         baseUnitPrice: isDiscounted ? baseUnitPrice : null,
-        savings: isDiscounted
-          ? Math.round(((baseUnitPrice - unitPrice) * quantity + Number.EPSILON) * 100) / 100
-          : 0,
+        savings: isDiscounted ? lineTotal(sumMoney(baseUnitPrice, -unitPrice), quantity) : 0,
         quantity,
-        lineTotal: Math.round((unitPrice * quantity + Number.EPSILON) * 100) / 100,
+        lineTotal: lineTotal(unitPrice, quantity),
         image: menuItem?.imageUrls?.[0] || null,
         notes: line.specialInstructions || null,
       };

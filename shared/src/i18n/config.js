@@ -101,9 +101,9 @@ export function intlLocale(code) {
 }
 
 /**
- * The platform's currency. Language and currency are deliberately separate:
- * switching the UI to Serbian must not reprice an order, because the amounts
- * on `Order` are stored as plain numbers in one currency. Only the *formatting*
- * of that amount follows the locale (separators and symbol placement).
+ * The currency used when there is no restaurant or order to take one from.
+ * Language and currency are deliberately separate: switching the UI to
+ * Serbian must not reprice anything, only change separators and symbol
+ * placement. See ../currency.js.
  */
-export const CURRENCY_CODE = "USD";
+export { DEFAULT_CURRENCY as CURRENCY_CODE } from "../currency.js";

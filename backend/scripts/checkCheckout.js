@@ -263,13 +263,17 @@ try {
   await Cart.deleteMany({});
   await stockCart();
   const tipOrders = await Order.countDocuments({});
-  for (const bad of [99999, "1e400", -1, "abc", 50.01]) {
+  const { pricingFor } = await import("@chowgo/shared/adapters/pricing");
+  const { maxTip: tipCap, currency } = pricingFor(restaurant.currency);
+  for (const bad of [99999999, "1e400", -1, "abc", tipCap + 0.01]) {
     const r = await call("POST", "/api/orders/create", { ...payload, tip: bad }, { "Idempotency-Key": randomUUID() });
     ok(`tip ${JSON.stringify(bad)} is refused`, r.status === 400 && r.body.code === "TIP_INVALID", `${r.status} ${r.body.code}`);
   }
   ok("none of them placed an order", (await Order.countDocuments({})) === tipOrders);
-  const maxTip = await call("POST", "/api/orders/create", { ...payload, tip: 50 }, { "Idempotency-Key": randomUUID() });
-  ok("a 50 tip is accepted", maxTip.status === 201 && maxTip.body?.data?.order?.tip === 50, `${maxTip.status} ${maxTip.body?.data?.order?.tip}`);
+  const maxTip = await call("POST", "/api/orders/create", { ...payload, tip: tipCap }, { "Idempotency-Key": randomUUID() });
+  ok(`a ${tipCap} ${currency} tip is accepted`, maxTip.status === 201 && maxTip.body?.data?.order?.tip === tipCap, `${maxTip.status} ${maxTip.body?.data?.order?.tip}`);
+  ok("the order is in the restaurant's currency", maxTip.body?.data?.order?.currency === "RSD" && currency === "RSD");
+  ok("and charged that currency's fees", maxTip.body?.data?.order?.deliveryFee === pricingFor("RSD").deliveryFee);
 
   console.log("\ndelivery range and minimum order");
   await Cart.deleteMany({});

@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { AppError } from "../utils/AppError.js";
 import { DELIVERED_SUBTOTAL_EXPR } from "../utils/earnings.js";
 import { toMoney } from "../utils/money.js";
+import { normalizeCurrency } from "@chowgo/shared/currency";
 import { lastDateKeys, resolveTimeZone, startOfDay } from "../utils/zonedTime.js";
 
 function daysAgo(n) {
@@ -224,6 +225,7 @@ export async function getRestaurantAnalytics(restaurantId, userId) {
   ]);
 
   return {
+    currency: normalizeCurrency(restaurant.currency),
     kpis,
     peakHours,
     dailyRevenue,

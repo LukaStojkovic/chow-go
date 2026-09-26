@@ -12,6 +12,7 @@
  */
 
 import { CURRENCY_CODE, intlLocale } from "./i18n/config.js";
+import { fractionDigitsFor, normalizeCurrency } from "./currency.js";
 import { currentLocale, t } from "./i18n/index.js";
 
 export { CURRENCY_CODE };
@@ -58,36 +59,41 @@ function dateFormatter(options) {
   return formatter;
 }
 
-const PRICE_OPTIONS = {
-  style: "currency",
-  currency: CURRENCY_CODE,
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-};
+function priceOptions(currency) {
+  const code = normalizeCurrency(currency);
+  const digits = fractionDigitsFor(code);
+  return {
+    style: "currency",
+    currency: code,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  };
+}
 
 /**
  * Format a money amount for display.
  *
  * @param {number | null | undefined} amount
- * @param {{ fallback?: string }} [options]
+ * @param {{ fallback?: string, currency?: string }} [options] `currency` is the
+ *   restaurant's or order's; omitted, the platform default is used.
  * @returns {string}
  */
-export function formatPrice(amount, { fallback = "-" } = {}) {
+export function formatPrice(amount, { fallback = "-", currency } = {}) {
   if (typeof amount !== "number" || Number.isNaN(amount)) return fallback;
-  return numberFormatter(PRICE_OPTIONS).format(amount);
+  return numberFormatter(priceOptions(currency)).format(amount);
 }
 
 /**
  * A fee, where zero reads as "Free" rather than as an amount.
  *
  * @param {number | null | undefined} amount
- * @param {{ freeLabel?: string }} [options]
+ * @param {{ freeLabel?: string, currency?: string }} [options]
  * @returns {string}
  */
-export function formatFee(amount, { freeLabel } = {}) {
+export function formatFee(amount, { freeLabel, currency } = {}) {
   if (typeof amount !== "number" || Number.isNaN(amount)) return "-";
   if (amount === 0) return freeLabel ?? t("common:units.free");
-  return numberFormatter(PRICE_OPTIONS).format(amount);
+  return numberFormatter(priceOptions(currency)).format(amount);
 }
 
 /**

@@ -291,7 +291,7 @@ export default function OrderTrackingPage() {
                 <div className="max-h-80 overflow-y-auto px-4">
                   <ul className="divide-border divide-y">
                     {order.items.map((line) => (
-                      <BasketLine key={line.id} line={line} mode="summary" />
+                      <BasketLine key={line.id} line={line} mode="summary" currency={order.currency} />
                     ))}
                   </ul>
                 </div>

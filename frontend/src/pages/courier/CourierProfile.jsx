@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 
+import { formatPrice } from "@chowgo/shared/format";
 // Vehicle wording comes from the shared taxonomy, so a courier's vehicle
 // reads the same here as it does on the customer's tracking screen.
 const VERIFICATION_CONFIG = {
@@ -264,7 +265,7 @@ export function CourierProfile() {
         <div className="rounded-2xl border border-border bg-card p-5 ">
           <p className="text-sm text-muted-foreground ">{t("profile.earnings")}</p>
           <p className="mt-1 text-2xl font-bold text-primary ">
-            ${(courier.totalEarnings ?? 0).toFixed(2)}
+            {formatPrice(courier.totalEarnings ?? 0)}
           </p>
         </div>
       </div>

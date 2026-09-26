@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Separator } from "@/components/ui/separator";
 import { SectionLabel } from "./CourierOrderDetailSheet";
 
-export function CourierOrderItems({ items = [], total }) {
+import { formatPrice } from "@chowgo/shared/format";
+import { lineTotal } from "@chowgo/shared/money";
+export function CourierOrderItems({ items = [], total, currency }) {
   const { t } = useTranslation(["courier", "basket", "common"]);
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
 
@@ -25,7 +27,7 @@ export function CourierOrderItems({ items = [], total }) {
               </span>
             </div>
             <span className="ml-3 shrink-0 text-sm text-muted-foreground">
-              ${(item.price * item.quantity).toFixed(2)}
+              {formatPrice(lineTotal(item.price, item.quantity), { currency })}
             </span>
           </div>
         ))}
@@ -37,7 +39,7 @@ export function CourierOrderItems({ items = [], total }) {
             {t("basket:summary.total")}
           </span>
           <span className="text-sm font-semibold text-foreground">
-            ${total?.toFixed(2)}
+            {formatPrice(total, { currency })}
           </span>
         </div>
       </div>

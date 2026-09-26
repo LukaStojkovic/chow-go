@@ -21,6 +21,7 @@
 
 /**
  * @typedef {Object} RestaurantView
+ * @property {string} currency ISO code prices are in (the restaurant's).
  * @property {string} id
  * @property {string} name
  * @property {string} cuisine            Human-readable, e.g. "Fast food".
@@ -67,6 +68,7 @@
 
 /**
  * @typedef {Object} DishView
+ * @property {string} currency ISO code prices are in (the restaurant's).
  * @property {string} id
  * @property {string} name
  * @property {string} description
@@ -108,6 +110,7 @@
 
 /**
  * @typedef {Object} PriceBreakdownView
+ * @property {string} currency
  * @property {number} subtotal
  * @property {number} deliveryFee
  * @property {number} serviceFee
@@ -129,6 +132,7 @@
 
 /**
  * @typedef {Object} OrderView
+ * @property {string} currency ISO code prices are in (the restaurant's).
  * @property {string} id
  * @property {string} number
  * @property {string} status

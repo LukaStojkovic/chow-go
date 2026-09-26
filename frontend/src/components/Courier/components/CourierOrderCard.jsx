@@ -4,6 +4,7 @@ import { Clock, MapPin } from "lucide-react";
 import Spinner from "@/components/Spinner";
 import { CourierOrderDetailSheet } from "./CourierOrderDetailSheet";
 
+import { formatPrice } from "@chowgo/shared/format";
 export function CourierOrderCard({ order, onAccept, isAccepting }) {
   const { t } = useTranslation(["courier", "common"]);
   const [showDetails, setShowDetails] = useState(false);
@@ -25,7 +26,7 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
         <div className="mb-4 flex items-center justify-between border-b border-border pb-4 ">
           <div>
             <span className="text-lg font-bold text-foreground ">
-              ${order.total?.toFixed(2)}
+              {formatPrice(order.total, { currency: order.currency })}
             </span>
             <span className="ml-2 text-xs text-muted-foreground ">
               #{order.orderNumber?.split("-")[2]}

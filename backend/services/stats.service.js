@@ -5,6 +5,7 @@ import { AppError } from "../utils/AppError.js";
 import { getDateRanges } from "../utils/dateHelpers.js";
 import { DELIVERED_SUBTOTAL_EXPR } from "../utils/earnings.js";
 import { toMoney } from "../utils/money.js";
+import { normalizeCurrency } from "@chowgo/shared/currency";
 import { lastDateKeys, resolveTimeZone, startOfDay } from "../utils/zonedTime.js";
 import mongoose from "mongoose";
 
@@ -354,7 +355,7 @@ export async function getRestaurantStats(restaurantId, userId) {
   const popularItemsWithImages =
     await enrichPopularItemsWithImages(popularItems);
 
-  return buildStatsResponse(
+  const response = buildStatsResponse(
     totalRevenue,
     activeOrders,
     uniqueCustomers,
@@ -368,4 +369,5 @@ export async function getRestaurantStats(restaurantId, userId) {
     popularItemsWithImages,
     recentOrders,
   );
+  return { ...response, currency: normalizeCurrency(restaurant.currency) };
 }

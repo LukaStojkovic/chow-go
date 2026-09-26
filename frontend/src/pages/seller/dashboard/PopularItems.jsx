@@ -2,7 +2,10 @@ import { ShoppingBag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
+import { formatPrice } from "@chowgo/shared/format";
+import { useCurrency } from "@/hooks/useCurrency";
 export const PopularItems = ({ items }) => {
+  const currency = useCurrency();
   const { t } = useTranslation("seller");
   return (
     <div className="bg-card rounded-3xl border border-border p-8 shadow-sm flex flex-col">
@@ -33,10 +36,10 @@ export const PopularItems = ({ items }) => {
               </div>
               <div className="text-right">
                 <span className="font-bold text-primary text-sm block">
-                  ${item.price?.toFixed(2) || "0.00"}
+                  {formatPrice(item.price ?? 0, { currency })}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  ${item.totalRevenue?.toFixed(0) || "0"}
+                  {formatPrice(item.totalRevenue ?? 0, { currency })}
                 </span>
               </div>
             </div>

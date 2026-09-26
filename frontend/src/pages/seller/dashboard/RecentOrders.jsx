@@ -2,6 +2,7 @@ import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { statusMeta } from "@chowgo/shared/adapters/order";
 
+import { formatPrice } from "@chowgo/shared/format";
 const getStatusColor = (status) => {
   const colors = {
     pending:
@@ -80,7 +81,7 @@ export const RecentOrders = ({ orders }) => {
                     items
                   </td>
                   <td className="py-4 px-4 text-sm font-semibold text-foreground ">
-                    ${order.total?.toFixed(2) || "0.00"}
+                    {formatPrice(order.total ?? 0, { currency: order.currency })}
                   </td>
                   <td className="py-4 px-4">
                     <span

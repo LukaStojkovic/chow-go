@@ -9,7 +9,8 @@
 
 import { cuisineLabel } from "../constants.js";
 import { t } from "../i18n/index.js";
-import { PRICING } from "./pricing.js";
+import { pricingFor } from "./pricing.js";
+import { normalizeCurrency } from "../currency.js";
 import { WEEK_DAYS, dayLabel, getTodayKey, normalizeSchedule } from "../schedule.js";
 
 /** @typedef {import("./types").RestaurantView} RestaurantView */
@@ -87,13 +88,12 @@ export function toRestaurantView(raw) {
         : null,
     reviewCount: Number(raw.totalReviews) || 0,
     deliveryEstimate: raw.estimatedDeliveryTime || "30-45 min",
-    // Not per-restaurant on the backend: every order is charged the same flat
-    // platform fee. Showing that value is accurate; inventing a varying one
-    // would not be.
-    deliveryFee: PRICING.deliveryFee,
+    currency: normalizeCurrency(raw.currency),
+    // A flat platform fee in the restaurant's currency, not set per restaurant.
+    deliveryFee: pricingFor(raw.currency).deliveryFee,
     // No minimum order is modelled or enforced. `null` means "do not render a
     // minimum-order line", never "0".
-    minOrder: PRICING.minimumOrder,
+    minOrder: pricingFor(raw.currency).minimumOrder,
     // Only the /nearby aggregation projects a distance, in metres.
     distance: typeof raw.distance === "number" ? raw.distance : null,
     availability,

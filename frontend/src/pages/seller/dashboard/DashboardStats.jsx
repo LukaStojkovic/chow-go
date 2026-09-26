@@ -2,13 +2,16 @@ import { StatCard } from "@/components/ui/StatCard";
 import { useTranslation } from "react-i18next";
 import { Clock, DollarSign, Users, Utensils } from "lucide-react";
 
+import { formatPrice } from "@chowgo/shared/format";
+import { useCurrency } from "@/hooks/useCurrency";
 export const DashboardStats = ({ stats }) => {
+  const currency = useCurrency();
   const { t } = useTranslation("seller");
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <StatCard
         title={t("analytics.revenue")}
-        value={`$${stats.totalRevenue.value}`}
+        value={formatPrice(Number(stats.totalRevenue.value), { currency })}
         trend={`${stats.totalRevenue.trend}%`}
         isPositive={stats.totalRevenue.isPositive}
         icon={DollarSign}

@@ -6,6 +6,7 @@
   "description": "Platform-neutral business logic shared by the web and mobile clients.",
   "exports": {
     "./constants": "./src/constants.js",
+    "./currency": "./src/currency.js",
     "./dates": "./src/dates.js",
     "./format": "./src/format.js",
     "./geo": "./src/geo.js",

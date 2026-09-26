@@ -94,7 +94,7 @@ export function BasketPanel({ isOpen, onClose }) {
   }, 300);
 
   const lines = toBasketLines(items);
-  const pricing = buildPriceBreakdown({ subtotal: totalPrice });
+  const pricing = buildPriceBreakdown({ subtotal: totalPrice, currency: restaurant?.currency });
 
   const handleQuantityChange = (menuItemId, quantity) => {
     applyOptimisticQuantity(menuItemId, quantity);
@@ -194,6 +194,7 @@ export function BasketPanel({ isOpen, onClose }) {
                 <AnimatePresence initial={false}>
                   {lines.map((line) => (
                     <BasketLine
+                      currency={pricing.currency}
                       key={line.id}
                       line={line}
                       onQuantityChange={(quantity) => handleQuantityChange(line.id, quantity)}
@@ -226,7 +227,7 @@ export function BasketPanel({ isOpen, onClose }) {
               >
                 <span>{t("goToCheckout")}</span>
                 <span className="tabular ml-auto flex items-center gap-2">
-                  {formatPrice(pricing.total)}
+                  {formatPrice(pricing.total, { currency: pricing.currency })}
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </span>
               </Button>

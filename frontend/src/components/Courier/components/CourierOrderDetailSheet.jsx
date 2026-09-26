@@ -115,7 +115,7 @@ export function CourierOrderDetailSheet({
                 deliveryFee={order.deliveryFee}
                 tip={order.tip}
               />
-              <CourierOrderItems items={order.items} total={order.total} />
+              <CourierOrderItems items={order.items} total={order.total} currency={order.currency} />
               <CourierOrderNotes
                 customerNotes={order.customerNotes}
                 addressNotes={order.deliveryAddressSnapshot?.notes}

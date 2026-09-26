@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ArrowRight, Plus, ShoppingBag } from "lucide-react-native";
 import { buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
+import { lineTotal } from "@chowgo/shared/money";
 import { formatFee, formatPrice } from "@chowgo/shared/format";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/Badge";
@@ -18,7 +19,7 @@ import { Text } from "@/components/ui/Text";
 import { useCartStore } from "@/store/useCartStore";
 import { useTokens } from "@/theme/useTokens";
 
-function FeeRow({ label, value, tone = "muted", strong = false }) {
+function FeeRow({ label, value, tone = "muted", strong = false, currency }) {
   return (
     <View className="flex-row items-center justify-between py-1">
       <Text
@@ -30,7 +31,7 @@ function FeeRow({ label, value, tone = "muted", strong = false }) {
         {label}
       </Text>
       <Text variant={strong ? "price-lg" : "price"} tone={strong ? "foreground" : tone}>
-        {typeof value === "string" ? value : formatPrice(value)}
+        {typeof value === "string" ? value : formatPrice(value, { currency })}
       </Text>
     </View>
   );
@@ -58,7 +59,8 @@ export default function Basket() {
 
   // Fees come from the shared package, which mirrors the backend's own
   // constants - the client never invents a price.
-  const breakdown = buildPriceBreakdown({ subtotal: totalPrice });
+  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, currency: restaurant?.currency });
+  const { currency } = breakdown;
   const count = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
 
   return (
@@ -80,7 +82,7 @@ export default function Basket() {
                     {restaurant?.estimatedDeliveryTime ?? "30-45 min"}
                   </Text>
                 </View>
-                <Badge tone="mint">{formatFee(breakdown.deliveryFee)}</Badge>
+                <Badge tone="mint">{formatFee(breakdown.deliveryFee, { currency })}</Badge>
               </View>
 
               {restaurant?.name ? (
@@ -137,7 +139,7 @@ export default function Basket() {
                     {item.name}
                   </Text>
                   <Text variant="body-sm" tone="muted">
-                    {formatPrice(item.price)} each
+                    {formatPrice(item.price, { currency })} each
                   </Text>
                   {item.specialInstructions ? (
                     <Text variant="caption" tone="muted" numberOfLines={2}>
@@ -146,7 +148,9 @@ export default function Basket() {
                   ) : null}
                 </View>
 
-                <Text variant="price">{formatPrice(item.price * item.quantity)}</Text>
+                <Text variant="price">
+                  {formatPrice(lineTotal(item.price, item.quantity), { currency })}
+                </Text>
               </View>
 
               <View className="flex-row items-center justify-between">
@@ -168,11 +172,28 @@ export default function Basket() {
             <Text variant="h3" className="mb-2">
               {t("basket:summary.title")}
             </Text>
-            <FeeRow label={t("basket:summary.subtotal")} value={breakdown.subtotal} />
-            <FeeRow label={t("basket:summary.deliveryFee")} value={breakdown.deliveryFee} />
-            <FeeRow label={t("basket:summary.serviceFee")} value={breakdown.serviceFee} />
+            <FeeRow
+              currency={currency}
+              label={t("basket:summary.subtotal")}
+              value={breakdown.subtotal}
+            />
+            <FeeRow
+              currency={currency}
+              label={t("basket:summary.deliveryFee")}
+              value={breakdown.deliveryFee}
+            />
+            <FeeRow
+              currency={currency}
+              label={t("basket:summary.serviceFee")}
+              value={breakdown.serviceFee}
+            />
             <Divider className="my-2" />
-            <FeeRow label={t("basket:summary.total")} value={breakdown.total} strong />
+            <FeeRow
+              currency={currency}
+              label={t("basket:summary.total")}
+              value={breakdown.total}
+              strong
+            />
             <Text variant="caption" tone="muted">
               {t("basket:summary.extrasAtCheckout")}
             </Text>
@@ -193,7 +214,7 @@ export default function Basket() {
               ·
             </Text>
             <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              {formatPrice(breakdown.total)}
+              {formatPrice(breakdown.total, { currency })}
             </Text>
             <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
           </View>

@@ -11,11 +11,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import { useCurrency } from "@/hooks/useCurrency";
 const CustomTooltip = ({ active, payload }) => {
+  const currency = useCurrency();
   if (active && payload && payload.length) {
     return (
       <div className="bg-popover text-popover-foreground border border-border px-3 py-2 rounded-md shadow-overlay text-xs">
-        <p className="font-semibold">${payload[0].value.toFixed(2)}</p>
+        <p className="font-semibold">{formatPrice(payload[0].value, { currency })}</p>
         <p className="text-muted-foreground">{payload[0].payload.orders} orders</p>
       </div>
     );
@@ -30,6 +32,7 @@ const getDayLabel = (dateStr) => {
 };
 
 export const RevenueChart = ({ chartData }) => {
+  const currency = useCurrency();
   const { t } = useTranslation("seller");
   const chartDataWithLabels = chartData.map((day) => ({
     ...day,
@@ -84,7 +87,7 @@ export const RevenueChart = ({ chartData }) => {
                 tick={{ fill: "#9ca3af", fontSize: 12 }}
                 axisLine={{ stroke: "#374151", opacity: 0.2 }}
                 tickLine={false}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => formatPrice(value, { currency })}
               />
               <Tooltip content={<CustomTooltip />} />
               <Area
@@ -99,10 +102,10 @@ export const RevenueChart = ({ chartData }) => {
           </ResponsiveContainer>
           <div className="mt-4 flex items-center justify-between text-xs">
             <span className="text-muted-foreground ">
-              {t("analytics.peakValue", { value: formatPrice(maxRevenue) })}
+              {t("analytics.peakValue", { value: formatPrice(maxRevenue, { currency }) })}
             </span>
             <span className="text-muted-foreground ">
-              {t("analytics.totalValue", { value: formatPrice(totalRevenue) })}
+              {t("analytics.totalValue", { value: formatPrice(totalRevenue, { currency }) })}
             </span>
           </div>
         </>

@@ -19,7 +19,8 @@ import { useTranslation } from "react-i18next";
 import { formatDeliveryEstimate, formatPrice } from "@chowgo/shared/format";
 import { MAX_ORDER_NOTES, useDeliveryTypes, usePaymentMethods } from "@/lib/constants";
 import { toBasketLines } from "@chowgo/shared/adapters/menu";
-import { PRICING, buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
+import { buildPriceBreakdown, pricingFor } from "@chowgo/shared/adapters/pricing";
+import { fractionDigitsFor } from "@chowgo/shared/currency";
 import useCartStore from "@/store/useCartStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useCreateOrder } from "@/hooks/Orders/useCreateOrder";
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
   const deliveryTypes = useDeliveryTypes();
   const paymentMethods = usePaymentMethods();
   const { items, totalPrice, restaurant, isLoading, fetchCart } = useCartStore();
+  const fees = pricingFor(restaurant?.currency);
   const { selectedDeliveryAddress } = useDeliveryStore();
   const { createOrder, isCreatingOrder } = useCreateOrder();
 
@@ -56,8 +58,9 @@ export default function CheckoutPage() {
 
   const lines = useMemo(() => toBasketLines(items), [items]);
   const pricing = useMemo(
-    () => buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip: tipAmount }),
-    [totalPrice, deliveryType, tipAmount],
+    () =>
+      buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip: tipAmount, currency: fees.currency }),
+    [totalPrice, deliveryType, tipAmount, fees.currency],
   );
 
   const blockers = [];
@@ -153,7 +156,7 @@ export default function CheckoutPage() {
                       description={option.description}
                       meta={
                         option.value === "priority"
-                          ? `+${formatPrice(PRICING.priorityFee)}`
+                          ? `+${formatPrice(fees.priorityFee, { currency: fees.currency })}`
                           : t("checkout.speed.included")
                       }
                     />
@@ -190,7 +193,7 @@ export default function CheckoutPage() {
                 isComplete
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  {PRICING.tipPresets.map((amount) => {
+                  {fees.tipPresets.map((amount) => {
                     const isActive = tipAmount === amount && customTip === "";
                     return (
                       <Button
@@ -204,7 +207,7 @@ export default function CheckoutPage() {
                           setCustomTip("");
                         }}
                       >
-                        {amount === 0 ? t("checkout.tip.none") : formatPrice(amount)}
+                        {amount === 0 ? t("checkout.tip.none") : formatPrice(amount, { currency: fees.currency })}
                       </Button>
                     );
                   })}
@@ -218,15 +221,15 @@ export default function CheckoutPage() {
                       type="number"
                       inputMode="decimal"
                       min="0"
-                      max={PRICING.maxTip}
-                      step="0.50"
+                      max={fees.maxTip}
+                      step={fractionDigitsFor(fees.currency) === 0 ? "10" : "0.50"}
                       placeholder={t("checkout.tip.customPlaceholder")}
                       value={customTip}
                       onChange={(event) => {
                         const raw = event.target.value;
                         setCustomTip(raw);
                         const parsed = Number.parseFloat(raw);
-                        setTipAmount(Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, PRICING.maxTip) : 0);
+                        setTipAmount(Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, fees.maxTip) : 0);
                       }}
                       className="h-9 w-24"
                     />
@@ -292,7 +295,7 @@ export default function CheckoutPage() {
           onClick={handlePlaceOrder}
         >
           <span>{t("checkout.placeOrder")}</span>
-          <span className="tabular ml-auto">{formatPrice(pricing.total)}</span>
+          <span className="tabular ml-auto">{formatPrice(pricing.total, { currency: fees.currency })}</span>
         </Button>
         {blockers.length > 0 && (
           <p aria-live="polite" className="text-caption text-muted-foreground mt-2 text-center">

@@ -4,7 +4,7 @@ import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { ArrowRight, Lock } from "lucide-react-native";
 import { MAX_ORDER_NOTES, deliveryTypes, paymentMethods } from "@chowgo/shared/constants";
-import { PRICING, buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
+import { buildPriceBreakdown, pricingFor } from "@chowgo/shared/adapters/pricing";
 import { formatPrice } from "@chowgo/shared/format";
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -66,7 +66,9 @@ export default function Checkout() {
     setAddressId(preferred?._id ?? null);
   }, [addresses.data, addressId]);
 
-  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip });
+  const fees = pricingFor(restaurant?.currency);
+  const { currency } = fees;
+  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip, currency });
 
   async function placeOrder() {
     if (!addressId) {
@@ -178,7 +180,7 @@ export default function Checkout() {
                 trailing={
                   option.value === "priority" ? (
                     <Badge tone="citrus" size="sm">
-                      {`+${formatPrice(PRICING.priorityFee)}`}
+                      {`+${formatPrice(fees.priorityFee, { currency })}`}
                     </Badge>
                   ) : null
                 }
@@ -206,10 +208,10 @@ export default function Checkout() {
           subtitle={t("basket:checkout.tip.shortDescription")}
         >
           <View className="flex-row gap-2">
-            {PRICING.tipPresets.map((preset) => (
+            {fees.tipPresets.map((preset) => (
               <Chip
                 key={preset}
-                label={preset === 0 ? t("basket:checkout.tip.none") : formatPrice(preset)}
+                label={preset === 0 ? t("basket:checkout.tip.none") : formatPrice(preset, { currency })}
                 active={tip === preset}
                 onPress={() => setTip(preset)}
                 className="flex-1 justify-center"
@@ -238,7 +240,7 @@ export default function Checkout() {
                 {label}
               </Text>
               <Text variant="price" tone="muted">
-                {formatPrice(value)}
+                {formatPrice(value, { currency })}
               </Text>
             </View>
           ))}
@@ -250,7 +252,7 @@ export default function Checkout() {
                 {t("basket:summary.includesFees")}
               </Text>
             </View>
-            <Text variant="price-lg">{formatPrice(breakdown.total)}</Text>
+            <Text variant="price-lg">{formatPrice(breakdown.total, { currency })}</Text>
           </View>
         </Card>
       </ScrollView>
@@ -269,7 +271,7 @@ export default function Checkout() {
               ·
             </Text>
             <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              {formatPrice(breakdown.total)}
+              {formatPrice(breakdown.total, { currency })}
             </Text>
             <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
           </View>

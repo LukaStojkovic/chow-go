@@ -83,6 +83,7 @@ export default function CourierDashboard() {
       <EarningsOverview
         chartData={analytics?.chartData ?? []}
         recentOrders={analytics?.recentOrders ?? []}
+        currency={analytics?.currency}
       />
     </div>
   );

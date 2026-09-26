@@ -136,7 +136,7 @@ export default function OrderConfirmationPage() {
           <div className="px-4">
             <ul className="divide-border divide-y">
               {order.items.map((line) => (
-                <BasketLine key={line.id} line={line} mode="summary" />
+                <BasketLine key={line.id} line={line} mode="summary" currency={order.currency} />
               ))}
             </ul>
           </div>

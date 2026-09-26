@@ -13,7 +13,8 @@ import { motion } from "framer-motion";
 import { generateNameInitials } from "@chowgo/shared/strings";
 import { formatDateAgo } from "@chowgo/shared/dates";
 
-export function EarningsOverview({ chartData = [], recentOrders = [] }) {
+import { formatPrice } from "@chowgo/shared/format";
+export function EarningsOverview({ chartData = [], recentOrders = [], currency }) {
   const { t } = useTranslation(["courier", "common"]);
   return (
     <div className="space-y-4">
@@ -42,7 +43,7 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
               />
               <YAxis
                 yAxisId="earn"
-                tickFormatter={(v) => `$${v}`}
+                tickFormatter={(v) => formatPrice(v, { currency })}
                 tick={{ fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -58,7 +59,7 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
               <Tooltip
                 formatter={(v, name) =>
                   name === "earnings"
-                    ? [`$${v.toFixed(2)}`, "Earnings"]
+                    ? [formatPrice(v, { currency }), "Earnings"]
                     : [v, "Deliveries"]
                 }
               />
@@ -109,7 +110,7 @@ export function EarningsOverview({ chartData = [], recentOrders = [] }) {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-foreground ">
-                    ${(o.earnings ?? o.deliveryFee ?? 0).toFixed(2)}
+                    {formatPrice(o.earnings ?? o.deliveryFee ?? 0, { currency })}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatDateAgo(o.deliveredAt)}

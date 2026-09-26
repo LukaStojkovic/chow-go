@@ -10,30 +10,62 @@
  * over the server response and nothing else has to change.
  */
 
+import { DEFAULT_CURRENCY, normalizeCurrency } from "../currency.js";
 import { sumMoney, toMoney } from "../money.js";
 
 /** @typedef {import("./types").PriceBreakdownView} PriceBreakdownView */
 
-export const PRICING = {
-  /** Flat platform delivery fee. Not stored per restaurant. */
-  deliveryFee: 2.5,
-  /** Flat platform service fee. */
-  serviceFee: 1.5,
-  /** Surcharge for the "priority" delivery option. */
-  priorityFee: 1.99,
-  /** The backend sets tax to 0; shown only when it is non-zero. */
-  taxRate: 0,
-  /** Suggested tip amounts offered at checkout. */
-  tipPresets: [0, 1, 2, 3],
-  /** The largest tip the backend accepts; the courier collects it in cash. */
-  maxTip: 50,
-  /**
-   * No minimum order is enforced anywhere in the backend, so the UI must not
-   * claim one exists. Kept explicit so the intent is not mistaken for an
-   * oversight.
-   */
-  minimumOrder: null,
+/**
+ * Platform fees, per currency - an order is charged in its restaurant's
+ * currency, and "2.50" means something very different in dinars. The backend
+ * reads these same objects, so the preview and the charge cannot drift.
+ */
+const FEES = {
+  RSD: {
+    deliveryFee: 250,
+    serviceFee: 150,
+    priorityFee: 200,
+    tipPresets: [0, 100, 200, 300],
+    maxTip: 5000,
+  },
+  EUR: {
+    deliveryFee: 2.5,
+    serviceFee: 1.5,
+    priorityFee: 1.99,
+    tipPresets: [0, 1, 2, 3],
+    maxTip: 50,
+  },
+  USD: {
+    deliveryFee: 2.5,
+    serviceFee: 1.5,
+    priorityFee: 1.99,
+    tipPresets: [0, 1, 2, 3],
+    maxTip: 50,
+  },
 };
+
+/**
+ * @param {string | null | undefined} currency
+ * @returns {{ currency: string, deliveryFee: number, serviceFee: number, priorityFee: number,
+ *   taxRate: number, tipPresets: number[], maxTip: number, minimumOrder: number | null }}
+ */
+export function pricingFor(currency) {
+  const code = normalizeCurrency(currency);
+  return {
+    currency: code,
+    ...FEES[code],
+    /** The backend sets tax to 0; shown only when it is non-zero. */
+    taxRate: 0,
+    /**
+     * No minimum order is enforced anywhere in the backend, so the UI must not
+     * claim one exists.
+     */
+    minimumOrder: null,
+  };
+}
+
+/** The default currency's fees, for code with no restaurant in hand. */
+export const PRICING = pricingFor(DEFAULT_CURRENCY);
 
 // Re-exported so existing `adapters/pricing` imports keep resolving.
 export { toMoney };
@@ -46,6 +78,7 @@ export { toMoney };
  * @param {"standard" | "priority"} [input.deliveryType]
  * @param {number} [input.tip]
  * @param {number} [input.discount]
+ * @param {string} [input.currency] The restaurant's; picks the fee table.
  * @returns {PriceBreakdownView}
  */
 export function buildPriceBreakdown({
@@ -53,15 +86,17 @@ export function buildPriceBreakdown({
   deliveryType = "standard",
   tip = 0,
   discount = 0,
+  currency,
 }) {
+  const pricing = pricingFor(currency);
   const safeSubtotal = Number.isFinite(subtotal) ? Math.max(0, subtotal) : 0;
   const safeTip = Number.isFinite(tip) ? Math.max(0, tip) : 0;
   const safeDiscount = Number.isFinite(discount) ? Math.max(0, discount) : 0;
 
-  const deliveryFee = PRICING.deliveryFee;
-  const serviceFee = PRICING.serviceFee;
-  const priorityFee = deliveryType === "priority" ? PRICING.priorityFee : 0;
-  const tax = toMoney(safeSubtotal * PRICING.taxRate);
+  const deliveryFee = pricing.deliveryFee;
+  const serviceFee = pricing.serviceFee;
+  const priorityFee = deliveryType === "priority" ? pricing.priorityFee : 0;
+  const tax = toMoney(safeSubtotal * pricing.taxRate);
 
   const total = Math.max(
     0,
@@ -69,6 +104,7 @@ export function buildPriceBreakdown({
   );
 
   return {
+    currency: pricing.currency,
     subtotal: toMoney(safeSubtotal),
     deliveryFee,
     serviceFee,
@@ -108,6 +144,7 @@ export function breakdownFromOrder(order) {
 
   if (isItemised) {
     return {
+      currency: normalizeCurrency(order.currency),
       subtotal: toMoney(subtotal),
       deliveryFee: toMoney(deliveryFee),
       serviceFee: toMoney(Number(order.serviceFee) || 0),
@@ -123,6 +160,7 @@ export function breakdownFromOrder(order) {
   const unaccounted = Math.max(0, sumMoney(total, -accountedFor));
 
   return {
+    currency: normalizeCurrency(order.currency),
     subtotal: toMoney(subtotal),
     deliveryFee: toMoney(deliveryFee),
     serviceFee: unaccounted,

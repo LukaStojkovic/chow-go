@@ -3,6 +3,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { CheckCircle, Clock, Package, XCircle } from "lucide-react";
 import { OrderActionsDropdown } from "./OrderActionsDropdown";
 
+import { formatPrice } from "@chowgo/shared/format";
 export function OrderTableRow({
   order,
   onConfirm,
@@ -84,7 +85,7 @@ export function OrderTableRow({
           </span>
         </Badge>
       </TableCell>
-      <TableCell className="font-bold">${order.total.toFixed(2)}</TableCell>
+      <TableCell className="font-bold">{formatPrice(order.total, { currency: order.currency })}</TableCell>
       <TableCell className="text-right">
         <OrderActionsDropdown
           order={order}

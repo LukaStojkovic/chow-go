@@ -161,7 +161,7 @@ export function DistanceLabel({ metres, className }) {
  * @param {"sm"|"md"|"lg"} [props.size]
  * @param {boolean} [props.muted]
  */
-export function Price({ value, size = "md", muted = false, className }) {
+export function Price({ value, size = "md", muted = false, className, currency }) {
   return (
     <span
       className={cn(
@@ -173,7 +173,7 @@ export function Price({ value, size = "md", muted = false, className }) {
         className,
       )}
     >
-      {formatPrice(value)}
+      {formatPrice(value, { currency })}
     </span>
   );
 }
@@ -190,21 +190,22 @@ export function Price({ value, size = "md", muted = false, className }) {
  * @param {number} props.price Current price.
  * @param {number | null} [props.basePrice] Undiscounted price, or null.
  * @param {"sm"|"md"|"lg"} [props.size]
+ * @param {string} [props.currency] The restaurant's; omitted, the platform default.
  */
-export function PromoPrice({ price, basePrice, size = "md", className }) {
+export function PromoPrice({ price, basePrice, size = "md", className, currency }) {
   const { t } = useTranslation("common");
   const isDiscounted = typeof basePrice === "number" && basePrice > price;
 
   if (!isDiscounted) {
-    return <Price value={price} size={size} className={className} />;
+    return <Price value={price} size={size} className={className} currency={currency} />;
   }
 
   return (
     <span className={cn("inline-flex items-baseline gap-1.5", className)}>
-      <Price value={price} size={size} className="text-primary" />
+      <Price value={price} size={size} className="text-primary" currency={currency} />
       <span className="text-muted-foreground text-body-sm tabular line-through">
         <span className="sr-only">{t("meta.reducedFrom")} </span>
-        {formatPrice(basePrice)}
+        {formatPrice(basePrice, { currency })}
       </span>
     </span>
   );

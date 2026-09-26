@@ -1,6 +1,6 @@
 import Order from "../models/Order.js";
 import { COURIER_EARNINGS_EXPR, courierEarningsOf } from "../utils/earnings.js";
-import { toMoney } from "../utils/money.js";
+import { CURRENCY_CODE, toMoney } from "../utils/money.js";
 import { DEFAULT_TIMEZONE } from "../utils/schedule.js";
 import { startOfDay, startOfMonth, startOfWeek } from "../utils/zonedTime.js";
 import Courier from "../models/Courier.js";
@@ -648,6 +648,9 @@ export async function getCourierAnalytics({ courierUserId }) {
     today.deliveries > 0 ? Math.round(today.totalTime / today.deliveries) : 0;
 
   return {
+    // Earnings are summed across orders, so they are in the platform's
+    // currency; a courier working two markets would need them split.
+    currency: CURRENCY_CODE,
     today: {
       earnings: toMoney(today.earnings),
       deliveries: today.deliveries,

@@ -76,36 +76,36 @@ export function FeeBreakdown({ pricing, showTotal = true, totalLabel, className 
 
   return (
     <dl className={cn("space-y-2", className)}>
-      <Row label={t("summary.subtotal")} value={formatPrice(pricing.subtotal)} />
+      <Row label={t("summary.subtotal")} value={formatPrice(pricing.subtotal, { currency: pricing.currency })} />
 
       <Row
         label={t("summary.deliveryFee")}
-        value={formatFee(pricing.deliveryFee)}
+        value={formatFee(pricing.deliveryFee, { currency: pricing.currency })}
         hint={t("summary.deliveryFeeHint")}
       />
 
       <Row
         label={t("summary.serviceFee")}
-        value={formatFee(pricing.serviceFee)}
+        value={formatFee(pricing.serviceFee, { currency: pricing.currency })}
         hint={t("summary.serviceFeeHint")}
       />
 
       {pricing.priorityFee > 0 && (
         <Row
           label={t("summary.priorityFee")}
-          value={formatPrice(pricing.priorityFee)}
+          value={formatPrice(pricing.priorityFee, { currency: pricing.currency })}
           hint={t("summary.priorityFeeHint")}
         />
       )}
 
-      {pricing.tax > 0 && <Row label={t("summary.tax")} value={formatPrice(pricing.tax)} />}
+      {pricing.tax > 0 && <Row label={t("summary.tax")} value={formatPrice(pricing.tax, { currency: pricing.currency })} />}
 
-      {pricing.tip > 0 && <Row label={t("summary.tip")} value={formatPrice(pricing.tip)} />}
+      {pricing.tip > 0 && <Row label={t("summary.tip")} value={formatPrice(pricing.tip, { currency: pricing.currency })} />}
 
       {pricing.discount > 0 && (
         <Row
           label={t("summary.discount")}
-          value={`-${formatPrice(pricing.discount)}`}
+          value={`-${formatPrice(pricing.discount, { currency: pricing.currency })}`}
           tone="discount"
         />
       )}
@@ -115,7 +115,7 @@ export function FeeBreakdown({ pricing, showTotal = true, totalLabel, className 
           <div className="border-border border-t pt-2" />
           <Row
             label={totalLabel ?? t("summary.total")}
-            value={formatPrice(pricing.total)}
+            value={formatPrice(pricing.total, { currency: pricing.currency })}
             tone="total"
           />
         </>

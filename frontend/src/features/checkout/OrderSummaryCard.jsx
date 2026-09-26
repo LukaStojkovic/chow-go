@@ -68,7 +68,7 @@ export function OrderSummaryCard({
       <div className="max-h-72 overflow-y-auto px-4">
         <ul className="divide-border divide-y">
           {lines.map((line) => (
-            <BasketLine key={line.id} line={line} mode="summary" />
+            <BasketLine key={line.id} line={line} mode="summary" currency={pricing.currency} />
           ))}
         </ul>
       </div>
@@ -103,7 +103,7 @@ export function OrderSummaryCard({
           onClick={onPlaceOrder}
         >
           <span>{t("checkout.placeOrder")}</span>
-          <span className="tabular ml-auto">{formatPrice(pricing.total)}</span>
+          <span className="tabular ml-auto">{formatPrice(pricing.total, { currency: pricing.currency })}</span>
         </Button>
 
         <p className="text-caption text-muted-foreground flex items-center justify-center gap-1.5">

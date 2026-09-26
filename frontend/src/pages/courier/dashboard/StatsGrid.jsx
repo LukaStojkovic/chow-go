@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import { StatCard } from "@/components/ui/StatCard";
 
+import { formatPrice } from "@chowgo/shared/format";
 export function StatsGrid({ analytics, isLoading }) {
   const { t } = useTranslation(["courier", "common"]);
-  const fmt = (n) => (n != null ? `$${n.toFixed(2)}` : "—");
+  const fmt = (n) => (n != null ? formatPrice(n, { currency: analytics?.currency }) : "—");
   const dash = isLoading ? "—" : null;
 
   const summaryCards = [

@@ -8,10 +8,10 @@ import { AppError } from "../utils/AppError.js";
 import Notification from "../models/OrderNotification.js";
 import { rateOrderOperation } from "../services/orderRating.service.js";
 import * as orderStatus from "../utils/orderStatus.js";
-import { CURRENCY_CODE, sumMoney, toMoney } from "../utils/money.js";
+import { sumMoney, toMoney } from "../utils/money.js";
 import * as orderSocketService from "../services/orderSocket.service.js";
 import { repriceCartLines } from "../services/cartPricing.service.js";
-import { PRICING } from "@chowgo/shared/adapters/pricing";
+import { pricingFor } from "@chowgo/shared/adapters/pricing";
 import { haversineMeters, toLatLng } from "@chowgo/shared/geo";
 import { env } from "../config/env.js";
 import { parsePagination } from "../utils/pagination.js";
@@ -129,15 +129,16 @@ export async function createOrder(req, res, next) {
         }),
       );
     }
-    const deliveryFee = PRICING.deliveryFee;
-    const serviceFee = PRICING.serviceFee;
-    const priorityFee = deliveryType === "priority" ? PRICING.priorityFee : 0;
-    const tax = toMoney(subtotal * PRICING.taxRate);
+    const pricing = pricingFor(restaurant.currency);
+    const deliveryFee = pricing.deliveryFee;
+    const serviceFee = pricing.serviceFee;
+    const priorityFee = deliveryType === "priority" ? pricing.priorityFee : 0;
+    const tax = toMoney(subtotal * pricing.taxRate);
     // Uncapped, a 99999 tip was shown to every courier in the pool as bait and
     // added to the cash they had to collect; "1e400" parsed to Infinity.
     const tipNumber = tip === undefined || tip === null || tip === "" ? 0 : Number(tip);
-    if (!Number.isFinite(tipNumber) || tipNumber < 0 || tipNumber > PRICING.maxTip) {
-      return next(new AppError("errors:order.tipInvalid", 400, "TIP_INVALID", { max: PRICING.maxTip }));
+    if (!Number.isFinite(tipNumber) || tipNumber < 0 || tipNumber > pricing.maxTip) {
+      return next(new AppError("errors:order.tipInvalid", 400, "TIP_INVALID", { max: pricing.maxTip }));
     }
     const tipAmount = toMoney(tipNumber);
     const total = sumMoney(subtotal, deliveryFee, serviceFee, priorityFee, tax, tipAmount);
@@ -164,7 +165,7 @@ export async function createOrder(req, res, next) {
         notes: deliveryAddress.notes,
         location: deliveryAddress.location,
       },
-      currency: CURRENCY_CODE,
+      currency: pricing.currency,
       subtotal,
       deliveryFee,
       priorityFee,

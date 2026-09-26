@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 
+import { formatPrice } from "@chowgo/shared/format";
 export default function CourierOrderHistoryCard({ order }) {
   const { t } = useTranslation(["courier", "order", "common"]);
   return (
@@ -38,7 +39,7 @@ export default function CourierOrderHistoryCard({ order }) {
             : "text-muted-foreground line-through"
         }`}
       >
-        ${order.total?.toFixed(2) ?? "0.00"}{" "}
+        {formatPrice(order.total ?? 0, { currency: order.currency })}{" "}
       </span>
     </div>
   );

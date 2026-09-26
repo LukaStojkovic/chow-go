@@ -8,6 +8,7 @@
  * same order differently.
  */
 
+import { normalizeCurrency } from "../currency.js";
 import { formatOrderDate } from "../format.js";
 import { t } from "../i18n/index.js";
 import { toRestaurantView } from "./restaurant.js";
@@ -187,6 +188,7 @@ export function toOrderView(raw) {
   return {
     id: String(raw._id),
     number: raw.orderNumber ? String(raw.orderNumber) : String(raw._id).slice(-6).toUpperCase(),
+    currency: normalizeCurrency(raw.currency),
     status,
     statusLabel: meta.label,
     statusDescription: meta.description,

@@ -5,6 +5,7 @@ import useMarkAsPickedUpOrder from "@/hooks/Courier/useMarkAsPickedUpOrder";
 import useMarkAsInTransitOrder from "@/hooks/Courier/useMarkAsInTransitOrder";
 import { CheckCircle, MapPin, Navigation, Phone } from "lucide-react";
 
+import { formatPrice } from "@chowgo/shared/format";
 // Keys rather than copy: this table is built at module scope, before a
 // language exists, and a resolved string would freeze in whichever one loaded
 // first.
@@ -81,7 +82,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
             </p>
           </div>
           <span className="shrink-0 text-lg font-bold text-primary ">
-            ${order.total?.toFixed(2) ?? "—"}
+            {formatPrice(order.total, { fallback: "—", currency: order.currency })}
           </span>
         </div>
 

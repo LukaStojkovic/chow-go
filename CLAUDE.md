@@ -33,6 +33,7 @@ node backend/scripts/checkCourierFlow.js    # pool, atomic claim, delivery lifec
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
+node backend/scripts/backfillRestaurantCurrency.js --dry-run   # store Restaurant.currency on older restaurants (lean reads miss the default)
 node backend/scripts/backfillCourierEarnings.js --dry-run   # recompute Courier.totalEarnings from delivered orders; idempotent
 node backend/scripts/migrateIdempotencyIndex.js --dry-run   # report, then run without the flag once per database
 node backend/scripts/migrateOrderGeoIndex.js --dry-run        # same; drops the single-field order geo index
@@ -117,12 +118,18 @@ with `409 CART_ALREADY_ORDERED`, so a double submit still places one order. The 
 sets `order.isNew = true` because `withTransaction` retries it on a write conflict. An existing
 database needs `node scripts/migrateIdempotencyIndex.js` once to drop the old global index.
 
-`createOrder` reads its fees from `PRICING` in `@chowgo/shared/adapters/pricing` (delivery 2.50,
-service 1.50, priority +1.99, tax 0), the same object the checkout preview uses. Tips must be
-0–`PRICING.maxTip` (50).
+Currency belongs to the **restaurant**, never the viewer: `Restaurant.currency` (from its
+country at creation, Serbia → RSD, see `@chowgo/shared/currency`) is what the menu is priced in
+and what the courier collects, and each order copies it. `createOrder` charges the fees from
+`pricingFor(restaurant.currency)` in `@chowgo/shared/adapters/pricing` — a table per currency
+(RSD: delivery 250, service 150, priority 200, max tip 5000; EUR/USD: 2.50 / 1.50 / 1.99 / 50),
+the same one the checkout preview reads. `PRICING` is the default currency's table, for code with
+no restaurant in hand. `formatPrice(amount, { currency })` takes the restaurant's or order's code
+(RSD renders without decimals); views from the adapters carry `currency`, and seller web screens
+read theirs through `hooks/useCurrency.js`. Menu cards and a few other screens still omit it and
+get the default, which is right while every restaurant is Serbian.
 
-Money is stored and sent as decimal amounts in `Order.currency` (`CURRENCY_CODE`, USD) that are
-always whole cents. All arithmetic goes through `@chowgo/shared/money` (`toCents`, `sumMoney`,
+Money is stored and sent as decimal amounts in `Order.currency` that are always whole cents. All arithmetic goes through `@chowgo/shared/money` (`toCents`, `sumMoney`,
 `lineTotal`, `toMoney`), which works in integer cents — float sums and the old `+ Number.EPSILON`
 rounding (1.005 → 1.00) disagreed between server and preview. `backend/utils/money.js` re-exports it
 plus `moneySetter`, which every money field on Order, Cart and MenuItem uses so a stored value is

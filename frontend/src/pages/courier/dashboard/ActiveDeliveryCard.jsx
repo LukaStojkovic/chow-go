@@ -5,6 +5,7 @@ import Spinner from "@/components/Spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 
+import { formatPrice } from "@chowgo/shared/format";
 export function ActiveDeliveryCard({
   activeOrder,
   isLoadingOrders,
@@ -13,7 +14,7 @@ export function ActiveDeliveryCard({
 }) {
   const { t } = useTranslation(["courier", "common"]);
   const payout =
-    activeOrder?.total != null ? `$${activeOrder.total.toFixed(2)}` : "—";
+    activeOrder?.total != null ? formatPrice(activeOrder.total, { currency: activeOrder.currency }) : "—";
   const navigate = useNavigate();
 
   async function handleAcceptOrder(orderId) {

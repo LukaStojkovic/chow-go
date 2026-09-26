@@ -24,6 +24,7 @@ import {
   intlLocale,
   resolveLocale,
 } from "./config.js";
+import { fractionDigitsFor, normalizeCurrency } from "../currency.js";
 import en from "./locales/en/index.js";
 import sr from "./locales/sr/index.js";
 
@@ -99,9 +100,9 @@ function registerFormatters() {
   i18next.services.formatter.add("currency", (value, lng, options) =>
     formatter("number", intlLocale(lng), {
       style: "currency",
-      currency: options?.currency || CURRENCY_CODE,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      currency: normalizeCurrency(options?.currency || CURRENCY_CODE),
+      minimumFractionDigits: fractionDigitsFor(options?.currency || CURRENCY_CODE),
+      maximumFractionDigits: fractionDigitsFor(options?.currency || CURRENCY_CODE),
     }).format(Number(value) || 0),
   );
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { lngLat } from "../utils/geoValidators.js";
+import { CURRENCIES, currencyForCountry } from "@chowgo/shared/currency";
 import {
   DAYS_OF_WEEK,
   DEFAULT_CLOSING_TIME,
@@ -114,6 +115,16 @@ const restaurantSchema = new mongoose.Schema(
     // isOpenNow used to be computed from the server's local clock, so a UTC
     // host put every restaurant's hours an hour or two out - and createOrder
     // rejects on that flag.
+    // What the menu is priced in and what the courier collects. Taken from the
+    // country at creation; orders copy it, so changing it never reprices one.
+    currency: {
+      type: String,
+      enum: Object.keys(CURRENCIES),
+      default: function () {
+        return currencyForCountry(this.address?.country);
+      },
+    },
+
     timezone: {
       type: String,
       default: DEFAULT_TIMEZONE,
