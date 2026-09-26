@@ -35,6 +35,7 @@ node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migra
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
 node backend/scripts/migrateIdempotencyIndex.js --dry-run   # report, then run without the flag once per database
 node backend/scripts/migrateOrderGeoIndex.js --dry-run        # same; drops the single-field order geo index
+node backend/scripts/reviewGoogleLinks.js   # report accounts auto-linked before the Google fix; --apply <id> to secure
 ```
 
 There is **no test framework** and no `npm test`. `.github/workflows/ci.yml` runs the shared
