@@ -5,36 +5,58 @@ import { AppError } from "../utils/AppError.js";
 
 
 /**
- * Folds one rating into a running average atomically.
+ * Folds one rating into the aggregate in a single server-side write.
  *
- * This was load-then-recompute-then-save, so two ratings landing together lost
- * one of them. An update pipeline recomputes server-side in a single write, so
- * there is no read to go stale.
+ * The average used to be re-rounded to one decimal on every fold, so it
+ * drifted from the true mean over time. It is now always derived from an
+ * exact ratingSum; a document from before ratingSum existed seeds it from its
+ * current average times its count.
  */
 async function applyRating(Model, id, rating, countField) {
+  const count = { $ifNull: ["$" + countField, 0] };
   await Model.updateOne({ _id: id }, [
     {
       $set: {
-        averageRating: {
-          $round: [
-            {
-              $divide: [
-                {
-                  $add: [
-                    { $multiply: [{ $ifNull: ["$averageRating", 0] }, { $ifNull: ["$" + countField, 0] }] },
-                    rating,
-                  ],
-                },
-                { $add: [{ $ifNull: ["$" + countField, 0] }, 1] },
-              ],
-            },
-            1,
+        ratingSum: {
+          $add: [
+            { $ifNull: ["$ratingSum", { $multiply: [{ $ifNull: ["$averageRating", 0] }, count] }] },
+            rating,
           ],
         },
-        [countField]: { $add: [{ $ifNull: ["$" + countField, 0] }, 1] },
+        [countField]: { $add: [count, 1] },
+      },
+    },
+    // Half-up to one decimal. $round rounds half to even, so 17 over 4 showed
+    // as 4.2 rather than the 4.3 a customer expects.
+    {
+      $set: {
+        averageRating: {
+          $divide: [
+            { $floor: { $add: [{ $multiply: [{ $divide: ["$ratingSum", "$" + countField] }, 10] }, 0.5] } },
+            10,
+          ],
+        },
       },
     },
   ]);
+}
+
+// The claim and the "already rated" guard are one write, so two submissions
+// landing together cannot both pass a read and both count in the average.
+async function claimRating(order, customerUserId, field, value, reviewField, review, extraFilter = {}) {
+  const set = { [`customerRating.${field}`]: value, "customerRating.ratedAt": new Date() };
+  if (review) set[`customerRating.${reviewField}`] = review;
+  const result = await Order.updateOne(
+    {
+      _id: order._id,
+      customer: customerUserId,
+      status: "delivered",
+      [`customerRating.${field}`]: { $exists: false },
+      ...extraFilter,
+    },
+    { $set: set },
+  );
+  return result.modifiedCount === 1;
 }
 
 export async function rateOrderOperation({
@@ -90,23 +112,23 @@ export async function rateOrderOperation({
      throw new AppError("No ratings provided", 400);
   }
 
-  // Spreading order.customerRating copied a Mongoose subdocument's own
-  // properties ($__, _doc, $isNew) rather than its schema values, which live
-  // behind prototype accessors - so Mongoose dropped the earlier rating on
-  // cast. Worse, the duplicate guards above key on restaurantRating rather
-  // than ratedAt, so alternating the two calls let one delivered order inflate
-  // a restaurant's average without bound. Setting explicit paths keeps both.
-  for (const [field, value] of Object.entries(updates)) {
-    order.set(`customerRating.${field}`, value);
-  }
-  order.set("customerRating.ratedAt", new Date());
-  await order.save();
-
+  // Explicit paths per rating, so a courier rating never overwrites an earlier
+  // restaurant rating on the same order (spreading the subdocument once did).
   if (updates.restaurantRating) {
+    const claimed = await claimRating(
+      order, customerUserId, "restaurantRating", updates.restaurantRating,
+      "restaurantReview", updates.restaurantReview,
+    );
+    if (!claimed) throw new AppError("You have already reviewed this restaurant", 400);
     await applyRating(Restaurant, order.restaurant, updates.restaurantRating, "totalReviews");
   }
 
   if (updates.courierRating && order.courier) {
+    const claimed = await claimRating(
+      order, customerUserId, "courierRating", updates.courierRating,
+      "courierReview", updates.courierReview, { courier: order.courier },
+    );
+    if (!claimed) throw new AppError("You have already reviewed this courier", 400);
     await applyRating(Courier, order.courier, updates.courierRating, "totalRatings");
   }
 

@@ -110,6 +110,51 @@ try {
   const c = await Courier.findById(courier._id).lean();
   ok("courier aggregate updated too", c.totalRatings === 1 && c.averageRating === 4, `${c.totalRatings}/${c.averageRating}`);
 
+  console.log("\nthe same order rated twice at once counts once");
+  const before = (await Restaurant.findById(restaurant._id).lean()).totalReviews;
+  const twice = await makeDelivered();
+  const results = await Promise.allSettled(
+    Array.from({ length: 5 }, () =>
+      rateOrderOperation({ orderId: twice._id, customerUserId: customer._id, restaurantRating: 1 }),
+    ),
+  );
+  ok("exactly one of five simultaneous submissions succeeds", results.filter((x) => x.status === "fulfilled").length === 1,
+    results.map((x) => x.status).join(","));
+  r = await Restaurant.findById(restaurant._id).lean();
+  ok("and the restaurant counts it once", r.totalReviews === before + 1, `${before} -> ${r.totalReviews}`);
+
+  console.log("\nthe average never drifts from the true mean");
+  const { default: RestaurantModel } = await import("../models/Restaurant.js");
+  const fresh = await RestaurantModel.create({
+    ownerId: new mongoose.Types.ObjectId(), name: "Drift", email: "drift@rating.test", phone: "0622222299",
+    cuisineType: "pizza", description: "t", profilePicture: "https://res.cloudinary.com/demo/image/upload/x.jpg",
+    address: { street: "S", city: "C", zipCode: "11000", country: "Serbia" },
+    location: { type: "Point", coordinates: [20.45, 44.8] },
+  });
+  const sequence = [5, 5, 4, 4, 4, 5, 3, 4, 5, 5, 2, 4, 5, 4, 4];
+  let exactSum = 0;
+  let worst = 0;
+  for (const [i, value] of sequence.entries()) {
+    const o = await makeDelivered();
+    await Order.updateOne({ _id: o._id }, { $set: { restaurant: fresh._id } });
+    await rateOrderOperation({ orderId: o._id, customerUserId: customer._id, restaurantRating: value });
+    exactSum += value;
+    const stored = (await RestaurantModel.findById(fresh._id).lean()).averageRating;
+    worst = Math.max(worst, Math.abs(stored - Math.round((exactSum / (i + 1)) * 10) / 10));
+  }
+  ok("after 15 ratings it still equals the rounded true mean", worst === 0, `off by up to ${worst}`);
+  const drifted = await RestaurantModel.findById(fresh._id).lean();
+  ok("ratingSum holds the exact total", drifted.ratingSum === exactSum, `${drifted.ratingSum} vs ${exactSum}`);
+
+  console.log("\na restaurant from before ratingSum existed");
+  await RestaurantModel.updateOne({ _id: fresh._id }, { $set: { averageRating: 4.5, totalReviews: 10 }, $unset: { ratingSum: 1 } });
+  const legacy = await makeDelivered();
+  await Order.updateOne({ _id: legacy._id }, { $set: { restaurant: fresh._id } });
+  await rateOrderOperation({ orderId: legacy._id, customerUserId: customer._id, restaurantRating: 1 });
+  const seeded = await RestaurantModel.findById(fresh._id).lean();
+  ok("is seeded from its average times its count", seeded.ratingSum === 46 && seeded.totalReviews === 11, `${seeded.ratingSum}/${seeded.totalReviews}`);
+  ok("and its new average folds in correctly", seeded.averageRating === 4.2, String(seeded.averageRating));
+
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;
 } finally {

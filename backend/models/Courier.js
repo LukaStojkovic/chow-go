@@ -62,6 +62,7 @@ const courierSchema = new mongoose.Schema(
     cancelledDeliveries: { type: Number, default: 0 },
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     totalRatings: { type: Number, default: 0 },
+    ratingSum: Number,
     totalEarnings: { type: Number, default: 0 },
 
     currentOrder: {

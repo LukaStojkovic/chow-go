@@ -146,6 +146,8 @@ const restaurantSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // The exact total behind averageRating, which is only ever derived from it.
+    ratingSum: Number,
     estimatedDeliveryTime: {
       type: String,
       default: "30-45 min",
