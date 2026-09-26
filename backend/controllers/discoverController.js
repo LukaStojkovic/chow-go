@@ -24,12 +24,10 @@ async function getNearbyRestaurantIds(
         distanceField: "distance",
         maxDistance,
         spherical: true,
+        // Filtered inside $geoNear rather than in a $match after it, which
+        // pulled every restaurant within 20 km first and discarded most.
+        query: requireOpen ? { isActive: true, isOpenNow: true } : { isActive: true },
       },
-    },
-    {
-      $match: requireOpen
-        ? { isActive: true, isOpenNow: true }
-        : { isActive: true },
     },
     { $project: { _id: 1 } },
   ]);

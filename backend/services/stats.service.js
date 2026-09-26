@@ -23,6 +23,10 @@ export async function validateRestaurantAccess(restaurantId, userId) {
   return restaurant;
 }
 
+// Only what the dashboard reads. These were four unprojected, hydrated finds -
+// every field of every order this month, twice over, on each dashboard load.
+const STATS_ORDER_FIELDS = "total status customer createdAt items orderNumber";
+
 export async function fetchOrdersData(restaurantId, dateRanges) {
   const { startOfWeek, startOfMonth, startOfLastWeek, startOfLastMonth } =
     dateRanges;
@@ -33,22 +37,22 @@ export async function fetchOrdersData(restaurantId, dateRanges) {
         restaurant: restaurantId,
         createdAt: { $gte: startOfWeek },
         status: { $nin: ["cancelled", "rejected"] },
-      }),
+      }).select(STATS_ORDER_FIELDS).lean(),
       Order.find({
         restaurant: restaurantId,
         createdAt: { $gte: startOfMonth },
         status: { $nin: ["cancelled", "rejected"] },
-      }),
+      }).select(STATS_ORDER_FIELDS).lean(),
       Order.find({
         restaurant: restaurantId,
         createdAt: { $gte: startOfLastWeek, $lt: startOfWeek },
         status: { $nin: ["cancelled", "rejected"] },
-      }),
+      }).select(STATS_ORDER_FIELDS).lean(),
       Order.find({
         restaurant: restaurantId,
         createdAt: { $gte: startOfLastMonth, $lt: startOfMonth },
         status: { $nin: ["cancelled", "rejected"] },
-      }),
+      }).select(STATS_ORDER_FIELDS).lean(),
     ]);
 
   return {
