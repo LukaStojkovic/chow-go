@@ -171,6 +171,8 @@ Express 5 forwards async rejections to error middleware automatically, so many h
 
 Every list endpoint takes `page`/`limit` through `utils/pagination.js#parsePagination` (limit 1–50, page ≥ 1). Never pass a query value to `.limit()`/`.skip()` directly: Mongo reads `limit(0)` as "no limit", so `?limit=0` on the public discover feed returned the whole menu collection.
 
+Error tracking is Sentry on all three, and each stays off until its DSN is set: `SENTRY_DSN` (backend), `VITE_SENTRY_DSN` (web), `EXPO_PUBLIC_SENTRY_DSN` (mobile). Web builds emit `hidden` source maps for upload but never link them; EAS builds upload native maps when `SENTRY_AUTH_TOKEN` is an EAS secret and continue without it (`SENTRY_ALLOW_FAILURE`).
+
 `controllers/errorController.js` translates `CastError`, `ValidationError`, duplicate-key,
 JWT and Multer failures into 4xx with a stable machine-readable `code` and, where useful,
 a `fields` map — ordinary bad input used to fall through as a 500. Every response carries

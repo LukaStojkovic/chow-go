@@ -24,7 +24,9 @@ export default defineConfig({
     drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
   },
   build: {
-    sourcemap: true,
+    // Generated for error tracking but not linked from the bundles, so the
+    // original source is not handed to every visitor.
+    sourcemap: "hidden",
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {

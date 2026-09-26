@@ -40,8 +40,7 @@ initMonitoring();
 // Expo Router renders this in place of any subtree that throws, instead of the
 // white screen a release build would otherwise show.
 export function ErrorBoundary({ error, retry }) {
-  reportError(error, { boundary: "root" });
-  return <RootErrorFallback retry={retry} />;
+  return <RootErrorFallback error={error} retry={retry} />;
 }
 
 /**
@@ -50,8 +49,13 @@ export function ErrorBoundary({ error, retry }) {
  * boundary that only renders on a throw would otherwise be stuck in whichever
  * language was active when the error happened.
  */
-function RootErrorFallback({ retry }) {
+function RootErrorFallback({ error, retry }) {
   const { t } = useTranslation("common");
+  // From an effect, in a real component: reporting during render sent the same
+  // crash again on every re-render of the fallback.
+  useEffect(() => {
+    reportError(error, { boundary: "root" });
+  }, [error]);
   return (
     <View className="bg-surface flex-1 items-center justify-center px-6">
       <EmptyState
