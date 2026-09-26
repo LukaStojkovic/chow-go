@@ -910,10 +910,10 @@ export const googleCompleteProfile = async (req, res, next) => {
     await user.save();
     await user.populate("restaurant");
 
-    generateToken(user, res);
+    const token = generateToken(user, res, isMobileClient(req));
     if (fromSession) delete req.session.googleProfile;
 
-    return res.status(201).json({
+    return res.status(201).json(withAuthToken(req, {
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -922,7 +922,7 @@ export const googleCompleteProfile = async (req, res, next) => {
       phoneNumber: user.phoneNumber,
       createdAt: user.createdAt,
       restaurant: user.restaurant,
-    });
+    }, token));
   }
 
   if (role === "courier") {
@@ -968,10 +968,10 @@ export const googleCompleteProfile = async (req, res, next) => {
       isAvailable: true,
     });
 
-    generateToken(user, res);
+    const token = generateToken(user, res, isMobileClient(req));
     if (fromSession) delete req.session.googleProfile;
 
-    return res.status(201).json({
+    return res.status(201).json(withAuthToken(req, {
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -980,13 +980,13 @@ export const googleCompleteProfile = async (req, res, next) => {
       phoneNumber: user.phoneNumber,
       createdAt: user.createdAt,
       courier: courierProfile,
-    });
+    }, token));
   }
 
-  generateToken(user, res);
+  const token = generateToken(user, res, isMobileClient(req));
   if (fromSession) delete req.session.googleProfile;
 
-  return res.status(201).json({
+  return res.status(201).json(withAuthToken(req, {
     _id: user._id,
     name: user.name,
     email: user.email,
@@ -994,5 +994,5 @@ export const googleCompleteProfile = async (req, res, next) => {
     profilePicture: user.profilePicture,
     phoneNumber: user.phoneNumber,
     createdAt: user.createdAt,
-  });
+  }, token));
 };

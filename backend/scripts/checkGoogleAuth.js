@@ -364,6 +364,44 @@ console.log("\ncomplete-profile accepts either source");
   );
 }
 
+console.log("\ncomplete-profile signs the new account in");
+{
+  const completeReq = (email, mobile) => ({
+    body: {
+      signupToken: signSignupState({ ...PROFILE, googleId: `gid-${email}`, email }),
+      role: "customer",
+      phoneNumber: "0600000009",
+    },
+    session: {},
+    query: {},
+    files: {},
+    get: (name) => (mobile && name.toLowerCase() === "x-client" ? "mobile" : undefined),
+  });
+
+  const native = fakeRes();
+  await googleCompleteProfile(completeReq("native-signup@google.test", true), native, (e) => {
+    throw e;
+  });
+  ok("native signup succeeds", native.statusCode === 201, String(native.statusCode));
+  ok(
+    "and returns a bearer token",
+    jwt.decode(native.body?.token ?? "")?.typ === "access",
+    Object.keys(native.body ?? {}).join(","),
+  );
+  ok(
+    "valid for 30 days, like a native login",
+    jwt.decode(native.body.token).exp - jwt.decode(native.body.token).iat === 30 * 24 * 60 * 60,
+  );
+
+  const web = fakeRes();
+  await googleCompleteProfile(completeReq("web-signup@google.test", false), web, (e) => {
+    throw e;
+  });
+  ok("web signup succeeds", web.statusCode === 201, String(web.statusCode));
+  ok("and keeps the token out of the body", web.body?.token === undefined);
+  ok("using the httpOnly cookie instead", web.cookies.some((c) => c.name === "jwt" && c.options.httpOnly));
+}
+
 console.log("\nGET /google requires a challenge from native");
 {
   const express = (await import("express")).default;
