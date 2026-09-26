@@ -57,6 +57,9 @@ const notificationSchema = new mongoose.Schema(
 );
 
 notificationSchema.index({ recipient: 1, isRead: 1, createdAt: -1 });
+// Written on every transition and never read back by any endpoint, so without
+// an expiry the collection grew by several rows per order forever.
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 
 const Notification = mongoose.model("Notification", notificationSchema);
 
