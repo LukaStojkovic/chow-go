@@ -4,6 +4,7 @@ import Restaurant from "../models/Restaurant.js";
 import { getSocketServer } from "../socket/socketServer.js";
 import { pushPayloadFor } from "./orderNotification.service.js";
 import { sendPushToUser, sendPushToUsers } from "./push.service.js";
+import { logger } from "../utils/logger.js";
 
 async function getPopulatedOrder(orderId) {
   const order = await Order.findById(orderId)
@@ -47,7 +48,7 @@ export async function emitOrderConfirmed(customerId, order, estimatedTime) {
       message: "Your order has been confirmed!",
     }, "order_confirmed");
   } catch (error) {
-    console.error("Socket emit error (order:confirmed):", error);
+    logger.error({ err: error }, "Socket emit error (order:confirmed)");
   }
 }
 
@@ -62,7 +63,7 @@ export async function emitOrderRejected(customerId, order, reason) {
       message: "Sorry, your order was rejected by the restaurant",
     }, "order_rejected");
   } catch (error) {
-    console.error("Socket emit error (order:rejected):", error);
+    logger.error({ err: error }, "Socket emit error (order:rejected)");
   }
 }
 
@@ -89,7 +90,7 @@ export async function emitOrderStatusChanged(customerId, order, newStatus) {
       newStatus === "preparing" ? "order_preparing" : "order_ready",
     );
   } catch (error) {
-    console.error(`Socket emit error (order:${newStatus}):`, error);
+    logger.error({ err: error }, `Socket emit error (order:${newStatus})`);
   }
 }
 
@@ -110,7 +111,7 @@ export async function emitOrderCancelled(customerId, order, reason) {
       "order_cancelled",
     );
   } catch (error) {
-    console.error("Socket emit error (order:cancelled):", error);
+    logger.error({ err: error }, "Socket emit error (order:cancelled)");
   }
 }
 
@@ -145,7 +146,7 @@ export async function emitOrderPlaced(order) {
       }
     }
   } catch (error) {
-    console.error("Socket emit error (order:new):", error);
+    logger.error({ err: error }, "Socket emit error (order:new)");
   }
 }
 
@@ -182,7 +183,7 @@ export async function emitOrderCancelledByCustomer(order, reason) {
       }
     }
   } catch (error) {
-    console.error("Socket emit error (order:cancelled by customer):", error);
+    logger.error({ err: error }, "Socket emit error (order:cancelled by customer)");
   }
 }
 
@@ -215,7 +216,7 @@ export async function emitOrderAssigned(order) {
       });
     }
   } catch (error) {
-    console.error("Socket emit error (order:assigned):", error);
+    logger.error({ err: error }, "Socket emit error (order:assigned)");
   }
 }
 
@@ -234,7 +235,7 @@ export async function emitOrderCourierUnassigned(order, reason) {
       },
     );
   } catch (error) {
-    console.error("Socket emit error (order:courier_unassigned):", error);
+    logger.error({ err: error }, "Socket emit error (order:courier_unassigned)");
   }
 }
 
@@ -269,7 +270,7 @@ export async function emitOrderPickedUp(order) {
       );
     }
   } catch (error) {
-    console.error("Socket emit error (order:picked_up):", error);
+    logger.error({ err: error }, "Socket emit error (order:picked_up)");
   }
 }
 
@@ -304,7 +305,7 @@ export async function emitOrderInTransit(order) {
       );
     }
   } catch (error) {
-    console.error("Socket emit error (order:in_transit):", error);
+    logger.error({ err: error }, "Socket emit error (order:in_transit)");
   }
 }
 
@@ -339,7 +340,7 @@ export async function emitOrderDelivered(order) {
       );
     }
   } catch (error) {
-    console.error("Socket emit error (order:delivered):", error);
+    logger.error({ err: error }, "Socket emit error (order:delivered)");
   }
 }
 
@@ -369,7 +370,7 @@ export function emitCourierLocationUpdated({
     }
     socketServer.emitToCourier(courierId, "courier:location", payload);
   } catch (error) {
-    console.error("Socket emit error (courier:location):", error);
+    logger.error({ err: error }, "Socket emit error (courier:location)");
   }
 }
 
@@ -426,7 +427,7 @@ export async function emitNewOrderAvailable(order) {
       pushPayloadFor("order_available", populatedOrder, locale),
     );
   } catch (error) {
-    console.error("Socket emit error (order:available):", error);
+    logger.error({ err: error }, "Socket emit error (order:available)");
   }
 }
 
@@ -436,7 +437,7 @@ export function emitOrderTaken(orderId) {
       orderId: String(orderId),
     });
   } catch (error) {
-    console.error("Socket emit error (order:taken):", error);
+    logger.error({ err: error }, "Socket emit error (order:taken)");
   }
 }
 
@@ -447,6 +448,6 @@ export function emitOrderBackToPool(order) {
       restaurantId: String(order.restaurant),
     });
   } catch (error) {
-    console.error("Socket emit error (order:available - back to pool):", error);
+    logger.error({ err: error }, "Socket emit error (order:available - back to pool)");
   }
 }

@@ -12,6 +12,7 @@ import {
 } from "../services/locationTracking.service.js";
 import { emitCourierLocationUpdated } from "../services/orderSocket.service.js";
 import { corsOrigin } from "../config/cors.js";
+import { logger } from "../utils/logger.js";
 
 export const COURIER_POOL_ROOM = "couriers:pool";
 
@@ -97,7 +98,7 @@ class SocketServer {
 
   setupEventHandlers() {
     this.io.on("connection", (socket) => {
-      console.log(
+      logger.debug(
         `✅ User connected: ${socket.userName} (${socket.userRole}) - Socket ID: ${socket.id}`,
       );
 
@@ -204,7 +205,7 @@ class SocketServer {
       const { role, restaurantId } = data;
 
       if (role !== socket.userRole) {
-        console.error(
+        logger.warn(
           `🚨 Authorization bypass attempt: Client role "${role}" does not match authenticated role "${socket.userRole}" for user ${socket.userId}`,
         );
         socket.emit("registration_error", {
@@ -219,12 +220,12 @@ class SocketServer {
         case "customer":
           this.addConnection("customers", socket.userId, socket.id);
           socket.join(`customer:${socket.userId}`);
-          console.log(`👤 Customer registered: ${socket.userId}`);
+          logger.debug(`👤 Customer registered: ${socket.userId}`);
           break;
 
         case "seller":
           if (!restaurantId) {
-            console.error(
+            logger.warn(
               `🚨 Seller registration failed: No restaurantId provided for user ${socket.userId}`,
             );
             socket.emit("registration_error", {
@@ -241,7 +242,7 @@ class SocketServer {
           }).select("_id");
 
           if (!restaurant) {
-            console.error(
+            logger.warn(
               `🚨 Authorization bypass attempt: User ${socket.userId} attempted to register unauthorized restaurant ${restaurantId}`,
             );
             socket.emit("registration_error", {
@@ -255,7 +256,7 @@ class SocketServer {
           this.addConnection("restaurants", restaurantId, socket.id);
           socket.join(`restaurant:${restaurantId}`);
           socket.restaurantId = restaurantId;
-          console.log(`🏪 Restaurant registered: ${restaurantId}`);
+          logger.debug(`🏪 Restaurant registered: ${restaurantId}`);
           break;
 
         case "courier":
@@ -263,7 +264,7 @@ class SocketServer {
             userId: socket.userId,
           }).select("_id");
           if (!courier) {
-            console.error(
+            logger.warn(
               `🚨 Courier registration failed: No courier profile for user ${socket.userId}`,
             );
             socket.emit("registration_error", {
@@ -278,11 +279,11 @@ class SocketServer {
           this.addConnection("couriers", socket.courierId, socket.id);
           socket.join(`courier:${socket.courierId}`);
           socket.join(COURIER_POOL_ROOM);
-          console.log(`🛵 Courier registered: ${socket.courierId}`);
+          logger.debug(`🛵 Courier registered: ${socket.courierId}`);
           break;
 
         default:
-          console.error(
+          logger.warn(
             `🚨 Invalid role provided: ${role} for user ${socket.userId}`,
           );
           socket.emit("registration_error", {
@@ -299,7 +300,7 @@ class SocketServer {
         message: `Successfully registered as ${role}`,
       });
     } catch (error) {
-      console.error("Registration error:", error);
+      logger.error({ err: error }, "Registration error");
       socket.emit("registration_error", {
         success: false,
         message: "Failed to register socket connection",
@@ -309,7 +310,7 @@ class SocketServer {
   }
 
   handleDisconnection(socket) {
-    console.log(
+    logger.debug(
       `❌ User disconnected: ${socket.userName} (${socket.userRole})`,
     );
 
@@ -345,11 +346,11 @@ class SocketServer {
   emitToRoom(room, event, data, label) {
     const size = this.io.sockets.adapter.rooms.get(room)?.size ?? 0;
     if (size === 0) {
-      console.log(`⚠️  ${label} not connected`);
+      logger.debug(`⚠️  ${label} not connected`);
       return false;
     }
     this.io.to(room).emit(event, data);
-    console.log(`📤 Emitted ${event} to ${label}`);
+    logger.debug(`📤 Emitted ${event} to ${label}`);
     return true;
   }
 
@@ -432,7 +433,7 @@ let socketServerInstance = null;
 export const initializeSocketServer = (httpServer) => {
   if (!socketServerInstance) {
     socketServerInstance = new SocketServer(httpServer);
-    console.log("🚀 Socket.IO server initialized");
+    logger.debug("🚀 Socket.IO server initialized");
   }
   return socketServerInstance;
 };
@@ -451,7 +452,7 @@ export function disconnectUserSockets(userId, options) {
   try {
     return socketServerInstance.disconnectUser(userId, options);
   } catch (error) {
-    console.error("Failed to disconnect sockets:", error);
+    logger.error({ err: error }, "Failed to disconnect sockets");
     return 0;
   }
 }

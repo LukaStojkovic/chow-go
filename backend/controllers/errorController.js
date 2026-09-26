@@ -108,7 +108,9 @@ export function handleError(err, req, res, _next) {
       code: "INTERNAL_ERROR",
       message: tFor(locale, "errors:request.internal"),
       requestId: req.id,
-      ...(env.isProduction ? {} : { error: err.message, stack: err.stack }),
+      // Opt-in, not opt-out: a deploy that forgot NODE_ENV=production used to
+      // hand every client a stack trace.
+      ...(env.isDevelopment ? { error: err.message, stack: err.stack } : {}),
     });
   }
 
@@ -123,7 +125,7 @@ export function handleError(err, req, res, _next) {
     requestId: req.id,
     ...(translated.fields ? { fields: translated.fields } : {}),
     ...(translated.details ? { details: translated.details } : {}),
-    ...(env.isProduction ? {} : { stack: err.stack }),
+    ...(env.isDevelopment ? { stack: err.stack } : {}),
   });
 }
 

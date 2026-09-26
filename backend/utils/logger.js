@@ -41,11 +41,18 @@ export const logger = pino({
     : { target: "pino-pretty", options: { colorize: true, singleLine: true } },
 });
 
+const pathOnly = (url) => String(url ?? "").split("?")[0];
+
 export const httpLogger = pinoHttp({
   logger,
   genReqId: (req, res) => {
+    // Trusted verbatim, a client could put anything - newlines, another user's
+    // request id, a megabyte - into every log line and response for its request.
     const existing = req.headers["x-request-id"];
-    const id = existing || randomUUID();
+    const id =
+      typeof existing === "string" && /^[A-Za-z0-9._-]{8,128}$/.test(existing)
+        ? existing
+        : randomUUID();
     res.setHeader("X-Request-Id", id);
     return id;
   },
@@ -55,12 +62,13 @@ export const httpLogger = pinoHttp({
     return "info";
   },
   autoLogging: {
-    ignore: (req) => req.url === "/healthz" || req.url === "/readyz",
+    ignore: (req) => pathOnly(req.url) === "/healthz" || pathOnly(req.url) === "/readyz",
   },
   // pino-http logs the whole req/res by default, which buries the useful line
-  // in a wall of headers.
+  // in a wall of headers. The query string is dropped: it carries Google's
+  // OAuth ?code= on the callback and customers' coordinates on discovery.
   serializers: {
-    req: (req) => ({ id: req.id, method: req.method, url: req.url }),
+    req: (req) => ({ id: req.id, method: req.method, url: pathOnly(req.url) }),
     res: (res) => ({ statusCode: res.statusCode }),
   },
 });

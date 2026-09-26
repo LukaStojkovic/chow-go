@@ -1,5 +1,6 @@
 import cloudinary from "../utils/cloudinary.js";
 import { extractCloudinaryPublicId } from "../utils/formatData.js";
+import { logger } from "../utils/logger.js";
 
 export async function deleteCloudinaryImage(url) {
   if (!url) return false;
@@ -11,7 +12,7 @@ export async function deleteCloudinaryImage(url) {
     await cloudinary.uploader.destroy(publicId);
     return true;
   } catch (error) {
-    console.error("Failed to delete image from Cloudinary:", publicId, error);
+    logger.error({ err: error, publicId }, "Failed to delete image from Cloudinary");
     return false;
   }
 }

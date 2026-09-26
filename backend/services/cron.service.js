@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import Restaurant from "../models/Restaurant.js";
 import { isOpenAt } from "../utils/schedule.js";
+import { logger } from "../utils/logger.js";
 
 export function startCronJobs() {
   cron.schedule("* * * * *", async () => {
@@ -28,14 +29,14 @@ export function startCronJobs() {
 
       if (bulkOperations.length > 0) {
         await Restaurant.bulkWrite(bulkOperations);
-        console.log(
+        logger.debug(
           `Cron: Updated isOpenNow for ${bulkOperations.length} restaurants`,
         );
       }
     } catch (error) {
-      console.error("Cron job error:", error);
+      logger.error({ err: error }, "Cron job error");
     }
   });
 
-  console.log("⏱️  Cron jobs initialized");
+  logger.debug("⏱️  Cron jobs initialized");
 }

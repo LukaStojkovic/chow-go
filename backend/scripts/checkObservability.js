@@ -73,6 +73,12 @@ try {
     await probe("missing document is a 404", "/api/restaurants/64b7f9a2e1c4d5a6b7c8d9e0", 404);
     await probe("unmatched /api path is a JSON 404", "/api/does-not-exist", 404);
     await probe("anonymous request is refused with a code", "/api/orders/000000000000000000000000", 401, "NO_TOKEN");
+
+    const echoed = (await fetch(`${BASE}/healthz`, { headers: { "X-Request-Id": "trace-abc-12345" } })).headers.get("x-request-id");
+    ok("a well-formed X-Request-Id is kept", echoed === "trace-abc-12345", echoed);
+    const junk = "<script>" + "x".repeat(300);
+    const replaced = (await fetch(`${BASE}/healthz`, { headers: { "X-Request-Id": junk } })).headers.get("x-request-id");
+    ok("a malformed one is replaced", replaced && replaced !== junk && replaced.length <= 128, replaced);
     await probe("socket stats require a session", "/api/socket/stats", 401, "NO_TOKEN");
 
     console.log(`\n  ${passed} passed, ${failed} failed`);

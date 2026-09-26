@@ -1,6 +1,7 @@
 import { Expo } from "expo-server-sdk";
 import User from "../models/User.js";
 import { localeForUser } from "../middlewares/locale.js";
+import { logger } from "../utils/logger.js";
 
 const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 
@@ -63,7 +64,7 @@ export async function sendPushToUser(userId, payload) {
       });
     }
   } catch (error) {
-    console.error("Push send error:", error.message);
+    logger.error({ err: error.message }, "Push send error");
   }
 }
 
@@ -120,6 +121,6 @@ export async function sendPushToUsers(userIds, buildPayload) {
       offset += chunk.length;
     }
   } catch (error) {
-    console.error("Push send error:", error.message);
+    logger.error({ err: error.message }, "Push send error");
   }
 }
