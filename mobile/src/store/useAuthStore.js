@@ -44,8 +44,11 @@ export const useAuthStore = create((set) => {
     checkAuth: async () => {
       try {
         set({ authUser: await checkAuth() });
-      } catch {
-        set({ authUser: null });
+      } catch (error) {
+        // A 401 is already handled by the client's unauthorized handler. A
+        // network blip or a 5xx keeps the session instead of bouncing a courier
+        // to the login screen mid-delivery.
+        if (error?.response?.status === 401) set({ authUser: null });
       } finally {
         set({ isCheckingAuth: false });
       }

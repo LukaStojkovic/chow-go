@@ -9,6 +9,7 @@ export async function checkAuth() {
     return response.data;
   } catch (err) {
     console.error("Error checking auth:", err);
+    throw err;
   }
 }
 

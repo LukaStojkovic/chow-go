@@ -16,7 +16,7 @@ import { axiosInstance } from "@/lib/axios";
 import { toast } from "sonner";
 import { t } from "@chowgo/shared/i18n";
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   authUser: null,
   isLoggingIn: false,
   isRegistering: false,
@@ -31,9 +31,14 @@ export const useAuthStore = create((set) => ({
       set({ authUser: response || null });
       return response;
     } catch (err) {
-      console.error("Error checking auth: ", err);
-      set({ authUser: null });
-      return null;
+      // Only the server saying the session is gone ends it. A network blip or
+      // a 5xx used to sign the user out on screen - a courier's checkAuth on
+      // every assignment event bounced them out mid-delivery and stopped GPS.
+      if (err?.response?.status === 401) {
+        set({ authUser: null });
+        return null;
+      }
+      return get().authUser;
     } finally {
       set({ isCheckingAuth: false });
     }
