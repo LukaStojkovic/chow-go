@@ -76,7 +76,7 @@ All GeoJSON is `[lng, lat]`. 2dsphere indexes exist on `Restaurant.location`, `A
 
 | Actor | Service | Transitions |
 |---|---|---|
-| customer | `controllers/orderController.js` | create (`pending`), cancel per `canCustomerCancel` — pending/confirmed/ready/assigned |
+| customer | `controllers/orderController.js` | create (`pending`), cancel per `canCustomerCancel` — pending/confirmed/ready/assigned. `/api/orders` and `/api/cart` are customer-only (`isCustomerMiddleware`) |
 | seller | `services/restaurantOrder.service.js` | confirm/reject from `pending`; `preparing`/`ready` gated by `isValidTransition`; cancel while confirmed/preparing/ready |
 | courier | `services/courierOrder.service.js` | claim a `ready` order → `assigned`, release back to pool, `picked_up`, `in_transit`, `delivered` |
 

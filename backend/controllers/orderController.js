@@ -71,6 +71,9 @@ export async function createOrder(req, res, next) {
     if (!restaurant || !restaurant.isActive) {
       return next(new AppError("Restaurant not available", 400));
     }
+    if (String(restaurant.ownerId) === String(userId)) {
+      return next(new AppError("errors:role.customerRequired", 403, "ROLE_REQUIRED"));
+    }
 
     if (!restaurant.isOpenNow) {
       return next(new AppError("Restaurant is currently closed", 400));

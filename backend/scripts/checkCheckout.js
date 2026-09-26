@@ -10,6 +10,7 @@ import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { spawn } from "child_process";
 import { randomBytes, randomUUID } from "crypto";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import path from "path";
 
 const PORT = 8600 + Math.floor(Math.random() * 300);
@@ -25,6 +26,7 @@ const ok = (label, cond, detail = "") => {
   console.log(`  ${cond ? "PASS" : "FAIL"}  ${label}${detail && !cond ? ` - ${detail}` : ""}`);
 };
 
+const JWT_SECRET = randomBytes(48).toString("base64url");
 const repl = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
 const uri = repl.getUri();
 
@@ -34,7 +36,7 @@ const child = spawn(process.execPath, ["index.js"], {
     ...process.env,
     MONGODB_URL: uri,
     PORT: String(PORT),
-    JWT_SECRET: randomBytes(48).toString("base64url"),
+    JWT_SECRET,
     NODE_ENV: "development",
     LOG_LEVEL: "silent",
     MAIL_DISABLED: "true",
@@ -211,6 +213,23 @@ try {
     mixed.status === 200 && mixed.body.priceChanges?.[0]?.to === 14,
     `${mixed.status} ${JSON.stringify(mixed.body).slice(0, 160)}`,
   );
+
+  console.log("\nonly customers order");
+  const courierUser = await User.create({
+    name: "K", email: `k-${Date.now()}@checkout.test`, password: "x", role: "courier", phoneNumber: "0611111111",
+  });
+  const asRole = (user) => jwt.sign({ userId: String(user._id), typ: "access", ver: 0 }, JWT_SECRET, { expiresIn: "1h" });
+  const customerToken = token;
+  for (const [label, user] of [["a seller", owner], ["a courier", courierUser]]) {
+    token = asRole(user);
+    const cart = await call("POST", "/api/cart/items", { menuItemId: String(item._id), quantity: 1 });
+    ok(`${label} cannot fill a basket`, cart.status === 403 && cart.body.code === "ROLE_REQUIRED", `${cart.status} ${cart.body.code}`);
+    const placed = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+    ok(`${label} cannot place an order`, placed.status === 403 && placed.body.code === "ROLE_REQUIRED", `${placed.status} ${placed.body.code}`);
+    ok(`${label} has no customer order list`, (await call("GET", "/api/orders/my-orders")).status === 403);
+  }
+  token = customerToken;
+  ok("the customer still can", (await call("GET", "/api/cart")).status === 200);
 
   await mongoose.disconnect();
   console.log(`\n  ${passed} passed, ${failed} failed`);

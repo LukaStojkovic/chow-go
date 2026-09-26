@@ -111,7 +111,8 @@ const useCartStore = create((set, get) => ({
   },
 
   fetchCart: async () => {
-    if (!useAuthStore.getState().authUser) {
+    // Only customers have a basket; the cart API refuses every other role.
+    if (useAuthStore.getState().authUser?.role !== "customer") {
       set({ items: [], totalPrice: 0, restaurant: null, isLoading: false });
       return;
     }

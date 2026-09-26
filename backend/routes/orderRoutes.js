@@ -7,10 +7,13 @@ import {
   rateOrder,
 } from "../controllers/orderController.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
+import { isCustomerMiddleware } from "../middlewares/roleMiddleware.js";
 
 const router = express.Router();
 
-router.use(protectedRoute);
+// Only customers order. A seller or courier placing orders could order from
+// their own restaurant and rate it, or pad a courier's deliveries.
+router.use(protectedRoute, isCustomerMiddleware);
 
 router.post("/create", createOrder);
 router.get("/my-orders", getCustomerOrders);
