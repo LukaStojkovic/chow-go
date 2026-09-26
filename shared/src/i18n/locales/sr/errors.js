@@ -95,6 +95,7 @@ export default {
     restaurantUnavailable: "Taj restoran trenutno ne prima porudžbine",
     restaurantClosed: "Taj restoran je trenutno zatvoren",
     itemUnavailable: "{{name}} više nije dostupno",
+    alreadyPlaced: "Ova korpa je upravo poručena. Proverite svoje porudžbine.",
     priceChanged:
       "Neke cene u vašoj korpi su se promenile. Proverite novi iznos i ponovo pošaljite porudžbinu.",
     notFound: "Ta porudžbina nije pronađena",

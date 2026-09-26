@@ -214,6 +214,50 @@ try {
     `${mixed.status} ${JSON.stringify(mixed.body).slice(0, 160)}`,
   );
 
+  console.log("\nwithout an Idempotency-Key a double submit still places one order");
+  await Cart.deleteMany({});
+  await stockCart();
+  const countBefore = await Order.countDocuments({});
+  const pair = await Promise.all([
+    call("POST", "/api/orders/create", payload),
+    call("POST", "/api/orders/create", payload),
+  ]);
+  ok("exactly one order was created", (await Order.countDocuments({})) === countBefore + 1, `${countBefore} -> ${await Order.countDocuments({})}`);
+  ok("one request succeeded", pair.filter((p) => p.status === 201).length === 1, pair.map((p) => p.status).join(","));
+  const loser = pair.find((p) => p.status !== 201);
+  ok(
+    "the other was refused cleanly",
+    loser && [400, 409].includes(loser.status) && ["CART_ALREADY_ORDERED", "REQUEST_FAILED"].includes(loser.body.code),
+    `${loser?.status} ${loser?.body.code} ${loser?.body.error ?? ""}`,
+  );
+
+  console.log("\nkeys are checked and scoped to the customer");
+  await stockCart();
+  for (const bad of ["short", "has spaces in it", "x".repeat(200)]) {
+    const r = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": bad });
+    ok(`"${bad.slice(0, 20)}" is refused`, r.status === 400 && r.body.code === "IDEMPOTENCY_KEY_INVALID", `${r.status} ${r.body.code}`);
+  }
+  const sharedKey = randomUUID();
+  const firstPlaced = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": sharedKey });
+  ok("the first customer places an order with the key", firstPlaced.status === 201, String(firstPlaced.status));
+  const firstToken = token;
+  const other = await call("POST", "/api/auth/register", {
+    email: `other-${Date.now()}@checkout.test`, name: "Other", password: PASSWORD, role: "customer", phoneNumber: "0600000007",
+  });
+  token = other.body?.token;
+  const otherAddr = await call("POST", "/api/delivery-address", {
+    address: "Terazije 1", label: "Home", type: "apartment", location: { lat: 44.81, lng: 20.46 },
+  });
+  const otherAddressId = otherAddr.body?.address?._id ?? otherAddr.body?.data?.address?._id ?? otherAddr.body?.data?._id;
+  await stockCart();
+  const secondPlaced = await call(
+    "POST", "/api/orders/create", { ...payload, deliveryAddressId: String(otherAddressId) }, { "Idempotency-Key": sharedKey },
+  );
+  ok("another customer reusing that key gets their own order", secondPlaced.status === 201 && !secondPlaced.body.idempotentReplay,
+    `${secondPlaced.status} ${secondPlaced.body.code ?? ""} replay=${secondPlaced.body.idempotentReplay}`);
+  ok("not the first customer's", secondPlaced.body?.data?.order?._id !== firstPlaced.body?.data?.order?._id);
+  token = firstToken;
+
   console.log("\nonly customers order");
   const courierUser = await User.create({
     name: "K", email: `k-${Date.now()}@checkout.test`, password: "x", role: "courier", phoneNumber: "0611111111",

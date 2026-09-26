@@ -33,6 +33,9 @@ export async function createOrder(req, res, next) {
     // A retry of the same attempt must return the original order, not a second
     // one. Checked before the cart is read, because the first attempt deleted it.
     const idempotencyKey = req.get("Idempotency-Key") || null;
+    if (idempotencyKey && !/^[A-Za-z0-9_-]{8,128}$/.test(idempotencyKey)) {
+      return next(new AppError("Invalid Idempotency-Key", 400, "IDEMPOTENCY_KEY_INVALID"));
+    }
     if (idempotencyKey) {
       const existing = await Order.findOne({ idempotencyKey, customer: userId })
         .populate("customer", "name email phoneNumber")
@@ -155,9 +158,20 @@ export async function createOrder(req, res, next) {
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {
+        // withTransaction retries this callback on a write conflict, and the
+        // aborted attempt's save left Mongoose treating the order as already
+        // stored, so the retry issued an update for a document that does not
+        // exist and failed with a 500.
+        order.isNew = true;
         await order.save({ session });
 
-        await Cart.findByIdAndDelete(cart._id, { session });
+        // Without an Idempotency-Key, a second submit that read the cart before
+        // the first committed found nothing to delete here and placed a second
+        // order anyway. Exactly one checkout may consume a cart.
+        const consumed = await Cart.deleteOne({ _id: cart._id }, { session });
+        if (consumed.deletedCount !== 1) {
+          throw new AppError("errors:order.alreadyPlaced", 409, "CART_ALREADY_ORDERED");
+        }
 
         await Addresses.updateOne(
           { _id: deliveryAddress._id },

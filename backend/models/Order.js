@@ -29,8 +29,7 @@ const orderSchema = new mongoose.Schema(
     // client retry after a slow response, used to create two real orders.
     idempotencyKey: {
       type: String,
-      unique: true,
-      sparse: true,
+      maxlength: 128,
       select: false,
     },
 
@@ -176,6 +175,13 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ customer: 1, createdAt: -1 });
+// Unique per customer, not globally: a global index let one account's key
+// collide with another's and answer 409 for an order it never placed. The
+// old single-field index is dropped by scripts/migrateIdempotencyIndex.js.
+orderSchema.index(
+  { customer: 1, idempotencyKey: 1 },
+  { unique: true, partialFilterExpression: { idempotencyKey: { $type: "string" } } },
+);
 orderSchema.index({ restaurant: 1, status: 1, createdAt: -1 });
 orderSchema.index({ courier: 1, status: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });

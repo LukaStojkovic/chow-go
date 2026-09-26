@@ -33,6 +33,7 @@ node backend/scripts/checkCourierFlow.js    # pool, atomic claim, delivery lifec
 node backend/scripts/menuItemSeeds.js   # seed menu items for existing restaurants
 node backend/scripts/backfillSchedule.js --dry-run   # report legacy-hours migration
 node backend/scripts/backfillSchedule.js             # apply it (idempotent, already run)
+node backend/scripts/migrateIdempotencyIndex.js --dry-run   # report, then run without the flag once per database
 ```
 
 There is **no test framework and no CI** anywhere in the repo, and no `npm test`. There is,
@@ -101,10 +102,14 @@ Order creation snapshots data deliberately — item name/price are copied into
 document is deleted. Those four writes run inside one `session.withTransaction`, so they
 need a replica set (as the delivery-address endpoints already did).
 
-`createOrder` honours an `Idempotency-Key` header, stored on `Order.idempotencyKey`
-(unique, sparse, `select: false`): a repeat returns the original order with
-`idempotentReplay: true` instead of placing a second one. Both clients generate one key
-per checkout attempt and clear it on success.
+`createOrder` honours an `Idempotency-Key` header (8–128 of `[A-Za-z0-9_-]`), stored on
+`Order.idempotencyKey` (`select: false`, unique **per customer** via a partial compound
+index): a repeat returns the original order with `idempotentReplay: true` instead of placing
+a second one. Both clients generate one key per checkout attempt and clear it on success.
+Without a key, the transaction's `Cart.deleteOne` must remove exactly one cart or it aborts
+with `409 CART_ALREADY_ORDERED`, so a double submit still places one order. The callback
+sets `order.isNew = true` because `withTransaction` retries it on a write conflict. An existing
+database needs `node scripts/migrateIdempotencyIndex.js` once to drop the old global index.
 
 Pricing is hardcoded in `createOrder` (delivery 2.50, service 1.50, priority +1.99, tax
 0) and every figure goes through `utils/money.js#toMoney`. `serviceFee` and

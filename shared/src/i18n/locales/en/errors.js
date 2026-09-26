@@ -104,6 +104,7 @@ export default {
     restaurantUnavailable: "That restaurant is not taking orders right now",
     restaurantClosed: "That restaurant is closed right now",
     itemUnavailable: "{{name}} is no longer available",
+    alreadyPlaced: "This basket was just ordered. Check your orders.",
     priceChanged:
       "Some prices in your basket have changed. Check the new total and place your order again.",
     notFound: "That order was not found",
