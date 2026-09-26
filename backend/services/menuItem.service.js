@@ -170,6 +170,18 @@ export async function getAllMenuItems({
   };
 }
 
+// The seller's editor used to find a dish by searching the first page of the
+// list, so a restaurant with more than one page could not edit the rest.
+export async function getOwnMenuItem({ restaurantId, menuItemId }) {
+  const menuItem = await MenuItem.findOne({
+    _id: menuItemId,
+    restaurant: restaurantId,
+    deletedAt: null,
+  }).lean();
+  if (!menuItem) throw new AppError("Menu item not found", 404);
+  return menuItem;
+}
+
 export async function updateMenuItem({
   restaurantId,
   menuItemId,

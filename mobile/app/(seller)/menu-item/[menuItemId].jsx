@@ -23,7 +23,7 @@ import { MenuItemImages } from "@/features/seller/MenuItemImages";
 import {
   useCreateMenuItem,
   useDeleteMenuItem,
-  useMenuItems,
+  useMenuItem,
   useUpdateMenuItem,
 } from "@/hooks/Restaurants/useMenuItems";
 import { toast } from "@/store/useToastStore";
@@ -41,12 +41,8 @@ export default function MenuItemForm() {
   const update = useUpdateMenuItem();
   const remove = useDeleteMenuItem();
 
-  // Read from the list the seller just came from: the API exposes no
-  // single-menu-item endpoint for the owner.
-  const { data } = useMenuItems({ limit: 50 });
-  const existingItem = isNew
-    ? null
-    : (data?.menuItems ?? []).find((entry) => String(entry._id) === String(menuItemId));
+  const { data: fetchedItem } = useMenuItem(isNew ? null : menuItemId);
+  const existingItem = isNew ? null : (fetchedItem ?? null);
 
   const { control, handleSubmit, watch, setValue, reset, formState } = useForm({
     resolver: zodResolver(isNew ? menuItemSchema : editMenuItemSchema),

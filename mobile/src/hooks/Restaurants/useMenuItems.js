@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createMenuItem,
   deleteMenuItem,
+  getMenuItem,
   getMenuItems,
   updateMenuItem,
 } from "@/services/apiRestaurant";
@@ -23,6 +24,30 @@ export function useMenuItems(filters) {
   });
 }
 
+// Pages of 50 as the seller scrolls. One page of 50 was all the menu ever
+// showed, so a larger restaurant could not see or edit the rest.
+export function useMenuItemPages(filters) {
+  const restaurantId = useOwnRestaurantId();
+
+  return useInfiniteQuery({
+    queryKey: ["menuItems", restaurantId, filters, "pages"],
+    queryFn: ({ pageParam }) => getMenuItems(restaurantId, { ...filters, page: pageParam, limit: 50 }),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last?.pagination?.hasNext ? last.pagination.currentPage + 1 : undefined),
+    enabled: Boolean(restaurantId),
+  });
+}
+
+export function useMenuItem(menuItemId) {
+  const restaurantId = useOwnRestaurantId();
+
+  return useQuery({
+    queryKey: ["menuItem", restaurantId, menuItemId],
+    queryFn: () => getMenuItem(restaurantId, menuItemId),
+    enabled: Boolean(restaurantId && menuItemId),
+  });
+}
+
 function useMenuMutation(mutationFn) {
   const queryClient = useQueryClient();
   const restaurantId = useOwnRestaurantId();
@@ -31,6 +56,7 @@ function useMenuMutation(mutationFn) {
     mutationFn: (variables) => mutationFn(restaurantId, variables),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      queryClient.invalidateQueries({ queryKey: ["menuItem"] });
       // The customer-facing menu reads a different endpoint entirely.
       queryClient.invalidateQueries({ queryKey: ["restaurantMenu", restaurantId] });
     },

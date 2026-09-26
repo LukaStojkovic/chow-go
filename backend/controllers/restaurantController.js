@@ -50,6 +50,11 @@ export async function getRestaurantMenuByCategories(req, res, next) {
   }
 }
 
+export async function getRestaurantMenuItem(req, res) {
+  const menuItem = await menuItemService.getOwnMenuItem(req.params);
+  res.status(200).json({ status: "success", data: menuItem });
+}
+
 export async function getRestaurantMenuItems(req, res, next) {
   try {
     const { restaurantId } = req.params;

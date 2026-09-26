@@ -5,6 +5,7 @@ import {
   deleteMenuItem,
   editMenuItem,
   getRestaurantMenuItems,
+  getRestaurantMenuItem,
   getRestaurantInformations,
   getRestaurantMenuByCategories,
   updateRestaurant,
@@ -60,6 +61,12 @@ router.get(
   isSellerMiddleware,
   requireRestaurantOwnership,
   getRestaurantMenuItems,
+);
+router.get(
+  "/:restaurantId/menu-items/:menuItemId",
+  isSellerMiddleware,
+  requireRestaurantOwnership,
+  getRestaurantMenuItem,
 );
 router.delete(
   "/:restaurantId/menu/:menuItemId",

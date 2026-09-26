@@ -13,7 +13,7 @@ import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { SellerMenuItemRow } from "@/features/seller/MenuItemRow";
-import { useMenuItems } from "@/hooks/Restaurants/useMenuItems";
+import { useMenuItemPages } from "@/hooks/Restaurants/useMenuItems";
 import { useTokens } from "@/theme/useTokens";
 import { useRefreshTint } from "@/theme/useRefreshTint";
 
@@ -33,14 +33,17 @@ export default function SellerMenu() {
     return () => clearTimeout(timer);
   }, [text]);
 
-  const query = useMenuItems({
+  const query = useMenuItemPages({
     search: search || undefined,
     category: category || undefined,
     available: availableOnly ? "true" : undefined,
-    limit: 50,
   });
 
-  const items = query.data?.menuItems ?? [];
+  const items = useMemo(
+    () => (query.data?.pages ?? []).flatMap((page) => page?.menuItems ?? []),
+    [query.data],
+  );
+  const totalItems = query.data?.pages?.[0]?.pagination?.totalItems ?? items.length;
 
   return (
     <Screen edges={["top"]}>
@@ -50,7 +53,7 @@ export default function SellerMenu() {
             <SectionHeader
               title={t("menu.title")}
               size="lg"
-              subtitle={`${items.length} ${items.length === 1 ? "dish" : "dishes"}`}
+              subtitle={`${totalItems} ${totalItems === 1 ? "dish" : "dishes"}`}
               className="flex-1"
             />
 
@@ -99,6 +102,10 @@ export default function SellerMenu() {
       <FlatList
         data={items}
         keyExtractor={(item) => String(item._id)}
+        onEndReachedThreshold={0.5}
+        onEndReached={() => {
+          if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
+        }}
         contentContainerClassName="gap-3 px-5 pb-32"
         showsVerticalScrollIndicator={false}
         refreshControl={

@@ -19,6 +19,11 @@ export async function getMenuItems(restaurantId, filters = {}) {
   return data.data;
 }
 
+export async function getMenuItem(restaurantId, menuItemId) {
+  const { data } = await api.get(`/restaurants/${restaurantId}/menu-items/${menuItemId}`);
+  return data.data;
+}
+
 function menuItemFields({ name, category, price, available, description, promotion = {} }) {
   const fields = {
     name,

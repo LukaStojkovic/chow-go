@@ -136,6 +136,18 @@ try {
     );
     ok("it cannot be added to a basket", addResult?.statusCode === 404, String(addResult?.statusCode));
     ok("the other restaurant's item is untouched", (await MenuItem.findById(itemB._id)).imageUrls.join() === img("b1"));
+
+    const { getOwnMenuItem } = await import("../services/menuItem.service.js");
+    const lookup = async (restaurantId, menuItemId) => {
+      try {
+        return await getOwnMenuItem({ restaurantId, menuItemId });
+      } catch (error) {
+        return error.statusCode;
+      }
+    };
+    ok("a seller can load one of their dishes by id", (await lookup(b.restaurant._id, itemB._id))?.name === "B dish");
+    ok("but not a deleted one", (await lookup(a.restaurant._id, itemA._id)) === 404);
+    ok("nor another restaurant's", (await lookup(a.restaurant._id, itemB._id)) === 404);
   }
 
   console.log("\npublic id parsing");
