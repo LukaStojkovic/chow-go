@@ -31,7 +31,7 @@ import { initializeSocketServer } from "./socket/socketServer.js";
 import { startCronJobs } from "./services/cron.service.js";
 import { logger, httpLogger } from "./utils/logger.js";
 import { AppError } from "./utils/AppError.js";
-import { protectedRoute } from "./middlewares/authMiddleware.js";
+import { socketStatsAccess } from "./middlewares/authMiddleware.js";
 import path from "path";
 import session from "express-session";
 import passport from "passport";
@@ -144,7 +144,7 @@ app.use("/api/courier", courierRoutes);
 app.use("/api/favourites", favouriteRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-app.get("/api/socket/stats", protectedRoute, (req, res) => {
+app.get("/api/socket/stats", socketStatsAccess, (req, res) => {
   res.json(socketServer.getStats());
 });
 

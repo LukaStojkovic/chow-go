@@ -5,6 +5,7 @@ import Constants from "expo-constants";
 import { api } from "@/api/client";
 import { ensureChannels } from "./channels";
 import { reportError } from "@/lib/monitoring";
+import { getInstallationId } from "@/lib/installationId";
 
 let registeredToken = null;
 
@@ -42,7 +43,7 @@ export async function registerForPush() {
     await api.post("/notifications/register-device", {
       token,
       platform: Platform.OS,
-      deviceId: Device.osBuildId ?? undefined,
+      deviceId: await getInstallationId(),
     });
 
     registeredToken = token;

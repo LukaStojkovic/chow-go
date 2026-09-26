@@ -42,7 +42,7 @@ no running server and never touching a real database. Run it after any change to
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
 `check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`,
-`check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:schedule`.
+`check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
 
@@ -58,7 +58,7 @@ The one exception is `backend/scripts/smokeRealtime.js`, which drives a single o
 
 **On Windows, `frontend/node_modules/@chowgo/shared` is a directory junction.** A recursive delete of that path follows the junction and wipes the real `shared/` directory — delete the junction itself (`cmd /c rmdir`) instead. Run `npm install` from PowerShell, not Git Bash; npm invoked from bash writes a POSIX path into the link that Windows cannot follow, producing a package that silently fails to resolve.
 
-`frontend/src/lib/axios.js` hardcodes `http://localhost:8000/api` in dev mode, so `backend/.env`'s `PORT` must be `8000` locally. The socket URL comes from `VITE_API_URL` instead. `GET /api/socket/stats` returns live connection counts per role — useful for debugging realtime issues.
+`frontend/src/lib/axios.js` hardcodes `http://localhost:8000/api` in dev mode, so `backend/.env`'s `PORT` must be `8000` locally. The socket URL comes from `VITE_API_URL` instead. `GET /api/socket/stats` returns live connection counts per role — useful for debugging realtime issues. Outside production any signed-in user can read it; in production it needs an `X-Stats-Token` header matching `SOCKET_STATS_TOKEN`, and is a 404 when that variable is unset.
 
 ## Domain model
 
@@ -116,7 +116,7 @@ Courier GPS: the client emits `courier:location_update`, throttled to one DB wri
 
 Persisted notifications (`models/OrderNotification.js`, registered as model `"Notification"`, templated in `orderNotification.service.js`) are written on every transition but **no endpoint reads them back** — the in-app UI is driven entirely by sockets and toasts.
 
-Those same templates are the source of push copy via `pushPayloadFor`, so the two can't drift. `services/orderSocket.service.js#deliverToCustomer` emits, and sends an Expo push only when `emitToCustomer` returns false — an empty room. iOS suspends the socket ~30s after backgrounding, which makes that a good proxy for "the app isn't in front of them"; Android can hold a socket open while hidden, so a notification is occasionally skipped there. Making it exact needs the client to leave its rooms on background. `courier:location` deliberately never pushes — that would be thousands of notifications per delivery. Device tokens live on `User.pushTokens` with `select: false`, because `toJSON` runs with virtuals on and they would otherwise ride along in every `checkAuth` response.
+Those same templates are the source of push copy via `pushPayloadFor`, so the two can't drift. `services/orderSocket.service.js#deliverToCustomer` emits, and sends an Expo push only when `emitToCustomer` returns false — an empty room. iOS suspends the socket ~30s after backgrounding, which makes that a good proxy for "the app isn't in front of them"; Android can hold a socket open while hidden, so a notification is occasionally skipped there. Making it exact needs the client to leave its rooms on background. `courier:location` deliberately never pushes — that would be thousands of notifications per delivery. Device tokens live on `User.pushTokens` with `select: false`, because `toJSON` runs with virtuals on and they would otherwise ride along in every `checkAuth` response. Each entry's `deviceId` is a per-install `inst_<uuid>` kept in SecureStore (`mobile/src/lib/installationId.js`); `registerDevice` only moves a token off another account when the request presents that same id, so a leaked token can't redirect someone's notifications. Older entries carry the OS build number, which proves nothing and still moves freely.
 
 ## Opening hours and `isOpenNow`
 

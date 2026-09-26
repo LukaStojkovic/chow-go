@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto";
 import User from "../models/User.js";
 import Courier from "../models/Courier.js";
 import jwt from "jsonwebtoken";
@@ -10,6 +11,25 @@ export function extractToken(req) {
   const header = req.headers.authorization;
   if (header && header.startsWith("Bearer ")) return header.slice(7).trim();
   return req.cookies?.jwt || null;
+}
+
+// Live connection counts per role are an operator's debugging aid, not
+// something every signed-in customer should read. Outside production any
+// signed-in user may see them; in production only a request carrying
+// SOCKET_STATS_TOKEN does, and without that variable the endpoint is a 404.
+export function socketStatsAccess(req, res, next) {
+  if (process.env.NODE_ENV !== "production") return protectedRoute(req, res, next);
+  const expected = process.env.SOCKET_STATS_TOKEN;
+  const presented = req.headers["x-stats-token"];
+  if (
+    expected &&
+    typeof presented === "string" &&
+    presented.length === expected.length &&
+    timingSafeEqual(Buffer.from(presented), Buffer.from(expected))
+  ) {
+    return next();
+  }
+  return next(new AppError("Not found", 404, "NOT_FOUND"));
 }
 
 export async function protectedRoute(req, res, next) {
