@@ -218,7 +218,7 @@ export default function CheckoutPage() {
                       type="number"
                       inputMode="decimal"
                       min="0"
-                      max="100"
+                      max={PRICING.maxTip}
                       step="0.50"
                       placeholder={t("checkout.tip.customPlaceholder")}
                       value={customTip}
@@ -226,7 +226,7 @@ export default function CheckoutPage() {
                         const raw = event.target.value;
                         setCustomTip(raw);
                         const parsed = Number.parseFloat(raw);
-                        setTipAmount(Number.isFinite(parsed) && parsed > 0 ? parsed : 0);
+                        setTipAmount(Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, PRICING.maxTip) : 0);
                       }}
                       className="h-9 w-24"
                     />

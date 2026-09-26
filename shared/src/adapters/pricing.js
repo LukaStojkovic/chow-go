@@ -23,6 +23,8 @@ export const PRICING = {
   taxRate: 0,
   /** Suggested tip amounts offered at checkout. */
   tipPresets: [0, 1, 2, 3],
+  /** The largest tip the backend accepts; the courier collects it in cash. */
+  maxTip: 50,
   /**
    * No minimum order is enforced anywhere in the backend, so the UI must not
    * claim one exists. Kept explicit so the intent is not mistaken for an

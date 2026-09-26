@@ -258,6 +258,18 @@ try {
   ok("not the first customer's", secondPlaced.body?.data?.order?._id !== firstPlaced.body?.data?.order?._id);
   token = firstToken;
 
+  console.log("\ntips are bounded");
+  await Cart.deleteMany({});
+  await stockCart();
+  const tipOrders = await Order.countDocuments({});
+  for (const bad of [99999, "1e400", -1, "abc", 50.01]) {
+    const r = await call("POST", "/api/orders/create", { ...payload, tip: bad }, { "Idempotency-Key": randomUUID() });
+    ok(`tip ${JSON.stringify(bad)} is refused`, r.status === 400 && r.body.code === "TIP_INVALID", `${r.status} ${r.body.code}`);
+  }
+  ok("none of them placed an order", (await Order.countDocuments({})) === tipOrders);
+  const maxTip = await call("POST", "/api/orders/create", { ...payload, tip: 50 }, { "Idempotency-Key": randomUUID() });
+  ok("a 50 tip is accepted", maxTip.status === 201 && maxTip.body?.data?.order?.tip === 50, `${maxTip.status} ${maxTip.body?.data?.order?.tip}`);
+
   console.log("\nonly customers order");
   const courierUser = await User.create({
     name: "K", email: `k-${Date.now()}@checkout.test`, password: "x", role: "courier", phoneNumber: "0611111111",
