@@ -1,6 +1,16 @@
 import { create } from "zustand";
 import { setUnauthorizedHandler } from "@/api/client";
 import { clearToken, setToken } from "@/lib/secureToken";
+import { clearCachedQueries } from "@/lib/i18n";
+import { useDeliveryStore } from "./useDeliveryStore";
+
+// Otherwise the previous account's orders stay in memory and its saved address
+// stays on disk for the next person on a shared phone.
+function forgetAccountData() {
+  clearCachedQueries();
+  useDeliveryStore.getState().clearLocation();
+  useDeliveryStore.getState().setSelectedDeliveryAddress(null);
+}
 import {
   completeGoogleProfile as googleComplete,
   signInWithGoogle as googleSignIn,
@@ -112,6 +122,7 @@ export const useAuthStore = create((set) => {
       }
       await clearToken();
       set({ authUser: null });
+      forgetAccountData();
     },
 
     // Deletion is irreversible on the server, so the local session is torn
@@ -121,6 +132,7 @@ export const useAuthStore = create((set) => {
       await deleteAccountApi(password);
       await clearToken();
       set({ authUser: null });
+      forgetAccountData();
     },
 
     requestPasswordReset,

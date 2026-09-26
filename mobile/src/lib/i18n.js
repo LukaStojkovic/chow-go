@@ -50,6 +50,12 @@ export function registerQueryClient(client) {
   queryClient = client;
 }
 
+// Signing out must not leave the previous account's orders in memory for the
+// next person on a shared device to see until the refetch lands.
+export function clearCachedQueries() {
+  queryClient?.clear();
+}
+
 /**
  * Read the stored preference and boot i18next with it.
  *

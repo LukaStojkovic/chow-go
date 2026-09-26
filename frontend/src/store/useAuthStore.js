@@ -15,6 +15,16 @@ import useCartStore from "./useCartStore";
 import { axiosInstance, setUnauthorizedHandler } from "@/lib/axios";
 import { toast } from "sonner";
 import { t } from "@chowgo/shared/i18n";
+import { clearCachedQueries } from "@/lib/i18n";
+import { useDeliveryStore } from "./useDeliveryStore";
+
+// The query cache and the persisted delivery address both outlive a session on
+// a shared device unless they are dropped on sign-out.
+function forgetAccountData() {
+  clearCachedQueries();
+  useDeliveryStore.getState().clearLocation();
+  useDeliveryStore.getState().setSelectedDeliveryAddress(null);
+}
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -87,6 +97,7 @@ export const useAuthStore = create((set, get) => ({
       await logoutUser();
       set({ authUser: null });
       useCartStore.getState().clearCart();
+      forgetAccountData();
     } catch (err) {
       console.error("Error during logout: ", err);
     }
@@ -174,6 +185,7 @@ setUnauthorizedHandler(() => {
   if (!useAuthStore.getState().authUser) return;
   useAuthStore.setState({ authUser: null });
   useCartStore.setState({ items: [], totalPrice: 0, restaurant: null });
+  forgetAccountData();
   useAuthStore.getState().openAuthModal(true);
   toast.error(t("errors:byCode.TOKEN_REVOKED"));
 });
