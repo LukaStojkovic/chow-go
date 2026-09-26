@@ -12,7 +12,7 @@ import {
   completeGoogleProfile,
 } from "@/services/apiAuth";
 import useCartStore from "./useCartStore";
-import { axiosInstance } from "@/lib/axios";
+import { axiosInstance, setUnauthorizedHandler } from "@/lib/axios";
 import { toast } from "sonner";
 import { t } from "@chowgo/shared/i18n";
 
@@ -169,3 +169,11 @@ export const useAuthStore = create((set, get) => ({
     set({ isAuthOpen: false });
   },
 }));
+
+setUnauthorizedHandler(() => {
+  if (!useAuthStore.getState().authUser) return;
+  useAuthStore.setState({ authUser: null });
+  useCartStore.setState({ items: [], totalPrice: 0, restaurant: null });
+  useAuthStore.getState().openAuthModal(true);
+  toast.error(t("errors:byCode.TOKEN_REVOKED"));
+});

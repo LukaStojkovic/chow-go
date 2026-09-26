@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -6,6 +6,32 @@ import { t } from "@chowgo/shared/i18n";
 
 import { createOrder as createOrderApi } from "@/services/apiOrder";
 import useCartStore from "@/store/useCartStore";
+
+// One key per checkout attempt, held until the order lands, so two taps send the
+// same key and the backend hands the second the first one's order. It lives in
+// sessionStorage rather than a ref: a reload after a request that timed out but
+// actually succeeded used to mint a new key and place a second order.
+const checkoutKeyName = (restaurantId) => `chowgo:checkout-key:${restaurantId}`;
+
+function checkoutKey(restaurantId) {
+  try {
+    const existing = sessionStorage.getItem(checkoutKeyName(restaurantId));
+    if (existing) return existing;
+    const created = crypto.randomUUID();
+    sessionStorage.setItem(checkoutKeyName(restaurantId), created);
+    return created;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+function clearCheckoutKey(restaurantId) {
+  try {
+    sessionStorage.removeItem(checkoutKeyName(restaurantId));
+  } catch {
+    // Storage unavailable: the key was never persisted.
+  }
+}
 
 /**
  * Place an order.
@@ -23,19 +49,12 @@ export function useCreateOrder() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // One key per checkout attempt, held until the order lands. Two taps send
-  // the same key, so the backend hands the second one the first one's order
-  // instead of creating a duplicate.
-  const keyRef = useRef(null);
-
   const { mutate, isPending: isCreatingOrder } = useMutation({
-    mutationFn: (orderData) => {
-      if (!keyRef.current) keyRef.current = crypto.randomUUID();
-      return createOrderApi({ ...orderData, idempotencyKey: keyRef.current });
-    },
+    mutationFn: (orderData) =>
+      createOrderApi({ ...orderData, idempotencyKey: checkoutKey(orderData.restaurantId) }),
 
-    onSuccess: (data) => {
-      keyRef.current = null;
+    onSuccess: (data, orderData) => {
+      clearCheckoutKey(orderData?.restaurantId);
       const orderId = data?.data?.order?._id;
 
       useCartStore.setState({ items: [], totalPrice: 0, restaurant: null });
