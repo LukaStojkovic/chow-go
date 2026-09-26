@@ -89,7 +89,10 @@ All GeoJSON is `[lng, lat]`. 2dsphere indexes exist on `Restaurant.location`, `A
 statuses the write is legal from, so the guard and the write are one operation. Both
 services have a private `transition()` helper for this; a caller that loses the race
 gets a `409 ORDER_STATUS_CONFLICT` rather than silently overwriting. Never reintroduce
-read-check-mutate-save here.
+read-check-mutate-save here. Customer cancel follows the same rule (filter on
+`CUSTOMER_CANCELLABLE`) and frees whichever courier the *updated* order names. A courier
+claim is two writes (order, then `Courier.currentOrder`), so after the second it re-checks
+the order and releases the courier with a 409 if a cancel landed in between.
 
 Order creation snapshots data deliberately — item name/price are copied into
 `order.items`, and the address is copied into `deliveryAddressSnapshot` — then the cart

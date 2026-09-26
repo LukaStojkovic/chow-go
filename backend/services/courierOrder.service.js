@@ -323,6 +323,22 @@ export async function acceptOrderOperation({ orderId, courierUserId }) {
     throw err;
   }
 
+  // A customer cancel landing between the claim and the write above releases
+  // nobody - currentOrder was not set yet - and would leave this courier held
+  // by a cancelled order forever. Whichever lands second frees them.
+  const stillOurs = await Order.exists({
+    _id: order._id,
+    courier: courier._id,
+    status: "assigned",
+  });
+  if (!stillOurs) {
+    await Courier.updateOne(
+      { _id: courier._id, currentOrder: order._id },
+      { $set: { currentOrder: null, isAvailable: true } },
+    );
+    throw new AppError("errors:order.statusConflict", 409, "ORDER_STATUS_CONFLICT");
+  }
+
   await notificationService.createOrderStatusNotification(order, "assigned");
   await socketService.emitOrderAssigned(order);
 

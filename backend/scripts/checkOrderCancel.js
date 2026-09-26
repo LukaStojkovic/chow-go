@@ -115,6 +115,72 @@ try {
   ok("cancelling a rejected order is refused", rejErr?.code === "CANCEL_NOT_ALLOWED", rejErr?.code ?? "it was allowed");
   ok("the rejection survived", (await Order.findById(rejected._id).lean()).status === "rejected");
 
+  console.log("\na cancel never overwrites a courier's progress");
+  const racer = await User.create({
+    name: "Q", email: "q@cancel.test", password: "x", role: "courier", phoneNumber: "0633333333",
+  });
+  const racerCourier = await Courier.create({
+    userId: racer._id, fullName: "Q", phoneNumber: "0633333333",
+    email: "q@cancel.test", vehicleType: "bike", verificationStatus: "verified",
+  });
+  const cancelAs = (orderId) =>
+    new Promise((resolve) => {
+      let error = null;
+      cancelOrder(
+        { params: { orderId: String(orderId) }, body: {}, user: { _id: customer._id } },
+        { status: () => ({ json: () => resolve(error) }) },
+        (err) => {
+          error = err;
+          resolve(err);
+        },
+      );
+    });
+  const pickedUp = await makeOrder("picked_up");
+  await Order.updateOne({ _id: pickedUp._id }, { $set: { courier: new mongoose.Types.ObjectId() } });
+  const pickedErr = await cancelAs(pickedUp._id);
+  ok("cancelling a picked-up order is refused", pickedErr?.code === "CANCEL_NOT_ALLOWED", pickedErr?.code);
+  ok("and picked_up survives", (await Order.findById(pickedUp._id).lean()).status === "picked_up");
+
+  console.log("\na cancel landing inside a courier's claim still frees them");
+  await Courier.updateOne({ _id: racerCourier._id }, { $set: { isAvailable: true, currentOrder: null } });
+  const squeezed = await makeOrder("ready");
+  const realUpdateOne = Courier.updateOne.bind(Courier);
+  Courier.updateOne = async (...args) => {
+    Courier.updateOne = realUpdateOne;
+    await cancelAs(squeezed._id);
+    return realUpdateOne(...args);
+  };
+  let claimErr = null;
+  try {
+    await acceptOrderOperation({ orderId: squeezed._id, courierUserId: racer._id });
+  } catch (err) {
+    claimErr = err;
+  } finally {
+    Courier.updateOne = realUpdateOne;
+  }
+  ok("the claim reports the conflict", claimErr?.code === "ORDER_STATUS_CONFLICT", claimErr ? claimErr.code ?? claimErr.message : "claim succeeded");
+  ok("the order stays cancelled", (await Order.findById(squeezed._id).lean()).status === "cancelled");
+  let rc = await Courier.findById(racerCourier._id).lean();
+  ok("the courier is free", rc.currentOrder === null && rc.isAvailable === true, JSON.stringify({ c: rc.currentOrder, a: rc.isAvailable }));
+
+  console.log("\nconcurrent cancel and claim, 25 rounds");
+  const violations = [];
+  for (let i = 0; i < 25; i++) {
+    await Courier.updateOne({ _id: racerCourier._id }, { $set: { currentOrder: null, isAvailable: true } });
+    const round = await makeOrder("ready");
+    await Promise.allSettled([
+      acceptOrderOperation({ orderId: round._id, courierUserId: racer._id }),
+      cancelAs(round._id),
+    ]);
+    const o = await Order.findById(round._id).lean();
+    rc = await Courier.findById(racerCourier._id).lean();
+    const holds = String(rc.currentOrder) === String(round._id);
+    if (o.status === "cancelled" && (holds || rc.isAvailable === false)) violations.push(`round ${i}: courier stuck on a cancelled order`);
+    if (o.status === "assigned" && !holds) violations.push(`round ${i}: assigned order the courier does not hold`);
+    if (!["cancelled", "assigned"].includes(o.status)) violations.push(`round ${i}: status ${o.status}`);
+  }
+  ok("no courier is ever stuck or orphaned", violations.length === 0, violations.slice(0, 3).join("; "));
+
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;
 } finally {

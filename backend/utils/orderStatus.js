@@ -74,8 +74,10 @@ export function statusesThatReach(newStatus) {
  * "assigned" stays cancellable - a courier on the way to the restaurant is not
  * a reason to trap the customer - but the handler must release that courier.
  */
+export const CUSTOMER_CANCELLABLE = ["pending", "confirmed", "ready", "assigned"];
+
 export function canCustomerCancel(status) {
-  return ["pending", "confirmed", "ready", "assigned"].includes(status);
+  return CUSTOMER_CANCELLABLE.includes(status);
 }
 
 export function parseStatusFilter(statusParam) {

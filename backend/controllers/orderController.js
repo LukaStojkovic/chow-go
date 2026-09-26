@@ -296,31 +296,40 @@ export async function cancelOrder(req, res, next) {
     const { orderId } = req.params;
     const { reason } = req.body;
 
-    const order = await Order.findOne({
-      _id: orderId,
-      customer: req.user._id,
-    });
+    // One conditional write, like every other transition. This was read, check,
+    // save: a cancel could overwrite a courier's picked_up or delivered, and a
+    // courier who claimed the order between the read and the save was never
+    // released, because the courier id came from the stale read.
+    const order = await Order.findOneAndUpdate(
+      {
+        _id: orderId,
+        customer: req.user._id,
+        status: { $in: orderStatus.CUSTOMER_CANCELLABLE },
+      },
+      {
+        $set: {
+          status: "cancelled",
+          cancelledAt: new Date(),
+          cancellationReason: reason || "Cancelled by customer",
+          cancelledBy: "customer",
+        },
+      },
+      { new: true },
+    );
 
     if (!order) {
-      return next(new AppError("Order not found", 404));
-    }
-
-    if (!orderStatus.canCustomerCancel(order.status)) {
+      const current = await Order.findOne({ _id: orderId, customer: req.user._id })
+        .select("status")
+        .lean();
+      if (!current) return next(new AppError("Order not found", 404));
       return next(
         new AppError("Cannot cancel order at this stage", 400, "CANCEL_NOT_ALLOWED"),
       );
     }
 
+    // Kept on the order as a record of who was on it; the courier themselves is
+    // freed below.
     const assignedCourierId = order.courier;
-
-    order.status = "cancelled";
-    order.cancelledAt = new Date();
-    order.cancellationReason = reason || "Cancelled by customer";
-    order.cancelledBy = "customer";
-    // Keep order.courier for the record of who was on it, but the courier
-    // themselves has to be freed - see below.
-
-    await order.save();
 
     // Releasing the courier is the whole difference between a cancelled order
     // and a courier who can never work again: acceptOrderOperation refuses
