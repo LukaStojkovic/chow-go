@@ -32,6 +32,24 @@ export function socketStatsAccess(req, res, next) {
   return next(new AppError("Not found", 404, "NOT_FOUND"));
 }
 
+// Operator endpoints (force-cancel) until there is an admin role. Required in
+// every environment, since these act on any customer's order; without
+// OPS_TOKEN set they do not exist.
+export function opsAccess(req, res, next) {
+  const expected = process.env.OPS_TOKEN;
+  const presented = req.headers["x-ops-token"];
+  if (
+    expected &&
+    expected.length >= 32 &&
+    typeof presented === "string" &&
+    presented.length === expected.length &&
+    timingSafeEqual(Buffer.from(presented), Buffer.from(expected))
+  ) {
+    return next();
+  }
+  return next(new AppError("Not found", 404, "NOT_FOUND"));
+}
+
 export async function protectedRoute(req, res, next) {
   const token = extractToken(req);
 

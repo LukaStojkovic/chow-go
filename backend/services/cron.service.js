@@ -2,6 +2,7 @@ import cron from "node-cron";
 import Restaurant from "../models/Restaurant.js";
 import { isOpenAt } from "../utils/schedule.js";
 import { logger } from "../utils/logger.js";
+import { recoverStuckOrders } from "./orderRecovery.service.js";
 
 export function startCronJobs() {
   cron.schedule("* * * * *", async () => {
@@ -35,6 +36,12 @@ export function startCronJobs() {
       }
     } catch (error) {
       logger.error({ err: error }, "Cron job error");
+    }
+
+    try {
+      await recoverStuckOrders();
+    } catch (error) {
+      logger.error({ err: error }, "Stuck-order recovery failed");
     }
   });
 

@@ -87,4 +87,8 @@ export const env = {
   // Off unless set. shared/src/adapters/pricing.js#minimumOrder tells the
   // clients there is none, so enabling this should update that too.
   minimumOrderSubtotal: Number(process.env.MIN_ORDER_SUBTOTAL) || 0,
+  // Stuck-order recovery (services/orderRecovery.service.js), in minutes.
+  pendingTimeoutMinutes: Number(process.env.PENDING_TIMEOUT_MINUTES) || 15,
+  assignedTimeoutMinutes: Number(process.env.ASSIGNED_TIMEOUT_MINUTES) || 20,
+  stuckDeliveryMinutes: Number(process.env.STUCK_DELIVERY_MINUTES) || 120,
 };

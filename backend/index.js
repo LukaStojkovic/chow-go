@@ -18,6 +18,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import discoverRoutes from "./routes/discoverRoutes.js";
 import favouriteRoutes from "./routes/favouriteRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import opsRoutes from "./routes/opsRoutes.js";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -143,6 +144,7 @@ app.use("/api/restaurant/orders", restaurantOrderRoutes);
 app.use("/api/courier", courierRoutes);
 app.use("/api/favourites", favouriteRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/ops", opsRoutes);
 
 app.get("/api/socket/stats", socketStatsAccess, (req, res) => {
   res.json(socketServer.getStats());

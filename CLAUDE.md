@@ -138,6 +138,8 @@ Those same templates are the source of push copy via `pushPayloadFor`, so the tw
 
 `utils/schedule.js` is the single source of truth — `DAYS_OF_WEEK` (indexed to match `Date#getDay()`, and the model's `schedule` fields are generated from it), `isOpenAt` (checks today's window *and* yesterday's overnight spill), `normalizeScheduleInput` (validates partial payloads, coerces the `"true"`/`"false"` strings that arrive over multipart), and `buildScheduleFromRange` (signup collects one range and expands it across all 7 days).
 
+The same per-minute cron runs `services/orderRecovery.service.js#recoverStuckOrders`: pending orders unanswered for `PENDING_TIMEOUT_MINUTES` (15) are rejected, assignments not picked up within `ASSIGNED_TIMEOUT_MINUTES` (20) go back to the pool with the courier freed, and deliveries in progress longer than `STUCK_DELIVERY_MINUTES` (120) are logged as a warning. Support can end any unfinished order with `POST /api/ops/orders/:id/cancel` and an `X-Ops-Token` matching `OPS_TOKEN` (at least 32 characters; the route is a 404 without it).
+
 `isOpenNow` is precomputed, not derived: `services/cron.service.js` runs every minute and
 bulk-writes it via `isOpenAt` using **each restaurant's own `timezone`** (IANA, validated
 on the model, defaulting to `DEFAULT_TIMEZONE`). `isOpenAt` resolves the local weekday and
