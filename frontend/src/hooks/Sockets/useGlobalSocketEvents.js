@@ -6,6 +6,21 @@ import { toast } from "sonner";
 import { formatPrice } from "@chowgo/shared/format";
 import { useAuthStore } from "@/store/useAuthStore";
 
+// Safari outside an installed web app has no Notification at all, and Android
+// Chrome throws "Illegal constructor" on new Notification(). Either one threw
+// inside the handler after its toast and before invalidateQueries, so the
+// order screen never refreshed.
+const canNotify = () =>
+  typeof Notification !== "undefined" && Notification.permission === "granted";
+
+function showNotification(title, options) {
+  try {
+    new Notification(title, options);
+  } catch {
+    // The toast already told them; a system notification is a bonus.
+  }
+}
+
 export const useGlobalSocketEvents = () => {
   const { socket, isConnected, connectionEpoch, register } = useSocket();
   const { authUser, checkAuth } = useAuthStore();
@@ -59,8 +74,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_confirmed.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_confirmed.title"), {
           body: t("order:notification.order_confirmed.body", {
             number: data.order?.orderNumber,
           }),
@@ -114,8 +129,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_rejected.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_rejected.title"), {
           body: t("order:notification.rejectedWithReason", {
             number: data.order?.orderNumber,
             reason: data.reason || t("order:notification.noReason"),
@@ -136,8 +151,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_preparing.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_preparing.title"), {
           body: t("order:notification.order_preparing.body", {
             number: data.order?.orderNumber,
           }),
@@ -159,8 +174,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_ready.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_ready.title"), {
           body: t("order:notification.readyForPickup", {
             number: data.order?.orderNumber,
           }),
@@ -182,8 +197,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_cancelled.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_cancelled.title"), {
           body: t("order:notification.cancelledWithReason", {
             number: data.order?.orderNumber,
             reason: data.reason || t("order:notification.noReason"),
@@ -238,8 +253,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_placed.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_placed.title"), {
           body: value,
           icon: "/logos/chow-logo-filled.png",
         });
@@ -260,8 +275,8 @@ export const useGlobalSocketEvents = () => {
         duration: 5000,
       });
 
-      if (Notification.permission === "granted") {
-        new Notification(t("order:notification.order_cancelled.title"), {
+      if (canNotify()) {
+        showNotification(t("order:notification.order_cancelled.title"), {
           body: cancelled,
           icon: "/logos/chow-logo-filled.png",
         });
