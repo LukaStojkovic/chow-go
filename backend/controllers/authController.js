@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomInt } from "crypto";
 import User from "../models/User.js";
+import { env } from "../config/env.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { isMobileClient, withAuthToken } from "../utils/clientType.js";
@@ -51,6 +52,15 @@ function normalizeEmail(value) {
   return String(value).trim().toLowerCase();
 }
 
+function initialRestaurantStatus() {
+  return env.restaurantApprovalRequired
+    ? { isActive: false, approvalStatus: "pending" }
+    : { isActive: true, approvalStatus: "approved" };
+}
+
+const suspendedError = () =>
+  new AppError("errors:auth.accountSuspended", 403, "ACCOUNT_SUSPENDED");
+
 // googleId itself stays server-side; clients only need to know whether one is
 // linked and whether the account has a password of its own.
 function publicUser(user) {
@@ -64,6 +74,7 @@ function publicUser(user) {
     createdAt: user.createdAt,
     authProvider: user.authProvider,
     googleLinked: Boolean(user.googleId),
+    isAdmin: user.isAdmin === true,
   };
 }
 
@@ -108,6 +119,8 @@ export async function login(req, res, next) {
   if (!user?.password || !isCorrectPassword) {
     return next(new AppError("errors:auth.invalidCredentials", 400, "INVALID_CREDENTIALS"));
   }
+  // Only after the password check, so it never tells a stranger the account exists.
+  if (user.suspendedAt) return next(suspendedError());
 
   const token = generateToken(user, res, !!rememberMe || isMobileClient(req));
 
@@ -246,7 +259,7 @@ export const register = async (req, res, next) => {
         sellerData.openingTime,
         sellerData.closingTime,
       ),
-      isActive: true,
+      ...initialRestaurantStatus(),
       address: {
         street: sellerData.restaurantAddress,
         city: sellerData.restaurantCity,
@@ -662,7 +675,7 @@ export const checkAuth = (req, res) => {
   res.status(200).json(response);
 };
 
-const GOOGLE_FAILURE_REASONS = new Set(["account_exists", "email_unverified"]);
+const GOOGLE_FAILURE_REASONS = new Set(["account_exists", "email_unverified", "account_suspended"]);
 
 export const googleCallback = async (req, res, next) => {
   const data = req.user;
@@ -685,6 +698,8 @@ export const googleCallback = async (req, res, next) => {
     const { failure } = await linkGoogleAccount(state.link, googleId);
     return res.redirect(failure ? `${base}?linkError=${failure}` : `${base}?linked=true`);
   }
+
+  if (data?.suspendedAt) return res.redirect(`${base}?error=account_suspended`);
 
   if (!data) {
     const reason = GOOGLE_FAILURE_REASONS.has(req.googleAuthFailure)
@@ -763,6 +778,7 @@ export const googleExchange = async (req, res, next) => {
 
   const user = await User.findById(payload.userId).select("-password");
   if (!user) return next(new AppError("User not found", 404));
+  if (user.suspendedAt) return next(suspendedError());
   if (user.role === "seller") await user.populate("restaurant");
 
   const token = generateToken(user, res, true, { skipCookie: true });
@@ -978,7 +994,7 @@ export const googleCompleteProfile = async (req, res, next) => {
       phone: body.restaurantPhone,
       email: googleProfile.email.toLowerCase(),
       schedule: buildScheduleFromRange(body.openingTime, body.closingTime),
-      isActive: true,
+      ...initialRestaurantStatus(),
       address: {
         street: body.restaurantAddress,
         city: body.restaurantCity,

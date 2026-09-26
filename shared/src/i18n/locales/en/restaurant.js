@@ -1,6 +1,14 @@
 /** Restaurant page, menu, and opening hours. */
 
 export default {
+  approval: {
+    pending: "Your restaurant is waiting for approval",
+    pendingBody: "Customers cannot see it yet. We will review it shortly; you can finish your menu in the meantime.",
+    rejected: "Your restaurant was not approved",
+    suspended: "Your restaurant is suspended",
+    hiddenBody: "Customers cannot see it or order from it. Contact support to resolve this.",
+    note: "Reason: {{note}}",
+  },
   availability: {
     notAccepting: "This restaurant is not accepting orders at the moment.",
     closedUntil: "Closed right now. Opens again at {{time}}.",

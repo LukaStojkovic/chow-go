@@ -93,6 +93,10 @@ export async function protectedRoute(req, res, next) {
     );
   }
 
+  if (user.suspendedAt) {
+    return next(new AppError("errors:auth.accountSuspended", 403, "ACCOUNT_SUSPENDED"));
+  }
+
   if (user.role === "seller") {
     await user.populate("restaurant");
   }

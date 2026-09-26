@@ -20,3 +20,12 @@ export const isCourierMiddleware = (req, res, next) => {
   }
   next();
 };
+
+// A 404 rather than a 403, so the admin surface is not advertised to
+// everyone who probes it with an ordinary account.
+export const isAdminMiddleware = (req, res, next) => {
+  if (req.user?.isAdmin !== true) {
+    return next(new AppError("Not found", 404, "NOT_FOUND"));
+  }
+  next();
+};

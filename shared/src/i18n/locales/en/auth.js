@@ -162,6 +162,7 @@ export default {
   },
 
   google: {
+    accountSuspended: "This account has been suspended. Contact support if you think this is a mistake.",
     stepRole: "Choose your role",
     stepContact: "Contact details",
     oneLastThing: "One last thing",

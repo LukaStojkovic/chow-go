@@ -61,7 +61,9 @@ export function GoogleButton() {
             ? t("google.accountExists")
             : result.reason === "email_unverified"
               ? t("google.emailUnverified")
-              : t("google.tryAgain");
+              : result.reason === "account_suspended"
+                ? t("google.accountSuspended")
+                : t("google.tryAgain");
         toast.error(t("google.signInFailed"), { description });
       }
     } catch (error) {

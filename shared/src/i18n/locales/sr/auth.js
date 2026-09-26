@@ -163,6 +163,7 @@ export default {
   },
 
   google: {
+    accountSuspended: "Ovaj nalog je suspendovan. Obratite se podršci ako mislite da je u pitanju greška.",
     stepRole: "Izaberite svoju ulogu",
     stepContact: "Kontakt podaci",
     oneLastThing: "Još samo jedno",

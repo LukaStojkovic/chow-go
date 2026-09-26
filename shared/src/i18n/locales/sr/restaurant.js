@@ -1,6 +1,14 @@
 /** Serbian restaurant, menu and opening-hours copy. */
 
 export default {
+  approval: {
+    pending: "Vaš restoran čeka odobrenje",
+    pendingBody: "Kupci ga još ne vide. Uskoro ćemo ga pregledati; u međuvremenu možete dovršiti meni.",
+    rejected: "Vaš restoran nije odobren",
+    suspended: "Vaš restoran je suspendovan",
+    hiddenBody: "Kupci ga ne vide i ne mogu da poruče. Obratite se podršci da biste ovo rešili.",
+    note: "Razlog: {{note}}",
+  },
   availability: {
     notAccepting: "Ovaj restoran trenutno ne prima porudžbine.",
     closedUntil: "Trenutno zatvoreno. Otvara se ponovo u {{time}}.",

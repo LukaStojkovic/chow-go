@@ -19,6 +19,7 @@ import discoverRoutes from "./routes/discoverRoutes.js";
 import favouriteRoutes from "./routes/favouriteRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import opsRoutes from "./routes/opsRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -145,6 +146,7 @@ app.use("/api/courier", courierRoutes);
 app.use("/api/favourites", favouriteRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/ops", opsRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/socket/stats", socketStatsAccess, (req, res) => {
   res.json(socketServer.getStats());

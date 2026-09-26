@@ -60,6 +60,7 @@ export default function GoogleAuthCallbackPage() {
     if (error) {
       if (error === "account_exists") toast.error(t("google.accountExists"));
       else if (error === "email_unverified") toast.error(t("google.emailUnverified"));
+      else if (error === "account_suspended") toast.error(t("google.accountSuspended"));
       else toast.error(t("google.webFailed"));
       navigate("/", { replace: true });
       return;

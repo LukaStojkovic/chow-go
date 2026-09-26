@@ -21,6 +21,7 @@ import { useRestaurantStats } from "@/hooks/Restaurants/useRestaurantStats";
 import { useSellerOrders } from "@/hooks/SellerOrders/useSellerOrders";
 import { useTokens } from "@/theme/useTokens";
 import { useRefreshTint } from "@/theme/useRefreshTint";
+import { ApprovalNotice } from "@/features/seller/ApprovalNotice";
 
 function StatTile({ label, value, icon, tone, trend, isPositive }) {
   const { color } = useTokens();
@@ -126,6 +127,8 @@ export default function SellerOverview() {
           />
         }
       >
+        <ApprovalNotice />
+
         {/* Identity first: a seller with two branches needs to know which one
               these numbers belong to before reading any of them. */}
         <View className="flex-row items-center gap-3 pb-1">

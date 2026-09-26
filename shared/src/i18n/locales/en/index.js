@@ -13,6 +13,7 @@
  * `npm run check:locales` fails if the two ever drift.
  */
 
+import admin from "./admin.js";
 import auth from "./auth.js";
 import basket from "./basket.js";
 import common from "./common.js";
@@ -27,6 +28,7 @@ import seller from "./seller.js";
 import validation from "./validation.js";
 
 export default {
+  admin,
   auth,
   basket,
   common,

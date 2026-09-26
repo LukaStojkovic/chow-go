@@ -91,4 +91,7 @@ export const env = {
   pendingTimeoutMinutes: Number(process.env.PENDING_TIMEOUT_MINUTES) || 15,
   assignedTimeoutMinutes: Number(process.env.ASSIGNED_TIMEOUT_MINUTES) || 20,
   stuckDeliveryMinutes: Number(process.env.STUCK_DELIVERY_MINUTES) || 120,
+  // When "true", a new restaurant waits for an admin to approve it instead of
+  // appearing in discovery the moment its seller signs up.
+  restaurantApprovalRequired: process.env.RESTAURANT_APPROVAL_REQUIRED === "true",
 };

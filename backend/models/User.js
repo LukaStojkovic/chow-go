@@ -61,6 +61,14 @@ const userSchema = new mongoose.Schema(
     // account already secured from one still to review.
     googleLinkSecuredAt: { type: Date, select: false },
 
+    // Platform staff, orthogonal to role: an admin is still a customer (or
+    // seller, or courier) everywhere else. Granted with scripts/grantAdmin.js.
+    isAdmin: { type: Boolean, default: false },
+    // Set by an admin. protectedRoute and the socket handshake refuse the
+    // account while it is set; the tokenVersion bump ends existing sessions.
+    suspendedAt: Date,
+    suspensionReason: { type: String, maxlength: 500 },
+
     // The language this person reads the app in. Stored, not derived, because
     // the backend has to render push notification copy long after the request
     // that would have carried a header - a courier is assigned while the

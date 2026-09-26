@@ -13,6 +13,7 @@
 
 export default {
   auth: {
+    accountSuspended: "This account has been suspended. Contact support if you think this is a mistake.",
     googleLinkExpired: "That link expired. Please try again.",
     googleAlreadyLinked: "This account is already connected to a different Google account.",
     googleInUse: "That Google account is already used by another Chow & Go account.",
@@ -209,6 +210,7 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    ACCOUNT_SUSPENDED: "This account has been suspended",
     GOOGLE_LINK_EXPIRED: "That link expired. Please try again.",
     GOOGLE_ALREADY_LINKED: "This account is already connected to a Google account.",
     GOOGLE_IN_USE: "That Google account is already used by another account.",

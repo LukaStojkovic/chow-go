@@ -2,6 +2,7 @@
 
 export default {
   auth: {
+    accountSuspended: "Ovaj nalog je suspendovan. Obratite se podršci ako mislite da je u pitanju greška.",
     googleLinkExpired: "Veza je istekla. Pokušajte ponovo.",
     googleAlreadyLinked: "Ovaj nalog je već povezan sa drugim Google nalogom.",
     googleInUse: "Taj Google nalog već koristi drugi Chow & Go nalog.",
@@ -199,6 +200,7 @@ export default {
   },
 
   byCode: {
+    ACCOUNT_SUSPENDED: "Ovaj nalog je suspendovan",
     GOOGLE_LINK_EXPIRED: "Veza je istekla. Pokušajte ponovo.",
     GOOGLE_ALREADY_LINKED: "Ovaj nalog je već povezan sa Google nalogom.",
     GOOGLE_IN_USE: "Taj Google nalog već koristi drugi nalog.",

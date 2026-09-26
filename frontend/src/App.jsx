@@ -31,6 +31,8 @@ import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import ProfilePage from "./pages/ProfilePage";
+import AdminRoute from "./components/Auth/components/AdminRoute";
+const AdminPage = lazyWithReload(() => import("./pages/admin/AdminPage"));
 import BecomeCourierPage from "./pages/BecomeCourierPage";
 import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
 import AuthModal from "./components/Auth/AuthModal";
@@ -247,6 +249,15 @@ function AppContent() {
             <Route path="delivery/:orderId" element={<CourierActiveDelivery />} />
             <Route path="profile" element={<CourierProfile />} />
           </Route>
+
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

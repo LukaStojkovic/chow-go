@@ -93,7 +93,7 @@ function LinkRow({ to, icon: Icon, label, description }) {
 }
 
 export default function ProfilePage() {
-  const { t } = useTranslation(["profile", "common", "order"]);
+  const { t } = useTranslation(["profile", "common", "order", "admin"]);
   const { authUser, logout } = useAuthStore();
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const { theme, setTheme } = useDarkMode();
@@ -230,6 +230,11 @@ export default function ProfilePage() {
             )}
             <ConnectGoogle className="border-t border-border pt-3" />
             <DownloadMyData className="border-t border-border pt-3" />
+            {authUser?.isAdmin ? (
+              <Link to="/admin" className="block border-t border-border pt-3 text-body-sm font-medium text-primary">
+                {t("admin:openConsole")}
+              </Link>
+            ) : null}
           </Card>
 
           <Card padded className="space-y-3">

@@ -76,7 +76,7 @@ class SocketServer {
 
         const user = await User.findById(decoded.userId);
 
-        if (!user || user.isDeleted) {
+        if (!user || user.isDeleted || user.suspendedAt) {
           return next(new Error("Authentication error: User not found"));
         }
 

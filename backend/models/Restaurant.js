@@ -115,6 +115,17 @@ const restaurantSchema = new mongoose.Schema(
     // isOpenNow used to be computed from the server's local clock, so a UTC
     // host put every restaurant's hours an hour or two out - and createOrder
     // rejects on that flag.
+    // Discovery only ever filters on isActive; this says why a restaurant is
+    // or is not live, so the seller can be told and an admin can act on it.
+    // A missing value (restaurants from before approval existed) reads as
+    // approved.
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "suspended"],
+      default: "approved",
+    },
+    approvalNote: { type: String, maxlength: 500 },
+
     // What the menu is priced in and what the courier collects. Taken from the
     // country at creation; orders copy it, so changing it never reprices one.
     currency: {
