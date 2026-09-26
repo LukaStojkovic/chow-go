@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { lngLat } from "../utils/geoValidators.js";
 
 const addressSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ const addressSchema = new mongoose.Schema(
       index: true,
     },
 
-    label: { type: String, required: true },
+    label: { type: String, required: true, maxlength: 60 },
 
     addressType: {
       type: String,
@@ -17,18 +18,18 @@ const addressSchema = new mongoose.Schema(
       required: true,
     },
 
-    fullAddress: { type: String, required: true },
+    fullAddress: { type: String, required: true, maxlength: 300 },
 
-    buildingName: String,
-    apartment: String,
-    floor: String,
-    entrance: String,
-    doorCode: String,
-    notes: String,
+    buildingName: { type: String, maxlength: 100 },
+    apartment: { type: String, maxlength: 100 },
+    floor: { type: String, maxlength: 100 },
+    entrance: { type: String, maxlength: 100 },
+    doorCode: { type: String, maxlength: 100 },
+    notes: { type: String, maxlength: 500 },
 
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
-      coordinates: { type: [Number], required: true },
+      coordinates: { type: [Number], required: true, validate: lngLat },
     },
 
     isDefault: { type: Boolean, default: false },

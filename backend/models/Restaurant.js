@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { lngLat } from "../utils/geoValidators.js";
 import {
   DAYS_OF_WEEK,
   DEFAULT_CLOSING_TIME,
@@ -44,6 +45,7 @@ const restaurantSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: 120,
     },
 
     cuisineType: {
@@ -74,6 +76,7 @@ const restaurantSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      maxlength: 2000,
     },
 
     images: [
@@ -84,15 +87,15 @@ const restaurantSchema = new mongoose.Schema(
     ],
 
     address: {
-      street: { type: String, required: true },
-      city: { type: String, required: true },
+      street: { type: String, required: true, maxlength: 200 },
+      city: { type: String, required: true, maxlength: 100 },
       state: { type: String },
       zipCode: { type: String, required: true },
       country: { type: String, default: "Serbia" },
     },
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
-      coordinates: { type: [Number], required: true },
+      coordinates: { type: [Number], required: true, validate: lngLat },
     },
 
     phone: {

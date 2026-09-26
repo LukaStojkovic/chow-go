@@ -11,7 +11,7 @@ const orderItemSchema = new mongoose.Schema(
     name: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
     quantity: { type: Number, required: true, min: 1 },
-    specialInstructions: { type: String },
+    specialInstructions: { type: String, maxlength: 200 },
   },
   { _id: false },
 );
@@ -132,7 +132,7 @@ const orderSchema = new mongoose.Schema(
     },
     transactionId: String,
 
-    customerNotes: String,
+    customerNotes: { type: String, maxlength: 500 },
     restaurantNotes: String,
     courierNotes: String,
 

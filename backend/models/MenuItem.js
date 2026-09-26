@@ -34,10 +34,10 @@ promotionSchema.path("value").validate(function (value) {
 
 const menuItemSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
-    description: { type: String, required: true, trim: true },
-    price: { type: Number, required: true, min: 0 },
-    category: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true, maxlength: 120 },
+    description: { type: String, required: true, trim: true, maxlength: 1000 },
+    price: { type: Number, required: true, min: 0, max: 100000 },
+    category: { type: String, required: true, trim: true, maxlength: 60 },
     imageUrls: [{ type: String }],
     available: { type: Boolean, default: true },
 
