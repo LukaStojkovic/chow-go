@@ -116,9 +116,8 @@ export async function emitOrderCancelled(customerId, order, reason) {
 }
 
 /**
- * A new order reaches the restaurant. The seller currently has no push
- * fallback, so when the socket room is empty the order simply waits - this is
- * the one place that needs to change to fix it.
+ * A new order reaches the restaurant: over the socket when a seller is
+ * connected, otherwise as a push to the owner.
  */
 export async function emitOrderPlaced(order) {
   try {
