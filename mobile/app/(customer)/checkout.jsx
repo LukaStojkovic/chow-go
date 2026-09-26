@@ -22,6 +22,7 @@ import { Section } from "@/features/checkout/Section";
 import { useAddresses } from "@/hooks/Address/useAddresses";
 import { useCreateOrder } from "@/hooks/Orders/useOrders";
 import { useCartStore } from "@/store/useCartStore";
+import { registerForPush } from "@/notifications/register";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
@@ -96,6 +97,8 @@ export default function Checkout() {
       });
       // The backend deletes the cart document as part of creating the order.
       clearLocalCart();
+      // Now there is an order to be told about, which is when to ask.
+      registerForPush({ prompt: true });
       router.replace(`/(customer)/order/${order._id}/confirmed`);
     } catch (error) {
       const code = error?.response?.data?.code;

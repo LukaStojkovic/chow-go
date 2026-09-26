@@ -217,6 +217,18 @@ try {
   const fConfirm = await call(googleLinkConfirm, { body: { code: fCode, codeVerifier: f.verifier }, user: frank });
   ok("confirm reports a taken id as GOOGLE_IN_USE", fConfirm.error?.code === "GOOGLE_IN_USE");
 
+  console.log("\nbuild variants");
+  const { mobileRedirectFor } = await import("../utils/googleHandoff.js");
+  ok("a dev build's scheme is accepted", mobileRedirectFor("chowgo-dev://auth/google") === "chowgo-dev://auth/google");
+  ok("a preview build's scheme is accepted", mobileRedirectFor("chowgo-preview://auth/google") === "chowgo-preview://auth/google");
+  ok("any other scheme falls back", mobileRedirectFor("evil://auth/google") === "chowgo://auth/google");
+  ok("any other path falls back", mobileRedirectFor("chowgo://auth/google/steal") === "chowgo://auth/google");
+  const devCallback = await call(googleCallback, {
+    query: { state: signOAuthState("mobile", { challenge, link: ticket.link, redirect: "chowgo-dev://auth/google" }) },
+    user: { linkProfile: { googleId: "g-dev" } },
+  });
+  ok("the callback returns to the scheme in the signed state", devCallback.res.redirectedTo?.startsWith("chowgo-dev://auth/google?"), devCallback.res.redirectedTo);
+
   console.log("\nwhat clients see");
   const checked = await call(checkAuth, { user: await User.findById(erin._id).select("-password") });
   ok("checkAuth says Google is linked", checked.res.body?.googleLinked === true);

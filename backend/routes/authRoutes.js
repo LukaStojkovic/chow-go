@@ -28,6 +28,7 @@ import {
   oauthNonceCookieOptions,
   readOAuthState,
   signOAuthState,
+  mobileRedirectFor,
   verifyTyped,
 } from "../utils/googleHandoff.js";
 
@@ -60,13 +61,13 @@ router.put(
 // The signed state is how the callback knows which client started the flow.
 router.get("/google", (req, res, next) => {
   const isMobile = req.query.client === "mobile";
+  const redirect = mobileRedirectFor(req.query.redirect);
   if (isMobile && !isValidChallenge(req.query.challenge)) {
-    const base = process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google";
-    return res.redirect(`${base}?error=auth_failed`);
+    return res.redirect(`${redirect}?error=auth_failed`);
   }
   let state;
   if (isMobile) {
-    state = signOAuthState("mobile", { challenge: req.query.challenge });
+    state = signOAuthState("mobile", { challenge: req.query.challenge, redirect });
   } else {
     const nonce = newOAuthNonce();
     res.cookie(OAUTH_NONCE_COOKIE, nonce, oauthNonceCookieOptions());
@@ -105,10 +106,13 @@ router.get("/google/link/start", (req, res, next) => {
   try {
     ticket = verifyTyped(String(req.query.ticket ?? ""), "google_link_ticket");
   } catch {
-    const base = process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google";
-    return res.redirect(`${base}?linkError=link_expired`);
+    return res.redirect(`${mobileRedirectFor(req.query.redirect)}?linkError=link_expired`);
   }
-  const state = signOAuthState("mobile", { challenge: ticket.challenge, link: ticket.link });
+  const state = signOAuthState("mobile", {
+    challenge: ticket.challenge,
+    link: ticket.link,
+    redirect: mobileRedirectFor(ticket.redirect),
+  });
   return googleLinkAuth(state)(req, res, next);
 });
 router.post("/google/link/confirm", protectedRoute, googleLinkConfirm);

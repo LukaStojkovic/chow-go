@@ -13,7 +13,10 @@
       "ios": {
         "simulator": false
       },
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "APP_VARIANT": "development"
+      }
     },
     "development-simulator": {
       "extends": "development",
@@ -31,6 +34,7 @@
         "simulator": false
       },
       "env": {
+        "APP_VARIANT": "preview",
         "EXPO_PUBLIC_API_URL": "https://staging.example.invalid/api",
         "SENTRY_ALLOW_FAILURE": "true"
       }
@@ -42,6 +46,7 @@
       },
       "channel": "production",
       "env": {
+        "APP_VARIANT": "production",
         "EXPO_PUBLIC_API_URL": "https://api.example.invalid/api",
         "SENTRY_ALLOW_FAILURE": "true"
       }

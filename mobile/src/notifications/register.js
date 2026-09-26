@@ -10,12 +10,14 @@ import { getInstallationId } from "@/lib/installationId";
 let registeredToken = null;
 
 /**
- * Asks for permission, then hands the Expo push token to the backend.
+ * Hands the Expo push token to the backend, asking for permission first only
+ * when `prompt` is set. A customer is asked once they have an order to hear
+ * about - asked cold at sign-in, most people say no and iOS never asks again.
  *
  * Returns null rather than throwing: a customer who declines notifications
  * should still get a working app, just without background updates.
  */
-export async function registerForPush() {
+export async function registerForPush({ prompt = true } = {}) {
   // A simulator has no push token, and asking produces a confusing error.
   if (!Device.isDevice) return null;
 
@@ -24,7 +26,7 @@ export async function registerForPush() {
 
     const existing = await Notifications.getPermissionsAsync();
     let status = existing.status;
-    if (status !== "granted") {
+    if (status !== "granted" && prompt && existing.canAskAgain !== false) {
       ({ status } = await Notifications.requestPermissionsAsync());
     }
     if (status !== "granted") return null;

@@ -6,6 +6,7 @@ import { isMobileClient, withAuthToken } from "../utils/clientType.js";
 import {
   HANDOFF_TTL_MS,
   isValidChallenge,
+  mobileRedirectFor,
   readOAuthState,
   signHandoff,
   signLinkHandoff,
@@ -668,7 +669,7 @@ export const googleCallback = async (req, res, next) => {
   const state = readOAuthState(req.query.state);
   const isMobile = state.client === "mobile";
   const base = isMobile
-    ? process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google"
+    ? mobileRedirectFor(state.redirect)
     : `${process.env.FRONTEND_URL}/auth/google/callback`;
 
   if (state.link) {
@@ -789,7 +790,7 @@ const LINK_FAILURE_ERRORS = {
 
 /** Native: trades the bearer session for a ticket the system browser can carry. */
 export const googleLinkTicket = async (req, res, next) => {
-  const { challenge } = req.body ?? {};
+  const { challenge, redirect } = req.body ?? {};
   if (!isValidChallenge(challenge)) return next(new AppError("Invalid challenge", 400));
   if (req.user.googleId) {
     return next(new AppError("errors:auth.googleAlreadyLinked", 409, "GOOGLE_ALREADY_LINKED"));
@@ -797,6 +798,7 @@ export const googleLinkTicket = async (req, res, next) => {
   const ticket = signLinkTicket(
     { userId: req.user._id, ver: req.user.tokenVersion ?? 0 },
     challenge,
+    mobileRedirectFor(redirect),
   );
   return res.status(200).json({ ticket });
 };

@@ -38,10 +38,15 @@ export function usePushNotifications() {
   const queryClient = useQueryClient();
   const handled = useRef(null);
 
+  // Keyed on the id: authUser is replaced on every profile refresh, which
+  // re-registered the device each time. Sellers and couriers are asked
+  // straight away - new orders and offers are the job - and customers after
+  // their first order (checkout calls registerForPush itself).
+  const userId = authUser?._id;
   useEffect(() => {
-    if (!authUser) return;
-    registerForPush();
-  }, [authUser]);
+    if (!userId) return;
+    registerForPush({ prompt: role !== "customer" });
+  }, [userId, role]);
 
   // shouldSetBadge raises the count; nothing ever lowered it, so the icon badge
   // climbed monotonically and never reset no matter how much the user read.

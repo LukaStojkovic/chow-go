@@ -62,14 +62,14 @@ export const signSignupState = (googleProfile) =>
  * Carries which client started the flow through the Google round-trip.
  * Signing it also buys CSRF protection the flow does not have today.
  */
-export const signOAuthState = (client, { challenge, nonce, link } = {}) =>
-  sign({ client, challenge, nonce, link, typ: "oauth_state" }, STATE_TTL);
+export const signOAuthState = (client, { challenge, nonce, link, redirect } = {}) =>
+  sign({ client, challenge, nonce, link, redirect, typ: "oauth_state" }, STATE_TTL);
 
 /** Anything unsigned or expired falls back to the web redirect, marked invalid. */
 export function readOAuthState(state) {
   try {
-    const { client, challenge, nonce, link } = verifyTyped(state, "oauth_state");
-    return { valid: true, client, challenge, nonce, link };
+    const { client, challenge, nonce, link, redirect } = verifyTyped(state, "oauth_state");
+    return { valid: true, client, challenge, nonce, link, redirect };
   } catch {
     return { valid: false, client: "web" };
   }
@@ -110,11 +110,31 @@ export function nonceMatches(cookieNonce, stateNonce) {
  */
 const LINK_TICKET_TTL = "2m";
 
-export const signLinkTicket = ({ userId, ver }, challenge) =>
-  sign({ link: { userId: String(userId), ver }, challenge, typ: "google_link_ticket" }, LINK_TICKET_TTL);
+export const signLinkTicket = ({ userId, ver }, challenge, redirect) =>
+  sign(
+    { link: { userId: String(userId), ver }, challenge, redirect, typ: "google_link_ticket" },
+    LINK_TICKET_TTL,
+  );
 
 export const signLinkHandoff = ({ link, googleId }, challenge) =>
   sign(
     { link, googleId, challenge, jti: randomUUID(), typ: "google_link_handoff" },
     HANDOFF_TTL,
   );
+
+/**
+ * Where native sign-in lands. Each build variant has its own scheme so a dev,
+ * preview and store build can sit on one phone without claiming each other's
+ * deep links; the app says which one it is, and only these are accepted, so
+ * the redirect can never be pointed anywhere else.
+ */
+const MOBILE_REDIRECTS = /^chowgo(-dev|-preview)?:\/\/auth\/google$/;
+
+export const defaultMobileRedirect = () =>
+  process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google";
+
+export function mobileRedirectFor(requested) {
+  return typeof requested === "string" && MOBILE_REDIRECTS.test(requested)
+    ? requested
+    : defaultMobileRedirect();
+}
