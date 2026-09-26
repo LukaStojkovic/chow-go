@@ -112,7 +112,11 @@ sets `order.isNew = true` because `withTransaction` retries it on a write confli
 database needs `node scripts/migrateIdempotencyIndex.js` once to drop the old global index.
 
 Pricing is hardcoded in `createOrder` (delivery 2.50, service 1.50, priority +1.99, tax
-0) and every figure goes through `utils/money.js#toMoney`. `serviceFee` and
+0) and every figure goes through `utils/money.js#toMoney`. Tips must be 0–`PRICING.maxTip`
+(50, read from `@chowgo/shared/adapters/pricing`). Checkout also refuses an address farther
+than `DELIVERY_RADIUS_KM` (default 20, matching discovery's radius) from the restaurant, and
+a subtotal under `MIN_ORDER_SUBTOTAL` (default 0 = off; if you turn it on, also set
+`PRICING.minimumOrder` so the clients show it). `serviceFee` and
 `priorityFee` are each stored on their own field, so the stored order itemises exactly
 like the checkout preview.
 

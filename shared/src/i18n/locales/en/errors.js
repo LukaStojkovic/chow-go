@@ -106,6 +106,8 @@ export default {
     itemUnavailable: "{{name}} is no longer available",
     alreadyPlaced: "This basket was just ordered. Check your orders.",
     tipInvalid: "A tip must be between 0 and {{max}}",
+    outOfRange: "This restaurant doesn't deliver that far. The limit is {{km}} km.",
+    belowMinimum: "The minimum order is {{min}} before fees.",
     priceChanged:
       "Some prices in your basket have changed. Check the new total and place your order again.",
     notFound: "That order was not found",

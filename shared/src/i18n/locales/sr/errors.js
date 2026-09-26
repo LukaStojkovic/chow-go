@@ -97,6 +97,8 @@ export default {
     itemUnavailable: "{{name}} više nije dostupno",
     alreadyPlaced: "Ova korpa je upravo poručena. Proverite svoje porudžbine.",
     tipInvalid: "Napojnica mora biti između 0 i {{max}}",
+    outOfRange: "Ovaj restoran ne dostavlja tako daleko. Najviše {{km}} km.",
+    belowMinimum: "Minimalna porudžbina je {{min}} bez naknada.",
     priceChanged:
       "Neke cene u vašoj korpi su se promenile. Proverite novi iznos i ponovo pošaljite porudžbinu.",
     notFound: "Ta porudžbina nije pronađena",

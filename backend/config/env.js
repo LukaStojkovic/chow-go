@@ -81,4 +81,10 @@ export const env = {
   // stored preference. Only ever a fallback: `attachLocale` prefers the
   // client's `X-Locale`, then `User.locale`, then `Accept-Language`.
   defaultLocale: process.env.DEFAULT_LOCALE || "en",
+  // Discovery lists restaurants within 20 km, so checkout refuses anything
+  // farther by default: a restaurant hundreds of km away used to be orderable.
+  deliveryRadiusKm: Number(process.env.DELIVERY_RADIUS_KM) || 20,
+  // Off unless set. shared/src/adapters/pricing.js#minimumOrder tells the
+  // clients there is none, so enabling this should update that too.
+  minimumOrderSubtotal: Number(process.env.MIN_ORDER_SUBTOTAL) || 0,
 };

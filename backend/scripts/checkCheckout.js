@@ -40,6 +40,7 @@ const child = spawn(process.execPath, ["index.js"], {
     NODE_ENV: "development",
     LOG_LEVEL: "silent",
     MAIL_DISABLED: "true",
+    MIN_ORDER_SUBTOTAL: "5",
   },
   stdio: ["ignore", "ignore", "inherit"],
 });
@@ -269,6 +270,24 @@ try {
   ok("none of them placed an order", (await Order.countDocuments({})) === tipOrders);
   const maxTip = await call("POST", "/api/orders/create", { ...payload, tip: 50 }, { "Idempotency-Key": randomUUID() });
   ok("a 50 tip is accepted", maxTip.status === 201 && maxTip.body?.data?.order?.tip === 50, `${maxTip.status} ${maxTip.body?.data?.order?.tip}`);
+
+  console.log("\ndelivery range and minimum order");
+  await Cart.deleteMany({});
+  await stockCart();
+  const far = await call("POST", "/api/delivery-address", {
+    address: "Bulevar oslobodjenja 1, Novi Sad", label: "Other", type: "house", location: { lat: 45.2551, lng: 19.8451 },
+  });
+  const farId = far.body?.address?._id ?? far.body?.data?.address?._id ?? far.body?.data?._id;
+  const tooFar = await call("POST", "/api/orders/create", { ...payload, deliveryAddressId: String(farId) }, { "Idempotency-Key": randomUUID() });
+  ok("an address about 70 km away is refused", tooFar.status === 400 && tooFar.body.code === "OUT_OF_DELIVERY_RANGE", `${tooFar.status} ${tooFar.body.code}`);
+  ok("and the limit is named", tooFar.body.message?.includes("20"), tooFar.body.message);
+  await Cart.deleteMany({});
+  await MenuItem.updateOne({ _id: item._id }, { $set: { price: 2 } });
+  await stockCart();
+  const small = await call("POST", "/api/orders/create", payload, { "Idempotency-Key": randomUUID() });
+  ok("a 4.00 basket under a 5.00 minimum is refused", small.status === 400 && small.body.code === "BELOW_MINIMUM_ORDER", `${small.status} ${small.body.code}`);
+  await MenuItem.updateOne({ _id: item._id }, { $set: { price: 9.5 } });
+  await Cart.deleteMany({});
 
   console.log("\nonly customers order");
   const courierUser = await User.create({

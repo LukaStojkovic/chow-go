@@ -12,6 +12,8 @@ import { toMoney } from "../utils/money.js";
 import * as orderSocketService from "../services/orderSocket.service.js";
 import { repriceCartLines } from "../services/cartPricing.service.js";
 import { PRICING } from "@chowgo/shared/adapters/pricing";
+import { haversineMeters, toLatLng } from "@chowgo/shared/geo";
+import { env } from "../config/env.js";
 import { parsePagination } from "../utils/pagination.js";
 
 export async function createOrder(req, res, next) {
@@ -83,6 +85,19 @@ export async function createOrder(req, res, next) {
       return next(new AppError("Restaurant is currently closed", 400));
     }
 
+    const restaurantPoint = toLatLng(restaurant.location?.coordinates);
+    const addressPoint = toLatLng(deliveryAddress.location?.coordinates);
+    if (restaurantPoint && addressPoint) {
+      const km = haversineMeters(restaurantPoint, addressPoint) / 1000;
+      if (km > env.deliveryRadiusKm) {
+        return next(
+          new AppError("errors:order.outOfRange", 400, "OUT_OF_DELIVERY_RANGE", {
+            km: env.deliveryRadiusKm,
+          }),
+        );
+      }
+    }
+
     // The cart holds the price from when each dish was added; the order is
     // charged what the menu charges now. A difference is shown to the customer
     // before anything is placed rather than silently applied.
@@ -107,6 +122,13 @@ export async function createOrder(req, res, next) {
     // totals like 28.090000000000003, which display code hid but reporting and
     // any future reconciliation would not.
     const subtotal = toMoney(cart.totalPrice);
+    if (env.minimumOrderSubtotal > 0 && subtotal < env.minimumOrderSubtotal) {
+      return next(
+        new AppError("errors:order.belowMinimum", 400, "BELOW_MINIMUM_ORDER", {
+          min: env.minimumOrderSubtotal,
+        }),
+      );
+    }
     const deliveryFee = 2.5;
     const serviceFee = 1.5;
     const priorityFee = deliveryType === "priority" ? 1.99 : 0;
