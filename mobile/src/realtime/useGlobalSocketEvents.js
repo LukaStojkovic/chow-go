@@ -6,6 +6,7 @@ import { t } from "@chowgo/shared/i18n";
 import { useSocket } from "./SocketProvider";
 import { toast } from "@/store/useToastStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { stopBackgroundTracking } from "@/location/backgroundTracking";
 
 // The single place that registers the socket role and invalidates caches, same
 // rule as the web. New realtime state must be wired here or the UI won't update.
@@ -153,10 +154,18 @@ export function useGlobalSocketEvents() {
     const refreshPool = () =>
       queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
 
+    // The background location task outlives the delivery screen on purpose, so
+    // the end of the delivery is what stops it.
+    const endDelivery = () => {
+      stopBackgroundTracking();
+      refreshWithProfile();
+    };
+
     const bindings = [
       ["order:assigned", refreshWithProfile],
-      ["order:delivered", refreshWithProfile],
-      ["order:courier_unassigned", refreshWithProfile],
+      ["order:delivered", endDelivery],
+      ["order:courier_unassigned", endDelivery],
+      ["order:cancelled", endDelivery],
       ["order:picked_up", refreshAll],
       ["order:in_transit", refreshAll],
       ["order:available", refreshPool],

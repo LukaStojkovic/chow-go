@@ -1,4 +1,6 @@
 import "../global.css";
+// Defines the background location task; it must exist before a background launch.
+import "@/location/backgroundTracking";
 
 import {
   Inter_400Regular,

@@ -4,7 +4,7 @@ import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
-import { isUsableCoordinatePair } from "./locationTracking.service.js";
+import { isUsableCoordinatePair, updateCourierLocation } from "./locationTracking.service.js";
 import { parsePagination } from "../utils/pagination.js";
 
 const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
@@ -42,6 +42,43 @@ function isOrderAvailableForCourier(order) {
     !order.cancelledAt &&
     !order.rejectedAt
   );
+}
+
+// The HTTP twin of the socket's courier:location_update, for the mobile
+// background task: iOS suspends the socket shortly after the app leaves the
+// foreground, and the OS runs the task in a context with no socket at all.
+export async function reportCourierLocationOperation({ courierUserId, coordinates, orderId }) {
+  const courier = await getCourierByUserId(courierUserId);
+  const { shouldBroadcast, timestamp } = await updateCourierLocation({
+    courierId: courier._id,
+    coordinates,
+  });
+
+  const activeOrderId = orderId || courier.currentOrder;
+  if (!activeOrderId) return { tracking: false };
+
+  const order = await Order.findOne({
+    _id: activeOrderId,
+    courier: courier._id,
+    status: { $in: COURIER_ACTIVE_STATUSES },
+  })
+    .select("customer restaurant")
+    .lean();
+
+  // No active delivery: the client should stop its background task.
+  if (!order) return { tracking: false };
+
+  if (shouldBroadcast) {
+    socketService.emitCourierLocationUpdated({
+      orderId: order._id,
+      customerId: order.customer,
+      restaurantId: order.restaurant,
+      courierId: courier._id,
+      coordinates,
+      timestamp,
+    });
+  }
+  return { tracking: true };
 }
 
 export async function getCourierByUserId(userId) {

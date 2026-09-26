@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as Location from "expo-location";
 import { useSocket } from "@/realtime/SocketProvider";
+import { startBackgroundTracking } from "./backgroundTracking";
 
 /**
  * Streams the courier's position while a delivery is active, and hands the same
@@ -13,9 +14,9 @@ import { useSocket } from "@/realtime/SocketProvider";
  *
  * The server throttles to one database write every three seconds per courier,
  * so the emit rate below is about what the route line needs, not what the
- * database can take. Foreground only: keeping this alive with the screen off
- * needs a TaskManager task, an Android foreground service and a Play Store
- * declaration, which is its own change.
+ * database can take. This watch is foreground only; it also starts the
+ * background task in ./backgroundTracking, which keeps reporting with the
+ * screen off and is stopped when the delivery ends, not when this unmounts.
  */
 const DISTANCE_INTERVAL_M = 10;
 const TIME_INTERVAL_MS = 4000;
@@ -57,6 +58,9 @@ export function useCourierLocationBroadcast(orderId) {
         setFix({ ...IDLE, isDenied: true });
         return;
       }
+
+      // Declining "Allow all the time" still leaves the foreground watch.
+      startBackgroundTracking(orderId).catch(() => {});
 
       subscription = await Location.watchPositionAsync(
         {

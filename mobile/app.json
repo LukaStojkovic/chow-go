@@ -21,7 +21,11 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Chow & Go uses your location to show restaurants that deliver to you and to track your order on its way.",
         "NSPhotoLibraryUsageDescription": "Chow & Go needs access to your photos so you can set a profile picture, and - if you run a restaurant - upload photos of your place and your dishes.",
-        "NSCameraUsageDescription": "Chow & Go uses the camera so you can take a photo for your profile or, if you run a restaurant, for your menu."
+        "NSCameraUsageDescription": "Chow & Go uses the camera so you can take a photo for your profile or, if you run a restaurant, for your menu.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Chow & Go shares your location with the customer while you are delivering their order, including when the app is in the background or the screen is off. Sharing stops when the delivery ends.",
+        "UIBackgroundModes": [
+          "location"
+        ]
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -126,7 +130,10 @@
         "ACCESS_FINE_LOCATION",
         "READ_MEDIA_IMAGES",
         "INTERNET",
-        "READ_MEDIA_VISUAL_USER_SELECTED"
+        "READ_MEDIA_VISUAL_USER_SELECTED",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
       ]
     },
     "web": {
@@ -166,6 +173,15 @@
         {
           "photosPermission": "Chow & Go needs access to your photos so you can set a profile picture, and - if you run a restaurant - upload photos of your place and your dishes.",
           "cameraPermission": "Chow & Go uses the camera so you can take a photo for your profile or, if you run a restaurant, for your menu."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Chow & Go shares your location with the customer while you are delivering their order, including when the app is in the background or the screen is off. Sharing stops when the delivery ends.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],

@@ -129,7 +129,7 @@ like the checkout preview.
 
 **All emits go through `services/orderSocket.service.js`** — never touch `io` from a controller. Each function re-fetches and populates the order, and swallows its own errors so a socket failure never fails the HTTP request. `emitToX` returns `false` when the target isn't connected; events are dropped, not queued.
 
-Courier GPS: the client emits `courier:location_update`, throttled to one DB write per 3s per courier in `locationTracking.service.js`, which then re-broadcasts `courier:location` to the customer, restaurant, and courier on that order.
+Courier GPS: the client emits `courier:location_update`, throttled to one DB write per 3s per courier in `locationTracking.service.js`, which then re-broadcasts `courier:location` to the customer, restaurant, and courier on that order. With the phone locked the socket is gone, so mobile also runs a background task (`mobile/src/location/backgroundTracking.js`, `expo-task-manager`, Android foreground service) that `POST`s to `/api/courier/location` with the same throttle and broadcast. It starts when a delivery is active, survives leaving the delivery screen, and stops on delivered/unassigned/cancelled, on logout, or when the endpoint answers `tracking: false`. It needs a fresh development build and "Allow all the time" location permission.
 
 Persisted notifications (`models/OrderNotification.js`, registered as model `"Notification"`, templated in `orderNotification.service.js`) are written on every transition but **no endpoint reads them back** — the in-app UI is driven entirely by sockets and toasts. A TTL index deletes them after 90 days.
 

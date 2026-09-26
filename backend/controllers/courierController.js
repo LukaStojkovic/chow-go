@@ -165,3 +165,12 @@ export async function updateCourierProfile(req, res, next) {
     data: { courier },
   });
 }
+
+export async function reportCourierLocation(req, res) {
+  const result = await courierOrderService.reportCourierLocationOperation({
+    courierUserId: req.user._id,
+    coordinates: req.body?.coordinates,
+    orderId: typeof req.body?.orderId === "string" ? req.body.orderId : undefined,
+  });
+  res.status(200).json({ status: "success", data: result });
+}

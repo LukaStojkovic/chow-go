@@ -96,6 +96,27 @@ try {
   ok("a finished order is a 409", (await refuse(longRun)) === 409);
   ok("an unknown order is a 404", (await refuse(new mongoose.Types.ObjectId())) === 404);
 
+  console.log("\nbackground location reports over HTTP");
+  const { reportCourierLocationOperation } = await import("../services/courierOrder.service.js");
+  const report = async (fields) => {
+    try {
+      return await reportCourierLocationOperation({ courierUserId: courierUser._id, ...fields });
+    } catch (error) {
+      return { status: error.statusCode };
+    }
+  };
+  await Courier.updateOne({ _id: courier._id }, { $set: { currentOrder: null } });
+  ok("with no active delivery it says stop tracking", (await report({ coordinates: [20.46, 44.81] })).tracking === false);
+  const live = await order({ status: "in_transit", courier: courier._id, pickedUpAt: ago(5) });
+  const { forgetCourierThrottle } = await import("../services/locationTracking.service.js");
+  forgetCourierThrottle(courier._id);
+  const reported = await report({ coordinates: [20.4701, 44.8102], orderId: String(live) });
+  ok("on an active delivery it keeps tracking", reported.tracking === true, JSON.stringify(reported));
+  const stored = (await Courier.findById(courier._id).lean()).currentLocation?.coordinates;
+  ok("and stores the position", stored?.[0] === 20.4701 && stored?.[1] === 44.8102, JSON.stringify(stored));
+  ok("someone else's order does not count", (await report({ coordinates: [20.47, 44.81], orderId: String(await order({ status: "in_transit", courier: new mongoose.Types.ObjectId() })) })).tracking === false);
+  ok("bad coordinates are a 400", (await report({ coordinates: [0, 0] })).status === 400);
+
   console.log("\nthe operator endpoint is locked");
   const { opsAccess } = await import("../middlewares/authMiddleware.js");
   const gate = (headers) => new Promise((resolve) => opsAccess({ headers }, {}, (err) => resolve(err ?? null)));

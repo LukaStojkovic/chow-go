@@ -3,11 +3,13 @@ import { setUnauthorizedHandler } from "@/api/client";
 import { clearToken, setToken } from "@/lib/secureToken";
 import { clearCachedQueries } from "@/lib/i18n";
 import { useDeliveryStore } from "./useDeliveryStore";
+import { stopBackgroundTracking } from "@/location/backgroundTracking";
 
 // Otherwise the previous account's orders stay in memory and its saved address
 // stays on disk for the next person on a shared phone.
 function forgetAccountData() {
   clearCachedQueries();
+  stopBackgroundTracking();
   useDeliveryStore.getState().clearLocation();
   useDeliveryStore.getState().setSelectedDeliveryAddress(null);
 }

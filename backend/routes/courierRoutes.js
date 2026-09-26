@@ -13,6 +13,7 @@ import {
   markDelivered,
   markInTransit,
   markPickedUp,
+  reportCourierLocation,
   updateCourierProfile,
 } from "../controllers/courierController.js";
 
@@ -34,6 +35,7 @@ router.patch(
   updateCourierProfile,
 );
 router.patch("/duty-status", changeCourierDutyStatus);
+router.post("/location", reportCourierLocation);
 
 router.patch("/:orderId/accept", acceptOrder);
 router.patch("/:orderId/cancel", cancelAssignedOrder);
