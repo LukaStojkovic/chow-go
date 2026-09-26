@@ -184,6 +184,19 @@ try {
   const wrongType = await multipart("/real", [["profilePicture", new Blob(["hi"], { type: "text/plain" }), "a.txt"]]);
   ok("a non-image never reaches Cloudinary", wrongType.status === 400 && uploaded.length === beforeWrongType, `${wrongType.status} ${uploaded.length}`);
 
+  console.log("\noperator keys in a multipart body");
+  const { rejectMongoOperators } = await import("../middlewares/sanitize.js");
+  ok("the guard runs after multer on every upload route", upload.single("x").at(-1) === rejectMongoOperators);
+  destroyed.length = 0;
+  const injectForm = new FormData();
+  injectForm.append("email[$ne]", "x");
+  injectForm.append("profilePicture", png(), "c.png");
+  const injected = await fetch(`${base}/real`, { method: "POST", body: injectForm });
+  const injectedBody = await injected.json().catch(() => ({}));
+  await settle();
+  ok("email[$ne] is refused", injected.status === 400 && injectedBody.code === "INVALID_FIELD_NAME", `${injected.status} ${injectedBody.code}`);
+  ok("and the file it carried is deleted", destroyed.length === 1, destroyed.join());
+
   console.log("\na crash cleans up too");
   destroyed.length = 0;
   const crash = await post("/single-crash");

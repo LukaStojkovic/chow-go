@@ -3,6 +3,7 @@ import cloudinary from "../utils/cloudinary.js";
 import { cloudinaryStorage } from "../utils/cloudinaryStorage.js";
 import { deleteMultipleCloudinaryImages } from "../services/image.service.js";
 import { logger } from "../utils/logger.js";
+import { rejectMongoOperators } from "./sanitize.js";
 
 // multer's default file size is unlimited, and express.json's 1mb cap does not
 // apply to multipart - so without these an authenticated user could stream
@@ -60,8 +61,11 @@ export function createUpload(folder) {
   });
 
   return {
-    single: (name) => [cleanupUploadsOnFailure, upload.single(name)],
-    array: (name, maxCount) => [cleanupUploadsOnFailure, upload.array(name, maxCount)],
-    fields: (spec) => [cleanupUploadsOnFailure, upload.fields(spec)],
+    // rejectMongoOperators runs app-wide before multer has parsed anything, so
+    // on multipart routes it saw an empty body; append-field turns
+    // email[$ne]=x into {email: {$ne: "x"}}. It runs again once the body exists.
+    single: (name) => [cleanupUploadsOnFailure, upload.single(name), rejectMongoOperators],
+    array: (name, maxCount) => [cleanupUploadsOnFailure, upload.array(name, maxCount), rejectMongoOperators],
+    fields: (spec) => [cleanupUploadsOnFailure, upload.fields(spec), rejectMongoOperators],
   };
 }
