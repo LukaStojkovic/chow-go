@@ -117,9 +117,17 @@ with `409 CART_ALREADY_ORDERED`, so a double submit still places one order. The 
 sets `order.isNew = true` because `withTransaction` retries it on a write conflict. An existing
 database needs `node scripts/migrateIdempotencyIndex.js` once to drop the old global index.
 
-Pricing is hardcoded in `createOrder` (delivery 2.50, service 1.50, priority +1.99, tax
-0) and every figure goes through `utils/money.js#toMoney`. Tips must be 0–`PRICING.maxTip`
-(50, read from `@chowgo/shared/adapters/pricing`). Checkout also refuses an address farther
+`createOrder` reads its fees from `PRICING` in `@chowgo/shared/adapters/pricing` (delivery 2.50,
+service 1.50, priority +1.99, tax 0), the same object the checkout preview uses. Tips must be
+0–`PRICING.maxTip` (50).
+
+Money is stored and sent as decimal amounts in `Order.currency` (`CURRENCY_CODE`, USD) that are
+always whole cents. All arithmetic goes through `@chowgo/shared/money` (`toCents`, `sumMoney`,
+`lineTotal`, `toMoney`), which works in integer cents — float sums and the old `+ Number.EPSILON`
+rounding (1.005 → 1.00) disagreed between server and preview. `backend/utils/money.js` re-exports it
+plus `moneySetter`, which every money field on Order, Cart and MenuItem uses so a stored value is
+always whole cents. A payment provider's minor units are `toCents(total)`; orders written before
+`currency` existed read it from the schema default (not on `.lean()` reads). Checkout also refuses an address farther
 than `DELIVERY_RADIUS_KM` (default 20, matching discovery's radius) from the restaurant, and
 a subtotal under `MIN_ORDER_SUBTOTAL` (default 0 = off; if you turn it on, also set
 `PRICING.minimumOrder` so the clients show it). `serviceFee` and

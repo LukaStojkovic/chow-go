@@ -8,7 +8,7 @@ import { AppError } from "../utils/AppError.js";
 import Notification from "../models/OrderNotification.js";
 import { rateOrderOperation } from "../services/orderRating.service.js";
 import * as orderStatus from "../utils/orderStatus.js";
-import { toMoney } from "../utils/money.js";
+import { CURRENCY_CODE, sumMoney, toMoney } from "../utils/money.js";
 import * as orderSocketService from "../services/orderSocket.service.js";
 import { repriceCartLines } from "../services/cartPricing.service.js";
 import { PRICING } from "@chowgo/shared/adapters/pricing";
@@ -129,10 +129,10 @@ export async function createOrder(req, res, next) {
         }),
       );
     }
-    const deliveryFee = 2.5;
-    const serviceFee = 1.5;
-    const priorityFee = deliveryType === "priority" ? 1.99 : 0;
-    const tax = 0;
+    const deliveryFee = PRICING.deliveryFee;
+    const serviceFee = PRICING.serviceFee;
+    const priorityFee = deliveryType === "priority" ? PRICING.priorityFee : 0;
+    const tax = toMoney(subtotal * PRICING.taxRate);
     // Uncapped, a 99999 tip was shown to every courier in the pool as bait and
     // added to the cash they had to collect; "1e400" parsed to Infinity.
     const tipNumber = tip === undefined || tip === null || tip === "" ? 0 : Number(tip);
@@ -140,7 +140,7 @@ export async function createOrder(req, res, next) {
       return next(new AppError("errors:order.tipInvalid", 400, "TIP_INVALID", { max: PRICING.maxTip }));
     }
     const tipAmount = toMoney(tipNumber);
-    const total = toMoney(subtotal + deliveryFee + serviceFee + priorityFee + tax + tipAmount);
+    const total = sumMoney(subtotal, deliveryFee, serviceFee, priorityFee, tax, tipAmount);
 
     const order = new Order({
       customer: userId,
@@ -164,6 +164,7 @@ export async function createOrder(req, res, next) {
         notes: deliveryAddress.notes,
         location: deliveryAddress.location,
       },
+      currency: CURRENCY_CODE,
       subtotal,
       deliveryFee,
       priorityFee,

@@ -12,6 +12,7 @@
  * rather than faked.
  */
 
+import { toMoney } from "@chowgo/shared/money";
 import { AppError } from "./AppError.js";
 
 export const PROMOTION_TYPES = ["percentage", "fixed"];
@@ -25,9 +26,6 @@ export const MAX_PERCENTAGE_OFF = 90;
 /** Longest a seller's promotion label may be. Matches the schema. */
 export const MAX_PROMOTION_LABEL = 40;
 
-function round2(value) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
 
 /**
  * Is this promotion in force right now?
@@ -58,13 +56,13 @@ export function isPromotionLive(promotion, now = new Date()) {
  */
 export function effectivePrice(price, promotion, now = new Date()) {
   const base = Number(price) || 0;
-  if (!isPromotionLive(promotion, now)) return round2(base);
+  if (!isPromotionLive(promotion, now)) return toMoney(base);
 
   const value = Number(promotion.value);
   const discounted =
     promotion.type === "fixed" ? base - value : base * (1 - value / 100);
 
-  return round2(Math.max(MIN_PROMOTIONAL_PRICE, Math.min(base, discounted)));
+  return toMoney(Math.max(MIN_PROMOTIONAL_PRICE, Math.min(base, discounted)));
 }
 
 /**

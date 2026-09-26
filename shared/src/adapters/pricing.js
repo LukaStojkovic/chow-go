@@ -10,6 +10,8 @@
  * over the server response and nothing else has to change.
  */
 
+import { sumMoney, toMoney } from "../money.js";
+
 /** @typedef {import("./types").PriceBreakdownView} PriceBreakdownView */
 
 export const PRICING = {
@@ -33,16 +35,8 @@ export const PRICING = {
   minimumOrder: null,
 };
 
-/**
- * Round to cents, avoiding the float drift that makes a total render as
- * 24.299999999999997.
- *
- * @param {number} value
- * @returns {number}
- */
-export function toMoney(value) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
+// Re-exported so existing `adapters/pricing` imports keep resolving.
+export { toMoney };
 
 /**
  * Build the full price breakdown for a basket.
@@ -69,17 +63,9 @@ export function buildPriceBreakdown({
   const priorityFee = deliveryType === "priority" ? PRICING.priorityFee : 0;
   const tax = toMoney(safeSubtotal * PRICING.taxRate);
 
-  const total = toMoney(
-    Math.max(
-      0,
-      safeSubtotal +
-        deliveryFee +
-        serviceFee +
-        priorityFee +
-        tax +
-        safeTip -
-        safeDiscount,
-    ),
+  const total = Math.max(
+    0,
+    sumMoney(safeSubtotal, deliveryFee, serviceFee, priorityFee, tax, safeTip, -safeDiscount),
   );
 
   return {
@@ -133,8 +119,8 @@ export function breakdownFromOrder(order) {
     };
   }
 
-  const accountedFor = subtotal + deliveryFee + tax + tip - discount;
-  const unaccounted = toMoney(Math.max(0, total - accountedFor));
+  const accountedFor = sumMoney(subtotal, deliveryFee, tax, tip, -discount);
+  const unaccounted = Math.max(0, sumMoney(total, -accountedFor));
 
   return {
     subtotal: toMoney(subtotal),

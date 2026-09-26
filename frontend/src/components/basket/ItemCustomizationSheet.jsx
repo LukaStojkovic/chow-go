@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import { UtensilsCrossed } from "lucide-react";
 
 import { formatPrice } from "@chowgo/shared/format";
-import { toMoney } from "@chowgo/shared/adapters/pricing";
+import { lineTotal as priceTimes } from "@chowgo/shared/money";
 import useCartStore from "@/store/useCartStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,7 +64,7 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
     useCartStore();
 
   const canOrder = dish.isAvailable && !unavailableReason;
-  const lineTotal = toMoney(dish.price * quantity);
+  const lineTotal = priceTimes(dish.price, quantity);
 
   const handleAdd = async () => {
     setIsAdding(true);

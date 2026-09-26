@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { CURRENCY_CODE, moneySetter } from "../utils/money.js";
 import { randomBytes } from "crypto";
 
 const orderItemSchema = new mongoose.Schema(
@@ -9,7 +10,7 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
     },
     name: { type: String, required: true },
-    price: { type: Number, required: true, min: 0 },
+    price: { type: Number, required: true, min: 0, set: moneySetter },
     quantity: { type: Number, required: true, min: 1 },
     specialInstructions: { type: String, maxlength: 200 },
   },
@@ -83,19 +84,22 @@ const orderSchema = new mongoose.Schema(
       },
     },
 
-    subtotal: { type: Number, required: true, min: 0 },
-    deliveryFee: { type: Number, required: true, min: 0, default: 0 },
+    // Every amount is a whole number of cents in `currency`; the setters make
+    // that true whatever arithmetic produced the value.
+    currency: { type: String, default: CURRENCY_CODE, match: /^[A-Z]{3}$/ },
+    subtotal: { type: Number, required: true, min: 0, set: moneySetter },
+    deliveryFee: { type: Number, required: true, min: 0, default: 0, set: moneySetter },
     // serviceFee was passed to this constructor and silently dropped, so
     // subtotal + deliveryFee + tax + tip never reconciled with total and
     // platform revenue was recorded nowhere. priorityFee used to be folded
     // into deliveryFee, which made the stored order itemise differently from
     // the checkout screen that produced it.
-    serviceFee: { type: Number, required: true, min: 0, default: 0 },
-    priorityFee: { type: Number, required: true, min: 0, default: 0 },
-    tax: { type: Number, required: true, min: 0, default: 0 },
-    tip: { type: Number, min: 0, default: 0 },
-    discount: { type: Number, min: 0, default: 0 },
-    total: { type: Number, required: true, min: 0 },
+    serviceFee: { type: Number, required: true, min: 0, default: 0, set: moneySetter },
+    priorityFee: { type: Number, required: true, min: 0, default: 0, set: moneySetter },
+    tax: { type: Number, required: true, min: 0, default: 0, set: moneySetter },
+    tip: { type: Number, min: 0, default: 0, set: moneySetter },
+    discount: { type: Number, min: 0, default: 0, set: moneySetter },
+    total: { type: Number, required: true, min: 0, set: moneySetter },
 
     status: {
       type: String,

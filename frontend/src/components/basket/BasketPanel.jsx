@@ -36,6 +36,7 @@ import { Avatar } from "@/components/common/SmartImage";
 import { EmptyState } from "@/components/common/StateViews";
 import { BasketLine } from "./BasketLine";
 import { FeeBreakdown } from "./FeeBreakdown";
+import { lineTotal, sumMoney } from "@chowgo/shared/money";
 
 /**
  * Apply a quantity change to the local store straight away.
@@ -57,7 +58,7 @@ function applyOptimisticQuantity(menuItemId, quantity) {
 
     return {
       items,
-      totalPrice: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      totalPrice: sumMoney(...items.map((item) => lineTotal(item.price, item.quantity))),
     };
   });
 }

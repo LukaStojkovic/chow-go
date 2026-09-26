@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { moneySetter } from "../utils/money.js";
 import {
   MAX_PERCENTAGE_OFF,
   MAX_PROMOTION_LABEL,
@@ -18,7 +19,7 @@ const promotionSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: false },
     type: { type: String, enum: PROMOTION_TYPES, default: "percentage" },
     /** Percent off for `percentage`, currency off for `fixed`. */
-    value: { type: Number, default: 0, min: 0, max: 100000 },
+    value: { type: Number, default: 0, min: 0, max: 100000, set: moneySetter },
     /** Optional seller copy shown on the badge, e.g. "Weekend deal". */
     label: { type: String, trim: true, maxlength: MAX_PROMOTION_LABEL, default: "" },
     startsAt: { type: Date, default: null },
@@ -36,7 +37,7 @@ const menuItemSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
     description: { type: String, required: true, trim: true, maxlength: 1000 },
-    price: { type: Number, required: true, min: 0, max: 100000 },
+    price: { type: Number, required: true, min: 0, max: 100000, set: moneySetter },
     category: { type: String, required: true, trim: true, maxlength: 60 },
     imageUrls: [{ type: String }],
     available: { type: Boolean, default: true },

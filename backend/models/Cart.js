@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { lineTotal, moneySetter, sumMoney } from "../utils/money.js";
 
 const cartItemSchema = new mongoose.Schema(
   {
@@ -9,13 +10,13 @@ const cartItemSchema = new mongoose.Schema(
     },
     name: { type: String, required: true },
     /** What this line is charged at - already includes any promotion. */
-    price: { type: Number, required: true, min: 0 },
+    price: { type: Number, required: true, min: 0, set: moneySetter },
     /**
      * The undiscounted price, recorded only when a promotion was applied. Lets
      * the basket show what was struck through without re-reading the menu item,
      * whose promotion may have ended in the meantime.
      */
-    basePrice: { type: Number, min: 0 },
+    basePrice: { type: Number, min: 0, set: moneySetter },
     quantity: {
       type: Number,
       required: true,
@@ -32,7 +33,7 @@ const cartItemSchema = new mongoose.Schema(
 );
 
 cartItemSchema.virtual("totalPrice").get(function () {
-  return this.price * this.quantity;
+  return lineTotal(this.price, this.quantity);
 });
 
 const cartSchema = new mongoose.Schema(
@@ -58,7 +59,7 @@ const cartSchema = new mongoose.Schema(
 );
 
 cartSchema.virtual("totalPrice").get(function () {
-  return this.items.reduce((total, item) => total + item.totalPrice, 0);
+  return sumMoney(...this.items.map((item) => item.totalPrice));
 });
 
 cartSchema.pre("save", function (next) {

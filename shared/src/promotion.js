@@ -13,6 +13,7 @@
  * can reject a bad deal without a round trip. The backend re-validates every
  * one of them; this is a convenience, not the enforcement point.
  */
+import { sumMoney, toMoney } from "./money.js";
 
 /** Must stay in sync with `backend/utils/promotion.js`. */
 export const PROMOTION_LIMITS = {
@@ -34,10 +35,6 @@ export function promotionTypes(t) {
     label: t(`common:taxonomy.promotionType.${value}.label`),
     hint: t(`common:taxonomy.promotionType.${value}.hint`),
   }));
-}
-
-function round2(value) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
 /**
@@ -67,20 +64,20 @@ export function resolvePromotion(price, promotion, now = new Date()) {
   const base = Number(price) || 0;
 
   if (!isPromotionLive(promotion, now) || base <= 0) {
-    return { price: round2(base), basePrice: null, discountPercent: 0 };
+    return { price: toMoney(base), basePrice: null, discountPercent: 0 };
   }
 
   const value = Number(promotion.value);
   const raw = promotion.type === "fixed" ? base - value : base * (1 - value / 100);
-  const next = round2(Math.max(PROMOTION_LIMITS.minPrice, Math.min(base, raw)));
+  const next = toMoney(Math.max(PROMOTION_LIMITS.minPrice, Math.min(base, raw)));
 
   if (next >= base) {
-    return { price: round2(base), basePrice: null, discountPercent: 0 };
+    return { price: toMoney(base), basePrice: null, discountPercent: 0 };
   }
 
   return {
     price: next,
-    basePrice: round2(base),
+    basePrice: toMoney(base),
     discountPercent: Math.round((1 - next / base) * 100),
   };
 }
@@ -109,12 +106,12 @@ export function previewPromotion(price, draft) {
   const raw = draft?.type === "fixed" ? base - value : base * (1 - value / 100);
   if (raw < PROMOTION_LIMITS.minPrice) return invalid;
 
-  const discounted = round2(raw);
+  const discounted = toMoney(raw);
 
   return {
     isValid: true,
     discounted,
     percentOff: Math.round((1 - discounted / base) * 100),
-    saving: round2(base - discounted),
+    saving: sumMoney(base, -discounted),
   };
 }

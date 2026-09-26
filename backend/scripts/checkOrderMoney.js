@@ -88,6 +88,38 @@ try {
       mismatch ? `${mismatch}: ${preview[mismatch]} vs ${readBack[mismatch]}` : "");
   }
 
+  console.log("\nwhole cents");
+  const { toCents, sumMoney, lineTotal } = await import("../utils/money.js");
+  const { default: Cart } = await import("../models/Cart.js");
+  const { default: MenuItem } = await import("../models/MenuItem.js");
+  ok("1.005 rounds up to 1.01, not down", toMoney(1.005) === 1.01, String(toMoney(1.005)));
+  ok("negative amounts round symmetrically", toMoney(-1.005) === -1.01);
+  ok("toCents is an integer", toCents(19.99) === 1999 && toCents(0.07) === 7);
+  ok("0.1 + 0.2 sums to exactly 0.3", sumMoney(0.1, 0.2) === 0.3);
+  ok("0.1 x 3 is exactly 0.3", lineTotal(0.1, 3) === 0.3);
+  const noisy = sumMoney(19.99, 2.5, 1.5, 1.99, 0, 1.15);
+  ok("a full checkout sum has no float noise", noisy === 27.13, String(noisy));
+
+  const cart = new Cart({
+    user: new mongoose.Types.ObjectId(),
+    restaurant: new mongoose.Types.ObjectId(),
+    items: [
+      { menuItem: new mongoose.Types.ObjectId(), name: "A", price: 0.1, quantity: 3 },
+      { menuItem: new mongoose.Types.ObjectId(), name: "B", price: 0.2, quantity: 1 },
+    ],
+  });
+  ok("a cart totals in cents", cart.totalPrice === 0.5, String(cart.totalPrice));
+  ok("an unset basePrice stays unset", cart.items[0].basePrice === undefined);
+
+  const item = new MenuItem({ name: "X", price: 9.999, promotion: { value: 12.345 } });
+  ok("a menu price is kept to the cent", item.price === 10);
+  ok("a promotion value is kept to the cent", item.promotion.value === 12.35, String(item.promotion.value));
+  const bad = new MenuItem({ name: "X", price: "abc" });
+  ok("a non-numeric price still fails validation", Boolean(bad.validateSync()?.errors?.price));
+
+  const withCurrency = await Order.findOne().lean();
+  ok("orders record their currency", withCurrency.currency === "USD", String(withCurrency.currency));
+
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;
 } finally {
