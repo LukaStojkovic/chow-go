@@ -5,6 +5,7 @@ import * as orderStatus from "../utils/orderStatus.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
 import { parsePagination } from "../utils/pagination.js";
+import { containsRegex } from "../utils/regex.js";
 
 
 /**
@@ -61,8 +62,9 @@ export async function getOrdersByRestaurant({
     }
   }
 
-  if (search) {
-    query.$or = [{ orderNumber: { $regex: search, $options: "i" } }];
+  const searchRegex = containsRegex(search);
+  if (searchRegex) {
+    query.$or = [{ orderNumber: searchRegex }];
   }
 
   const [orders, totalItems, statusCounts] = await Promise.all([

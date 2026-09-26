@@ -6,6 +6,7 @@ import * as imageService from "./image.service.js";
 import { normalizePromotionInput, withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
 import { parsePagination } from "../utils/pagination.js";
+import { containsRegex } from "../utils/regex.js";
 
 export async function validateMenuItemInput(name, price, category) {
   if (!name || !price || !category) {
@@ -128,14 +129,12 @@ export async function getAllMenuItems({
 
   let query = { restaurant: restaurantId, deletedAt: null };
 
-  if (search) {
-    query.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-    ];
+  const searchRegex = containsRegex(search);
+  if (searchRegex) {
+    query.$or = [{ name: searchRegex }, { description: searchRegex }];
   }
 
-  if (category) {
+  if (typeof category === "string" && category) {
     query.category = category;
   }
 

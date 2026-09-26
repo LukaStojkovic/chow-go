@@ -4,10 +4,7 @@ import Order from "../models/Order.js";
 import { withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
 import { parsePagination } from "../utils/pagination.js";
-
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
+import { escapeRegex } from "../utils/regex.js";
 
 async function getNearbyRestaurantIds(
   lat,

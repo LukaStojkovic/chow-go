@@ -15,7 +15,7 @@
     "check:cancel": "node scripts/checkOrderCancel.js",
     "check:rating": "node scripts/checkRating.js",
     "check:money": "node scripts/checkOrderMoney.js",
-    "check:all": "node scripts/checkObservability.js && node scripts/checkPasswordReset.js && node scripts/checkSessionRevocation.js && node scripts/checkAuthAbuse.js && node scripts/checkGoogleLinking.js && node scripts/checkGoogleAuth.js && node scripts/checkAccountDeletion.js && node scripts/checkCourierPoolPrivacy.js && node scripts/checkMenuImages.js && node scripts/checkUploadCleanup.js && node scripts/checkGeocoding.js && node scripts/checkOrderCancel.js && node scripts/checkOrderTransitions.js && node scripts/checkRating.js && node scripts/checkOrderMoney.js && node scripts/checkCheckout.js && node scripts/checkCartQuantity.js && node scripts/checkPagination.js && node scripts/checkPushRouting.js && node scripts/checkPushTokens.js && node scripts/checkSchedule.js",
+    "check:all": "node scripts/checkObservability.js && node scripts/checkPasswordReset.js && node scripts/checkSessionRevocation.js && node scripts/checkAuthAbuse.js && node scripts/checkGoogleLinking.js && node scripts/checkGoogleAuth.js && node scripts/checkAccountDeletion.js && node scripts/checkCourierPoolPrivacy.js && node scripts/checkMenuImages.js && node scripts/checkUploadCleanup.js && node scripts/checkGeocoding.js && node scripts/checkOrderCancel.js && node scripts/checkOrderTransitions.js && node scripts/checkRating.js && node scripts/checkOrderMoney.js && node scripts/checkCheckout.js && node scripts/checkCartQuantity.js && node scripts/checkPagination.js && node scripts/checkSearchInput.js && node scripts/checkPushRouting.js && node scripts/checkPushTokens.js && node scripts/checkSchedule.js",
     "check:transitions": "node scripts/checkOrderTransitions.js",
     "check:checkout": "node scripts/checkCheckout.js",
     "check:schedule": "node scripts/checkSchedule.js",
@@ -30,7 +30,8 @@
     "check:geocoding": "node scripts/checkGeocoding.js",
     "check:push-tokens": "node scripts/checkPushTokens.js",
     "check:cart-quantity": "node scripts/checkCartQuantity.js",
-    "check:pagination": "node scripts/checkPagination.js"
+    "check:pagination": "node scripts/checkPagination.js",
+    "check:search": "node scripts/checkSearchInput.js"
   },
   "dependencies": {
     "@chowgo/shared": "file:../shared",
