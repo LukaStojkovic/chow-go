@@ -11,6 +11,7 @@ import * as orderStatus from "../utils/orderStatus.js";
 import { toMoney } from "../utils/money.js";
 import * as orderSocketService from "../services/orderSocket.service.js";
 import { repriceCartLines } from "../services/cartPricing.service.js";
+import { parsePagination } from "../utils/pagination.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -223,7 +224,8 @@ export async function createOrder(req, res, next) {
 
 export async function getCustomerOrders(req, res, next) {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 10 });
     const userId = req.user._id;
 
     const query = { customer: userId };
@@ -232,14 +234,13 @@ export async function getCustomerOrders(req, res, next) {
     // that no order has, so every multi-status filter returned nothing.
     if (status) query.status = orderStatus.parseStatusFilter(status);
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const orders = await Order.find(query)
       .populate("restaurant", "name profilePicture address phone")
       .populate("courier", "fullName phoneNumber profilePicture vehicleType")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limit);
 
     const totalItems = await Order.countDocuments(query);
 
@@ -248,12 +249,12 @@ export async function getCustomerOrders(req, res, next) {
       data: {
         orders,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalItems / parseInt(limit)),
+          currentPage: page,
+          totalPages: Math.ceil(totalItems / limit),
           totalItems,
-          limit: parseInt(limit),
-          hasNext: parseInt(page) < Math.ceil(totalItems / parseInt(limit)),
-          hasPrev: parseInt(page) > 1,
+          limit,
+          hasNext: page < Math.ceil(totalItems / limit),
+          hasPrev: page > 1,
         },
       },
     });

@@ -3,6 +3,7 @@ import MenuItem from "../models/MenuItem.js";
 import Order from "../models/Order.js";
 import { withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
+import { parsePagination } from "../utils/pagination.js";
 
 function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -43,7 +44,8 @@ const RESTAURANT_CARD_FIELDS =
 
 export async function getDiscoverFeed(req, res, next) {
   try {
-    const { lat, lon, category, page = 1, limit = 10 } = req.query;
+    const { lat, lon, category } = req.query;
+    const { limit, skip } = parsePagination(req.query, { defaultLimit: 10 });
     if (!lat || !lon) {
       return res.status(400).json({ message: "Location required" });
     }
@@ -60,8 +62,6 @@ export async function getDiscoverFeed(req, res, next) {
       query.category = new RegExp(`^${escapeRegex(category)}$`, "i");
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
     const items = await MenuItem.find(query)
       .populate({
         path: "restaurant",
@@ -69,7 +69,7 @@ export async function getDiscoverFeed(req, res, next) {
           "name profilePicture address averageRating totalReviews estimatedDeliveryTime",
       })
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(limit)
       .sort({ createdAt: -1 })
       .lean();
 

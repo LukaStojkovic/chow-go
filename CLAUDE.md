@@ -41,7 +41,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:deletion`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`, `check:cart-quantity`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:checkout`, `check:cart-quantity`, `check:pagination`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -150,6 +150,8 @@ The resolved price is computed server-side everywhere it matters: the discover f
 Layering is `routes → controllers → services → models`, but only partly migrated. Newer code (courier, restaurantOrder, restaurant, menuItem, stats, analytics) keeps controllers thin and puts logic in `services/*.service.js` that `throw new AppError(msg, status)`. Older code (`orderController`, `cartController`, `favouriteController`, `discoverController`, `authController`) does DB work inline. **Follow the service pattern for new work.**
 
 Express 5 forwards async rejections to error middleware automatically, so many handlers deliberately omit `try/catch`; older ones wrap and call `next(error)`. Both are fine — match the file you're editing.
+
+Every list endpoint takes `page`/`limit` through `utils/pagination.js#parsePagination` (limit 1–50, page ≥ 1). Never pass a query value to `.limit()`/`.skip()` directly: Mongo reads `limit(0)` as "no limit", so `?limit=0` on the public discover feed returned the whole menu collection.
 
 `controllers/errorController.js` translates `CastError`, `ValidationError`, duplicate-key,
 JWT and Multer failures into 4xx with a stable machine-readable `code` and, where useful,

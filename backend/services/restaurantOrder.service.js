@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import * as orderStatus from "../utils/orderStatus.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
+import { parsePagination } from "../utils/pagination.js";
 
 
 /**
@@ -49,9 +50,7 @@ export async function getOrdersByRestaurant({
   limit = 20,
   search,
 }) {
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
+  const { page: pageNum, limit: limitNum, skip } = parsePagination({ page, limit });
 
   const query = { restaurant: restaurantId };
 

@@ -190,12 +190,10 @@ export async function listAvailableOrders({ courierUserId, page, limit }) {
 export async function listCourierOrders({
   courierId,
   status,
-  page = 1,
-  limit = 20,
+  page,
+  limit,
 }) {
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
+  const { page: pageNum, limit: limitNum, skip } = parsePagination({ page, limit });
 
   const query = { courier: courierId };
   if (status === "active") query.status = { $in: COURIER_ACTIVE_STATUSES };

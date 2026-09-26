@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import * as imageService from "./image.service.js";
 import { normalizePromotionInput, withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
+import { parsePagination } from "../utils/pagination.js";
 
 export async function validateMenuItemInput(name, price, category) {
   if (!name || !price || !category) {
@@ -122,9 +123,7 @@ export async function getAllMenuItems({
     throw new AppError("Restaurant not found", 404);
   }
 
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
+  const { page: pageNum, limit: limitNum, skip } = parsePagination({ page, limit }, { defaultLimit: 12 });
 
   let query = { restaurant: restaurantId };
 
