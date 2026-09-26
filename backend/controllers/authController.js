@@ -118,6 +118,18 @@ export async function login(req, res, next) {
   res.status(200).json(withAuthToken(req, response, token));
 }
 
+// The user is created before its restaurant or courier profile. If that second
+// create throws, the half-made user kept the email "in use" and the person
+// could never sign up again.
+async function createOrRollback(userId, create) {
+  try {
+    return await create();
+  } catch (error) {
+    await User.deleteOne({ _id: userId });
+    throw error;
+  }
+}
+
 export const register = async (req, res, next) => {
   const { email, name, password, role, phoneNumber } = req.body;
 
@@ -206,7 +218,7 @@ export const register = async (req, res, next) => {
       return next(new AppError("Invalid coordinates", 400));
     }
 
-    const restaurant = await Restaurant.create({
+    const restaurant = await createOrRollback(user._id, () => Restaurant.create({
       ownerId: user._id,
       name: sellerData.restaurantName,
       cuisineType: sellerData.cuisineType,
@@ -228,7 +240,7 @@ export const register = async (req, res, next) => {
         country: "Serbia",
       },
       location: { type: "Point", coordinates: [lng, lat] },
-    });
+    }));
 
     user.restaurant = restaurant._id;
     await user.save();
@@ -266,7 +278,7 @@ export const register = async (req, res, next) => {
       }
     }
 
-    const courierProfile = await Courier.create({
+    const courierProfile = await createOrRollback(user._id, () => Courier.create({
       userId: user._id,
       fullName: name,
       phoneNumber: phoneNumber || courierData.courierPhone || "",
@@ -294,7 +306,7 @@ export const register = async (req, res, next) => {
       },
       verificationStatus: "pending",
       isAvailable: true,
-    });
+    }));
 
     const courierToken = generateToken(user, res, isMobileClient(req));
 
@@ -884,7 +896,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     const lng = parseFloat(body.restaurantLng);
     const lat = parseFloat(body.restaurantLat);
 
-    const restaurant = await Restaurant.create({
+    const restaurant = await createOrRollback(user._id, () => Restaurant.create({
       ownerId: user._id,
       name: body.restaurantName,
       cuisineType: body.cuisineType,
@@ -904,7 +916,7 @@ export const googleCompleteProfile = async (req, res, next) => {
         country: "Serbia",
       },
       location: { type: "Point", coordinates: [lng, lat] },
-    });
+    }));
 
     user.restaurant = restaurant._id;
     await user.save();
@@ -938,7 +950,7 @@ export const googleCompleteProfile = async (req, res, next) => {
       }
     }
 
-    const courierProfile = await Courier.create({
+    const courierProfile = await createOrRollback(user._id, () => Courier.create({
       userId: user._id,
       fullName: googleProfile.name,
       phoneNumber: phoneNumber || "",
@@ -966,7 +978,7 @@ export const googleCompleteProfile = async (req, res, next) => {
       },
       verificationStatus: "pending",
       isAvailable: true,
-    });
+    }));
 
     const token = generateToken(user, res, isMobileClient(req));
     if (fromSession) delete req.session.googleProfile;

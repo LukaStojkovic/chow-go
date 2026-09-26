@@ -135,6 +135,28 @@ try {
   ok("and the stray image is deleted", destroyed.join() === "users/stray", destroyed.join());
   ok("and no account was created", !(await User.exists({ email: "customer@upload.test" })));
 
+  console.log("\na seller signup whose restaurant fails to save");
+  const sellerFields = {
+    email: "halfmade@upload.test", name: "Half", password: "longenough1", role: "seller",
+    restaurantName: "R", restaurantPhone: "0622222222", restaurantAddress: "S 1", restaurantCity: "C",
+    restaurantZipCode: "11000", openingTime: "09:00", closingTime: "22:00", restaurantLat: "44.8",
+    restaurantLng: "20.45", restaurantDescription: "d",
+  };
+  destroyed.length = 0;
+  const halfMade = await post("/register", {
+    ...sellerFields, cuisineType: "martian",
+    __files: { restaurantImages: [{ path: img("half-1") }] },
+  });
+  await settle();
+  ok("is refused", halfMade === 400, String(halfMade));
+  ok("and leaves no user behind", !(await User.exists({ email: "halfmade@upload.test" })));
+  ok("and its images are deleted", destroyed.join() === "users/half-1", destroyed.join());
+  const retried = await post("/register", {
+    ...sellerFields, cuisineType: "pizza",
+    __files: { restaurantImages: [{ path: img("half-2") }] },
+  });
+  ok("so the same email can sign up again", retried === 201, String(retried));
+
   console.log("\nsuccessful requests keep their uploads");
   destroyed.length = 0;
   const good = await post("/register", {
