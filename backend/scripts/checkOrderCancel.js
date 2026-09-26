@@ -141,27 +141,64 @@ try {
   ok("cancelling a picked-up order is refused", pickedErr?.code === "CANCEL_NOT_ALLOWED", pickedErr?.code);
   ok("and picked_up survives", (await Order.findById(pickedUp._id).lean()).status === "picked_up");
 
-  console.log("\na cancel landing inside a courier's claim still frees them");
-  await Courier.updateOne({ _id: racerCourier._id }, { $set: { isAvailable: true, currentOrder: null } });
-  const squeezed = await makeOrder("ready");
-  const realUpdateOne = Courier.updateOne.bind(Courier);
-  Courier.updateOne = async (...args) => {
-    Courier.updateOne = realUpdateOne;
-    await cancelAs(squeezed._id);
-    return realUpdateOne(...args);
-  };
-  let claimErr = null;
-  try {
-    await acceptOrderOperation({ orderId: squeezed._id, courierUserId: racer._id });
-  } catch (err) {
-    claimErr = err;
-  } finally {
-    Courier.updateOne = realUpdateOne;
+  // The claim locks the courier, then claims the order. Inject the customer's
+  // cancel on either side of the order write.
+  const realOrderUpdate = Order.findOneAndUpdate.bind(Order);
+  async function claimWithCancel(when) {
+    await Courier.updateOne({ _id: racerCourier._id }, { $set: { isAvailable: true, currentOrder: null } });
+    const target = await makeOrder("ready");
+    Order.findOneAndUpdate = async (...args) => {
+      Order.findOneAndUpdate = realOrderUpdate;
+      if (when === "before") await cancelAs(target._id);
+      const result = await realOrderUpdate(...args);
+      if (when === "after") await cancelAs(target._id);
+      return result;
+    };
+    let error = null;
+    try {
+      await acceptOrderOperation({ orderId: target._id, courierUserId: racer._id });
+    } catch (err) {
+      error = err;
+    } finally {
+      Order.findOneAndUpdate = realOrderUpdate;
+    }
+    return {
+      error,
+      order: await Order.findById(target._id).lean(),
+      courier: await Courier.findById(racerCourier._id).lean(),
+    };
   }
-  ok("the claim reports the conflict", claimErr?.code === "ORDER_STATUS_CONFLICT", claimErr ? claimErr.code ?? claimErr.message : "claim succeeded");
-  ok("the order stays cancelled", (await Order.findById(squeezed._id).lean()).status === "cancelled");
-  let rc = await Courier.findById(racerCourier._id).lean();
-  ok("the courier is free", rc.currentOrder === null && rc.isAvailable === true, JSON.stringify({ c: rc.currentOrder, a: rc.isAvailable }));
+
+  console.log("\na cancel landing before the order is claimed");
+  let race = await claimWithCancel("before");
+  ok("the claim is refused", Boolean(race.error), "claim succeeded");
+  ok("the order stays cancelled", race.order.status === "cancelled");
+  ok("the courier is free", race.courier.currentOrder === null && race.courier.isAvailable === true);
+
+  console.log("\na cancel landing right after the order is claimed");
+  race = await claimWithCancel("after");
+  ok("the order ends cancelled", race.order.status === "cancelled", race.order.status);
+  ok("the courier is free", race.courier.currentOrder === null && race.courier.isAvailable === true, JSON.stringify({ c: race.courier.currentOrder, a: race.courier.isAvailable }));
+  let rc;
+
+  console.log("\none courier accepting two orders at once, 25 rounds");
+  const doubles = [];
+  for (let i = 0; i < 25; i++) {
+    await Courier.updateOne({ _id: racerCourier._id }, { $set: { currentOrder: null, isAvailable: true } });
+    const [first, second] = [await makeOrder("ready"), await makeOrder("ready")];
+    const results = await Promise.allSettled([
+      acceptOrderOperation({ orderId: first._id, courierUserId: racer._id }),
+      acceptOrderOperation({ orderId: second._id, courierUserId: racer._id }),
+    ]);
+    const won = results.filter((r) => r.status === "fulfilled").length;
+    const assigned = await Order.find({ _id: { $in: [first._id, second._id] }, status: "assigned" }).lean();
+    rc = await Courier.findById(racerCourier._id).lean();
+    if (won !== 1) doubles.push(`round ${i}: ${won} accepts succeeded`);
+    else if (assigned.length !== 1) doubles.push(`round ${i}: ${assigned.length} orders assigned`);
+    else if (String(rc.currentOrder) !== String(assigned[0]._id)) doubles.push(`round ${i}: courier holds the wrong order`);
+    await Order.updateMany({ _id: { $in: [first._id, second._id] } }, { $set: { status: "delivered" } });
+  }
+  ok("exactly one wins and the courier holds it", doubles.length === 0, doubles.slice(0, 3).join("; "));
 
   console.log("\nconcurrent cancel and claim, 25 rounds");
   const violations = [];

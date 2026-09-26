@@ -91,8 +91,10 @@ services have a private `transition()` helper for this; a caller that loses the 
 gets a `409 ORDER_STATUS_CONFLICT` rather than silently overwriting. Never reintroduce
 read-check-mutate-save here. Customer cancel follows the same rule (filter on
 `CUSTOMER_CANCELLABLE`) and frees whichever courier the *updated* order names. A courier
-claim is two writes (order, then `Courier.currentOrder`), so after the second it re-checks
-the order and releases the courier with a 409 if a cancel landed in between.
+claim takes the courier first (`Courier.findOneAndUpdate` on `isAvailable: true, currentOrder:
+null`) and only then the order, releasing the courier if the order claim fails. That order is
+what stops one courier holding two orders, and it guarantees a cancel landing after the claim
+always finds the courier to free.
 
 Order creation snapshots data deliberately — item name/price are copied into
 `order.items`, and the address is copied into `deliveryAddressSnapshot` — then the cart

@@ -274,67 +274,59 @@ export async function acceptOrderOperation({ orderId, courierUserId }) {
     throw new AppError("You must be on duty to accept orders", 400);
   }
 
-  const existingActive = await Order.findOne({
-    courier: courier._id,
-    status: { $in: COURIER_ACTIVE_STATUSES },
-  });
-  if (existingActive) {
-    throw new AppError("You already have an active order", 400);
-  }
-
-  const order = await Order.findOneAndUpdate(
-    {
-      _id: orderId,
-      status: "ready",
-      courier: null,
-      cancelledAt: null,
-      rejectedAt: null,
-    },
-    {
-      $set: {
-        status: "assigned",
-        assignedAt: new Date(),
-        courier: courier._id,
-      },
-    },
-    { new: true },
+  // The courier is taken first, in one conditional write. Two accepts at once
+  // used to both pass a separate "already busy?" read, claim two orders, and
+  // leave one orphaned. Holding the courier before the order also means a
+  // customer cancel that lands after the claim always finds them to release.
+  const locked = await Courier.findOneAndUpdate(
+    { _id: courier._id, isAvailable: true, currentOrder: null },
+    { $set: { currentOrder: orderId, isAvailable: false } },
   );
-
-  if (!order) {
-    throw new AppError("Order is not available for assignment", 400);
+  if (!locked) {
+    throw new AppError("You already have an active order", 400, "COURIER_BUSY");
   }
 
-  // The claim above is atomic, but this second write is not part of it. A
-  // failure here would leave the order assigned to a courier whose
-  // currentOrder is null - invisible to them and unclaimable by anyone else.
-  // There are no transactions in this codebase, so compensate instead.
+  const release = () =>
+    Courier.updateOne(
+      { _id: courier._id, currentOrder: orderId },
+      { $set: { currentOrder: null, isAvailable: true } },
+    );
+
+  let order;
   try {
-    await Courier.updateOne(
-      { _id: courier._id },
-      { $set: { currentOrder: order._id, isAvailable: false } },
+    const existingActive = await Order.exists({
+      courier: courier._id,
+      status: { $in: COURIER_ACTIVE_STATUSES },
+    });
+    if (existingActive) {
+      throw new AppError("You already have an active order", 400, "COURIER_BUSY");
+    }
+
+    order = await Order.findOneAndUpdate(
+      {
+        _id: orderId,
+        status: "ready",
+        courier: null,
+        cancelledAt: null,
+        rejectedAt: null,
+      },
+      {
+        $set: {
+          status: "assigned",
+          assignedAt: new Date(),
+          courier: courier._id,
+        },
+      },
+      { new: true },
     );
   } catch (err) {
-    await Order.updateOne(
-      { _id: order._id, courier: courier._id },
-      { $set: { status: "ready", courier: null, assignedAt: null } },
-    );
+    await release();
     throw err;
   }
 
-  // A customer cancel landing between the claim and the write above releases
-  // nobody - currentOrder was not set yet - and would leave this courier held
-  // by a cancelled order forever. Whichever lands second frees them.
-  const stillOurs = await Order.exists({
-    _id: order._id,
-    courier: courier._id,
-    status: "assigned",
-  });
-  if (!stillOurs) {
-    await Courier.updateOne(
-      { _id: courier._id, currentOrder: order._id },
-      { $set: { currentOrder: null, isAvailable: true } },
-    );
-    throw new AppError("errors:order.statusConflict", 409, "ORDER_STATUS_CONFLICT");
+  if (!order) {
+    await release();
+    throw new AppError("Order is not available for assignment", 400);
   }
 
   await notificationService.createOrderStatusNotification(order, "assigned");
