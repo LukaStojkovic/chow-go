@@ -220,7 +220,9 @@ export async function updateOrderStatusOperation(
   await socketService.emitOrderStatusChanged(order.customer, order, newStatus);
 
   if (newStatus === "ready") {
-    await socketService.emitNewOrderAvailable(order);
+    // Not awaited: it pushes to nearby couriers and catches its own errors, and
+    // the seller's request used to wait on the whole fan-out.
+    socketService.emitNewOrderAvailable(order);
   }
 
   return order;

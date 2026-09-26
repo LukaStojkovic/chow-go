@@ -70,6 +70,27 @@ try {
   const all = await poolPushRecipients(new Set());
   ok("both eligible couriers are pushed", all.length === 2, `${all.length}`);
 
+  console.log("\nonly couriers near the restaurant");
+  const restaurantAt = [20.45, 44.8];
+  await Courier.updateOne({ _id: riders.offline.courier._id }, { $set: { currentLocation: { type: "Point", coordinates: [20.47, 44.81] } } });
+  await Courier.updateOne({ _id: riders.connected.courier._id }, { $set: { currentLocation: { type: "Point", coordinates: [19.84, 45.25] } } });
+  const nearby = new Set(await poolPushRecipients(new Set(), restaurantAt));
+  ok("a courier 2 km away is pushed", nearby.has(String(riders.offline.user._id)));
+  ok("a courier 70 km away is not", !nearby.has(String(riders.connected.user._id)));
+  ok("nobody else", nearby.size === 1, `${nearby.size}`);
+  await Courier.updateOne({ _id: riders.offline.courier._id }, { $unset: { currentLocation: 1 } });
+  ok("a courier with no known position is not", (await poolPushRecipients(new Set(), restaurantAt)).length === 0);
+
+  console.log("\nbatched sending tolerates users without devices");
+  const { sendPushToUsers } = await import("../services/push.service.js");
+  let threw = null;
+  try {
+    await sendPushToUsers([String(riders.offline.user._id), String(new mongoose.Types.ObjectId())], () => ({ title: "t", body: "b" }));
+  } catch (error) {
+    threw = error;
+  }
+  ok("no tokens and unknown ids are a quiet no-op", threw === null, threw?.message);
+
   console.log("\nan empty fleet is not an error");
   await Courier.updateMany({}, { $set: { isAvailable: false } });
   ok("no eligible couriers yields no recipients", (await poolPushRecipients(new Set())).length === 0);

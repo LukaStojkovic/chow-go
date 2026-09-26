@@ -257,5 +257,5 @@ The backend currently cannot run more than one process correctly. Anything touch
 - Socket.IO has **no Redis adapter**, and `connections` is a plain in-memory Map, so a customer connected to instance B never receives an event emitted from instance A. `locationTracking.service.js`'s throttle Map has the same problem, as do the geocoding caches and the one-per-second Nominatim spacing in `locationController.js` (N instances make N requests per second to Nominatim).
 - `express-session` uses the default `MemoryStore`, which breaks the two-phase Google signup across instances and loses sessions on restart.
 - The cron job runs per instance, so N instances race on the same `bulkWrite`.
-- `emitNewOrderAvailable` / `emitOrderTaken` / `emitOrderBackToPool` loop over *every* connected courier per event.
+- Pool events go to one `couriers:pool` room. `emitNewOrderAvailable` also pushes to verified, free couriers within 15 km of the restaurant who are not connected, in one lookup and chunked Expo sends (`push.service.js#sendPushToUsers`); "mark ready" does not await it. A courier who has never shared a location gets no pool push.
 - `stats.service.fetchOrdersData` loads four unbounded `Order.find()` result sets into memory instead of aggregating.

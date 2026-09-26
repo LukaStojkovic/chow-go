@@ -3,7 +3,7 @@ import Courier from "../models/Courier.js";
 import Restaurant from "../models/Restaurant.js";
 import { getSocketServer } from "../socket/socketServer.js";
 import { pushPayloadFor } from "./orderNotification.service.js";
-import { sendPushToUser } from "./push.service.js";
+import { sendPushToUser, sendPushToUsers } from "./push.service.js";
 
 async function getPopulatedOrder(orderId) {
   const order = await Order.findById(orderId)
@@ -384,11 +384,19 @@ export function emitCourierLocationUpdated({
  * @param {Set<string>} connectedCourierIds
  * @returns {Promise<string[]>} user ids
  */
-export async function poolPushRecipients(connectedCourierIds) {
-  const eligible = await Courier.find(
-    { isAvailable: true, verificationStatus: "verified", currentOrder: null },
-    { userId: 1 },
-  ).lean();
+const POOL_PUSH_RADIUS_KM = 15;
+
+// With `near` ([lng, lat] of the restaurant), only couriers whose last known
+// position is within the radius the pool itself uses: a push to every on-duty
+// courier in the country is noise to them and cost to us.
+export async function poolPushRecipients(connectedCourierIds, near) {
+  const filter = { isAvailable: true, verificationStatus: "verified", currentOrder: null };
+  if (Array.isArray(near) && near.length === 2) {
+    filter.currentLocation = {
+      $geoWithin: { $centerSphere: [near, POOL_PUSH_RADIUS_KM / 6378.1] },
+    };
+  }
+  const eligible = await Courier.find(filter, { userId: 1 }).lean();
 
   return eligible
     .filter((courier) => !connectedCourierIds.has(String(courier._id)))
@@ -407,20 +415,16 @@ export async function emitNewOrderAvailable(order) {
     // The pool was socket-only, so a courier with the app in their pocket never
     // saw an order appear. Only couriers who could actually take it, and only
     // those whose socket is not already in the pool room.
-    const recipients = await poolPushRecipients(socketServer.connectedCourierIds());
+    const populatedOrder = await getPopulatedOrder(order._id);
+    const recipients = await poolPushRecipients(
+      socketServer.connectedCourierIds(),
+      populatedOrder.restaurant?.location?.coordinates,
+    );
     if (recipients.length === 0) return;
 
-    const populatedOrder = await getPopulatedOrder(order._id);
-
-    // Sequential rather than Promise.all: this fans out across the whole
-    // on-duty fleet and each call is itself a batched Expo request. The
-    // builder is shared but renders per courier, so a fleet reading two
-    // languages each gets their own.
-    for (const userId of recipients) {
-      await sendPushToUser(userId, (locale) =>
-        pushPayloadFor("order_available", populatedOrder, locale),
-      );
-    }
+    await sendPushToUsers(recipients, (locale) =>
+      pushPayloadFor("order_available", populatedOrder, locale),
+    );
   } catch (error) {
     console.error("Socket emit error (order:available):", error);
   }

@@ -66,3 +66,60 @@ export async function sendPushToUser(userId, payload) {
     console.error("Push send error:", error.message);
   }
 }
+
+/**
+ * The same push to many users with one lookup and chunked sends. Calling
+ * sendPushToUser in a loop cost a query and an Expo round trip per courier,
+ * which is what kept "mark ready" waiting on the whole on-duty fleet.
+ *
+ * @param {string[]} userIds
+ * @param {(locale: string) => Object | null} buildPayload
+ */
+export async function sendPushToUsers(userIds, buildPayload) {
+  if (!Array.isArray(userIds) || userIds.length === 0) return;
+
+  try {
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("+pushTokens locale")
+      .lean();
+
+    const messages = [];
+    const owners = [];
+    const byLocale = new Map();
+    for (const user of users) {
+      const locale = localeForUser(user);
+      if (!byLocale.has(locale)) byLocale.set(locale, buildPayload(locale));
+      const payload = byLocale.get(locale);
+      if (!payload) continue;
+      for (const { token } of user.pushTokens ?? []) {
+        if (!Expo.isExpoPushToken(token)) continue;
+        messages.push({
+          to: token,
+          sound: "default",
+          title: payload.title,
+          body: payload.body,
+          data: payload.data ?? {},
+          priority: "high",
+          channelId: "orders",
+        });
+        owners.push(user._id);
+      }
+    }
+
+    let offset = 0;
+    for (const chunk of expo.chunkPushNotifications(messages)) {
+      const receipts = await expo.sendPushNotificationsAsync(chunk);
+      receipts.forEach((receipt, index) => {
+        if (receipt.status === "error" && receipt.details?.error === "DeviceNotRegistered") {
+          User.updateOne(
+            { _id: owners[offset + index] },
+            { $pull: { pushTokens: { token: chunk[index].to } } },
+          ).catch(() => {});
+        }
+      });
+      offset += chunk.length;
+    }
+  } catch (error) {
+    console.error("Push send error:", error.message);
+  }
+}
