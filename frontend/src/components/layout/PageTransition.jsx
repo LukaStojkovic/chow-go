@@ -27,6 +27,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useOutlet } from "react-router-dom";
 
 import { pageTransition } from "@/lib/motion";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
 /**
  * @param {Object} props
@@ -49,7 +50,12 @@ export function PageTransition({ context, fallback = null, className }) {
         exit="exit"
         className={className}
       >
-        <Suspense fallback={fallback}>{outlet}</Suspense>
+        {/* Keyed by path so navigating away clears a failed page. Without it a
+            render error on any seller or courier page replaced the whole app,
+            navigation included, with the startup fallback. */}
+        <ErrorBoundary key={pathname} name={`route:${pathname}`}>
+          <Suspense fallback={fallback}>{outlet}</Suspense>
+        </ErrorBoundary>
       </motion.div>
     </AnimatePresence>
   );

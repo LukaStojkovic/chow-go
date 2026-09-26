@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,7 +15,7 @@ import Spinner from "./components/Spinner";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { CustomerShell } from "./components/shell/CustomerShell";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
-import { lazyNamed } from "./lib/lazyNamed";
+import { lazyNamed, lazyWithReload } from "./lib/lazyNamed";
 import { routeChunks } from "./lib/routeChunks";
 import { PortalShellSkeleton } from "./components/skeletons/PortalShellSkeleton";
 import { registerQueryClient } from "./lib/i18n";
@@ -39,7 +39,7 @@ import PublicRoute from "./components/Auth/components/PublicRoute";
 import CustomerRoute from "./components/Auth/components/CustomerRoute";
 import SellerRoute from "./components/Auth/components/SellerRoute";
 import CourierRoute from "./pages/courier/CourierRoute";
-const SellerLayout = lazy(
+const SellerLayout = lazyWithReload(
   () => import("./components/Auth/components/SellerLayout"),
 );
 // Loaders come from the shared registry so a sidebar hover and the `lazy()`
@@ -59,13 +59,13 @@ const SellerSettings = lazyNamed(
   "SellerSettings",
 );
 
-const CourierLayout = lazy(() => import("./pages/courier/CourierLayout"));
-const CourierDashboard = lazy(routeChunks["/courier/dashboard"]);
+const CourierLayout = lazyWithReload(() => import("./pages/courier/CourierLayout"));
+const CourierDashboard = lazyWithReload(routeChunks["/courier/dashboard"]);
 const CourierOrders = lazyNamed(
   routeChunks["/courier/orders"],
   "CourierOrders",
 );
-const CourierActiveDelivery = lazy(
+const CourierActiveDelivery = lazyWithReload(
   () => import("./pages/courier/CourierActiveDelivery"),
 );
 const CourierProfile = lazyNamed(
