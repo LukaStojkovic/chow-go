@@ -57,6 +57,9 @@ const userSchema = new mongoose.Schema(
     // version they were minted at, so raising it invalidates every credential
     // already issued - there was previously no way to revoke anything.
     tokenVersion: { type: Number, default: 0 },
+    // Set by scripts/reviewGoogleLinks.js --apply, so its report can tell an
+    // account already secured from one still to review.
+    googleLinkSecuredAt: { type: Date, select: false },
 
     // The language this person reads the app in. Stored, not derived, because
     // the backend has to render push notification copy long after the request

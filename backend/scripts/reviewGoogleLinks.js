@@ -33,15 +33,21 @@ const { default: User } = await import("../models/User.js");
 try {
   const linked = await User.find(
     { authProvider: "local", googleId: { $exists: true, $ne: null } },
-    { email: 1, role: 1, createdAt: 1, updatedAt: 1 },
+    { email: 1, role: 1, createdAt: 1, googleLinkSecuredAt: 1 },
   )
     .sort({ createdAt: 1 })
     .lean();
 
-  console.log(`\n${linked.length} password account(s) with a Google id linked:\n`);
+  const pending = linked.filter((user) => !user.googleLinkSecuredAt).length;
+  console.log(
+    `\n${linked.length} password account(s) with a Google id linked, ${pending} not yet secured:\n`,
+  );
   for (const user of linked) {
+    const status = user.googleLinkSecuredAt
+      ? `secured ${user.googleLinkSecuredAt.toISOString()}`
+      : "NOT SECURED";
     console.log(
-      `  ${user._id}  ${user.role.padEnd(8)}  ${user.email}  created ${user.createdAt?.toISOString()}  updated ${user.updatedAt?.toISOString()}`,
+      `  ${user._id}  ${user.role.padEnd(8)}  ${user.email}  created ${user.createdAt?.toISOString()}  ${status}`,
     );
   }
 
@@ -62,6 +68,7 @@ try {
             $set: {
               password: await bcrypt.hash(randomBytes(32).toString("hex"), 12),
               pushTokens: [],
+              googleLinkSecuredAt: new Date(),
             },
             $inc: { tokenVersion: 1 },
             $unset: { otpHash: 1, otpExpiry: 1, resetTokenHash: 1, resetTokenExpiry: 1 },
