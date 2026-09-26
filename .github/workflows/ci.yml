@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            shared/package-lock.json
+
+      # check:all starts throwaway MongoDB servers; caching the binary saves a
+      # ~100 MB download per run.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install
+        run: |
+          npm ci --prefix shared
+          npm ci --prefix backend
+          npm ci --prefix frontend
+
+      - name: Shared guards (locales, imports, translation keys)
+        run: npm run check --prefix shared
+
+      - name: Backend checks
+        run: npm run check:all --prefix backend
+        env:
+          # config/env.js refuses to start without these; the check scripts
+          # replace the database and JWT secret with throwaway ones.
+          MONGODB_URL: mongodb://127.0.0.1:1/unused
+          PORT: "8000"
+          JWT_SECRET: ci-only-secret-that-is-at-least-32-characters-long
+          SESSION_SECRET: ci-only-session-secret
+          CLOUDINARY_CLOUD_NAME: ci
+          CLOUDINARY_API_KEY: ci
+          CLOUDINARY_API_SECRET: ci
+          NODE_MAILER_EMAIL: ci@example.invalid
+          NODE_MAILER_PASSWORD: ci
+          MAIL_DISABLED: "true"
+
+      - name: Web build
+        run: npm run build --prefix frontend
+
+      # The web lint had pre-existing errors when this workflow was added.
+      # Make it blocking once they are fixed.
+      - name: Web lint
+        run: npm run lint --prefix frontend
+        continue-on-error: true
+
+      - name: Dependency audit (production, high and above)
+        run: |
+          npm audit --omit=dev --audit-level=high --prefix backend
+          npm audit --omit=dev --audit-level=high --prefix frontend

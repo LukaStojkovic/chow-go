@@ -36,8 +36,11 @@ node backend/scripts/backfillSchedule.js             # apply it (idempotent, alr
 node backend/scripts/migrateIdempotencyIndex.js --dry-run   # report, then run without the flag once per database
 ```
 
-There is **no test framework and no CI** anywhere in the repo, and no `npm test`. There is,
-however, a suite of self-contained check scripts — `cd backend && npm run check:all` runs
+There is **no test framework** and no `npm test`. `.github/workflows/ci.yml` runs the shared
+guards, `check:all`, the web build, the web lint (non-blocking until its existing errors are
+fixed) and a high-severity `npm audit` on every push to main and every PR. The root
+`Dockerfile` builds the web app and runs the backend serving it. There is
+a suite of self-contained check scripts — `cd backend && npm run check:all` runs
 every one listed in its `check:all` script against a throwaway in-memory MongoDB, needing
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
