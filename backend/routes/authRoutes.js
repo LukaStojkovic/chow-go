@@ -11,7 +11,9 @@ import {
   verifyOtp,
   googleCallback,
   googleCompleteProfile,
-  googleExchange
+  googleExchange,
+  googleLinkConfirm,
+  googleLinkTicket,
 } from "../controllers/authController.js";
 import { createUpload } from "../middlewares/upload.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
@@ -25,6 +27,7 @@ import {
   oauthNonceCookieOptions,
   readOAuthState,
   signOAuthState,
+  verifyTyped,
 } from "../utils/googleHandoff.js";
 
 const router = express.Router();
@@ -76,6 +79,38 @@ router.get("/google", (req, res, next) => {
 });
 
 router.post("/google/exchange", loginLimiter, googleExchange);
+
+// Linking Google to the signed-in account. The web start is a top-level GET
+// from the SPA, so the sameSite=strict session cookie authenticates it and a
+// cross-site page cannot start a link for its visitor; the nonce cookie then
+// ties the callback to this browser as it does for sign-in.
+const googleLinkAuth = (state) =>
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state,
+    prompt: "select_account",
+  });
+
+router.get("/google/link", protectedRoute, (req, res, next) => {
+  const nonce = newOAuthNonce();
+  res.cookie(OAUTH_NONCE_COOKIE, nonce, oauthNonceCookieOptions());
+  const link = { userId: String(req.user._id), ver: req.user.tokenVersion ?? 0 };
+  return googleLinkAuth(signOAuthState("web", { nonce, link }))(req, res, next);
+});
+
+router.post("/google/link/ticket", protectedRoute, googleLinkTicket);
+router.get("/google/link/start", (req, res, next) => {
+  let ticket;
+  try {
+    ticket = verifyTyped(String(req.query.ticket ?? ""), "google_link_ticket");
+  } catch {
+    const base = process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google";
+    return res.redirect(`${base}?linkError=link_expired`);
+  }
+  const state = signOAuthState("mobile", { challenge: ticket.challenge, link: ticket.link });
+  return googleLinkAuth(state)(req, res, next);
+});
+router.post("/google/link/confirm", protectedRoute, googleLinkConfirm);
 router.get("/google/callback", (req, res, next) => {
   const state = readOAuthState(req.query.state);
   // Native is protected by the PKCE challenge instead: a forged callback

@@ -2,6 +2,9 @@
 
 export default {
   auth: {
+    googleLinkExpired: "Veza je istekla. Pokušajte ponovo.",
+    googleAlreadyLinked: "Ovaj nalog je već povezan sa drugim Google nalogom.",
+    googleInUse: "Taj Google nalog već koristi drugi Chow & Go nalog.",
     allFieldsRequired: "Sva polja su obavezna",
     invalidCredentials:
       "Ta imejl adresa i lozinka se ne poklapaju. Ako ste se registrovali preko Google-a, izaberite Nastavi sa Google-om.",
@@ -196,6 +199,9 @@ export default {
   },
 
   byCode: {
+    GOOGLE_LINK_EXPIRED: "Veza je istekla. Pokušajte ponovo.",
+    GOOGLE_ALREADY_LINKED: "Ovaj nalog je već povezan sa Google nalogom.",
+    GOOGLE_IN_USE: "Taj Google nalog već koristi drugi nalog.",
     NO_TOKEN: "Morate biti prijavljeni",
     INVALID_TOKEN: "Vaša sesija više nije ispravna",
     TOKEN_REVOKED: "Vaša sesija je završena. Prijavite se ponovo.",

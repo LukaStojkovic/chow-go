@@ -54,6 +54,7 @@ import PasswordChangeModal from "@/components/Profile/PasswordChangeModal";
 import { PersonalDetailsCard } from "@/features/profile/PersonalDetailsCard";
 import { SavedAddressesCard } from "@/features/profile/SavedAddressesCard";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
+import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 
 // Keys, not copy: module scope runs before a language is chosen.
 const THEMES = [
@@ -210,7 +211,7 @@ export default function ProfilePage() {
             <h2 className="text-h2">{t("sections.security")}</h2>
             {/* Google accounts have no local password to change - the button
                 would open a form that can only fail. */}
-            {authUser?.googleId ? (
+            {authUser?.authProvider === "google" ? (
               <p className="text-body-sm text-muted-foreground flex items-start gap-2">
                 <KeyRound className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 {t("account.googleManaged")}
@@ -226,6 +227,7 @@ export default function ProfilePage() {
                 </Button>
               </>
             )}
+            <ConnectGoogle className="border-t border-border pt-3" />
           </Card>
 
           <Card padded className="space-y-3">

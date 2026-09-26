@@ -16,8 +16,20 @@ function navigateByRole(role, navigate) {
   }
 }
 
+const SETTINGS_BY_ROLE = {
+  seller: "/seller/settings",
+  courier: "/courier/profile",
+  customer: "/profile",
+};
+
+const LINK_ERRORS = {
+  link_expired: "profile:account.googleLinkExpired",
+  already_linked: "profile:account.googleAlreadyLinked",
+  google_in_use: "profile:account.googleInUse",
+};
+
 export default function GoogleAuthCallbackPage() {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "profile"]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { checkAuth } = useAuthStore();
@@ -28,6 +40,22 @@ export default function GoogleAuthCallbackPage() {
     const error = searchParams.get("error");
     const success = searchParams.get("success");
     const newUser = searchParams.get("newUser");
+    const linked = searchParams.get("linked");
+    const linkError = searchParams.get("linkError");
+
+    if (linked === "true" || linkError) {
+      checkAuth().then((user) => {
+        if (linkError) {
+          toast.error(t("profile:account.googleLinkFailed"), {
+            description: t(LINK_ERRORS[linkError] ?? "profile:account.googleLinkExpired"),
+          });
+        } else {
+          toast.success(t("profile:account.googleLinked"));
+        }
+        navigate(user ? SETTINGS_BY_ROLE[user.role] ?? "/profile" : "/", { replace: true });
+      });
+      return;
+    }
 
     if (error) {
       if (error === "account_exists") toast.error(t("google.accountExists"));

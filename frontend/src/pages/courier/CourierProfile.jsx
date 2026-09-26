@@ -19,6 +19,7 @@ import { useCourierOverview } from "@/hooks/Courier/useCourierOverview";
 import useUpdateCourierProfile from "@/hooks/Courier/useUpdateCourierProfile";
 import { Button } from "@/components/ui/button";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
+import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 
 // Vehicle wording comes from the shared taxonomy, so a courier's vehicle
 // reads the same here as it does on the customer's tracking screen.
@@ -347,6 +348,8 @@ export function CourierProfile() {
             value={courier.isAvailable ? t("duty.on") : t("duty.off")}
           />
         </div>
+
+        <ConnectGoogle className="mt-6 border-t border-border pt-4" />
 
         <div className="mt-6 border-t border-border pt-4">
           <Button

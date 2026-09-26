@@ -35,6 +35,7 @@ import {
   normalizeSchedule,
 } from "@chowgo/shared/schedule";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
+import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 
 export const SellerSettings = () => {
   const { t } = useTranslation(["seller", "auth", "profile", "restaurant", "common"]);
@@ -483,7 +484,8 @@ export const SellerSettings = () => {
             {t("settings.deleteAccountHint")}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <ConnectGoogle />
           <Button
             variant="ghost"
             className="text-muted-foreground hover:text-destructive px-0"

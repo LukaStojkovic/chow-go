@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
+import { readOAuthState } from "../utils/googleHandoff.js";
 import "./env.js";
 
 
@@ -49,9 +50,15 @@ export function configurePassport() {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        passReqToCallback: true,
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (req, accessToken, refreshToken, profile, done) => {
         try {
+          // A link is for the account already signed in, whose email is
+          // bound to exist, so it must not go through the sign-in lookup.
+          if (readOAuthState(req.query.state).link) {
+            return done(null, { linkProfile: { googleId: profile.id } });
+          }
           const { user, failure } = await resolveGoogleProfile(profile);
           return user ? done(null, user) : done(null, false, { reason: failure });
         } catch (error) {

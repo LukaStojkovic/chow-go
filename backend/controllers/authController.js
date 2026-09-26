@@ -8,6 +8,8 @@ import {
   isValidChallenge,
   readOAuthState,
   signHandoff,
+  signLinkHandoff,
+  signLinkTicket,
   signSignupState,
   verifierMatches,
   verifyTyped,
@@ -23,6 +25,7 @@ import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
 import { deleteAccountOperation } from "../services/accountDeletion.service.js";
+import { linkGoogleAccount } from "../services/googleLink.service.js";
 import {
   buildScheduleFromRange,
   isValidTimeString,
@@ -44,6 +47,22 @@ const TIMING_HASH = bcrypt.hashSync(randomBytes(16).toString("hex"), 12);
 // with capitals could not log in typing lowercase.
 function normalizeEmail(value) {
   return String(value).trim().toLowerCase();
+}
+
+// googleId itself stays server-side; clients only need to know whether one is
+// linked and whether the account has a password of its own.
+function publicUser(user) {
+  return {
+    _id: user._id,
+    email: user.email,
+    name: user.name,
+    profilePicture: user.profilePicture,
+    phoneNumber: user.phoneNumber,
+    role: user.role,
+    createdAt: user.createdAt,
+    authProvider: user.authProvider,
+    googleLinked: Boolean(user.googleId),
+  };
 }
 
 // The reset token is 256 bits of entropy, so a fast digest is appropriate here;
@@ -95,13 +114,7 @@ export async function login(req, res, next) {
   }
 
   const response = {
-    _id: user._id,
-    email: user.email,
-    name: user.name,
-    profilePicture: user.profilePicture,
-    phoneNumber: user.phoneNumber,
-    role: user.role,
-    createdAt: user.createdAt,
+    ...publicUser(user),
   };
 
   if (user.role === "seller" && user.restaurant) {
@@ -314,13 +327,7 @@ export const register = async (req, res, next) => {
       withAuthToken(
         req,
         {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          phoneNumber: user.phoneNumber,
-          profilePicture: user.profilePicture,
-          createdAt: user.createdAt,
+          ...publicUser(user),
           courier: courierProfile,
         },
         courierToken,
@@ -331,13 +338,7 @@ export const register = async (req, res, next) => {
   const token = generateToken(user, res, isMobileClient(req));
 
   const response = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    phoneNumber: user.phoneNumber,
-    profilePicture: user.profilePicture,
-    createdAt: user.createdAt,
+    ...publicUser(user),
   };
 
   if (user.role === "seller" && user.restaurant) {
@@ -439,7 +440,7 @@ export const updateProfile = async (req, res, next) => {
   const body = {
     status: "success",
     message: "Profile updated successfully",
-    data: updatedUser,
+    data: { ...updatedUser.toJSON(), ...publicUser(updatedUser), googleId: undefined },
   };
 
   if (updateData.tokenVersion === undefined) return res.status(200).json(body);
@@ -637,13 +638,7 @@ export async function deleteAccount(req, res, next) {
 
 export const checkAuth = (req, res) => {
   const response = {
-    _id: req.user._id,
-    email: req.user.email,
-    name: req.user.name,
-    profilePicture: req.user.profilePicture,
-    phoneNumber: req.user.phoneNumber,
-    role: req.user.role,
-    createdAt: req.user.createdAt,
+    ...publicUser(req.user),
   };
 
   if (req.user.role === "seller" && req.user.restaurant) {
@@ -666,6 +661,20 @@ export const googleCallback = async (req, res, next) => {
   const base = isMobile
     ? process.env.MOBILE_REDIRECT_URL || "chowgo://auth/google"
     : `${process.env.FRONTEND_URL}/auth/google/callback`;
+
+  if (state.link) {
+    const googleId = data?.linkProfile?.googleId;
+    if (isMobile) {
+      if (!googleId || !isValidChallenge(state.challenge)) {
+        return res.redirect(`${base}?linkError=auth_failed`);
+      }
+      const code = signLinkHandoff({ link: state.link, googleId }, state.challenge);
+      return res.redirect(`${base}?linkCode=${encodeURIComponent(code)}`);
+    }
+    if (!googleId) return res.redirect(`${base}?linkError=auth_failed`);
+    const { failure } = await linkGoogleAccount(state.link, googleId);
+    return res.redirect(failure ? `${base}?linkError=${failure}` : `${base}?linked=true`);
+  }
 
   if (!data) {
     const reason = GOOGLE_FAILURE_REASONS.has(req.googleAuthFailure)
@@ -749,13 +758,7 @@ export const googleExchange = async (req, res, next) => {
   const token = generateToken(user, res, true, { skipCookie: true });
 
   const response = {
-    _id: user._id,
-    email: user.email,
-    name: user.name,
-    profilePicture: user.profilePicture,
-    phoneNumber: user.phoneNumber,
-    role: user.role,
-    createdAt: user.createdAt,
+    ...publicUser(user),
   };
 
   if (user.role === "seller" && user.restaurant) {
@@ -767,6 +770,63 @@ export const googleExchange = async (req, res, next) => {
   }
 
   return res.status(200).json({ status: "authenticated", token, user: response });
+};
+
+const LINK_FAILURE_ERRORS = {
+  link_expired: ["errors:auth.googleLinkExpired", 400, "GOOGLE_LINK_EXPIRED"],
+  already_linked: ["errors:auth.googleAlreadyLinked", 409, "GOOGLE_ALREADY_LINKED"],
+  google_in_use: ["errors:auth.googleInUse", 409, "GOOGLE_IN_USE"],
+};
+
+/** Native: trades the bearer session for a ticket the system browser can carry. */
+export const googleLinkTicket = async (req, res, next) => {
+  const { challenge } = req.body ?? {};
+  if (!isValidChallenge(challenge)) return next(new AppError("Invalid challenge", 400));
+  if (req.user.googleId) {
+    return next(new AppError("errors:auth.googleAlreadyLinked", 409, "GOOGLE_ALREADY_LINKED"));
+  }
+  const ticket = signLinkTicket(
+    { userId: req.user._id, ver: req.user.tokenVersion ?? 0 },
+    challenge,
+  );
+  return res.status(200).json({ ticket });
+};
+
+/** Native: completes a link once the app proves it started it. */
+export const googleLinkConfirm = async (req, res, next) => {
+  const { code, codeVerifier } = req.body ?? {};
+  let payload;
+  try {
+    payload = verifyTyped(String(code ?? ""), "google_link_handoff");
+  } catch {
+    return next(new AppError("Link expired. Please try again.", 400, "HANDOFF_INVALID"));
+  }
+  if (
+    !payload.jti ||
+    !verifierMatches(codeVerifier, payload.challenge) ||
+    payload.link?.userId !== String(req.user._id)
+  ) {
+    return next(new AppError("Link could not be verified. Please try again.", 400, "HANDOFF_INVALID"));
+  }
+
+  try {
+    await ConsumedHandoff.create({
+      _id: payload.jti,
+      expiresAt: new Date(Date.now() + HANDOFF_TTL_MS),
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return next(new AppError("This link was already used. Please try again.", 400, "HANDOFF_USED"));
+    }
+    throw error;
+  }
+
+  const { failure } = await linkGoogleAccount(payload.link, payload.googleId);
+  if (failure) {
+    const [key, status, errorCode] = LINK_FAILURE_ERRORS[failure];
+    return next(new AppError(key, status, errorCode));
+  }
+  return res.status(200).json({ linked: true });
 };
 
 export const googleCompleteProfile = async (req, res, next) => {
@@ -926,13 +986,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     if (fromSession) delete req.session.googleProfile;
 
     return res.status(201).json(withAuthToken(req, {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      profilePicture: user.profilePicture,
-      phoneNumber: user.phoneNumber,
-      createdAt: user.createdAt,
+      ...publicUser(user),
       restaurant: user.restaurant,
     }, token));
   }
@@ -984,13 +1038,7 @@ export const googleCompleteProfile = async (req, res, next) => {
     if (fromSession) delete req.session.googleProfile;
 
     return res.status(201).json(withAuthToken(req, {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      profilePicture: user.profilePicture,
-      phoneNumber: user.phoneNumber,
-      createdAt: user.createdAt,
+      ...publicUser(user),
       courier: courierProfile,
     }, token));
   }
@@ -999,12 +1047,6 @@ export const googleCompleteProfile = async (req, res, next) => {
   if (fromSession) delete req.session.googleProfile;
 
   return res.status(201).json(withAuthToken(req, {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    profilePicture: user.profilePicture,
-    phoneNumber: user.phoneNumber,
-    createdAt: user.createdAt,
+    ...publicUser(user),
   }, token));
 };

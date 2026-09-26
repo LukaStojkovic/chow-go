@@ -30,6 +30,16 @@ export default {
   },
 
   account: {
+    google: "Google",
+    googleConnect: "Connect Google",
+    googleConnectHint: "Sign in with Google as well as your password.",
+    googleConnected: "Google connected",
+    googleConnectedHint: "You can sign in with Google or your password.",
+    googleLinked: "Google is now connected to your account.",
+    googleLinkFailed: "Could not connect Google",
+    googleLinkExpired: "That link expired. Please try again.",
+    googleAlreadyLinked: "This account is already connected to a different Google account.",
+    googleInUse: "That Google account is already used by another Chow & Go account.",
     personalDetails: "Your details",
     personalDetailsHint: "Name, email and phone number",
     newPhotoHint: "New photo - saves with your changes.",

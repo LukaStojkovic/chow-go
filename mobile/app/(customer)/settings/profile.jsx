@@ -14,6 +14,7 @@ import { Button, IconButton } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
 import { updateProfile } from "@/services/apiAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
@@ -161,41 +162,45 @@ export default function EditProfile() {
           />
         </Card>
 
-        <Card className="gap-4">
-          <View className="flex-row items-center gap-3">
-            <View className="flex-1">
-              <Text variant="h3">{t("account.changePassword")}</Text>
-              <Text variant="caption" tone="muted">
-                {t("account.passwordOptionalHint")}
-              </Text>
+        {authUser?.authProvider !== "google" ? (
+          <Card className="gap-4">
+            <View className="flex-row items-center gap-3">
+              <View className="flex-1">
+                <Text variant="h3">{t("account.changePassword")}</Text>
+                <Text variant="caption" tone="muted">
+                  {t("account.passwordOptionalHint")}
+                </Text>
+              </View>
             </View>
-          </View>
-          <Input
-            label={t("account.currentPassword")}
-            value={currentPassword}
-            onChangeText={setCurrentPassword}
-            secureTextEntry
-            textContentType="password"
-          />
+            <Input
+              label={t("account.currentPassword")}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              secureTextEntry
+              textContentType="password"
+            />
 
-          <Input
-            label={t("account.newPassword")}
-            value={newPassword}
-            onChangeText={setNewPassword}
-            secureTextEntry
-            textContentType="newPassword"
-            hint={t("account.passwordMinHint", { count: 6 })}
-          />
+            <Input
+              label={t("account.newPassword")}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              textContentType="newPassword"
+              hint={t("account.passwordMinHint", { count: 6 })}
+            />
 
-          <Input
-            label={t("account.confirmPassword")}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            textContentType="newPassword"
-            error={mismatch ? t("validation:auth.passwordsMismatch") : undefined}
-          />
-        </Card>
+            <Input
+              label={t("account.confirmPassword")}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              textContentType="newPassword"
+              error={mismatch ? t("validation:auth.passwordsMismatch") : undefined}
+            />
+          </Card>
+        ) : null}
+
+        <ConnectGoogle />
       </ScrollView>
 
       <DockedBar>

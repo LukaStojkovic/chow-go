@@ -1,16 +1,13 @@
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { API_BASE_URL } from "@/lib/axios";
 
 export function GoogleButton() {
   const { t } = useTranslation("auth");
 
   const handleGoogleAuth = () => {
-    const baseURL =
-      import.meta.env.MODE === "development"
-        ? "http://localhost:8000/api"
-        : "/api";
-    window.location.href = `${baseURL}/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (

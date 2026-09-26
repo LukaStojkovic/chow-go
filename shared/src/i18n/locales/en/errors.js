@@ -13,6 +13,9 @@
 
 export default {
   auth: {
+    googleLinkExpired: "That link expired. Please try again.",
+    googleAlreadyLinked: "This account is already connected to a different Google account.",
+    googleInUse: "That Google account is already used by another Chow & Go account.",
     allFieldsRequired: "All fields are required",
     invalidCredentials:
       "That email and password do not match. If you signed up with Google, use Continue with Google.",
@@ -206,6 +209,9 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    GOOGLE_LINK_EXPIRED: "That link expired. Please try again.",
+    GOOGLE_ALREADY_LINKED: "This account is already connected to a Google account.",
+    GOOGLE_IN_USE: "That Google account is already used by another account.",
     NO_TOKEN: "You need to be signed in",
     INVALID_TOKEN: "Your session is no longer valid",
     TOKEN_REVOKED: "Your session has ended. Please sign in again.",

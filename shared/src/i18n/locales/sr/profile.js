@@ -30,6 +30,16 @@ export default {
   },
 
   account: {
+    google: "Google",
+    googleConnect: "Poveži Google",
+    googleConnectHint: "Prijavljujte se preko Google-a, pored lozinke.",
+    googleConnected: "Google je povezan",
+    googleConnectedHint: "Možete se prijaviti preko Google-a ili lozinkom.",
+    googleLinked: "Google je sada povezan sa vašim nalogom.",
+    googleLinkFailed: "Povezivanje Google-a nije uspelo",
+    googleLinkExpired: "Veza je istekla. Pokušajte ponovo.",
+    googleAlreadyLinked: "Ovaj nalog je već povezan sa drugim Google nalogom.",
+    googleInUse: "Taj Google nalog već koristi drugi Chow & Go nalog.",
     personalDetails: "Vaši podaci",
     personalDetailsHint: "Ime, imejl i broj telefona",
     newPhotoHint: "Nova fotografija - čuva se uz vaše izmene.",

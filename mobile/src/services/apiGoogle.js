@@ -14,24 +14,26 @@ WebBrowser.maybeCompleteAuthSession();
  * client id is needed and why chowgo:// never appears in Google's console -
  * the only registered redirect stays the backend's callback URL.
  */
-export async function signInWithGoogle() {
-  const redirectUri = AuthSession.makeRedirectUri({
-    scheme: "chowgo",
-    path: "auth/google",
-  });
+const redirectUri = () => AuthSession.makeRedirectUri({ scheme: "chowgo", path: "auth/google" });
 
-  // Another app can claim chowgo:// and read the code; without this verifier,
-  // which never leaves the app, the code cannot be exchanged.
+// Another app can claim chowgo:// and read the code; without this verifier,
+// which never leaves the app, the code cannot be exchanged.
+async function pkcePair() {
   const codeVerifier = `${Crypto.randomUUID()}${Crypto.randomUUID()}`.replaceAll("-", "");
   const challenge = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     codeVerifier,
     { encoding: Crypto.CryptoEncoding.HEX },
   );
+  return { codeVerifier, challenge };
+}
+
+export async function signInWithGoogle() {
+  const { codeVerifier, challenge } = await pkcePair();
 
   const result = await WebBrowser.openAuthSessionAsync(
     `${API_URL}/auth/google?client=mobile&challenge=${challenge}`,
-    redirectUri,
+    redirectUri(),
   );
 
   if (result.type !== "success") return { status: "cancelled" };
@@ -57,4 +59,27 @@ export async function completeGoogleProfile({ signupToken, role, ...fields }) {
     ...fields,
   });
   return data;
+}
+
+/**
+ * Connects Google to the signed-in account. The system browser carries no
+ * session, so the bearer token is first traded for a short ticket; the link
+ * only lands once this app confirms the returned code with its verifier.
+ */
+export async function linkGoogle() {
+  const { codeVerifier, challenge } = await pkcePair();
+  const { data } = await api.post("/auth/google/link/ticket", { challenge });
+
+  const result = await WebBrowser.openAuthSessionAsync(
+    `${API_URL}/auth/google/link/start?ticket=${encodeURIComponent(data.ticket)}`,
+    redirectUri(),
+  );
+  if (result.type !== "success") return { status: "cancelled" };
+
+  const { queryParams } = Linking.parse(result.url);
+  if (queryParams?.linkError) return { status: "failed", reason: queryParams.linkError };
+  if (!queryParams?.linkCode) return { status: "failed" };
+
+  await api.post("/auth/google/link/confirm", { code: queryParams.linkCode, codeVerifier });
+  return { status: "linked" };
 }

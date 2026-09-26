@@ -62,14 +62,14 @@ export const signSignupState = (googleProfile) =>
  * Carries which client started the flow through the Google round-trip.
  * Signing it also buys CSRF protection the flow does not have today.
  */
-export const signOAuthState = (client, { challenge, nonce } = {}) =>
-  sign({ client, challenge, nonce, typ: "oauth_state" }, STATE_TTL);
+export const signOAuthState = (client, { challenge, nonce, link } = {}) =>
+  sign({ client, challenge, nonce, link, typ: "oauth_state" }, STATE_TTL);
 
 /** Anything unsigned or expired falls back to the web redirect, marked invalid. */
 export function readOAuthState(state) {
   try {
-    const { client, challenge, nonce } = verifyTyped(state, "oauth_state");
-    return { valid: true, client, challenge, nonce };
+    const { client, challenge, nonce, link } = verifyTyped(state, "oauth_state");
+    return { valid: true, client, challenge, nonce, link };
   } catch {
     return { valid: false, client: "web" };
   }
@@ -98,3 +98,23 @@ export function nonceMatches(cookieNonce, stateNonce) {
   const b = Buffer.from(stateNonce);
   return a.length === b.length && timingSafeEqual(a, b);
 }
+
+/**
+ * Linking Google to a signed-in account. The system browser that runs the
+ * OAuth leg on native has no session, so the app first trades its bearer
+ * token for this ticket and opens /google/link/start with it. The ticket
+ * carries the app's challenge, and the callback hands back a
+ * google_link_handoff code that only /google/link/confirm accepts, with the
+ * verifier and the same account's token - so a link someone else starts on
+ * this phone cannot complete.
+ */
+const LINK_TICKET_TTL = "2m";
+
+export const signLinkTicket = ({ userId, ver }, challenge) =>
+  sign({ link: { userId: String(userId), ver }, challenge, typ: "google_link_ticket" }, LINK_TICKET_TTL);
+
+export const signLinkHandoff = ({ link, googleId }, challenge) =>
+  sign(
+    { link, googleId, challenge, jti: randomUUID(), typ: "google_link_handoff" },
+    HANDOFF_TTL,
+  );

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LanguagePicker } from "@/features/settings/LanguagePicker";
+import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
 
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
@@ -219,6 +220,8 @@ export default function SellerSettings() {
         </Card>
 
         <LanguagePicker />
+
+        <ConnectGoogle />
 
         <Button
           variant="outline"
