@@ -38,13 +38,16 @@
     "check:pagination": "node scripts/checkPagination.js",
     "check:search": "node scripts/checkSearchInput.js",
     "check:schema": "node scripts/checkSchemaLimits.js",
-    "check:recovery": "node scripts/checkOrderRecovery.js"
+    "check:recovery": "node scripts/checkOrderRecovery.js",
+    "check:redis": "node scripts/checkRedis.js"
   },
   "dependencies": {
     "@chowgo/shared": "file:../shared",
     "@sentry/node": "^10.74.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.11.0",
+    "connect-redis": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
@@ -64,6 +67,8 @@
     "passport-google-oauth20": "^2.0.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
+    "rate-limit-redis": "^6.0.1",
+    "redis": "^5.12.1",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {

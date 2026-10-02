@@ -37,7 +37,7 @@ const child = spawn(process.execPath, ["index.js"], {
   env: {
     ...process.env, MONGODB_URL: uri, PORT: String(PORT),
     JWT_SECRET: randomBytes(48).toString("base64url"),
-    NODE_ENV: "development", LOG_LEVEL: "silent", MAIL_DISABLED: "true",
+    NODE_ENV: "development", LOG_LEVEL: "silent", MAIL_DISABLED: "true", REDIS_URL: "",
   },
   stdio: ["ignore", "ignore", "inherit"],
 });

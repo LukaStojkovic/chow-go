@@ -109,7 +109,7 @@ try {
   ok("with no active delivery it says stop tracking", (await report({ coordinates: [20.46, 44.81] })).tracking === false);
   const live = await order({ status: "in_transit", courier: courier._id, pickedUpAt: ago(5) });
   const { forgetCourierThrottle } = await import("../services/locationTracking.service.js");
-  forgetCourierThrottle(courier._id);
+  await forgetCourierThrottle(courier._id);
   const reported = await report({ coordinates: [20.4701, 44.8102], orderId: String(live) });
   ok("on an active delivery it keeps tracking", reported.tracking === true, JSON.stringify(reported));
   const stored = (await Courier.findById(courier._id).lean()).currentLocation?.coordinates;

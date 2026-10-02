@@ -9,6 +9,16 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +52,21 @@ jobs:
         env:
           # config/env.js refuses to start without these; the check scripts
           # replace the database and JWT secret with throwaway ones.
+          MONGODB_URL: mongodb://127.0.0.1:1/unused
+          PORT: "8000"
+          JWT_SECRET: ci-only-secret-that-is-at-least-32-characters-long
+          SESSION_SECRET: ci-only-session-secret
+          CLOUDINARY_CLOUD_NAME: ci
+          CLOUDINARY_API_KEY: ci
+          CLOUDINARY_API_SECRET: ci
+          NODE_MAILER_EMAIL: ci@example.invalid
+          NODE_MAILER_PASSWORD: ci
+          MAIL_DISABLED: "true"
+
+      - name: Multi-instance checks (Redis)
+        run: npm run check:redis --prefix backend
+        env:
+          REDIS_URL: redis://127.0.0.1:6379
           MONGODB_URL: mongodb://127.0.0.1:1/unused
           PORT: "8000"
           JWT_SECRET: ci-only-secret-that-is-at-least-32-characters-long

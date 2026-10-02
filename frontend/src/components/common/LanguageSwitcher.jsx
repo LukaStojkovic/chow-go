@@ -17,6 +17,7 @@ import { LOCALES } from "@chowgo/shared/i18n";
 import { cn } from "@/lib/utils";
 import { setLocale } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { FlagIcon } from "@/components/common/FlagIcon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,9 +58,7 @@ export function LanguageSwitcher({ variant = "menu", className }) {
                 isActive ? "bg-primary-subtle text-primary-subtle-foreground" : "hover:bg-muted",
               )}
             >
-              <span aria-hidden="true" className="text-base leading-none">
-                {locale.flag}
-              </span>
+              <FlagIcon code={locale.code} />
               <span className="text-label flex-1">{locale.label}</span>
               {isActive && <Check className="size-4 shrink-0" aria-hidden="true" />}
             </button>
@@ -88,7 +87,7 @@ export function LanguageSwitcher({ variant = "menu", className }) {
             onSelect={() => choose(locale.code)}
             className="gap-2"
           >
-            <span aria-hidden="true">{locale.flag}</span>
+            <FlagIcon code={locale.code} />
             <span className="flex-1">{locale.label}</span>
             {locale.code === active && <Check className="size-4" aria-hidden="true" />}
           </DropdownMenuItem>

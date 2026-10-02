@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
 import jwt from "jsonwebtoken";
 import { isTokenVersionCurrent } from "../utils/generateToken.js";
 import { isTokenRevoked } from "../utils/revokedTokens.js";
@@ -13,6 +14,8 @@ import {
 import { emitCourierLocationUpdated } from "../services/orderSocket.service.js";
 import { corsOrigin } from "../config/cors.js";
 import { logger } from "../utils/logger.js";
+import { getAdapterClients } from "../config/redis.js";
+import { countLiveInstances, startInstanceHeartbeat } from "./instanceRegistry.js";
 
 export const COURIER_POOL_ROOM = "couriers:pool";
 
@@ -21,6 +24,10 @@ const COURIER_ACTIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 const DELIVERY_CONTEXT_TTL_MS = 60_000;
 
 const DELIVERY_MISS_TTL_MS = 5_000;
+
+const CLUSTER_REQUEST_TIMEOUT_MS = 2_000;
+
+const userRoom = (userId) => `user:${userId}`;
 
 const isEmpty = (set) => !set || set.size === 0;
 
@@ -54,9 +61,37 @@ class SocketServer {
       restaurants: new Map(),
       couriers: new Map(),
     };
+    this.clustered = false;
 
     this.setupMiddleware();
     this.setupEventHandlers();
+  }
+
+  async useRedisAdapter() {
+    const clients = getAdapterClients();
+    if (!clients || this.clustered) return false;
+    const factory = createAdapter(clients.pub, clients.sub, {
+      key: "chowgo:socket",
+      requestsTimeout: CLUSTER_REQUEST_TIMEOUT_MS,
+    });
+    this.io.adapter(function (nsp) {
+      const adapter = factory(nsp);
+      const viaNumSub = adapter.serverCount.bind(adapter);
+      adapter.serverCount = async () => {
+        try {
+          const live = await countLiveInstances();
+          if (live) return live;
+        } catch (err) {
+          logger.warn({ err }, "Falling back to PUBSUB NUMSUB for the instance count");
+        }
+        return viaNumSub();
+      };
+      return adapter;
+    });
+    await startInstanceHeartbeat();
+    this.clustered = true;
+    logger.info("Socket.IO is using the Redis adapter");
+    return true;
   }
 
   setupMiddleware() {
@@ -88,6 +123,9 @@ class SocketServer {
         socket.tokenJti = decoded.jti;
         socket.userRole = user.role;
         socket.userName = user.name;
+        socket.data.userId = socket.userId;
+        socket.data.tokenJti = decoded.jti ?? null;
+        socket.data.role = user.role;
 
         next();
       } catch (err) {
@@ -101,6 +139,8 @@ class SocketServer {
       logger.debug(
         `✅ User connected: ${socket.userName} (${socket.userRole}) - Socket ID: ${socket.id}`,
       );
+
+      socket.join(userRoom(socket.userId));
 
       socket.on("register", async (data) => {
         await this.handleRegistration(socket, data);
@@ -256,6 +296,7 @@ class SocketServer {
           this.addConnection("restaurants", restaurantId, socket.id);
           socket.join(`restaurant:${restaurantId}`);
           socket.restaurantId = restaurantId;
+          socket.data.restaurantId = String(restaurantId);
           logger.debug(`🏪 Restaurant registered: ${restaurantId}`);
           break;
 
@@ -276,6 +317,7 @@ class SocketServer {
           }
 
           socket.courierId = courier._id.toString();
+          socket.data.courierId = socket.courierId;
           this.addConnection("couriers", socket.courierId, socket.id);
           socket.join(`courier:${socket.courierId}`);
           socket.join(COURIER_POOL_ROOM);
@@ -343,15 +385,36 @@ class SocketServer {
     if (existing.size === 0) this.connections[kind].delete(id);
   }
 
-  emitToRoom(room, event, data, label) {
-    const size = this.io.sockets.adapter.rooms.get(room)?.size ?? 0;
-    if (size === 0) {
-      logger.debug(`⚠️  ${label} not connected`);
-      return false;
+  async fetchSockets(room) {
+    try {
+      return await (room ? this.io.in(room) : this.io).fetchSockets();
+    } catch (err) {
+      logger.warn({ err, room }, "Could not list sockets across instances");
+      return null;
     }
+  }
+
+  async hasListeners(room) {
+    if (!this.clustered) return (this.io.sockets.adapter.rooms.get(room)?.size ?? 0) > 0;
+    const sockets = await this.fetchSockets(room);
+    return Boolean(sockets?.length);
+  }
+
+  isCustomerLive(userId) {
+    return this.hasListeners(`customer:${userId}`);
+  }
+
+  isRestaurantLive(restaurantId) {
+    return this.hasListeners(`restaurant:${restaurantId}`);
+  }
+
+  isCourierLive(courierId) {
+    return this.hasListeners(`courier:${courierId}`);
+  }
+
+  emitToRoom(room, event, data, label) {
     this.io.to(room).emit(event, data);
     logger.debug(`📤 Emitted ${event} to ${label}`);
-    return true;
   }
 
   emitToCustomer(userId, event, data) {
@@ -395,35 +458,52 @@ class SocketServer {
    * couriers who are already watching, the same way deliverToCustomer uses an
    * empty room as its signal.
    */
-  connectedCourierIds() {
-    const ids = new Set();
-    for (const [courierId, sockets] of this.connections.couriers) {
-      if (sockets && sockets.size > 0) ids.add(String(courierId));
+  async connectedCourierIds() {
+    if (!this.clustered) {
+      const ids = new Set();
+      for (const [courierId, sockets] of this.connections.couriers) {
+        if (sockets && sockets.size > 0) ids.add(String(courierId));
+      }
+      return ids;
     }
-    return ids;
+    const sockets = await this.fetchSockets(COURIER_POOL_ROOM);
+    return new Set((sockets ?? []).map((s) => s.data.courierId).filter(Boolean));
   }
 
   // Tokens are only checked at the handshake, so revoking one does nothing to
   // a socket already open with it. With a jti, only that token's sockets go.
-  disconnectUser(userId, { jti, exceptJti } = {}) {
+  async disconnectUser(userId, { jti, exceptJti } = {}) {
+    const sockets = (await this.fetchSockets(userRoom(String(userId)))) ?? [];
     let count = 0;
-    for (const socket of this.io.sockets.sockets.values()) {
-      if (socket.userId !== String(userId)) continue;
-      if (jti && socket.tokenJti !== jti) continue;
-      if (exceptJti && socket.tokenJti === exceptJti) continue;
+    for (const socket of sockets) {
+      if (jti && socket.data.tokenJti !== jti) continue;
+      if (exceptJti && socket.data.tokenJti === exceptJti) continue;
       socket.disconnect(true);
       count++;
     }
     return count;
   }
 
-  getStats() {
+  async getStats() {
+    if (!this.clustered) {
+      return {
+        instances: 1,
+        totalConnections: this.io.sockets.sockets.size,
+        customers: this.connections.customers.size,
+        restaurants: this.connections.restaurants.size,
+        couriers: this.connections.couriers.size,
+        courierPool: this.io.sockets.adapter.rooms.get(COURIER_POOL_ROOM)?.size ?? 0,
+      };
+    }
+    const sockets = (await this.fetchSockets()) ?? [];
+    const unique = (pick) => new Set(sockets.map(pick).filter(Boolean)).size;
     return {
-      totalConnections: this.io.sockets.sockets.size,
-      customers: this.connections.customers.size,
-      restaurants: this.connections.restaurants.size,
-      couriers: this.connections.couriers.size,
-      courierPool: this.io.sockets.adapter.rooms.get(COURIER_POOL_ROOM)?.size ?? 0,
+      instances: await this.io.of("/").adapter.serverCount(),
+      totalConnections: sockets.length,
+      customers: unique((s) => s.rooms.has(`customer:${s.data.userId}`) && s.data.userId),
+      restaurants: unique((s) => s.data.restaurantId),
+      couriers: unique((s) => s.data.courierId),
+      courierPool: sockets.filter((s) => s.rooms.has(COURIER_POOL_ROOM)).length,
     };
   }
 }
@@ -447,10 +527,10 @@ export const getSocketServer = () => {
 
 // Session changes must never fail the HTTP request that caused them, and the
 // socket server does not exist in scripts that drive services directly.
-export function disconnectUserSockets(userId, options) {
+export async function disconnectUserSockets(userId, options) {
   if (!socketServerInstance) return 0;
   try {
-    return socketServerInstance.disconnectUser(userId, options);
+    return await socketServerInstance.disconnectUser(userId, options);
   } catch (error) {
     logger.error({ err: error }, "Failed to disconnect sockets");
     return 0;

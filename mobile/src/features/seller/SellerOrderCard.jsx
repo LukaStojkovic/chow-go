@@ -57,7 +57,7 @@ export function SellerOrderCard({ order, onPress, onAdvance, onOpen, isBusy }) {
 
         {needsAttention ? (
           <Button size="md" className="flex-1" onPress={onPress}>
-            {t("orders.actions.viewDetails")}
+            {t("seller:orders.actions.viewDetails")}
           </Button>
         ) : action ? (
           <Button

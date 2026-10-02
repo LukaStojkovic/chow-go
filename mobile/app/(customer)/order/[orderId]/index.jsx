@@ -89,8 +89,8 @@ export default function OrderTracking() {
             variant="muted"
             label={t("order:support.getHelp")}
             onPress={() =>
-              toast.info(t("support.shortTitle"), {
-                description: t("helpContact", { email: "help@chowgo.app" }),
+              toast.info(t("order:support.shortTitle"), {
+                description: t("order:detail.helpContact", { email: "help@chowgo.app" }),
               })
             }
           />
@@ -119,7 +119,7 @@ export default function OrderTracking() {
           {cancelled ? (
             <Inset tone="danger" className="flex-row items-center gap-3">
               <Text variant="body-sm" className="flex-1 text-destructive">
-                {order.cancellationReason ?? t("noLongerActive")}
+                {order.cancellationReason ?? t("order:detail.noLongerActive")}
               </Text>
             </Inset>
           ) : (
@@ -158,8 +158,12 @@ export default function OrderTracking() {
                 </View>
                 <Text variant="body-sm" tone="muted" numberOfLines={1}>
                   {order.courier.vehicle
-                    ? t("courier.deliveringBy", { vehicle: order.courier.vehicleLabel ?? order.courier.vehicle })
-                    : t("tracking.courierHeading")}
+                    ? t("order:courier.deliveringBy", {
+                        vehicle: t(`order:courier.vehicle.${order.courier.vehicle}`, {
+                          defaultValue: order.courier.vehicleLabel ?? order.courier.vehicle,
+                        }),
+                      })
+                    : t("order:tracking.courierHeading")}
                 </Text>
               </View>
 
@@ -280,9 +284,9 @@ export default function OrderTracking() {
           try {
             await cancel.mutateAsync(reason);
             setCancelOpen(false);
-            toast.success(t("cancelled"));
+            toast.success(t("order:detail.cancelled"));
           } catch (error) {
-            toast.error(t("cancelFailed"), { description: errorMessage(error) });
+            toast.error(t("order:detail.cancelFailed"), { description: errorMessage(error) });
           }
         }}
       />

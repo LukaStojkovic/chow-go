@@ -1,7 +1,9 @@
 import "../config/env.js";
 import { AppError } from "../utils/AppError.js";
 import Restaurant from "../models/Restaurant.js";
-import { createTtlCache } from "../utils/ttlCache.js";
+import { createSharedCache } from "../utils/sharedCache.js";
+import { getRedis } from "../config/redis.js";
+import { logger } from "../utils/logger.js";
 
 
 const UPSTREAM_TIMEOUT_MS = 5_000;
@@ -13,23 +15,54 @@ const MAX_QUERY_LENGTH = 100;
 const NOMINATIM_SPACING_MS = 1_000;
 const NOMINATIM_MAX_WAIT_MS = 5_000;
 
-const reverseCache = createTtlCache({ ttlMs: 24 * 60 * 60 * 1000, maxEntries: 2000 });
-const autocompleteCache = createTtlCache({ ttlMs: 60 * 60 * 1000, maxEntries: 2000 });
+const reverseCache = createSharedCache({ name: "reverse-geocode", ttlMs: 24 * 60 * 60 * 1000, maxEntries: 2000 });
+const autocompleteCache = createSharedCache({ name: "autocomplete", ttlMs: 60 * 60 * 1000, maxEntries: 2000 });
+const NOMINATIM_SLOT_KEY = "nominatim:next-slot";
 let nextNominatimSlot = 0;
 
-export function resetLocationCaches() {
-  reverseCache.clear();
-  autocompleteCache.clear();
+const RESERVE_SLOT = `
+local now = tonumber(ARGV[1])
+local slot = math.max(now, tonumber(redis.call("GET", KEYS[1]) or "0"))
+if slot - now > tonumber(ARGV[3]) then return -1 end
+redis.call("SET", KEYS[1], slot + tonumber(ARGV[2]), "PX", tonumber(ARGV[3]) + tonumber(ARGV[2]))
+return slot
+`;
+
+export async function resetLocationCaches() {
+  await Promise.all([reverseCache.clear(), autocompleteCache.clear()]);
   nextNominatimSlot = 0;
+  await getRedis()?.del(NOMINATIM_SLOT_KEY);
+}
+
+function reserveLocalSlot(now) {
+  const slot = Math.max(now, nextNominatimSlot);
+  if (slot - now > NOMINATIM_MAX_WAIT_MS) return -1;
+  nextNominatimSlot = slot + NOMINATIM_SPACING_MS;
+  return slot;
+}
+
+async function reserveSlot(now) {
+  const redis = getRedis();
+  if (!redis) return reserveLocalSlot(now);
+  try {
+    return Number(
+      await redis.eval(RESERVE_SLOT, {
+        keys: [NOMINATIM_SLOT_KEY],
+        arguments: [String(now), String(NOMINATIM_SPACING_MS), String(NOMINATIM_MAX_WAIT_MS)],
+      }),
+    );
+  } catch (err) {
+    logger.warn({ err }, "Nominatim slot reservation fell back to this instance");
+    return reserveLocalSlot(now);
+  }
 }
 
 async function waitForNominatimSlot() {
   const now = Date.now();
-  const slot = Math.max(now, nextNominatimSlot);
-  if (slot - now > NOMINATIM_MAX_WAIT_MS) {
+  const slot = await reserveSlot(now);
+  if (slot < 0) {
     throw new AppError("Location lookup is busy. Please try again in a moment.", 503, "LOCATION_BUSY");
   }
-  nextNominatimSlot = slot + NOMINATIM_SPACING_MS;
   if (slot > now) await new Promise((resolve) => setTimeout(resolve, slot - now));
 }
 
@@ -78,13 +111,13 @@ export async function getLocation(req, res, next) {
   const roundedLon = lonNum.toFixed(4);
   const cacheKey = `${roundedLat},${roundedLon}`;
 
-  let data = reverseCache.get(cacheKey);
+  let data = await reverseCache.get(cacheKey);
   if (!data) {
     await waitForNominatimSlot();
     data = await fetchJson(
       `https://nominatim.openstreetmap.org/reverse?lat=${roundedLat}&lon=${roundedLon}&format=json&addressdetails=1`,
     );
-    reverseCache.set(cacheKey, data);
+    await reverseCache.set(cacheKey, data);
   }
 
   res.status(200).json(data);
@@ -114,14 +147,14 @@ export async function locationPrediction(req, res, next) {
   }
 
   const cacheKey = searchQuery.toLowerCase();
-  let data = autocompleteCache.get(cacheKey);
+  let data = await autocompleteCache.get(cacheKey);
   if (!data) {
     data = await fetchJson(
       `https://api.locationiq.com/v1/autocomplete?key=${accessKey}&q=${encodeURIComponent(
         searchQuery,
       )}&limit=5&dedupe=1`,
     );
-    autocompleteCache.set(cacheKey, data);
+    await autocompleteCache.set(cacheKey, data);
   }
 
   res.status(200).json({ status: "success", data });

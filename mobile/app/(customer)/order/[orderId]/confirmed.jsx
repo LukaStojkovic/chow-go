@@ -67,8 +67,8 @@ export default function OrderConfirmed() {
             </Text>
             <Text variant="body-lg" tone="inverse" className="text-center opacity-85">
               {order?.restaurant?.name
-                ? t("confirmSoon", { name: order.restaurant.name })
-                : t("confirmSoonFallback")}
+                ? t("detail.confirmSoon", { name: order.restaurant.name })
+                : t("detail.confirmSoonFallback")}
             </Text>
           </View>
         </Animated.View>

@@ -48,7 +48,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
       {isMain ? (
         <View className="absolute bottom-1 left-1">
           <Badge tone="solid" size="sm" icon={Star}>
-            {t("menu.form.mainPhoto")}
+            {t("seller:menu.form.mainPhoto")}
           </Badge>
         </View>
       ) : null}
@@ -68,7 +68,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
   return (
     <View className="gap-2">
       <Text variant="label-sm" tone={error ? "destructive" : "muted"}>
-        {t("menu.form.imagesLabel")}
+        {t("seller:menu.form.imagesLabel")}
       </Text>
 
       <View className="flex-row flex-wrap gap-2">
@@ -77,7 +77,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
             key={url}
             uri={url}
             isMain={index === 0}
-            label={t("menu.form.removeImage")}
+            label={t("seller:menu.form.removeImage")}
             onRemove={() => onChangeExisting(existing.filter((entry) => entry !== url))}
           />
         ))}
@@ -86,7 +86,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
             key={file.uri}
             uri={file.uri}
             isMain={existing.length === 0 && index === 0}
-            label={t("menu.form.removeImage")}
+            label={t("seller:menu.form.removeImage")}
             onRemove={() => onChangeAdded(added.filter((entry) => entry.uri !== file.uri))}
           />
         ))}
@@ -94,7 +94,7 @@ export function MenuItemImages({ existing, added, error, onChangeExisting, onCha
         {total < MAX_IMAGES ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t("menu.form.addImages")}
+            accessibilityLabel={t("seller:menu.form.addImages")}
             onPress={add}
             className="h-24 w-24 items-center justify-center gap-1 rounded-md border-2 border-dashed border-border-strong bg-muted active:opacity-70"
           >

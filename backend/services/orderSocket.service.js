@@ -20,16 +20,16 @@ async function getPopulatedOrder(orderId) {
 /**
  * Emits to the customer, falling back to a push when nobody is listening.
  *
- * emitToCustomer already returns false for an empty room, so "not connected" is
- * information we are handed rather than something to compute. iOS suspends the
- * socket within ~30s of backgrounding, which makes that a good proxy for "the
- * app is not in front of them". Android can hold a socket open while hidden, so
+ * An empty customer room is the signal, counted across every instance when the
+ * Redis adapter is on. iOS suspends the socket within ~30s of backgrounding,
+ * which makes that a good proxy for "the app is not in front of them". Android can hold a socket open while hidden, so
  * a notification is occasionally skipped there; making it exact needs the client
  * to leave its rooms on background, which is a later change.
  */
 async function deliverToCustomer(socketServer, customerId, event, payload, pushType) {
-  const live = socketServer.emitToCustomer(customerId, event, payload);
-  if (live || !pushType) return;
+  const live = pushType ? await socketServer.isCustomerLive(customerId) : true;
+  socketServer.emitToCustomer(customerId, event, payload);
+  if (live) return;
   // A builder, not a payload: sendPushToUser knows the recipient's locale
   // because it loads their user document anyway.
   await sendPushToUser(customerId, (locale) =>
@@ -124,7 +124,8 @@ export async function emitOrderPlaced(order) {
     const socketServer = getSocketServer();
     const populatedOrder = await getPopulatedOrder(order._id);
 
-    const live = socketServer.emitToRestaurant(populatedOrder.restaurant._id, "order:new", {
+    const live = await socketServer.isRestaurantLive(populatedOrder.restaurant._id);
+    socketServer.emitToRestaurant(populatedOrder.restaurant._id, "order:new", {
       order: populatedOrder,
       message: "New order received!",
       sound: "new_order",
@@ -168,7 +169,8 @@ export async function emitOrderCancelledByCustomer(order, reason) {
 
     const courierId = populatedOrder.courier?._id ?? order.courier;
     if (courierId) {
-      const live = socketServer.emitToCourier(courierId, "order:cancelled", payload);
+      const live = await socketServer.isCourierLive(courierId);
+      socketServer.emitToCourier(courierId, "order:cancelled", payload);
       if (!live) {
         // getPopulatedOrder deliberately does not select courier.userId - it
         // would ride along to the customer on every other emit - so read it
@@ -417,7 +419,7 @@ export async function emitNewOrderAvailable(order) {
     // those whose socket is not already in the pool room.
     const populatedOrder = await getPopulatedOrder(order._id);
     const recipients = await poolPushRecipients(
-      socketServer.connectedCourierIds(),
+      await socketServer.connectedCourierIds(),
       populatedOrder.restaurant?.location?.coordinates,
     );
     if (recipients.length === 0) return;

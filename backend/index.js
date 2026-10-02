@@ -37,6 +37,9 @@ import { AppError } from "./utils/AppError.js";
 import { socketStatsAccess } from "./middlewares/authMiddleware.js";
 import path from "path";
 import session from "express-session";
+import { RedisStore } from "connect-redis";
+import { closeRedis, connectRedis, pingRedis } from "./config/redis.js";
+import { stopInstanceHeartbeat } from "./socket/instanceRegistry.js";
 import passport from "passport";
 import { configurePassport } from "./config/passport.js";
 
@@ -67,6 +70,9 @@ app.use(
     // Images are served cross-origin from Cloudinary.
     crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginEmbedderPolicy: false,
+    // Stadia authenticates browser tile requests by the Referer's domain, and
+    // helmet's default of no-referrer gets every tile refused with a 401.
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     hsts: env.isProduction ? { maxAge: 31536000, includeSubDomains: true } : false,
   }),
 );
@@ -79,16 +85,20 @@ app.get("/healthz", (_req, res) => {
 });
 
 app.get("/readyz", async (_req, res) => {
+  const redis = await pingRedis();
   const state = mongoose.connection.readyState;
   if (state !== 1) {
-    return res.status(503).json({ status: "unavailable", database: "disconnected" });
+    return res.status(503).json({ status: "unavailable", database: "disconnected", redis });
   }
   try {
     await mongoose.connection.db.admin().ping();
-    return res.status(200).json({ status: "ok", database: "connected" });
   } catch {
-    return res.status(503).json({ status: "unavailable", database: "unreachable" });
+    return res.status(503).json({ status: "unavailable", database: "unreachable", redis });
   }
+  const ok = redis !== "unreachable";
+  return res
+    .status(ok ? 200 : 503)
+    .json({ status: ok ? "ok" : "unavailable", database: "connected", redis });
 });
 
 app.use("/api", apiLimiter);
@@ -114,19 +124,19 @@ app.use(
   }),
 );
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-      httpOnly: true,
-      sameSite: "lax",
-      secure: env.isProduction,
-    },
-  }),
-);
+const sessionOptions = {
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env.isProduction,
+  },
+};
+let sessionMiddleware = session(sessionOptions);
+app.use((req, res, next) => sessionMiddleware(req, res, next));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -149,8 +159,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/ops", opsRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.get("/api/socket/stats", socketStatsAccess, (req, res) => {
-  res.json(socketServer.getStats());
+app.get("/api/socket/stats", socketStatsAccess, async (req, res) => {
+  res.json(await socketServer.getStats());
 });
 
 // An unmatched /api path must be a JSON 404. The SPA fallback below would
@@ -195,14 +205,19 @@ mongoose
     socketTimeoutMS: 45000,
     retryWrites: true,
   })
-  .then(() => {
+  .then(async () => {
+    const redis = await connectRedis();
+    if (redis) {
+      sessionMiddleware = session({ ...sessionOptions, store: new RedisStore({ client: redis, prefix: "sess:" }) });
+      await socketServer.useRedisAdapter();
+    }
     httpServer.listen(env.port, () => {
-      logger.info({ port: env.port }, "server listening");
+      logger.info({ port: env.port, redis: Boolean(redis) }, "server listening");
       startCronJobs();
     });
   })
   .catch((err) => {
-    logger.fatal({ err }, "initial MongoDB connection failed");
+    logger.fatal({ err }, "initial MongoDB or Redis connection failed");
     process.exit(1);
   });
 
@@ -229,9 +244,11 @@ async function shutdown(signal) {
   failsafe.unref();
 
   try {
+    await stopInstanceHeartbeat();
     await new Promise((resolve) => socketServer.io.close(resolve));
     await new Promise((resolve) => httpServer.close(resolve));
     await mongoose.connection.close(false);
+    await closeRedis();
     clearTimeout(failsafe);
     logger.info("shutdown complete");
     process.exit(0);

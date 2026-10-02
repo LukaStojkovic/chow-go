@@ -1,6 +1,7 @@
 /** Serbian seller-portal copy. */
 
 export default {
+  portalSubtitle: "Upravljajte restoranom, porudžbinama i menijem na jednom mestu",
   nav: {
     dashboard: "Pregled",
     orders: "Porudžbine",

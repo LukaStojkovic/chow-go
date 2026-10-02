@@ -7,6 +7,10 @@
  * landmarks are still the page author's choice.
  */
 
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 /**
@@ -181,15 +185,70 @@ export function ResponsiveGrid({ variant = "cards", className, ...props }) {
  * cut off - the affordance that tells people it scrolls.
  */
 export function Rail({ className, children, ...props }) {
+  const { t } = useTranslation("common");
+  const scrollerRef = useRef(null);
+  const [edges, setEdges] = useState({ start: false, end: false });
+
+  const measure = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const start = el.scrollLeft > 1;
+    const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    setEdges((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
+  }, []);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    Array.from(el.children).forEach((child) => observer.observe(child));
+    return () => observer.disconnect();
+  }, [measure, children]);
+
+  const scrollByPage = (direction) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: "smooth" });
+  };
+
+  const arrowClass =
+    "bg-card/95 border-border text-foreground absolute top-1/2 z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-md backdrop-blur transition-opacity hover:bg-card focus-visible:outline-2 focus-visible:outline-ring pointer-fine:flex";
+
   return (
-    <div
-      className={cn(
-        "rail-bleed scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1",
-        className,
+    <div className="relative">
+      <div
+        ref={scrollerRef}
+        onScroll={measure}
+        className={cn(
+          "rail-bleed scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+      {edges.start && (
+        <button
+          type="button"
+          aria-label={t("a11y.previous")}
+          onClick={() => scrollByPage(-1)}
+          className={cn(arrowClass, "left-1")}
+        >
+          <ChevronLeft className="size-5" aria-hidden="true" />
+        </button>
       )}
-      {...props}
-    >
-      {children}
+      {edges.end && (
+        <button
+          type="button"
+          aria-label={t("a11y.next")}
+          onClick={() => scrollByPage(1)}
+          className={cn(arrowClass, "right-1")}
+        >
+          <ChevronRight className="size-5" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

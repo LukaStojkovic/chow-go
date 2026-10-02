@@ -39,7 +39,7 @@ const child = spawn(process.execPath, ["index.js"], {
     JWT_SECRET,
     NODE_ENV: "development",
     LOG_LEVEL: "silent",
-    MAIL_DISABLED: "true",
+    MAIL_DISABLED: "true", REDIS_URL: "",
     MIN_ORDER_SUBTOTAL: "5",
   },
   stdio: ["ignore", "ignore", "inherit"],

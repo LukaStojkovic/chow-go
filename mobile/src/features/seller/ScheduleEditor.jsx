@@ -70,7 +70,7 @@ export function ScheduleEditor({ schedule, onChangeDay }) {
                   <Toggle
                     value={entry.isOpen}
                     onValueChange={(isOpen) => onChangeDay(key, { ...entry, isOpen })}
-                    accessibilityLabel={t("settings.openOn", { day: label })}
+                    accessibilityLabel={t("seller:settings.openOn", { day: label })}
                   />
                 </View>
               </View>

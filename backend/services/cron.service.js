@@ -3,9 +3,30 @@ import Restaurant from "../models/Restaurant.js";
 import { isOpenAt } from "../utils/schedule.js";
 import { logger } from "../utils/logger.js";
 import { recoverStuckOrders } from "./orderRecovery.service.js";
+import { getRedis } from "../config/redis.js";
+
+const MINUTE_JOB_LOCK_MS = 55_000;
+
+export async function claimMinuteJob(now = new Date()) {
+  const redis = getRedis();
+  if (!redis) return true;
+  const minute = Math.round(now.getTime() / 60_000);
+  try {
+    const won = await redis.set(`cron:minute:${minute}`, String(process.pid), {
+      condition: "NX",
+      expiration: { type: "PX", value: MINUTE_JOB_LOCK_MS },
+    });
+    return won === "OK";
+  } catch (err) {
+    logger.warn({ err }, "Cron lock unavailable, running without it");
+    return true;
+  }
+}
 
 export function startCronJobs() {
   cron.schedule("* * * * *", async () => {
+    if (!(await claimMinuteJob())) return;
+
     try {
       const activeRestaurants = await Restaurant.find({ isActive: true })
         .select("schedule isOpenNow timezone _id")

@@ -1,6 +1,7 @@
 /** Seller portal: dashboard, orders, menu management, analytics, settings. */
 
 export default {
+  portalSubtitle: "Manage your restaurant, orders and menu in one place",
   nav: {
     dashboard: "Dashboard",
     orders: "Orders",

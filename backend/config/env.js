@@ -69,11 +69,18 @@ function validate() {
 
 validate();
 
+if (isProduction && !process.env.REDIS_URL) {
+  console.warn(
+    "REDIS_URL is not set: running single-instance (in-memory sockets, sessions, rate limits and cron).",
+  );
+}
+
 export const env = {
   isProduction,
   isDevelopment: process.env.NODE_ENV === "development",
   port: Number(process.env.PORT),
   mongoUrl: process.env.MONGODB_URL,
+  redisUrl: process.env.REDIS_URL || "",
   trustProxy: Number(process.env.TRUST_PROXY) || 0,
   logLevel: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
   sentryDsn: process.env.SENTRY_DSN || "",

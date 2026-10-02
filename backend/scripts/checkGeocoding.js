@@ -60,7 +60,7 @@ try {
     `${upstream[1]?.at - upstream[0]?.at}ms`,
   );
 
-  resetLocationCaches();
+  await resetLocationCaches();
   upstream.length = 0;
   const burst = await Promise.all(
     Array.from({ length: 8 }, (_, i) => get(`/get-location?lat=${45 + i / 10}&lon=21`)),

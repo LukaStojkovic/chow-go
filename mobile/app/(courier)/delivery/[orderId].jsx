@@ -349,7 +349,7 @@ export default function ActiveDelivery() {
       {step ? (
         <View pointerEvents="box-none" className="absolute inset-x-0 bottom-0">
           <DockedBar>
-            <SwipeToConfirm label={step.label} busy={busy} onConfirm={advance} />
+            <SwipeToConfirm label={t(step.labelKey)} busy={busy} onConfirm={advance} />
           </DockedBar>
         </View>
       ) : null}

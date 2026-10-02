@@ -5,10 +5,10 @@ import { withPromotion } from "../utils/promotion.js";
 import mongoose from "mongoose";
 import { parsePagination } from "../utils/pagination.js";
 import { escapeRegex } from "../utils/regex.js";
-import { createTtlCache } from "../utils/ttlCache.js";
+import { createSharedCache } from "../utils/sharedCache.js";
 
 const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
-const popularCache = createTtlCache({ ttlMs: 5 * 60 * 1000, maxEntries: 500 });
+const popularCache = createSharedCache({ name: "popular", ttlMs: 5 * 60 * 1000, maxEntries: 500 });
 
 async function getNearbyRestaurantIds(
   lat,
@@ -100,7 +100,7 @@ export async function getPopularItems(req, res, next) {
     // last 30 days match the {restaurant, status, createdAt} index, and the
     // ranking barely moves minute to minute, so it is cached per area too.
     const cacheKey = `${Number(lat).toFixed(2)},${Number(lon).toFixed(2)}`;
-    let popularItemIds = popularCache.get(cacheKey);
+    let popularItemIds = await popularCache.get(cacheKey);
     if (!popularItemIds) {
       popularItemIds = await Order.aggregate([
         {
@@ -120,7 +120,7 @@ export async function getPopularItems(req, res, next) {
         { $sort: { orderCount: -1 } },
         { $limit: 15 },
       ]);
-      popularCache.set(cacheKey, popularItemIds);
+      await popularCache.set(cacheKey, popularItemIds);
     }
 
     const itemIds = popularItemIds.map((pi) => pi._id);

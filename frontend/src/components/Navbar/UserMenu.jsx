@@ -22,12 +22,14 @@ import {
   Check,
   Languages,
   ShoppingBasket,
+  ShieldCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LOCALES } from "@chowgo/shared/i18n";
 
 import { setLocale } from "@/lib/i18n";
+import { FlagIcon } from "@/components/common/FlagIcon";
 
 /**
  * Hoisted out of `UserMenu`: a component declared inside a render is a new
@@ -49,7 +51,7 @@ function ThemeIcon({ currentTheme }) {
 export default function UserMenu({ user, onLogout }) {
   const { theme, setTheme } = useDarkMode();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(["common", "profile", "order", "seller"]);
+  const { t, i18n } = useTranslation(["common", "profile", "order", "seller", "admin"]);
   const activeLocale = i18n.resolvedLanguage || i18n.language;
 
   const isSeller = user?.role === "seller";
@@ -119,6 +121,16 @@ export default function UserMenu({ user, onLogout }) {
             </>
           ) : null}
 
+          {user?.isAdmin ? (
+            <DropdownMenuItem
+              onClick={() => navigate("/admin")}
+              className="my-1 flex cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle "
+            >
+              <ShieldCheck className="mr-3 h-4 w-4 shrink-0 text-primary " />
+              <span className="text-sm font-medium">{t("admin:title")}</span>
+            </DropdownMenuItem>
+          ) : null}
+
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="my-1 flex w-full cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle ">
               <div className="flex flex-1 items-center">
@@ -174,9 +186,7 @@ export default function UserMenu({ user, onLogout }) {
                     onClick={() => setLocale(locale.code)}
                     className="flex cursor-pointer items-center rounded-lg px-4 py-3 text-muted-foreground transition-colors hover:bg-primary-subtle "
                   >
-                    <span aria-hidden="true" className="mr-3 shrink-0 text-base leading-none">
-                      {locale.flag}
-                    </span>
+                    <FlagIcon code={locale.code} className="mr-3" />
                     <span className="flex-1 text-sm font-medium">{locale.label}</span>
                     {activeLocale === locale.code && (
                       <Check className="h-4 w-4 shrink-0 text-primary" />
