@@ -309,4 +309,3 @@ Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else li
 Still per-instance or worth knowing:
 
 - Pool events go to one `couriers:pool` room. `emitNewOrderAvailable` also pushes to verified, free couriers within 15 km of the restaurant who are not connected, in one lookup and chunked Expo sends (`push.service.js#sendPushToUsers`); "mark ready" does not await it. A courier who has never shared a location gets no pool push.
-- `stats.service.fetchOrdersData` loads four unbounded `Order.find()` result sets into memory instead of aggregating.

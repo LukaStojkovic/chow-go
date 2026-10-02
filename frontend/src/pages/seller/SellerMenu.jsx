@@ -6,6 +6,8 @@ import useDeleteMenuItem from "@/components/Seller/hooks/useDeleteMenuItem";
 import useGetMenuItems from "@/components/Seller/hooks/useGetMenuItems";
 import MenuItemCard from "@/components/Seller/MenuItemCard";
 import MenuItemFilters from "@/components/Seller/MenuItemFilters";
+import { priceFilterScale } from "@/lib/priceFilter";
+import { useCurrency } from "@/hooks/useCurrency";
 import { CardSkeleton } from "@/components/skeletons/CardSkeleton";
 import Spinner from "@/components/Spinner";
 
@@ -29,8 +31,9 @@ export const SellerMenu = () => {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [category, setCategory] = useState("all");
-  const [tempPriceRange, setTempPriceRange] = useState([0, 200]);
-  const [priceRange, setPriceRange] = useState([0, 200]);
+  const currency = useCurrency();
+  const priceMax = priceFilterScale(currency).max;
+  const [tempPriceRange, setTempPriceRange] = useState(() => [0, priceMax]);
   const [availableOnly, setAvailableOnly] = useState(false);
 
   const [debouncedSearch] = useDebounce(searchInput, 500);
@@ -50,11 +53,10 @@ export const SellerMenu = () => {
       search: debouncedSearch.trim() || undefined,
       category: category === "all" ? undefined : category,
       minPrice: debouncedPriceRange[0] > 0 ? debouncedPriceRange[0] : undefined,
-      maxPrice:
-        debouncedPriceRange[1] < 3000 ? debouncedPriceRange[1] : undefined,
+      maxPrice: debouncedPriceRange[1] < priceMax ? debouncedPriceRange[1] : undefined,
       available: availableOnly ? "true" : undefined,
     }),
-    [page, debouncedSearch, category, debouncedPriceRange, availableOnly],
+    [page, debouncedSearch, category, debouncedPriceRange, priceMax, availableOnly],
   );
 
   const {
@@ -104,7 +106,7 @@ export const SellerMenu = () => {
         availableOnly={availableOnly}
         tempPriceRange={tempPriceRange}
         setTempPriceRange={setTempPriceRange}
-        setPriceRange={setPriceRange}
+        currency={currency}
       />
 
       <div className="flex justify-end mb-6">

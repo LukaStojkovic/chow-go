@@ -13,7 +13,7 @@ export default function MenuItemFilters({
   setCategory,
   tempPriceRange,
   setTempPriceRange,
-  setPriceRange,
+  currency,
   availableOnly,
   setAvailableOnly,
 }) {
@@ -40,7 +40,7 @@ export default function MenuItemFilters({
           <PriceRangeSlider
             tempPriceRange={tempPriceRange}
             setTempPriceRange={setTempPriceRange}
-            setPriceRange={setPriceRange}
+            currency={currency}
           />
         </div>
 

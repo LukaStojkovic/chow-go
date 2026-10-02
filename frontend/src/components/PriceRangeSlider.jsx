@@ -1,24 +1,32 @@
-import React from "react";
+import { useTranslation } from "react-i18next";
+import { formatPrice } from "@chowgo/shared/format";
 import { Label } from "./ui/label";
 import { Slider } from "./ui/slider";
+import { priceFilterScale } from "@/lib/priceFilter";
 
 export default function PriceRangeSlider({
   tempPriceRange,
   setTempPriceRange,
-  setPriceRange,
+  currency,
 }) {
+  const { t } = useTranslation("seller");
+  const { max, step } = priceFilterScale(currency);
+  const [low, high] = tempPriceRange;
+
   return (
     <div className="space-y-2">
       <Label className="text-sm">
-        Price: {tempPriceRange[0]} – {tempPriceRange[1]} $
+        {t("menu.priceFilter", {
+          min: formatPrice(low, { currency }),
+          max: high >= max ? `${formatPrice(max, { currency })}+` : formatPrice(high, { currency }),
+        })}
       </Label>
       <Slider
         value={tempPriceRange}
         onValueChange={setTempPriceRange}
-        onMouseUp={() => setPriceRange(tempPriceRange)}
         min={0}
-        max={200}
-        step={5}
+        max={max}
+        step={step}
         className="w-full"
       />
     </div>

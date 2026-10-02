@@ -27,69 +27,77 @@ export async function validateRestaurantAccess(restaurantId, userId) {
   return restaurant;
 }
 
-// Only what the dashboard reads. These were four unprojected, hydrated finds -
-// every field of every order this month, twice over, on each dashboard load.
-const STATS_ORDER_FIELDS = "total subtotal status customer createdAt items orderNumber";
+const ACTIVE_STATUSES = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready",
+  "assigned",
+  "picked_up",
+  "in_transit",
+];
 
-// What the restaurant has actually earned: the food on delivered orders. Fees
-// and the tip belong to the courier and the platform.
-const deliveredSubtotal = (orders) =>
-  toMoney(
-    orders
-      .filter((order) => order.status === "delivered")
-      .reduce((sum, order) => sum + (order.subtotal ?? 0), 0),
-  );
+const inRange = (from, to) => ({
+  $and: [{ $gte: ["$createdAt", from] }, ...(to ? [{ $lt: ["$createdAt", to] }] : [])],
+});
 
-export async function fetchOrdersData(restaurantId, dateRanges) {
-  const { startOfWeek, startOfMonth, startOfLastWeek, startOfLastMonth } =
-    dateRanges;
+const periodTotals = (from, to) => [
+  { $match: { $expr: inRange(from, to) } },
+  {
+    $group: {
+      _id: null,
+      revenue: { $sum: DELIVERED_SUBTOTAL_EXPR },
+      customers: { $addToSet: "$customer" },
+    },
+  },
+  { $project: { _id: 0, revenue: 1, customers: { $size: "$customers" } } },
+];
 
-  const [weekOrders, monthOrders, lastWeekOrders, lastMonthOrders] =
-    await Promise.all([
-      Order.find({
-        restaurant: restaurantId,
-        createdAt: { $gte: startOfWeek },
+export async function fetchPeriodTotals(restaurantId, dateRanges) {
+  const { startOfWeek, startOfMonth, startOfLastWeek, startOfLastMonth } = dateRanges;
+
+  const [result] = await Order.aggregate([
+    {
+      $match: {
+        restaurant: new mongoose.Types.ObjectId(restaurantId),
+        createdAt: { $gte: new Date(Math.min(startOfLastMonth, startOfLastWeek)) },
         status: { $nin: ["cancelled", "rejected"] },
-      }).select(STATS_ORDER_FIELDS).lean(),
-      Order.find({
-        restaurant: restaurantId,
-        createdAt: { $gte: startOfMonth },
-        status: { $nin: ["cancelled", "rejected"] },
-      }).select(STATS_ORDER_FIELDS).lean(),
-      Order.find({
-        restaurant: restaurantId,
-        createdAt: { $gte: startOfLastWeek, $lt: startOfWeek },
-        status: { $nin: ["cancelled", "rejected"] },
-      }).select(STATS_ORDER_FIELDS).lean(),
-      Order.find({
-        restaurant: restaurantId,
-        createdAt: { $gte: startOfLastMonth, $lt: startOfMonth },
-        status: { $nin: ["cancelled", "rejected"] },
-      }).select(STATS_ORDER_FIELDS).lean(),
-    ]);
+      },
+    },
+    {
+      $facet: {
+        month: periodTotals(startOfMonth),
+        lastMonth: periodTotals(startOfLastMonth, startOfMonth),
+        lastWeekActive: [
+          {
+            $match: {
+              $expr: inRange(startOfLastWeek, startOfWeek),
+              status: { $in: ACTIVE_STATUSES },
+            },
+          },
+          { $count: "count" },
+        ],
+      },
+    },
+  ]);
+
+  const empty = { revenue: 0, customers: 0 };
+  const month = result?.month[0] ?? empty;
+  const lastMonth = result?.lastMonth[0] ?? empty;
 
   return {
-    weekOrders,
-    monthOrders,
-    lastWeekOrders,
-    lastMonthOrders,
+    revenue: toMoney(month.revenue),
+    customers: month.customers,
+    lastMonthRevenue: toMoney(lastMonth.revenue),
+    lastMonthCustomers: lastMonth.customers,
+    lastWeekActiveOrders: result?.lastWeekActive[0]?.count ?? 0,
   };
 }
 
 export async function fetchActiveOrders(restaurantId) {
   return Order.countDocuments({
     restaurant: restaurantId,
-    status: {
-      $in: [
-        "pending",
-        "confirmed",
-        "preparing",
-        "ready",
-        "assigned",
-        "picked_up",
-        "in_transit",
-      ],
-    },
+    status: { $in: ACTIVE_STATUSES },
   });
 }
 
@@ -139,25 +147,6 @@ export async function fetchDailyRevenue(restaurantId, since, timeZone) {
     },
     { $sort: { _id: 1 } },
   ]);
-}
-
-export async function fetchCustomerData(restaurantId, dateRanges) {
-  const { startOfMonth, startOfLastMonth } = dateRanges;
-
-  const [uniqueCustomers, lastMonthUniqueCustomers] = await Promise.all([
-    Order.distinct("customer", {
-      restaurant: restaurantId,
-      createdAt: { $gte: startOfMonth },
-      status: { $nin: ["cancelled", "rejected"] },
-    }),
-    Order.distinct("customer", {
-      restaurant: restaurantId,
-      createdAt: { $gte: startOfLastMonth, $lt: startOfMonth },
-      status: { $nin: ["cancelled", "rejected"] },
-    }),
-  ]);
-
-  return { uniqueCustomers, lastMonthUniqueCustomers };
 }
 
 export async function fetchRecentOrders(restaurantId) {
@@ -216,21 +205,21 @@ export function buildChartData(revenueByDay) {
   }));
 }
 
+const FALLBACK_DISH_IMAGE =
+  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80";
+
 export async function enrichPopularItemsWithImages(popularItems) {
-  return Promise.all(
-    popularItems.map(async (item) => {
-      const menuItem = await MenuItem.findById(item._id);
-      return {
-        name: item.name,
-        totalOrders: item.totalOrders,
-        totalRevenue: item.totalRevenue,
-        price: item.price,
-        image:
-          menuItem?.imageUrls?.[0] ||
-          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80",
-      };
-    }),
-  );
+  const menuItems = await MenuItem.find({ _id: { $in: popularItems.map((item) => item._id) } })
+    .select("imageUrls")
+    .lean();
+  const images = new Map(menuItems.map((m) => [String(m._id), m.imageUrls?.[0]]));
+  return popularItems.map((item) => ({
+    name: item.name,
+    totalOrders: item.totalOrders,
+    totalRevenue: item.totalRevenue,
+    price: item.price,
+    image: images.get(String(item._id)) || FALLBACK_DISH_IMAGE,
+  }));
 }
 
 export function formatRecentOrders(orders) {
@@ -246,12 +235,9 @@ export function formatRecentOrders(orders) {
 }
 
 export function buildStatsResponse(
-  totalRevenue,
+  totals,
   activeOrders,
-  uniqueCustomers,
   restaurant,
-  weekOrders,
-  lastWeekOrders,
   revenueTrend,
   ordersTrend,
   customersTrend,
@@ -259,23 +245,11 @@ export function buildStatsResponse(
   popularItemsWithImages,
   recentOrders,
 ) {
-  const lastWeekActiveOrders = lastWeekOrders.filter((order) =>
-    [
-      "pending",
-      "confirmed",
-      "preparing",
-      "ready",
-      "assigned",
-      "picked_up",
-      "in_transit",
-    ].includes(order.status),
-  ).length;
-
   return {
     success: true,
     stats: {
       totalRevenue: {
-        value: totalRevenue.toFixed(2),
+        value: totals.revenue.toFixed(2),
         trend: revenueTrend,
         isPositive: parseFloat(revenueTrend) >= 0,
       },
@@ -285,7 +259,7 @@ export function buildStatsResponse(
         isPositive: parseFloat(ordersTrend) >= 0,
       },
       totalCustomers: {
-        value: uniqueCustomers.length,
+        value: totals.customers,
         trend: customersTrend,
         isPositive: parseFloat(customersTrend) >= 0,
       },
@@ -308,60 +282,25 @@ export async function getRestaurantStats(restaurantId, userId) {
   const dateRanges = getDateRanges();
   const timeZone = resolveTimeZone(restaurant.timezone);
 
-  const [
-    ordersData,
-    activeOrders,
-    popularItems,
-    dailyRevenue,
-    customerData,
-    recentOrders,
-  ] = await Promise.all([
-    fetchOrdersData(restaurantId, dateRanges),
+  const [totals, activeOrders, popularItems, dailyRevenue, recentOrders] = await Promise.all([
+    fetchPeriodTotals(restaurantId, dateRanges),
     fetchActiveOrders(restaurantId),
     fetchPopularItems(restaurantId, dateRanges.startOfMonth),
     fetchDailyRevenue(restaurantId, startOfDay(new Date(), timeZone, 6), timeZone),
-    fetchCustomerData(restaurantId, dateRanges),
     fetchRecentOrders(restaurantId),
   ]);
 
-  const { monthOrders, lastMonthOrders, weekOrders, lastWeekOrders } =
-    ordersData;
-  const { uniqueCustomers, lastMonthUniqueCustomers } = customerData;
+  const revenueTrend = calculateRevenueTrend(totals.revenue, totals.lastMonthRevenue);
+  const ordersTrend = calculateOrdersTrend(activeOrders, totals.lastWeekActiveOrders);
+  const customersTrend = calculateCustomersTrend(totals.customers, totals.lastMonthCustomers);
 
-  const totalRevenue = deliveredSubtotal(monthOrders);
-  const lastMonthRevenue = deliveredSubtotal(lastMonthOrders);
-
-  const lastWeekActiveOrders = lastWeekOrders.filter((order) =>
-    [
-      "pending",
-      "confirmed",
-      "preparing",
-      "ready",
-      "assigned",
-      "picked_up",
-      "in_transit",
-    ].includes(order.status),
-  ).length;
-
-  const revenueTrend = calculateRevenueTrend(totalRevenue, lastMonthRevenue);
-  const ordersTrend = calculateOrdersTrend(activeOrders, lastWeekActiveOrders);
-  const customersTrend = calculateCustomersTrend(
-    uniqueCustomers.length,
-    lastMonthUniqueCustomers.length,
-  );
-
-  const revenueByDay = buildRevenueByDay(dailyRevenue, timeZone);
-  const chartData = buildChartData(revenueByDay);
-  const popularItemsWithImages =
-    await enrichPopularItemsWithImages(popularItems);
+  const chartData = buildChartData(buildRevenueByDay(dailyRevenue, timeZone));
+  const popularItemsWithImages = await enrichPopularItemsWithImages(popularItems);
 
   const response = buildStatsResponse(
-    totalRevenue,
+    totals,
     activeOrders,
-    uniqueCustomers,
     restaurant,
-    weekOrders,
-    lastWeekOrders,
     revenueTrend,
     ordersTrend,
     customersTrend,

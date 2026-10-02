@@ -92,10 +92,27 @@ try {
   }, lateYesterday);
   await place({ status: "preparing", subtotal: 50, deliveryFee: 2.5, serviceFee: 1.5, total: 54 }, early);
   await place({ status: "cancelled", subtotal: 100, deliveryFee: 2.5, serviceFee: 1.5, total: 104 }, early);
+  const otherCustomer = await User.create({
+    name: "C2", email: "c2@earn.test", password: "x", role: "customer", phoneNumber: "0633333333",
+  });
+  const DAY = 24 * 60 * MINUTE;
+  await place({
+    customer: otherCustomer._id, status: "delivered",
+    subtotal: 15, deliveryFee: 2.5, serviceFee: 1.5, total: 19,
+  }, new Date(todayStart.getTime() - 45 * DAY + 12 * 60 * MINUTE));
+  await place(
+    { status: "preparing", subtotal: 5, deliveryFee: 2.5, serviceFee: 1.5, total: 9 },
+    new Date(todayStart.getTime() - 10 * DAY + 12 * 60 * MINUTE),
+  );
 
   console.log("\nseller dashboard");
   const stats = await getRestaurantStats(String(restaurant._id), owner._id);
   ok("30-day revenue is the subtotal of delivered orders", stats.stats.totalRevenue.value === "30.00", stats.stats.totalRevenue.value);
+  ok("revenue trend compares with the 30 days before", stats.stats.totalRevenue.trend === "100.0", stats.stats.totalRevenue.trend);
+  ok("customers count distinct people this month", stats.stats.totalCustomers.value === 1, stats.stats.totalCustomers.value);
+  ok("customer trend against last month", stats.stats.totalCustomers.trend === "0.0", stats.stats.totalCustomers.trend);
+  ok("active orders include every unfinished one", stats.stats.activeOrders.value === 2, stats.stats.activeOrders.value);
+  ok("order trend against last week's still-active orders", stats.stats.activeOrders.trend === "100.0", stats.stats.activeOrders.trend);
   const todayKey = dateKey(now, TZ);
   const yesterdayKey = dateKey(lateYesterday, TZ);
   const chartDay = (key) => stats.chartData.find((d) => d.date === key);

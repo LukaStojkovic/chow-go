@@ -194,6 +194,7 @@ export default {
     },
     filterAll: "All categories",
     onlyAvailable: "Only available items",
+    priceFilter: "Price: {{min}} – {{max}}",
     searchPlaceholder: "Search your dishes",
     theDish: "The dish",
 

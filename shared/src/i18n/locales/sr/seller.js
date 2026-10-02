@@ -195,6 +195,7 @@ export default {
     },
     filterAll: "Sve kategorije",
     onlyAvailable: "Samo dostupna jela",
+    priceFilter: "Cena: {{min}} – {{max}}",
     searchPlaceholder: "Pretraži svoja jela",
     theDish: "Jelo",
 
