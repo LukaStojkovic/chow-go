@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/node";
 import { env } from "./env.js";
 
-// Must be evaluated before Express and Mongoose are imported so the
-// instrumentation can patch them.
+// Preloaded with `node --import ./config/sentry.js`: under ESM, importing it
+// first from index.js is too late for Express, http and Mongoose to be patched.
 if (env.sentryDsn) {
   Sentry.init({
     dsn: env.sentryDsn,
@@ -17,6 +17,8 @@ if (env.sentryDsn) {
       if (req?.headers) {
         delete req.headers.authorization;
         delete req.headers.cookie;
+        delete req.headers["x-ops-token"];
+        delete req.headers["x-stats-token"];
       }
       return event;
     },

@@ -1,9 +1,10 @@
 const path = require("path");
 
-const { getDefaultConfig } = require("expo/metro-config");
+const { getSentryExpoConfig } = require("@sentry/react-native/metro");
 const { withNativeWind } = require("nativewind/metro");
 
-const config = getDefaultConfig(__dirname);
+// Expo's default config plus the debug ids Sentry matches uploaded source maps by.
+const config = getSentryExpoConfig(__dirname);
 
 // @chowgo/shared is "type": "module" with an exports map and lives outside this
 // project root, so Metro needs package-exports resolution and the extra watch folder.

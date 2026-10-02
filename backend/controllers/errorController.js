@@ -89,6 +89,10 @@ function translate(err) {
   return null;
 }
 
+export function statusCodeFor(err) {
+  return translate(err)?.statusCode ?? 500;
+}
+
 export function handleError(err, req, res, _next) {
   const translated = translate(err);
   const statusCode = translated?.statusCode ?? 500;

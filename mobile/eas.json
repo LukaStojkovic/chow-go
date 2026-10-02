@@ -14,6 +14,7 @@
         "simulator": false
       },
       "channel": "development",
+      "environment": "development",
       "env": {
         "APP_VARIANT": "development"
       }
@@ -30,6 +31,7 @@
         "buildType": "apk"
       },
       "channel": "preview",
+      "environment": "preview",
       "ios": {
         "simulator": false
       },
@@ -45,6 +47,7 @@
         "buildType": "app-bundle"
       },
       "channel": "production",
+      "environment": "production",
       "env": {
         "APP_VARIANT": "production",
         "EXPO_PUBLIC_API_URL": "https://api.example.invalid/api",

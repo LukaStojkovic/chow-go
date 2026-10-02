@@ -31,7 +31,7 @@ import { apiLimiter } from "./middlewares/rateLimit.js";
 import { corsOrigin } from "./config/cors.js";
 import { rejectMongoOperators } from "./middlewares/sanitize.js";
 import { attachLocale } from "./middlewares/locale.js";
-import { handleError } from "./controllers/errorController.js";
+import { handleError, statusCodeFor } from "./controllers/errorController.js";
 import { initializeSocketServer } from "./socket/socketServer.js";
 import { startCronJobs } from "./services/cron.service.js";
 import { logger, httpLogger } from "./utils/logger.js";
@@ -196,7 +196,7 @@ if (env.isProduction) {
 }
 
 if (env.sentryDsn) {
-  Sentry.setupExpressErrorHandler(app);
+  Sentry.setupExpressErrorHandler(app, { shouldHandleError: (err) => statusCodeFor(err) >= 500 });
 }
 
 app.use(handleError);
@@ -253,6 +253,7 @@ async function shutdown(signal) {
     await new Promise((resolve) => httpServer.close(resolve));
     await mongoose.connection.close(false);
     await closeRedis();
+    await Sentry.close(2000);
     clearTimeout(failsafe);
     logger.info("shutdown complete");
     process.exit(0);
@@ -267,13 +268,11 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 
 process.on("unhandledRejection", (reason) => {
   logger.fatal({ err: reason }, "unhandled promise rejection");
-  if (env.sentryDsn) Sentry.captureException(reason);
   shutdown("unhandledRejection");
 });
 
 process.on("uncaughtException", (err) => {
   logger.fatal({ err }, "uncaught exception");
-  if (env.sentryDsn) Sentry.captureException(err);
   shutdown("uncaughtException");
 });
 

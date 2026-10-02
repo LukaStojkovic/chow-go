@@ -7,8 +7,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "nodemon --exec \"node --import ./config/sentry.js\" index.js",
+    "start": "node --import ./config/sentry.js index.js",
     "check:observability": "node scripts/checkObservability.js",
     "check:reset": "node scripts/checkPasswordReset.js",
     "check:courier-access": "node scripts/checkCourierPoolPrivacy.js",

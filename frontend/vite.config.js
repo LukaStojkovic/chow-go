@@ -2,10 +2,27 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
+
+// Source maps are built only when they can be uploaded, and deleted from dist
+// afterwards: express.static would otherwise serve them to anyone who guesses
+// the bundle name, "hidden" or not.
+const uploadSourceMaps = Boolean(process.env.SENTRY_AUTH_TOKEN);
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    uploadSourceMaps &&
+      sentryVitePlugin({
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        sourcemaps: { filesToDeleteAfterUpload: ["./dist/**/*.map"] },
+        telemetry: false,
+      }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -24,9 +41,7 @@ export default defineConfig({
     drop: process.env.NODE_ENV === "production" ? ["console", "debugger"] : [],
   },
   build: {
-    // Generated for error tracking but not linked from the bundles, so the
-    // original source is not handed to every visitor.
-    sourcemap: "hidden",
+    sourcemap: uploadSourceMaps ? "hidden" : false,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
