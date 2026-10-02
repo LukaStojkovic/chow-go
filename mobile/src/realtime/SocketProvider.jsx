@@ -41,9 +41,10 @@ export function SocketProvider({ children }) {
 
       const next = io(SOCKET_URL, {
         auth: { token },
-        // Tunnels and some carrier networks break the websocket upgrade; the
-        // web can stay websocket-only, a phone cannot.
-        transports: ["websocket", "polling"],
+        // Polling only works across instances with sticky sessions, so release
+        // builds (always https, so wss that networks cannot tamper with) are
+        // websocket-only. Dev keeps it for tunnels that break the upgrade.
+        transports: __DEV__ ? ["websocket", "polling"] : ["websocket"],
         reconnection: true,
       });
 
