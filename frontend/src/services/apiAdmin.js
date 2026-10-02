@@ -29,3 +29,28 @@ export async function cancelOrderAsAdmin({ id, reason }) {
   const res = await axiosInstance.post(`/admin/orders/${id}/cancel`, { reason });
   return res.data.data;
 }
+
+export async function createAdminPromoCode(input) {
+  const res = await axiosInstance.post("/admin/promo-codes", input);
+  return res.data.data;
+}
+
+export async function updateAdminPromoCode({ id, ...input }) {
+  const res = await axiosInstance.patch(`/admin/promo-codes/${id}`, input);
+  return res.data.data;
+}
+
+export async function setAdminPromoStatus({ id, action, reason }) {
+  const res = await axiosInstance.post(`/admin/promo-codes/${id}/status`, { action, reason });
+  return res.data.data;
+}
+
+export async function getAdminPromoStats(id) {
+  const res = await axiosInstance.get(`/admin/promo-codes/${id}/stats`);
+  return res.data.data;
+}
+
+export async function issueOrderVoucher({ id, ...input }) {
+  const res = await axiosInstance.post(`/admin/orders/${id}/voucher`, input);
+  return res.data.data;
+}

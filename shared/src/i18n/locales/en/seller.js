@@ -7,6 +7,7 @@ export default {
     orders: "Orders",
     menu: "Menu",
     analytics: "Analytics",
+    promotions: "Promo codes",
     settings: "Settings",
     portal: "Restaurant portal",
   },

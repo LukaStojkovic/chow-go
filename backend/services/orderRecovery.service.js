@@ -6,6 +6,7 @@ import { AppError } from "../utils/AppError.js";
 import { rejectOrderOperation } from "./restaurantOrder.service.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
+import { releaseOrphanedRedemptions, releasePromoForOrder } from "./promoCode.service.js";
 
 // Nothing used to move an order a person had abandoned: a pending order a
 // restaurant never answered sat there forever, a courier could sit on an
@@ -92,15 +93,16 @@ export async function reportStuckDeliveries(now = new Date()) {
 }
 
 export async function recoverStuckOrders(now = new Date()) {
-  const [rejected, released, stuck] = [
+  const [rejected, released, stuck, promos] = [
     await rejectStalePendingOrders(now),
     await releaseStaleAssignments(now),
     await reportStuckDeliveries(now),
+    await releaseOrphanedRedemptions(now),
   ];
-  if (rejected || released) {
-    logger.info({ rejected, released, stuck }, "Recovered stuck orders");
+  if (rejected || released || promos) {
+    logger.info({ rejected, released, stuck, promos }, "Recovered stuck orders");
   }
-  return { rejected, released, stuck };
+  return { rejected, released, stuck, promos };
 }
 
 /**
@@ -134,6 +136,7 @@ export async function forceCancelOrder(orderId, reason) {
       { $set: { currentOrder: null, isAvailable: true } },
     );
   }
+  if (order.promo?.promoCode) await releasePromoForOrder(order._id);
 
   await notificationService.createOrderCancelledNotification(order, cancellationReason);
   await socketService.emitOrderCancelled(order.customer, order, cancellationReason);

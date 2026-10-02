@@ -51,7 +51,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:cart-quantity`, `check:pagination`, `check:search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:pagination`, `check:search`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -185,6 +185,16 @@ Deleting a dish is a soft delete: `deleteMenuItemById` sets `MenuItem.deletedAt`
 
 `GET /api/discover/promotions?lat&lon` returns `{ deals, newRestaurants }` and backs the two discovery rails. There is no "free delivery" promotion: delivery fees are a flat platform charge with no per-restaurant field, so the card would advertise something checkout could not honour.
 
+## Promo codes and vouchers
+
+Distinct from menu promotions (per dish, above): a code the customer types at checkout, one per order, applied to the subtotal *after* menu promotions. `models/PromoCode.js` holds the code (uppercase, `[A-Z0-9-]`, 4–24, unique platform-wide) and `models/PromoRedemption.js` one row per use. `services/promoCode.service.js` is the single source of truth; the discount arithmetic is `@chowgo/shared/promoCode#computePromoDiscount`, so the checkout preview and the charge agree (`percentage` 1–90% floored to the cent and capped by `maxDiscount`; `fixed` never above the subtotal; `free_delivery` equals `deliveryFee`, which stays on the order so the courier's share never moves).
+
+- **Who creates what.** Sellers create `scope: "restaurant"` codes for their own restaurant at `/api/restaurant/promo-codes` (percentage/fixed only, max 20 active; *not* under `/api/restaurants`, whose `/:restaurantId` is public). Admins create `scope: "platform"` codes (any type, optional `restaurants[]` allowlist, a currency) and personal vouchers (`assignedTo`, single-use `GIFT-…`, `POST /api/admin/orders/:orderId/voucher`, reason required, pushed to the customer). Admins can pause any seller code (reason required); every admin write is audited as `targetType: "promo"`.
+- **Who pays.** The issuer: `Order.promo.fundedBy` is `restaurant` or `platform`. `utils/earnings.js` takes a restaurant-funded discount out of the restaurant's share (`RESTAURANT_EARNINGS_EXPR`, which `DELIVERED_SUBTOTAL_EXPR` and seller analytics now use) and a platform-funded one out of the service fee (`platformEarningsOf`, may go negative).
+- **Redemption is race-safe.** `createOrder` evaluates the code before the transaction and calls `redeemPromo` inside it, next to `Cart.deleteOne`: a conditional `$inc` on `redemptionCount` below `maxRedemptions`, then a redemption row in the lowest free `slot` under `perCustomerLimit`, unique on `{promo, customer, slot}` for `status: "redeemed"`. Both failures are 409 (`PROMO_EXHAUSTED` / `PROMO_ALREADY_USED`). Every other refusal is a `PROMO_*` code clients use to drop the code.
+- **Cancelled and rejected orders give the use back** through `releasePromoForOrder` (idempotent), called from customer cancel, seller reject/cancel (which also covers the pending timeout) and `forceCancelOrder` (admin and ops). The recovery cron sweeps any that were missed. Add the call to any new terminal path.
+- After the first use, `type`, `value`, `maxDiscount` and `currency` are locked (`PROMO_LOCKED`). Codes are archived, never deleted, because orders point at them. Another customer's voucher answers `PROMO_NOT_FOUND` rather than revealing it exists. `POST /api/promo/validate` and checkouts carrying a code share `promoLimiter` (10 misses per 10 min per account).
+
 ## Backend conventions
 
 Layering is `routes → controllers → services → models`, but only partly migrated. Newer code (courier, restaurantOrder, restaurant, menuItem, stats, analytics) keeps controllers thin and puts logic in `services/*.service.js` that `throw new AppError(msg, status)`. Older code (`orderController`, `cartController`, `favouriteController`, `discoverController`, `authController`) does DB work inline. **Follow the service pattern for new work.**
@@ -291,7 +301,8 @@ Expo Router with `@/*` → `src/*`; `app/` holds routes only, everything else li
 1. Rate limits in `middlewares/rateLimit.js` mostly key off `req.ip`. Mobile carriers put thousands of subscribers behind one address, so `accountLimiter` (20 per 15 min, counting successes) and `loginLimiter` (10 failed logins) will collide for real cellular traffic. Login now also has `loginAccountLimiter` (10 failed logins per email, any IP), and reset codes are capped at 3 per account per hour in the controller, so the per-IP limits can be loosened without opening brute force. `TRUST_PROXY` must also be set in production or every user lands in one bucket.
 2. Signup (both the local and Google seller paths) still collects a single opening/closing range rather than a full week; the backend expands it across all 7 days. Per-day control lives only in seller settings.
 3. **Restaurant approval is off by default.** A seller signup creates a live restaurant (`approvalStatus: "approved"`, `isActive: true`) unless `RESTAURANT_APPROVAL_REQUIRED=true`, in which case it starts `pending` and inactive until an admin approves it at `/admin`. Couriers are always gated — `acceptOrderOperation` refuses an order unless `verificationStatus === "verified"`, set from the admin console (or `scripts/verifyCourier.js`). An unverified courier can still browse `/api/courier/available`, but `listAvailableOrders` strips the address and returns only coordinates snapped to a ~200 m grid and a distance rounded to 500 m (`approximate: true`); verified couriers get the exact dropoff.
-4. **No online payment exists.** `paymentMethod` is `cash` or `card`, and both mean the courier collects at the door. `paymentStatus` never leaves `"pending"`, so nothing records that money changed hands.
+4. **No online payment exists.** `paymentMethod` is `cash` or `card`, and both mean the courier collects at the door. `paymentStatus` never leaves `"pending"`, so nothing records that money changed hands. With a promo code the courier collects the discounted `total` but still earns the full delivery share, so platform and restaurant discounts are settled offline.
+5. **`firstOrderOnly` is per account.** There is no phone or device verification, so a new account gets a first-order code again.
 
 ## Redis and running more than one instance
 

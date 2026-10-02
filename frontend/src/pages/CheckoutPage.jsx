@@ -4,11 +4,6 @@
  * A single column of numbered steps with a sticky summary beside it on
  * desktop. Nothing about the price is revealed late: the full breakdown is
  * visible from the moment the page loads and updates as options change.
- *
- * Note on promo codes: the brief calls for one, and `Order.discount` exists on
- * the schema, but `POST /orders/create` accepts no code and no promotion model
- * exists. A field that silently discards its input is worse than no field, so
- * the step is left out until there is something behind it.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -21,6 +16,7 @@ import { MAX_ORDER_NOTES, useDeliveryTypes, usePaymentMethods } from "@/lib/cons
 import { toBasketLines } from "@chowgo/shared/adapters/menu";
 import { buildPriceBreakdown, pricingFor } from "@chowgo/shared/adapters/pricing";
 import { fractionDigitsFor } from "@chowgo/shared/currency";
+import { computePromoDiscount } from "@chowgo/shared/promoCode";
 import useCartStore from "@/store/useCartStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useCreateOrder } from "@/hooks/Orders/useCreateOrder";
@@ -35,6 +31,7 @@ import { EmptyState } from "@/components/common/StateViews";
 import { CheckoutSection, OptionRow } from "@/features/checkout/CheckoutSection";
 import { AddressStep } from "@/features/checkout/AddressStep";
 import { OrderSummaryCard } from "@/features/checkout/OrderSummaryCard";
+import { PromoCodeField } from "@/features/checkout/PromoCodeField";
 import { LegalConsent } from "@/components/common/LegalConsent";
 
 export default function CheckoutPage() {
@@ -52,16 +49,22 @@ export default function CheckoutPage() {
   const [tipAmount, setTipAmount] = useState(0);
   const [customTip, setCustomTip] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
 
   const lines = useMemo(() => toBasketLines(items), [items]);
+  const discount = appliedPromo
+    ? computePromoDiscount({ promo: appliedPromo.promo, subtotal: totalPrice, deliveryFee: fees.deliveryFee })
+    : 0;
   const pricing = useMemo(
-    () =>
-      buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip: tipAmount, currency: fees.currency }),
-    [totalPrice, deliveryType, tipAmount, fees.currency],
+    () => ({
+      ...buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip: tipAmount, discount, currency: fees.currency }),
+      promoCode: appliedPromo?.code ?? null,
+    }),
+    [totalPrice, deliveryType, tipAmount, discount, fees.currency, appliedPromo?.code],
   );
 
   const blockers = [];
@@ -79,6 +82,12 @@ export default function CheckoutPage() {
       customerNotes: customerNotes.trim(),
       tip: tipAmount,
       deliveryType,
+      ...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
+    }, {
+      onError: (error) => {
+        const code = error?.response?.data?.code;
+        if (typeof code === "string" && code.startsWith("PROMO_")) setAppliedPromo(null);
+      },
     });
   };
 
@@ -275,6 +284,15 @@ export default function CheckoutPage() {
               blockers={blockers}
               isPlacing={isCreatingOrder}
               onPlaceOrder={handlePlaceOrder}
+              promoSlot={
+                <PromoCodeField
+                  restaurantId={restaurant?._id}
+                  currency={fees.currency}
+                  applied={appliedPromo ? { ...appliedPromo, discount } : null}
+                  onApply={setAppliedPromo}
+                  onRemove={() => setAppliedPromo(null)}
+                />
+              }
             />
           }
         />

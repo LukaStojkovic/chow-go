@@ -20,10 +20,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminAction, useAdminList, useAdminOverview } from "@/hooks/Admin/useAdmin";
 import {
   cancelOrderAsAdmin,
+  createAdminPromoCode,
+  getAdminPromoStats,
+  issueOrderVoucher,
+  setAdminPromoStatus,
   setCourierVerification,
   setRestaurantStatus,
   setUserSuspension,
+  updateAdminPromoCode,
 } from "@/services/apiAdmin";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { PROMO_TYPES, RESTAURANT_PROMO_TYPES } from "@chowgo/shared/promoCode";
+import { DEFAULT_CURRENCY } from "@chowgo/shared/currency";
+import { PromoCodeFormDialog } from "@/components/promo/PromoCodeFormDialog";
+import { PromoCodeTable, PromoStatsCard } from "@/components/promo/PromoCodeTable";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { ListToolbar, Pager, ReasonDialog } from "./AdminParts";
 
 const STATUS_TONE = {
@@ -287,6 +308,7 @@ function UsersTab({ ask }) {
 function OrdersTab({ ask }) {
   const { t } = useTranslation("admin");
   const [orderId, setOrderId] = useState("");
+  const [voucherFor, setVoucherFor] = useState(null);
   const action = useAdminAction(cancelOrderAsAdmin);
   const id = orderId.trim();
 
@@ -319,7 +341,215 @@ function OrdersTab({ ask }) {
       >
         {t("actions.cancelOrder")}
       </Button>
+      <Button variant="outline" className="ml-2" disabled={!/^[a-f0-9]{24}$/i.test(id)} onClick={() => setVoucherFor(id)}>
+        {t("promo:admin.issueVoucher")}
+      </Button>
+      <VoucherDialog key={voucherFor ?? "none"} orderId={voucherFor} onClose={() => setVoucherFor(null)} />
     </Card>
+  );
+}
+
+function PromoCodesTab({ ask }) {
+  const { t } = useTranslation(["promo", "admin"]);
+  const [params, setParams] = useState({ page: 1, limit: 20 });
+  const [editing, setEditing] = useState(null);
+  const [statsFor, setStatsFor] = useState(null);
+  const query = useAdminList("promo-codes", params);
+  const create = useAdminAction(createAdminPromoCode);
+  const update = useAdminAction(updateAdminPromoCode);
+  const status = useAdminAction(setAdminPromoStatus);
+  const stats = useQuery({
+    queryKey: ["admin", "promoStats", statsFor?._id],
+    queryFn: () => getAdminPromoStats(statsFor._id),
+    enabled: Boolean(statsFor),
+  });
+
+  const save = (payload) => {
+    const done = { onSuccess: () => setEditing(null) };
+    if (editing?._id) update.mutate({ id: editing._id, ...payload }, done);
+    else create.mutate(payload, done);
+  };
+
+  const changeStatus = (promo, action) =>
+    ask({
+      title: t("admin:reason.title", { action: t(`promo:actions.${action}`), name: promo.code }),
+      required: promo.scope === "restaurant" && action !== "resume",
+      destructive: action === "archive",
+      run: (reason) => status.mutateAsync({ id: promo._id, action, reason }),
+    });
+
+  return (
+    <Stack gap="sm">
+      <p className="text-body-sm text-muted-foreground">{t("promo:manage.adminDescription")}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        {["all", "platform", "restaurant"].map((scope) => {
+          const active = (params.scope ?? "all") === scope;
+          return (
+            <Button
+              key={scope}
+              size="sm"
+              variant={active ? "primary" : "outline"}
+              aria-pressed={active}
+              onClick={() => setParams((p) => ({ ...p, page: 1, scope: scope === "all" ? undefined : scope }))}
+            >
+              {t(`promo:scope.${scope}`)}
+            </Button>
+          );
+        })}
+        <div className="flex-1" />
+        <Button size="sm" onClick={() => setEditing({})}>
+          {t("promo:manage.create")}
+        </Button>
+      </div>
+      <ListToolbar
+        statuses={["active", "paused", "archived"]}
+        status={params.status}
+        onStatus={(value) => setParams((p) => ({ ...p, page: 1, status: value || undefined }))}
+        onSearch={(q) => setParams((p) => ({ ...p, page: 1, q: q || undefined }))}
+        statusLabel={(value) => t(`promo:status.${value}`)}
+      />
+      {query.isError ? (
+        <p className="text-body-sm text-destructive py-6">{t("admin:loadFailed")}</p>
+      ) : (
+        <PromoCodeTable
+          items={query.data?.items}
+          isLoading={query.isLoading}
+          showOwner
+          onEdit={setEditing}
+          onStatus={changeStatus}
+          onStats={setStatsFor}
+        />
+      )}
+      <Pager pagination={query.data?.pagination} onPage={(page) => setParams((p) => ({ ...p, page }))} />
+
+      {editing && (
+        <PromoCodeFormDialog
+          key={editing._id ?? "new"}
+          open
+          promo={editing}
+          types={editing.scope === "restaurant" ? RESTAURANT_PROMO_TYPES : PROMO_TYPES}
+          currency={editing.currency ?? DEFAULT_CURRENCY}
+          showCurrency={editing.scope !== "restaurant"}
+          isSaving={create.isPending || update.isPending}
+          onSubmit={save}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
+      <Dialog open={Boolean(statsFor)} onOpenChange={(open) => !open && setStatsFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="sr-only">{t("promo:stats.title", { code: statsFor?.code })}</DialogTitle>
+          </DialogHeader>
+          <PromoStatsCard code={statsFor?.code} stats={stats.data?.stats} currency={statsFor?.currency} />
+        </DialogContent>
+      </Dialog>
+    </Stack>
+  );
+}
+
+function VoucherDialog({ orderId, onClose }) {
+  const { t } = useTranslation(["promo", "admin"]);
+  const [type, setType] = useState("fixed");
+  const [value, setValue] = useState("");
+  const [validDays, setValidDays] = useState("90");
+  const [reason, setReason] = useState("");
+  const issue = useAdminAction(issueOrderVoucher);
+  const valid = Boolean(reason.trim()) && (type === "free_delivery" || Number(value) > 0);
+
+  const submit = (event) => {
+    event.preventDefault();
+    issue.mutate(
+      {
+        id: orderId,
+        type,
+        value: type === "free_delivery" ? undefined : Number(value),
+        validDays: Number(validDays),
+        reason: reason.trim(),
+      },
+      {
+        onSuccess: (voucher) => {
+          toast.success(t("promo:admin.issued", { code: voucher.code }));
+          onClose();
+        },
+      },
+    );
+  };
+
+  return (
+    <Dialog open={Boolean(orderId)} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <form className="space-y-4" onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>{t("promo:admin.issueTitle", { orderNumber: orderId })}</DialogTitle>
+            <DialogDescription>{t("promo:admin.issueDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="voucher-type">{t("promo:fields.type")}</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger id="voucher-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROMO_TYPES.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {t(`promo:types.${option}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {type !== "free_delivery" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="voucher-value">
+                  {type === "percentage" ? t("promo:fields.valuePercent") : t("promo:fields.value")}
+                </Label>
+                <Input
+                  id="voucher-value"
+                  type="number"
+                  min={0}
+                  step="any"
+                  required
+                  value={value}
+                  onChange={(event) => setValue(event.target.value)}
+                />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="voucher-days">{t("promo:fields.validDays")}</Label>
+              <Input
+                id="voucher-days"
+                type="number"
+                min={1}
+                max={365}
+                step={1}
+                value={validDays}
+                onChange={(event) => setValidDays(event.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="voucher-reason">{t("promo:admin.reason")}</Label>
+            <Textarea
+              id="voucher-reason"
+              value={reason}
+              maxLength={500}
+              placeholder={t("promo:admin.reasonPlaceholder")}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onClose}>
+              {t("promo:manage.cancel")}
+            </Button>
+            <Button type="submit" disabled={!valid} isLoading={issue.isPending}>
+              {t("promo:admin.issueVoucher")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -382,7 +612,7 @@ export default function AdminPage() {
 
         <Tabs defaultValue="restaurants">
           <TabsList className="flex-wrap h-auto">
-            {["restaurants", "couriers", "users", "orders", "audit"].map((tab) => (
+            {["restaurants", "couriers", "users", "orders", "promoCodes", "audit"].map((tab) => (
               <TabsTrigger key={tab} value={tab}>
                 {t(`tabs.${tab}`)}
               </TabsTrigger>
@@ -399,6 +629,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersTab ask={setRequest} />
+          </TabsContent>
+          <TabsContent value="promoCodes">
+            <PromoCodesTab ask={setRequest} />
           </TabsContent>
           <TabsContent value="audit">
             <AuditTab />

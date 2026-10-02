@@ -2,7 +2,7 @@ import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import mongoose from "mongoose";
 import { AppError } from "../utils/AppError.js";
-import { DELIVERED_SUBTOTAL_EXPR } from "../utils/earnings.js";
+import { DELIVERED_SUBTOTAL_EXPR, RESTAURANT_EARNINGS_EXPR } from "../utils/earnings.js";
 import { toMoney } from "../utils/money.js";
 import { normalizeCurrency } from "@chowgo/shared/currency";
 import { lastDateKeys, resolveTimeZone, startOfDay } from "../utils/zonedTime.js";
@@ -24,9 +24,9 @@ async function fetchKpis(restaurantId, restaurant, timeZone) {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$subtotal" },
+          totalRevenue: { $sum: RESTAURANT_EARNINGS_EXPR },
           totalOrders: { $count: {} },
-          avgOrderValue: { $avg: "$subtotal" },
+          avgOrderValue: { $avg: RESTAURANT_EARNINGS_EXPR },
         },
       },
     ]),
@@ -41,7 +41,7 @@ async function fetchKpis(restaurantId, restaurant, timeZone) {
       {
         $group: {
           _id: null,
-          total: { $sum: "$subtotal" },
+          total: { $sum: RESTAURANT_EARNINGS_EXPR },
         },
       },
     ]),

@@ -23,6 +23,7 @@ import errors from "./errors.js";
 import landing from "./landing.js";
 import order from "./order.js";
 import profile from "./profile.js";
+import promo from "./promo.js";
 import restaurant from "./restaurant.js";
 import seller from "./seller.js";
 import validation from "./validation.js";
@@ -38,6 +39,7 @@ export default {
   landing,
   order,
   profile,
+  promo,
   restaurant,
   seller,
   validation,

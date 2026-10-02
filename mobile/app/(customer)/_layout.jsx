@@ -37,6 +37,7 @@ export default function CustomerLayout() {
         <Stack.Screen name="order/[orderId]/rate" options={sheetOptions([0.9])} />
         <Stack.Screen name="address/[addressId]" />
         <Stack.Screen name="settings/profile" />
+        <Stack.Screen name="settings/vouchers" />
         <Stack.Screen name="order/[orderId]/confirmed" options={fullScreenModalOptions} />
       </Stack>
 

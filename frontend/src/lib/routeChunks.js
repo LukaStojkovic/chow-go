@@ -13,6 +13,7 @@ export const routeChunks = {
   "/seller/orders": () => import("@/pages/seller/SellerOrders"),
   "/seller/menu": () => import("@/pages/seller/SellerMenu"),
   "/seller/analytics": () => import("@/pages/seller/SellerAnalytics"),
+  "/seller/promotions": () => import("@/pages/seller/SellerPromoCodes"),
   "/seller/settings": () => import("@/pages/seller/SellerSettings"),
   "/courier/dashboard": () => import("@/pages/courier/CourierDashboard"),
   "/courier/orders": () => import("@/pages/courier/CourierOrders"),

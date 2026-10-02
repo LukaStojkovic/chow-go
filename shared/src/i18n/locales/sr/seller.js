@@ -7,6 +7,7 @@ export default {
     orders: "Porudžbine",
     menu: "Meni",
     analytics: "Analitika",
+    promotions: "Promo kodovi",
     settings: "Podešavanja",
     portal: "Portal restorana",
   },

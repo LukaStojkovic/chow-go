@@ -104,7 +104,7 @@ export function FeeBreakdown({ pricing, showTotal = true, totalLabel, className 
 
       {pricing.discount > 0 && (
         <Row
-          label={t("summary.discount")}
+          label={pricing.promoCode ? `${t("summary.discount")} (${pricing.promoCode})` : t("summary.discount")}
           value={`-${formatPrice(pricing.discount, { currency: pricing.currency })}`}
           tone="discount"
         />

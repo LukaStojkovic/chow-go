@@ -11,6 +11,12 @@ import * as orderStatus from "../utils/orderStatus.js";
 import { sumMoney, toMoney } from "../utils/money.js";
 import * as orderSocketService from "../services/orderSocket.service.js";
 import { repriceCartLines } from "../services/cartPricing.service.js";
+import {
+  evaluatePromo,
+  fundedByOf,
+  redeemPromo,
+  releasePromoForOrder,
+} from "../services/promoCode.service.js";
 import { pricingFor } from "@chowgo/shared/adapters/pricing";
 import { haversineMeters, toLatLng } from "@chowgo/shared/geo";
 import { env } from "../config/env.js";
@@ -25,6 +31,7 @@ export async function createOrder(req, res, next) {
       customerNotes,
       tip,
       deliveryType,
+      promoCode,
     } = req.body;
 
     const userId = req.user._id;
@@ -141,7 +148,14 @@ export async function createOrder(req, res, next) {
       return next(new AppError("errors:order.tipInvalid", 400, "TIP_INVALID", { max: pricing.maxTip }));
     }
     const tipAmount = toMoney(tipNumber);
-    const total = sumMoney(subtotal, deliveryFee, serviceFee, priorityFee, tax, tipAmount);
+    const applied = promoCode
+      ? await evaluatePromo({ code: promoCode, customerId: userId, restaurant, subtotal, deliveryFee })
+      : null;
+    const discount = applied?.discount ?? 0;
+    const total = Math.max(
+      0,
+      sumMoney(subtotal, deliveryFee, serviceFee, priorityFee, tax, tipAmount, -discount),
+    );
 
     const order = new Order({
       customer: userId,
@@ -172,8 +186,19 @@ export async function createOrder(req, res, next) {
       tax,
       serviceFee,
       tip: tipAmount,
-      discount: 0,
+      discount,
       total,
+      ...(applied
+        ? {
+            promo: {
+              promoCode: applied.promo._id,
+              code: applied.promo.code,
+              label: applied.promo.label,
+              type: applied.promo.type,
+              fundedBy: fundedByOf(applied.promo),
+            },
+          }
+        : {}),
       paymentMethod,
       idempotencyKey,
       customerNotes: customerNotes || "",
@@ -202,6 +227,16 @@ export async function createOrder(req, res, next) {
         const consumed = await Cart.deleteOne({ _id: cart._id }, { session });
         if (consumed.deletedCount !== 1) {
           throw new AppError("errors:order.alreadyPlaced", 409, "CART_ALREADY_ORDERED");
+        }
+
+        if (applied) {
+          await redeemPromo({
+            promo: applied.promo,
+            customerId: userId,
+            orderId: order._id,
+            discount,
+            session,
+          });
         }
 
         await Addresses.updateOne(
@@ -386,6 +421,8 @@ export async function cancelOrder(req, res, next) {
     // refuses to put them back on duty while currentOrder is set, and a
     // cancelled order is not in COURIER_ACTIVE_STATUSES so they cannot clear
     // it by finishing either.
+    if (order.promo?.promoCode) await releasePromoForOrder(order._id);
+
     if (assignedCourierId) {
       await Courier.updateOne(
         { _id: assignedCourierId, currentOrder: order._id },

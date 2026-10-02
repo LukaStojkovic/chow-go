@@ -6,6 +6,7 @@ import Courier from "../models/Courier.js";
 import Restaurant from "../models/Restaurant.js";
 import MenuItem from "../models/MenuItem.js";
 import Notification from "../models/OrderNotification.js";
+import PromoCode from "../models/PromoCode.js";
 
 /**
  * Everything the platform holds about one person, in a portable shape - the
@@ -16,7 +17,7 @@ import Notification from "../models/OrderNotification.js";
 
 const ORDER_FIELDS = [
   "orderNumber", "status", "currency", "items", "subtotal", "deliveryFee", "serviceFee",
-  "priorityFee", "tax", "tip", "discount", "total", "paymentMethod", "paymentStatus",
+  "priorityFee", "tax", "tip", "discount", "promo.code", "promo.label", "total", "paymentMethod", "paymentStatus",
   "deliveryAddressSnapshot", "customerNotes", "customerRating", "cancellationReason",
   "cancelledBy", "createdAt", "confirmedAt", "deliveredAt", "cancelledAt", "rejectedAt",
 ].join(" ");
@@ -27,7 +28,7 @@ const plainItems = (items = []) =>
   }));
 
 async function customerData(userId) {
-  const [addresses, cart, orders] = await Promise.all([
+  const [addresses, cart, orders, vouchers] = await Promise.all([
     Addresses.find({ userId }).select("-userId -__v").lean(),
     Cart.findOne({ user: userId }).populate("restaurant", "name").lean(),
     Order.find({ customer: userId })
@@ -35,10 +36,14 @@ async function customerData(userId) {
       .populate("restaurant", "name")
       .sort({ createdAt: -1 })
       .lean(),
+    PromoCode.find({ assignedTo: userId })
+      .select("code label type value maxDiscount currency status redemptionCount endsAt createdAt -_id")
+      .lean(),
   ]);
 
   return {
     addresses,
+    vouchers,
     cart: cart
       ? { restaurant: cart.restaurant?.name ?? null, items: plainItems(cart.items), updatedAt: cart.updatedAt }
       : null,

@@ -138,3 +138,18 @@ export const searchLimiter = rateLimit({
   limit: 60,
   message: tooMany("Too many searches. Please wait a moment."),
 });
+
+/**
+ * Promo code lookups, keyed on the signed-in account so code guessing costs
+ * the guesser, not their neighbours on the same carrier address. Only
+ * misses count; checkout also passes through here when it carries a code.
+ */
+export const promoLimiter = rateLimit({
+  ...base("promo"),
+  windowMs: 10 * 60_000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  skip: (req) => !req.body?.code && !req.body?.promoCode,
+  keyGenerator: (req) => `promo:${req.user?._id}`,
+  message: tooMany("Too many code attempts. Please try again in 10 minutes."),
+});

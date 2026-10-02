@@ -308,7 +308,7 @@ export async function cancelOrder({ actor, orderId, reason, requestId }) {
 export async function listAudit(query) {
   const paging = parsePagination(query);
   const filter = {};
-  if (["restaurant", "courier", "user", "order"].includes(query.targetType)) {
+  if (["restaurant", "courier", "user", "order", "promo"].includes(query.targetType)) {
     filter.targetType = query.targetType;
   }
   if (query.targetId && mongoose.Types.ObjectId.isValid(query.targetId)) {

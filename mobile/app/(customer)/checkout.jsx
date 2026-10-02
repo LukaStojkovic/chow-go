@@ -6,7 +6,9 @@ import { ArrowRight, Lock } from "lucide-react-native";
 import { MAX_ORDER_NOTES, deliveryTypes, paymentMethods } from "@chowgo/shared/constants";
 import { buildPriceBreakdown, pricingFor } from "@chowgo/shared/adapters/pricing";
 import { formatPrice } from "@chowgo/shared/format";
+import { computePromoDiscount } from "@chowgo/shared/promoCode";
 import { errorMessage } from "@/api/client";
+import { PromoCodeField } from "@/features/checkout/PromoCodeField";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -52,6 +54,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [tip, setTip] = useState(0);
   const [notes, setNotes] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null);
 
   // The basket in memory can be a mutation response older than the server's
   // view - notably one that carried the restaurant as a bare id. Re-reading it
@@ -70,7 +73,10 @@ export default function Checkout() {
 
   const fees = pricingFor(restaurant?.currency);
   const { currency } = fees;
-  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip, currency });
+  const discount = appliedPromo
+    ? computePromoDiscount({ promo: appliedPromo.promo, subtotal: totalPrice, deliveryFee: fees.deliveryFee })
+    : 0;
+  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip, discount, currency });
 
   async function placeOrder() {
     if (!addressId) {
@@ -95,6 +101,7 @@ export default function Checkout() {
         deliveryType,
         tip,
         customerNotes: notes.trim() || undefined,
+        ...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
       });
       // The backend deletes the cart document as part of creating the order.
       clearLocalCart();
@@ -104,6 +111,7 @@ export default function Checkout() {
     } catch (error) {
       const code = error?.response?.data?.code;
       if (code === "PRICE_CHANGED" || code === "ITEM_UNAVAILABLE") fetchCart();
+      if (typeof code === "string" && code.startsWith("PROMO_")) setAppliedPromo(null);
       toast.error(t("order:detail.placeFailed"), { description: errorMessage(error) });
     }
   }
@@ -130,6 +138,9 @@ export default function Checkout() {
       ? [[t("basket:summary.priorityFee"), breakdown.priorityFee]]
       : []),
     ...(tip ? [[t("basket:summary.tip"), tip]] : []),
+    ...(breakdown.discount
+      ? [[`${t("basket:summary.discount")} (${appliedPromo.code})`, -breakdown.discount]]
+      : []),
   ];
 
   return (
@@ -231,6 +242,16 @@ export default function Checkout() {
             maxLength={MAX_ORDER_NOTES}
             multiline
             placeholder={t("basket:checkout.notes.shortPlaceholder")}
+          />
+        </Section>
+
+        <Section title={t("promo:checkout.title")}>
+          <PromoCodeField
+            restaurantId={restaurant?._id}
+            currency={currency}
+            applied={appliedPromo ? { ...appliedPromo, discount } : null}
+            onApply={setAppliedPromo}
+            onRemove={() => setAppliedPromo(null)}
           />
         </Section>
 

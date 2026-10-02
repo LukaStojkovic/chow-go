@@ -117,6 +117,7 @@
  * @property {number} priorityFee
  * @property {number} tip
  * @property {number} discount
+ * @property {string | null} [promoCode]
  * @property {number} tax
  * @property {number} total
  */

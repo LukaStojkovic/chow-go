@@ -10,7 +10,7 @@ const auditLogSchema = new mongoose.Schema(
     actor: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     actorEmail: { type: String, required: true },
     action: { type: String, required: true },
-    targetType: { type: String, enum: ["restaurant", "courier", "user", "order"], required: true },
+    targetType: { type: String, enum: ["restaurant", "courier", "user", "order", "promo"], required: true },
     targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
     reason: { type: String, maxlength: 500, default: "" },
     before: mongoose.Schema.Types.Mixed,

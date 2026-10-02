@@ -6,6 +6,7 @@ import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
 import { parsePagination } from "../utils/pagination.js";
 import { containsRegex } from "../utils/regex.js";
+import { releasePromoForOrder } from "./promoCode.service.js";
 
 
 /**
@@ -178,6 +179,7 @@ export async function rejectOrderOperation(orderId, restaurantId, reason) {
     },
     conflictMessage: "That order is no longer pending",
   });
+  if (order.promo?.promoCode) await releasePromoForOrder(order._id);
 
   await notificationService.createOrderRejectedNotification(
     order,
@@ -241,6 +243,7 @@ export async function cancelOrderOperation(orderId, restaurantId, reason) {
     },
     conflictMessage: "That order can no longer be cancelled",
   });
+  if (order.promo?.promoCode) await releasePromoForOrder(order._id);
 
   await notificationService.createOrderCancelledNotification(
     order,

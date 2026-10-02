@@ -17,6 +17,7 @@
     "./i18n/fieldErrors": "./src/i18n/fieldErrors.js",
     "./menuItemSchema": "./src/menuItemSchema.js",
     "./money": "./src/money.js",
+    "./promoCode": "./src/promoCode.js",
     "./promotion": "./src/promotion.js",
     "./schedule": "./src/schedule.js",
     "./searchFilters": "./src/searchFilters.js",

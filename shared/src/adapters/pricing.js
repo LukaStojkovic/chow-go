@@ -151,6 +151,7 @@ export function breakdownFromOrder(order) {
       priorityFee: toMoney(Number(order.priorityFee) || 0),
       tip: toMoney(tip),
       discount: toMoney(discount),
+      promoCode: order.promo?.code ?? null,
       tax: toMoney(tax),
       total: toMoney(total),
     };
@@ -167,6 +168,7 @@ export function breakdownFromOrder(order) {
     priorityFee: 0,
     tip: toMoney(tip),
     discount: toMoney(discount),
+    promoCode: order.promo?.code ?? null,
     tax: toMoney(tax),
     total: toMoney(total),
   };

@@ -160,6 +160,37 @@ try {
   const again = execFileSync("node", ["scripts/backfillCourierEarnings.js", "--dry-run"], { env }).toString();
   ok("and running it again changes nothing", again.includes("0 to update"), again);
 
+  console.log("\npromo codes come out of whoever issued them");
+  const { restaurantEarningsOf, platformEarningsOf, courierEarningsOf: courierShare } = await import("../utils/earnings.js");
+  const shopOwner = await User.create({ name: "P", email: "p@earn.test", password: "x", role: "seller" });
+  const shop = await Restaurant.create({
+    ownerId: shopOwner._id, name: "Promo", email: "promo@earn.test", phone: "0622222223",
+    cuisineType: "pizza", description: "t", timezone: TZ,
+    profilePicture: "https://res.cloudinary.com/demo/image/upload/x.jpg",
+    address: { street: "S 2", city: "C", zipCode: "11000", country: "Serbia" },
+    location: { type: "Point", coordinates: [20.45, 44.8] },
+  });
+  const sellerFunded = {
+    restaurant: shop._id, status: "delivered",
+    subtotal: 20, deliveryFee: 2.5, serviceFee: 1.5, priorityFee: 0, tip: 0, discount: 5, total: 19,
+    promo: { code: "SHOP5", type: "fixed", fundedBy: "restaurant" },
+  };
+  const platformFunded = {
+    restaurant: shop._id, status: "delivered",
+    subtotal: 10, deliveryFee: 2.5, serviceFee: 1.5, priorityFee: 0, tip: 0, discount: 2.5, total: 11.5,
+    promo: { code: "FREEDEL", type: "free_delivery", fundedBy: "platform" },
+  };
+  await place(sellerFunded, early);
+  await place(platformFunded, early);
+  ok("a restaurant code reduces the restaurant's share", restaurantEarningsOf(sellerFunded) === 15);
+  ok("a platform code leaves it alone", restaurantEarningsOf(platformFunded) === 10);
+  ok("a platform code comes out of the service fee", platformEarningsOf(platformFunded) === -1);
+  ok("the courier's share never moves", courierShare(sellerFunded) === 2.5 && courierShare(platformFunded) === 2.5);
+  const shopAnalytics = await getRestaurantAnalytics(String(shop._id), shopOwner._id);
+  ok("seller analytics report net food revenue", shopAnalytics.kpis.todayRevenue === 25, shopAnalytics.kpis.todayRevenue);
+  const shopStats = await getRestaurantStats(String(shop._id), shopOwner._id);
+  ok("and so does the dashboard", shopStats.stats.totalRevenue.value === "25.00", shopStats.stats.totalRevenue.value);
+
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exitCode = 1;
 } finally {

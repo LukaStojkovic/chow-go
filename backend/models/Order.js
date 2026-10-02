@@ -100,6 +100,13 @@ const orderSchema = new mongoose.Schema(
     tip: { type: Number, min: 0, default: 0, set: moneySetter },
     discount: { type: Number, min: 0, default: 0, set: moneySetter },
     total: { type: Number, required: true, min: 0, set: moneySetter },
+    promo: {
+      promoCode: { type: mongoose.Schema.Types.ObjectId, ref: "PromoCode" },
+      code: String,
+      label: String,
+      type: { type: String, enum: ["percentage", "fixed", "free_delivery"] },
+      fundedBy: { type: String, enum: ["platform", "restaurant"] },
+    },
 
     status: {
       type: String,

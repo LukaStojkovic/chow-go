@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   UtensilsCrossed,
   BarChart3,
+  TicketPercent,
   Settings,
   LogOut,
   Menu,
@@ -31,6 +32,7 @@ export default function SellerLayout() {
     { to: "/seller/orders", icon: ShoppingBag, label: t("seller:nav.orders") },
     { to: "/seller/menu", icon: UtensilsCrossed, label: t("seller:nav.menu") },
     { to: "/seller/analytics", icon: BarChart3, label: t("seller:nav.analytics") },
+    { to: "/seller/promotions", icon: TicketPercent, label: t("seller:nav.promotions") },
     { to: "/seller/settings", icon: Settings, label: t("seller:nav.settings") },
   ];
 

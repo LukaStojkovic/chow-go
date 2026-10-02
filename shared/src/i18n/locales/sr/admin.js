@@ -18,6 +18,7 @@ export default {
     couriers: "Kuriri",
     users: "Nalozi",
     orders: "Porudžbine",
+    promoCodes: "Promo kodovi",
     audit: "Dnevnik izmena",
   },
 

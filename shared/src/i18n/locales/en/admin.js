@@ -18,6 +18,7 @@ export default {
     couriers: "Couriers",
     users: "Accounts",
     orders: "Orders",
+    promoCodes: "Promo codes",
     audit: "Audit log",
   },
 

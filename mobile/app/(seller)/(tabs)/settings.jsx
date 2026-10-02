@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Check, ImagePlus, Loader, LogOut, Store } from "lucide-react-native";
+import { Check, ImagePlus, Loader, LogOut, Store, TicketPercent } from "lucide-react-native";
 import { normalizeSchedule } from "@chowgo/shared/schedule";
 import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ListRow } from "@/components/ui/ListRow";
 import { LanguagePicker } from "@/features/settings/LanguagePicker";
 import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
 import { DownloadMyData } from "@/features/settings/DownloadMyData";
@@ -219,6 +220,17 @@ export default function SellerSettings() {
             schedule={draft.schedule}
             onChangeDay={(day, entry) => edit({ schedule: { ...draft.schedule, [day]: entry } })}
           />
+        </Card>
+
+        <Card className="p-0">
+          <View className="px-4">
+            <ListRow
+              icon={TicketPercent}
+              title={t("promo:manage.title")}
+              subtitle={t("promo:manage.emptyDescription")}
+              onPress={() => router.push("/(seller)/promo-codes")}
+            />
+          </View>
         </Card>
 
         <LanguagePicker />

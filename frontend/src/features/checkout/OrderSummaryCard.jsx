@@ -38,6 +38,7 @@ export function OrderSummaryCard({
   blockers,
   isPlacing,
   onPlaceOrder,
+  promoSlot,
 }) {
   const { t } = useTranslation(["basket", "common"]);
   const canPlace = blockers.length === 0;
@@ -72,6 +73,8 @@ export function OrderSummaryCard({
           ))}
         </ul>
       </div>
+
+      {promoSlot && <div className="border-border border-t p-4">{promoSlot}</div>}
 
       <div className="border-border border-t p-4">
         <FeeBreakdown pricing={pricing} />

@@ -8,6 +8,7 @@ import Order from "../models/Order.js";
 import Courier from "../models/Courier.js";
 import Restaurant from "../models/Restaurant.js";
 import Notification from "../models/OrderNotification.js";
+import PromoCode from "../models/PromoCode.js";
 import { AppError } from "../utils/AppError.js";
 import { deleteMultipleCloudinaryImages } from "./image.service.js";
 import { ACTIVE_STATUSES } from "../utils/orderStatus.js";
@@ -136,6 +137,11 @@ export async function deleteAccountOperation({ user, password }) {
       await Addresses.deleteMany({ userId: user._id }, { session });
       await Cart.deleteMany({ user: user._id }, { session });
       await Notification.deleteMany({ recipient: user._id }, { session });
+      await PromoCode.updateMany(
+        { assignedTo: user._id, status: { $ne: "archived" } },
+        { $set: { status: "archived" } },
+        { session },
+      );
 
       if (user.role === "courier") {
         await Courier.updateOne(
