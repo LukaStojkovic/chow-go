@@ -13,6 +13,7 @@
 
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { transitions } from "@/lib/motion";
@@ -23,6 +24,8 @@ import { formatTime } from "@chowgo/shared/format";
  * @param {import("@chowgo/shared/adapters/types").OrderView} props.order
  */
 export function OrderStatusTimeline({ order }) {
+  const { t } = useTranslation("order");
+
   return (
     <div>
       <div className="mb-4">
@@ -106,7 +109,11 @@ export function OrderStatusTimeline({ order }) {
                       isNow ? "text-primary font-semibold" : "text-muted-foreground",
                     )}
                   >
-                    {isNow ? "Now" : isDone ? "Done" : "Upcoming"}
+                    {isNow
+                      ? t("order:stepState.current")
+                      : isDone
+                        ? t("order:stepState.complete")
+                        : t("order:stepState.upcoming")}
                   </span>
 
                   {step.at && (

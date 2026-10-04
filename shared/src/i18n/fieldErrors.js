@@ -61,5 +61,6 @@ export function translateFieldError(error, t) {
   }
 
   const translated = t(key, params);
-  return translated === key ? raw : translated;
+  const missing = translated === key || translated === key.slice(key.indexOf(":") + 1);
+  return missing ? raw : translated;
 }

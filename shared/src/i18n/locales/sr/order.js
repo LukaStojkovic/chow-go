@@ -72,6 +72,12 @@ export default {
     },
   },
 
+  stepState: {
+    complete: "Završeno",
+    current: "Sada",
+    upcoming: "Predstoji",
+  },
+
   step: {
     received: {
       label: "Porudžbina poslata",

@@ -56,7 +56,7 @@ export function isPromotionLive(promotion, now = new Date()) {
  */
 export function effectivePrice(price, promotion, now = new Date()) {
   const base = Number(price) || 0;
-  if (!isPromotionLive(promotion, now)) return toMoney(base);
+  if (base <= 0 || !isPromotionLive(promotion, now)) return toMoney(base);
 
   const value = Number(promotion.value);
   const discounted =

@@ -115,7 +115,7 @@ export const menuItemSchema = z
       .min(1, msg("validation:menuItem.imagesRequired"))
       .max(6, msg("validation:menuItem.imagesMax", { count: 6 }))
       .default([]),
-    promotion: promotionField.default({}),
+    promotion: promotionField.prefault({}),
   })
   .superRefine(checkPromotion);
 
@@ -131,7 +131,7 @@ export const editMenuItemSchema = z
       .max(6, msg("validation:menuItem.imagesMax", { count: 6 }))
       .default([]),
     existingImages: z.array(z.string()).optional().default([]),
-    promotion: promotionField.default({}),
+    promotion: promotionField.prefault({}),
   })
   .superRefine((data, ctx) => {
     if (data.images.length === 0 && data.existingImages.length === 0) {

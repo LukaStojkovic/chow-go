@@ -100,16 +100,18 @@ export function toOrderSteps(order) {
 
     /** @type {"complete" | "current" | "upcoming"} */
     let state = "upcoming";
-    if (statusIndex > stepIndex || order?.status === "delivered") {
+    if (order?.status === "delivered") {
       state = "complete";
-    } else if (statusIndex === stepIndex) {
-      state = "current";
-      // `ready` and `in_transit` have no step of their own; they advance the
-      // step before them rather than adding a node the customer must decode.
+      // `ready` and `in_transit` have no step of their own; they keep the
+      // step before them current rather than adding a node the customer must decode.
     } else if (
       (order?.status === "ready" && step.id === "preparing") ||
       (order?.status === "in_transit" && step.id === "on_the_way")
     ) {
+      state = "current";
+    } else if (statusIndex > stepIndex) {
+      state = "complete";
+    } else if (statusIndex === stepIndex) {
       state = "current";
     }
 

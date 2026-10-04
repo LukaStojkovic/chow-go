@@ -1,6 +1,6 @@
 import axios from "axios";
 import { API_URL } from "@/lib/config";
-import { LOCALE_HEADER, currentLocale, t } from "@chowgo/shared/i18n";
+import { LOCALE_HEADER, currentLocale, i18next, t } from "@chowgo/shared/i18n";
 
 import { clearToken, getToken } from "@/lib/secureToken";
 
@@ -63,8 +63,7 @@ export function errorMessage(error, fallbackKey = "common:error.generic") {
 
   if (data.code) {
     const key = `errors:byCode.${data.code}`;
-    const translated = t(key);
-    if (translated !== key) return translated;
+    if (i18next.exists(key)) return t(key);
   }
 
   return t(fallbackKey);

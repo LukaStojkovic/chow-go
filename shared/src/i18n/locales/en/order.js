@@ -74,6 +74,12 @@ export default {
     },
   },
 
+  stepState: {
+    complete: "Done",
+    current: "Now",
+    upcoming: "Upcoming",
+  },
+
   step: {
     received: {
       label: "Order placed",

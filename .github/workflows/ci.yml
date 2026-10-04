@@ -47,6 +47,9 @@ jobs:
       - name: Shared guards (locales, imports, translation keys)
         run: npm run check --prefix shared
 
+      - name: Shared unit tests
+        run: npm test --prefix shared
+
       - name: Backend checks
         run: npm run check:all --prefix backend
         env:
@@ -78,6 +81,9 @@ jobs:
           NODE_MAILER_PASSWORD: ci
           MAIL_DISABLED: "true"
 
+      - name: Web unit tests
+        run: npm test --prefix frontend
+
       - name: Web build
         run: npm run build --prefix frontend
 
@@ -91,3 +97,25 @@ jobs:
         run: |
           npm audit --omit=dev --audit-level=high --prefix backend
           npm audit --omit=dev --audit-level=high --prefix frontend
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            shared/package-lock.json
+            mobile/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci --prefix shared
+          npm ci --prefix mobile
+
+      - name: Mobile unit tests
+        run: npm test --prefix mobile -- --ci

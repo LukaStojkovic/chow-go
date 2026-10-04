@@ -30,7 +30,7 @@ export const courierApplicationSchema = z.object({
     .max(50, msg("validation:auth.passwordMax", { count: 50 })),
 
   vehicleType: z.enum(["bike", "scooter", "motorcycle", "car"], {
-    errorMap: () => ({ message: msg("validation:courier.vehicleTypeRequired") }),
+    message: msg("validation:courier.vehicleTypeRequired"),
   }),
 
   vehicleNumber: z
@@ -85,6 +85,6 @@ export const courierApplicationSchema = z.object({
   }),
 
   paymentMethod: z.enum(["cash"], {
-    errorMap: () => ({ message: msg("validation:courier.paymentMethodRequired") }),
+    message: msg("validation:courier.paymentMethodRequired"),
   }),
 });

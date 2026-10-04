@@ -27,7 +27,7 @@ export function useReorder() {
 
       const lines = (order.items ?? []).filter((line) => line.menuItem);
       let added = 0;
-      let skipped = 0;
+      const skipped = [];
 
       for (const line of lines) {
         const menuItemId = String(line.menuItem?._id ?? line.menuItem);
@@ -37,7 +37,7 @@ export function useReorder() {
         } catch {
           // A dish can have been removed or switched off since the original
           // order. Skip it and report honestly rather than failing everything.
-          skipped += 1;
+          skipped.push(line.name ?? line.menuItem?.name);
         }
       }
 
@@ -48,11 +48,13 @@ export function useReorder() {
         toast.error(t("basket:reorderNoneAvailable"));
         return;
       }
-      if (skipped > 0) {
+      if (skipped.length > 0) {
         // Serbian has three plural forms, so the count goes through the
         // catalog rather than an inline ternary.
         toast.warning(t("basket:reorderPartial", { count: added }), {
-          description: t("basket:reorderUnavailable", { names: skipped }),
+          description: t("basket:reorderUnavailable", {
+            names: skipped.filter(Boolean).join(", ") || skipped.length,
+          }),
         });
       } else {
         toast.success(t("basket:addedToBasket"));

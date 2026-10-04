@@ -12,7 +12,7 @@
  * Serbian user.
  */
 
-import { t } from "@chowgo/shared/i18n";
+import { i18next, t } from "@chowgo/shared/i18n";
 
 /**
  * @param {unknown} error An axios error, or anything thrown.
@@ -38,8 +38,7 @@ export function apiErrorMessage(error, { fallbackKey = "common:error.generic" } 
 
   if (data.code) {
     const key = `errors:byCode.${data.code}`;
-    const translated = t(key);
-    if (translated !== key) return translated;
+    if (i18next.exists(key)) return t(key);
   }
 
   return t(fallbackKey);

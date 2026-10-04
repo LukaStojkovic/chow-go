@@ -19,9 +19,12 @@ The root `package.json` exists only for single-service deploys: `npm run build` 
 cd backend && npm run dev      # nodemon index.js
 cd frontend && npm run dev     # vite --host
 cd frontend && npm run lint    # eslint
+cd frontend && npm test        # vitest + testing-library (jsdom)
 cd frontend && npm run build   # vite build -> frontend/dist
 cd shared && npm run check     # locale drift, shared imports, translation keys
+cd shared && npm test          # vitest unit tests for shared/
 cd mobile && npm start         # expo start (needs a dev build, not Expo Go)
+cd mobile && npm test          # jest-expo + testing-library (no device needed)
 cd mobile && npm run sync-theme  # regenerate the theme from mobile/src/theme/palette.js
 node backend/scripts/smokeRealtime.js   # end-to-end realtime check (server must be running)
 node backend/scripts/checkPushFallback.js   # push-vs-socket delivery (needs --keep fixtures)
@@ -42,8 +45,21 @@ node backend/scripts/grantAdmin.js --email you@example.com   # admin console acc
 node backend/scripts/reviewGoogleLinks.js   # report accounts auto-linked before the Google fix; --apply <id> to secure
 ```
 
-There is **no test framework** and no `npm test`. `.github/workflows/ci.yml` runs the shared
-guards, `check:all`, the web build, the web lint (non-blocking until its existing errors are
+`shared/` has Vitest unit tests in `shared/test/` (`cd shared && npm test`, `npm run test:watch`).
+`backendParity.test.js` imports `backend/utils/orderStatus.js` and `backend/utils/promotion.js`
+directly and fails when a client mirror drifts from the backend rule, so it needs `backend/node_modules`.
+The web has Vitest + Testing Library tests next to the code they cover (`*.test.js(x)` under
+`frontend/src`, jsdom, `cd frontend && npm test`); `src/test/utils.jsx` has the provider wrapper
+(it must include `I18nextProvider`, or `useTranslation` returns raw keys) and a fake socket for
+realtime hooks. Mobile uses jest-expo + `@testing-library/react-native` 14 (`cd mobile && npm test`,
+`*.test.js(x)` next to the code, its own CI job). RNTL 14's `render`, `renderHook`, `act` and
+`fireEvent` are async — await them. `jest.config.js` mirrors Metro's singleton pinning for `i18next`/`zod`,
+uses react-native-worklets' Jest resolver, and maps `lucide-react-native` to its CJS build;
+`babel.config.js` rewrites `import()` to `require` only when `NODE_ENV=test`. A jest-expo module mock
+whose fields a test changes needs `__esModule: true`, or the test mutates a copy. The test QueryClient
+sets `gcTime: Infinity` on mutations too; the default 5-minute timer keeps Jest from exiting.
+Backend has no unit test framework. `.github/workflows/ci.yml` runs the shared
+guards, the shared unit tests, `check:all`, the web unit tests, the web build, the web lint (non-blocking until its existing errors are
 fixed) and a high-severity `npm audit` on every push to main and every PR. The root
 `Dockerfile` builds the web app and runs the backend serving it. There is
 a suite of self-contained check scripts — `cd backend && npm run check:all` runs

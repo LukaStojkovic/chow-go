@@ -44,7 +44,7 @@ const RESTAURANT_IMAGES_SCHEMA = z.object({
 const COURIER_INFO_SCHEMA = z.object({
   phoneNumber: z.string().min(7, msg("validation:auth.phoneRequired")),
   vehicleType: z.enum(["bike", "scooter", "motorcycle", "car"], {
-    errorMap: () => ({ message: msg("validation:courier.vehicleTypeRequired") }),
+    message: msg("validation:courier.vehicleTypeRequired"),
   }),
   vehicleNumber: z.string().min(1, msg("validation:courier.vehicleNumberRequired")),
   vehicleModel: z.string().min(1, msg("validation:courier.vehicleModelRequired")),
