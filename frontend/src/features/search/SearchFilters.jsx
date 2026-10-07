@@ -74,13 +74,6 @@ export function SearchFilters({ filters, onChange, activeCount, onReset }) {
           {t("discover:filters.openNow")}
         </FilterChip>
 
-        <FilterChip
-          isActive={filters.freeDelivery}
-          onClick={() => set({ freeDelivery: !filters.freeDelivery })}
-        >
-          {t("discover:filters.freeDelivery")}
-        </FilterChip>
-
         {deliveryTimeFilters
           .filter((option) => option.value !== "any")
           .map((option) => (

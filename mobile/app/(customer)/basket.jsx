@@ -5,7 +5,8 @@ import { router } from "expo-router";
 import { ArrowRight, Plus, ShoppingBag } from "lucide-react-native";
 import { buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import { lineTotal } from "@chowgo/shared/money";
-import { formatFee, formatPrice } from "@chowgo/shared/format";
+import { optionsSummary } from "@chowgo/shared/menuOptions";
+import { formatDeliveryEstimate, formatFee, formatPrice } from "@chowgo/shared/format";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/Badge";
 import { Button, IconButton } from "@/components/ui/Button";
@@ -37,6 +38,8 @@ function FeeRow({ label, value, tone = "muted", strong = false, currency }) {
     </View>
   );
 }
+
+const lineKey = (item) => String(item.lineId || (item.menuItem?._id ?? item.menuItem));
 
 export default function Basket() {
   const { t } = useTranslation(["basket", "restaurant", "common"]);
@@ -70,7 +73,7 @@ export default function Basket() {
 
       <FlatList
         data={items}
-        keyExtractor={(item) => String(item.menuItem?._id ?? item.menuItem)}
+        keyExtractor={lineKey}
         contentContainerClassName="gap-3 px-5 pb-6"
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
@@ -80,7 +83,7 @@ export default function Basket() {
                 <View className="flex-1">
                   <Text variant="h3">{t("order:eta.label")}</Text>
                   <Text variant="body-sm" tone="muted">
-                    {restaurant?.estimatedDeliveryTime ?? "30-45 min"}
+                    {formatDeliveryEstimate(restaurant?.estimatedDeliveryTime)}
                   </Text>
                 </View>
                 <Badge tone="mint">{formatFee(breakdown.deliveryFee, { currency })}</Badge>
@@ -114,13 +117,14 @@ export default function Basket() {
             <View className="flex-row items-center justify-between pt-1">
               <Text variant="h1">{t("seller:orders.table.items")}</Text>
               <Text variant="label-sm" tone="muted">
-                {count} {count === 1 ? "item" : "items"}
+                {t("common:count.items", { count })}
               </Text>
             </View>
           </View>
         }
         renderItem={({ item }) => {
-          const id = String(item.menuItem?._id ?? item.menuItem);
+          const id = lineKey(item);
+          const optionsLabel = optionsSummary(item.options);
           return (
             <Card className="gap-3">
               <View className="flex-row items-start gap-3">
@@ -143,8 +147,13 @@ export default function Basket() {
                   <Text variant="h3" numberOfLines={2}>
                     {item.name}
                   </Text>
+                  {optionsLabel ? (
+                    <Text variant="body-sm" tone="muted" numberOfLines={3}>
+                      {optionsLabel}
+                    </Text>
+                  ) : null}
                   <Text variant="body-sm" tone="muted">
-                    {formatPrice(item.price, { currency })} each
+                    {t("common:units.each", { price: formatPrice(item.price, { currency }) })}
                   </Text>
                   {item.specialInstructions ? (
                     <Text variant="caption" tone="muted" numberOfLines={2}>

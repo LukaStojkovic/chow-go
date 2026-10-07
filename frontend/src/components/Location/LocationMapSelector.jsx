@@ -68,11 +68,12 @@ export function LocationMapSelector({
   );
 
   const center = useMemo(() => {
+    if (initialPosition) return [initialPosition.lat, initialPosition.lng];
     if (storeCoords && storeCoords.lat && storeCoords.lon) {
       return [storeCoords.lat, storeCoords.lon];
     }
     return [20.5937, 78.9629];
-  }, [storeCoords]);
+  }, [initialPosition, storeCoords]);
 
   const handleMapClick = useCallback(
     (latlng) => {

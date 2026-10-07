@@ -62,8 +62,23 @@ describe("addItem", () => {
       axiosError(400, { message: "You can only add items from one restaurant. Clear cart first." }),
     );
     await expect(useCartStore.getState().addItem("m2", 2, "extra")).resolves.toEqual({ status: "conflict" });
-    expect(useCartStore.getState().pendingConflict).toEqual({ menuItemId: "m2", quantity: 2, specialInstructions: "extra" });
+    expect(useCartStore.getState().pendingConflict).toEqual({
+      menuItemId: "m2",
+      quantity: 2,
+      specialInstructions: "extra",
+      options: [],
+    });
     expect(toasts()).toHaveLength(0);
+  });
+
+  it("sends the chosen option ids and keeps them on a conflict", async () => {
+    apiCart.addToCart.mockResolvedValueOnce(cart([line("m1")], "r1"));
+    await useCartStore.getState().addItem("m1", 2, undefined, ["o1", "o2"]);
+    expect(apiCart.addToCart).toHaveBeenCalledWith("m1", 2, undefined, ["o1", "o2"]);
+
+    apiCart.addToCart.mockRejectedValueOnce(axiosError(400, { message: "Items from one restaurant only" }));
+    await useCartStore.getState().addItem("m2", 1, "no salt", ["o3"]);
+    expect(useCartStore.getState().pendingConflict).toMatchObject({ menuItemId: "m2", options: ["o3"] });
   });
 
   it("toasts other failures", async () => {
@@ -74,6 +89,14 @@ describe("addItem", () => {
 });
 
 describe("conflict resolution", () => {
+  it("replays the pending options after clearing", async () => {
+    useCartStore.setState({ pendingConflict: { menuItemId: "m2", quantity: 1, options: ["o3"] } });
+    apiCart.clearCart.mockResolvedValue({});
+    apiCart.addToCart.mockResolvedValue(cart([line("m2")], { _id: "r2" }));
+    await useCartStore.getState().resolveConflictByReplacing();
+    expect(apiCart.addToCart).toHaveBeenCalledWith("m2", 1, undefined, ["o3"]);
+  });
+
   it("clears the basket and retries", async () => {
     useCartStore.setState({ pendingConflict: { menuItemId: "m2", quantity: 1 } });
     apiCart.clearCart.mockResolvedValue({});
@@ -103,6 +126,15 @@ describe("quantities and clearing", () => {
     await useCartStore.getState().updateItemQuantity("m1", 0);
     expect(apiCart.removeItemFromCart).toHaveBeenCalledWith("m1");
     expect(apiCart.updateCartItemQuantity).not.toHaveBeenCalled();
+  });
+
+  it("updates and removes by line id", async () => {
+    apiCart.updateCartItemQuantity.mockResolvedValue(cart([line("m1")], "r1"));
+    apiCart.removeItemFromCart.mockResolvedValue(cart([], null, 0));
+    await useCartStore.getState().updateItemQuantity("m1~o1-o2", 3, "x");
+    await useCartStore.getState().updateItemQuantity("m1~o1-o2", 0);
+    expect(apiCart.updateCartItemQuantity).toHaveBeenCalledWith("m1~o1-o2", 3, "x");
+    expect(apiCart.removeItemFromCart).toHaveBeenCalledWith("m1~o1-o2");
   });
 
   it("toasts a failed update or removal without throwing", async () => {

@@ -84,7 +84,7 @@ async function sellerData(userId) {
   if (!restaurant) return { restaurant: null, menu: [] };
 
   const menu = await MenuItem.find({ restaurant: restaurant._id, deletedAt: null })
-    .select("name description price category available promotion imageUrls createdAt")
+    .select("name description price category available promotion optionGroups imageUrls createdAt")
     .lean();
 
   const { _id, ...profile } = restaurant;

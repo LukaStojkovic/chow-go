@@ -5,9 +5,10 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { useKeepAwake } from "expo-keep-awake";
-import { ArrowLeft, Banknote, Navigation, Phone } from "lucide-react-native";
+import { ArrowLeft, Banknote, CreditCard, Navigation, Phone } from "lucide-react-native";
 import { toOrderView } from "@chowgo/shared/adapters/order";
 import { formatPrice } from "@chowgo/shared/format";
+import { sumMoney } from "@chowgo/shared/money";
 import { toLatLng } from "@chowgo/shared/geo";
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -110,8 +111,8 @@ export default function ActiveDelivery() {
   const target = step?.target === "restaurant" ? restaurant : destination;
   const destinationLabel =
     step?.target === "restaurant"
-      ? (data.restaurant?.name ?? "Restaurant")
-      : (data.deliveryAddressSnapshot?.fullAddress ?? data.customer?.name ?? "Customer");
+      ? (data.restaurant?.name ?? t("common:fallback.restaurant"))
+      : (data.deliveryAddressSnapshot?.fullAddress ?? data.customer?.name ?? t("common:fallback.customer"));
   const collectsCash = order.paymentMethod === "cash";
 
   async function advance() {
@@ -199,7 +200,11 @@ export default function ActiveDelivery() {
                 #{order.number}
               </Text>
             </View>
-            <Badge tone="mint">{`${formatPrice(data.deliveryFee ?? 0)} earned`}</Badge>
+            <Badge tone="mint">{t("delivery.earned", {
+                amount: formatPrice(sumMoney(data.deliveryFee, data.priorityFee, data.tip), {
+                  currency: order.currency,
+                }),
+              })}</Badge>
           </View>
 
           {/* The route, as two stops. The one you are heading to now is filled
@@ -263,7 +268,7 @@ export default function ActiveDelivery() {
           <Card className="gap-3">
             <View className="flex-row items-center gap-3">
               <Text variant="h3" className="flex-1">
-                {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+                {t("common:count.items", { count: order.itemCount })}
               </Text>
             </View>
 
@@ -274,31 +279,39 @@ export default function ActiveDelivery() {
                     {line.quantity}×
                   </Text>
                 </View>
-                <Text variant="body" className="flex-1" numberOfLines={2}>
-                  {line.name}
-                </Text>
+                <View className="flex-1">
+                  <Text variant="body" numberOfLines={2}>
+                    {line.name}
+                  </Text>
+                  {line.optionsLabel ? (
+                    <Text variant="caption" tone="muted" numberOfLines={3}>
+                      {line.optionsLabel}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
             ))}
 
             <Divider />
 
-            {/* Cash is the one thing on this screen with money changing hands, so
-                  it gets a tinted block rather than a row of grey text. */}
-            <Inset tone={collectsCash ? "citrus" : "mint"} className="flex-row items-center gap-3">
-              <Banknote size={18} color={collectsCash ? color.tertiary : color.primary} />
+            {/* Both cash and card are taken at the door, so every order has an
+                  amount to collect. */}
+            <Inset tone="citrus" className="flex-row items-center gap-3">
+              {collectsCash ? (
+                <Banknote size={18} color={color.tertiary} />
+              ) : (
+                <CreditCard size={18} color={color.tertiary} />
+              )}
               <View className="flex-1">
-                <Text variant="caption" tone={collectsCash ? "tertiary" : "primary"}>
-                  {collectsCash ? t("delivery.collectCashLabel") : t("delivery.alreadyPaid")}
+                <Text variant="caption" tone="tertiary">
+                  {t("delivery.collectCashLabel")}
                 </Text>
-                {collectsCash ? (
-                  <Text variant="price-lg" tone="tertiary">
-                    {formatPrice(order.pricing?.total ?? 0)}
-                  </Text>
-                ) : (
-                  <Text variant="body-sm" tone="muted">
-                    {t("delivery.nothingToCollect")}
-                  </Text>
-                )}
+                <Text variant="price-lg" tone="tertiary">
+                  {formatPrice(order.pricing?.total ?? 0, { currency: order.currency })}
+                </Text>
+                <Text variant="body-sm" tone="muted">
+                  {collectsCash ? t("delivery.collectInCash") : t("delivery.collectByCard")}
+                </Text>
               </View>
             </Inset>
           </Card>

@@ -129,7 +129,7 @@ export function AddressSelector({ variant = "full", className }) {
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2">
                         <span className="text-label text-foreground truncate">
-                          {titleCase(addr.label) || "Address"}
+                          {titleCase(addr.label) || t("common:fallback.address")}
                         </span>
                         {addr.isDefault && (
                           <span className="text-caption text-muted-foreground">

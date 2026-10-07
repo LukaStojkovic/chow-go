@@ -12,7 +12,6 @@
 /**
  * @typedef {Object} SearchFilterState
  * @property {boolean} openNow
- * @property {boolean} freeDelivery
  * @property {string} maxDeliveryTime Minutes as a string, or "any".
  * @property {string} sort
  */
@@ -20,7 +19,6 @@
 /** The state a fresh search starts from. */
 export const DEFAULT_SEARCH_FILTERS = {
   openNow: false,
-  freeDelivery: false,
   maxDeliveryTime: "any",
   sort: "relevance",
 };
@@ -35,7 +33,6 @@ export const DEFAULT_SEARCH_FILTERS = {
 export function countActiveFilters(filters) {
   let count = 0;
   if (filters.openNow) count += 1;
-  if (filters.freeDelivery) count += 1;
   if (filters.maxDeliveryTime !== "any") count += 1;
   return count;
 }
@@ -63,7 +60,6 @@ export function applyRestaurantFilters(restaurants, filters) {
   let result = restaurants;
 
   if (filters.openNow) result = result.filter((r) => r.availability === "open");
-  if (filters.freeDelivery) result = result.filter((r) => r.deliveryFee === 0);
 
   if (filters.maxDeliveryTime !== "any") {
     const limit = Number(filters.maxDeliveryTime);

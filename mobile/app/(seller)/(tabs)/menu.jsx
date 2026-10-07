@@ -53,7 +53,7 @@ export default function SellerMenu() {
             <SectionHeader
               title={t("menu.title")}
               size="lg"
-              subtitle={`${totalItems} ${totalItems === 1 ? "dish" : "dishes"}`}
+              subtitle={t("common:count.dishes", { count: totalItems })}
               className="flex-1"
             />
 

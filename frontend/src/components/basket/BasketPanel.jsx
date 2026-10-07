@@ -3,18 +3,17 @@
  *
  * Quantity edits are optimistic and debounced - the store is updated
  * immediately so the number and the total move under the customer's finger,
- * and the server call is coalesced 300ms later. A failed sync refetches the
+ * and each line's server call is coalesced 300ms later. A failed sync refetches the
  * authoritative cart rather than leaving the two out of step.
  *
  * Removals are undoable: the line is taken out at once and the toast holds the
  * restore action, so nobody loses an item to a mis-tap.
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
 import { toast } from "sonner";
 import { ArrowRight, Clock, ShoppingBag, Store } from "lucide-react";
 
@@ -38,23 +37,22 @@ import { BasketLine } from "./BasketLine";
 import { FeeBreakdown } from "./FeeBreakdown";
 import { lineTotal, sumMoney } from "@chowgo/shared/money";
 
+const rawLineId = (item) =>
+  String(item.lineId || item.menuItem?._id || item.menuItem?.id || item.menuItem);
+
 /**
  * Apply a quantity change to the local store straight away.
  * Kept outside the component so it is not re-created every render.
  *
- * @param {string} menuItemId
+ * @param {string} lineId
  * @param {number} quantity
  */
-function applyOptimisticQuantity(menuItemId, quantity) {
+function applyOptimisticQuantity(lineId, quantity) {
   useCartStore.setState((state) => {
     const items =
       quantity <= 0
-        ? state.items.filter((item) => (item.menuItem._id || item.menuItem.id) !== menuItemId)
-        : state.items.map((item) =>
-            (item.menuItem._id || item.menuItem.id) === menuItemId
-              ? { ...item, quantity }
-              : item,
-          );
+        ? state.items.filter((item) => rawLineId(item) !== lineId)
+        : state.items.map((item) => (rawLineId(item) === lineId ? { ...item, quantity } : item));
 
     return {
       items,
@@ -68,6 +66,13 @@ function applyOptimisticQuantity(menuItemId, quantity) {
  * @param {boolean} props.isOpen
  * @param {() => void} props.onClose
  */
+function sendQuantity(pending, lineId, quantity) {
+  pending.delete(lineId);
+  const { updateItemQuantity, removeItem, fetchCart } = useCartStore.getState();
+  const request = quantity > 0 ? updateItemQuantity(lineId, quantity) : removeItem(lineId);
+  Promise.resolve(request).catch(() => fetchCart());
+}
+
 export function BasketPanel({ isOpen, onClose }) {
   const { t } = useTranslation(["basket", "common", "restaurant"]);
   const navigate = useNavigate();
@@ -78,8 +83,6 @@ export function BasketPanel({ isOpen, onClose }) {
     restaurant,
     isLoading,
     fetchCart,
-    updateItemQuantity,
-    removeItem,
     addItem,
   } = useCartStore();
 
@@ -87,32 +90,55 @@ export function BasketPanel({ isOpen, onClose }) {
     if (isOpen && authUser) fetchCart();
   }, [isOpen, authUser, fetchCart]);
 
-  const syncQuantity = useDebouncedCallback((menuItemId, quantity) => {
-    const request =
-      quantity > 0 ? updateItemQuantity(menuItemId, quantity) : removeItem(menuItemId);
-    Promise.resolve(request).catch(() => fetchCart());
-  }, 300);
+  // One timer per line: a shared debounce let a tap on a second line cancel
+  // the first line's pending sync.
+  const pendingSyncs = useRef(new Map());
+  const syncQuantity = (lineId, quantity) => {
+    clearTimeout(pendingSyncs.current.get(lineId)?.timer);
+    const timer = setTimeout(() => sendQuantity(pendingSyncs.current, lineId, quantity), 300);
+    pendingSyncs.current.set(lineId, { timer, quantity });
+  };
+  const cancelSync = (lineId) => {
+    clearTimeout(pendingSyncs.current.get(lineId)?.timer);
+    pendingSyncs.current.delete(lineId);
+  };
+
+  // Closing the panel inside the 300ms window still sends the change.
+  useEffect(() => {
+    const pending = pendingSyncs.current;
+    return () => {
+      for (const [lineId, { timer, quantity }] of pending) {
+        clearTimeout(timer);
+        sendQuantity(pending, lineId, quantity);
+      }
+    };
+  }, []);
 
   const lines = toBasketLines(items);
   const pricing = buildPriceBreakdown({ subtotal: totalPrice, currency: restaurant?.currency });
 
-  const handleQuantityChange = (menuItemId, quantity) => {
-    applyOptimisticQuantity(menuItemId, quantity);
-    syncQuantity(menuItemId, quantity);
+  const handleQuantityChange = (lineId, quantity) => {
+    applyOptimisticQuantity(lineId, quantity);
+    syncQuantity(lineId, quantity);
   };
 
   const handleRemove = (line) => {
     applyOptimisticQuantity(line.id, 0);
     syncQuantity(line.id, 0);
 
-    toast(`${line.name} removed`, {
+    toast(t("basket:line.removed", { name: line.name }), {
       action: {
         label: t("common:actions.undo"),
         onClick: () => {
           // Cancel the pending delete before re-adding, or the debounced call
           // lands after the restore and removes it again.
-          syncQuantity.cancel();
-          addItem(line.id, line.quantity);
+          cancelSync(line.id);
+          addItem(
+            line.menuItemId,
+            line.quantity,
+            line.notes || undefined,
+            line.options.map((option) => option.id),
+          );
         },
       },
     });

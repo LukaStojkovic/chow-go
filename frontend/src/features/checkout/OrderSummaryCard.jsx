@@ -48,7 +48,7 @@ export function OrderSummaryCard({
       <div className="border-border flex items-center gap-3 border-b p-4">
         <Avatar
           src={restaurant?.profilePicture}
-          name={restaurant?.name || "Restaurant"}
+          name={restaurant?.name || t("common:fallback.restaurant")}
         />
         <div className="min-w-0 flex-1">
           <h2 className="text-h3 truncate">

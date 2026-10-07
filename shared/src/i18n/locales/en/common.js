@@ -126,10 +126,14 @@ export default {
     free: "Free",
     percentOff: "{{value}}% off",
     amountOff: "{{value}} off",
+    away: "{{distance}} away",
+    each: "{{price}} each",
+    deliveryFee: "{{fee}} delivery",
   },
 
   time: {
     today: "Today",
+    todaySuffix: "(today)",
     yesterday: "Yesterday",
     tomorrow: "Tomorrow",
     now: "Now",
@@ -153,6 +157,26 @@ export default {
     count_other: "{{count}} reviews",
     none: "No ratings yet",
     new: "New",
+  },
+
+  fallback: {
+    restaurant: "Restaurant",
+    customer: "Customer",
+    address: "Address",
+    menu: "Menu",
+    addressDefault: "{{label}} (default)",
+  },
+
+  count: {
+    items_one: "{{count}} item",
+    items_other: "{{count}} items",
+    dishes_one: "{{count}} dish",
+    dishes_other: "{{count}} dishes",
+    stars_one: "{{count}} star",
+    stars_other: "{{count}} stars",
+    reviews_one: "{{value}} review",
+    reviews_other: "{{value}} reviews",
+    inBasket: "{{count}} in basket",
   },
 
   taxonomy: {
@@ -327,5 +351,6 @@ export default {
     commandSearch: "Search for a command to run...",
     decreaseQuantityOf: "Decrease quantity of {{name}}",
     increaseQuantityOf: "Increase quantity of {{name}}",
+    quantityOf: "Quantity of {{name}}",
   },
 };

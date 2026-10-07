@@ -24,6 +24,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";
 import { MenuItemImageUploader } from "./MenuItemImageUploader";
 import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
+import { MenuItemOptionGroupsEditor } from "./MenuItemOptionGroupsEditor";
+import { optionGroupsToEditorState, validateOptionGroups } from "./optionGroupsForm";
 import { X } from "lucide-react";
 
 export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
@@ -33,6 +35,16 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
 
   const [previews, setPreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [optionGroups, setOptionGroups] = useState(() =>
+    optionGroupsToEditorState(menuItem?.optionGroups),
+  );
+  const [optionsError, setOptionsError] = useState(null);
+  const [optionsSource, setOptionsSource] = useState(menuItem);
+  if (menuItem !== optionsSource) {
+    setOptionsSource(menuItem);
+    setOptionGroups(optionGroupsToEditorState(menuItem?.optionGroups));
+    setOptionsError(null);
+  }
   const { updateMenuItem, isUpdating } = useUpdateMenuItem();
   const { authUser } = useAuthStore();
   const restaurantId = authUser?.restaurant?._id || authUser?.restaurant?.[0]?._id;
@@ -88,9 +100,16 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
   const onSubmit = (data) => {
     if (!restaurantId || !menuItem) return;
 
+    const options = validateOptionGroups(optionGroups, t);
+    if (options.error) {
+      setOptionsError(options.error);
+      return;
+    }
+
     const menuItemData = {
       ...data,
       existingImages: existingImages,
+      optionGroups: options.groups,
     };
 
     updateMenuItem(
@@ -196,6 +215,15 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
         watch={watch}
         setValue={setValue}
         errors={errors}
+      />
+
+      <MenuItemOptionGroupsEditor
+        value={optionGroups}
+        onChange={(next) => {
+          setOptionGroups(next);
+          setOptionsError(null);
+        }}
+        error={optionsError}
       />
 
       <div className="space-y-6">

@@ -74,7 +74,7 @@ export function RestaurantInfoSheet({ open, onClose, restaurant }) {
                     )}
                   >
                     {day.label}
-                    {day.isToday && <span className="text-muted-foreground font-normal"> (today)</span>}
+                    {day.isToday && <span className="text-muted-foreground font-normal"> {t("common:time.todaySuffix")}</span>}
                   </dt>
                   <dd
                     className={cn(

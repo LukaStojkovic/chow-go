@@ -47,7 +47,7 @@ export default function Favourites() {
           <SectionHeader
             title={t("restaurant:favourites.title")}
             size="lg"
-            subtitle={`${restaurants.length} ${restaurants.length === 1 ? "restaurant" : "restaurants"} you come back to`}
+            subtitle={t("discover:summary.favourites", { count: restaurants.length })}
             className="pb-1 pt-2"
           />
         }

@@ -85,6 +85,7 @@ export default {
   },
 
   delivery: {
+    earned: "Zarada {{amount}}",
     title: "Dostava",
     notFound: "Dostava nije pronađena",
     back: "Nazad na dostave",
@@ -128,8 +129,8 @@ export default {
     continue: "Nastavi dostavu",
     loadError: "Nismo uspeli da učitamo ovu dostavu",
     collectCashLabel: "Naplatite od kupca",
-    alreadyPaid: "Već plaćeno",
-    nothingToCollect: "Nema šta da se naplati na vratima",
+    collectInCash: "U gotovini",
+    collectByCard: "Karticom, na vašem terminalu",
     route: "Ruta",
     navigatingTo: "Navigacija do",
     locationBlocked:

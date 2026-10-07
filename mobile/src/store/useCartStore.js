@@ -63,17 +63,17 @@ export const useCartStore = create((set, get) => ({
     }
   },
 
-  addItem: async (menuItemId, quantity = 1, specialInstructions) => {
+  addItem: async (menuItemId, quantity = 1, specialInstructions, options = []) => {
     if (!useAuthStore.getState().authUser) return { status: "unauthenticated" };
 
     try {
-      applyCart(set, await addToCart(menuItemId, quantity, specialInstructions));
+      applyCart(set, await addToCart(menuItemId, quantity, specialInstructions, options));
       return { status: "added" };
     } catch (error) {
       // The backend rejects items from a second restaurant. That is a decision
       // for the customer to make, not an error to shout about.
       if (/one restaurant/i.test(errorMessage(error, ""))) {
-        set({ pendingConflict: { menuItemId, quantity, specialInstructions } });
+        set({ pendingConflict: { menuItemId, quantity, specialInstructions, options } });
         return { status: "conflict" };
       }
       toast.error(t("basket:addFailed"), {
@@ -92,7 +92,12 @@ export const useCartStore = create((set, get) => ({
       await clearCart();
       applyCart(
         set,
-        await addToCart(conflict.menuItemId, conflict.quantity, conflict.specialInstructions),
+        await addToCart(
+          conflict.menuItemId,
+          conflict.quantity,
+          conflict.specialInstructions,
+          conflict.options,
+        ),
       );
       return true;
     } catch (error) {
@@ -105,10 +110,10 @@ export const useCartStore = create((set, get) => ({
 
   dismissConflict: () => set({ pendingConflict: null }),
 
-  updateItemQuantity: async (menuItemId, quantity, specialInstructions) => {
-    if (quantity <= 0) return get().removeItem(menuItemId);
+  updateItemQuantity: async (lineId, quantity, specialInstructions) => {
+    if (quantity <= 0) return get().removeItem(lineId);
     try {
-      applyCart(set, await updateCartItemQuantity(menuItemId, quantity, specialInstructions));
+      applyCart(set, await updateCartItemQuantity(lineId, quantity, specialInstructions));
     } catch (error) {
       toast.error(t("basket:updateFailed"), {
         description: errorMessage(error),
@@ -116,9 +121,9 @@ export const useCartStore = create((set, get) => ({
     }
   },
 
-  removeItem: async (menuItemId) => {
+  removeItem: async (lineId) => {
     try {
-      applyCart(set, await removeItemFromCart(menuItemId));
+      applyCart(set, await removeItemFromCart(lineId));
     } catch (error) {
       toast.error(t("basket:removeFailed"), {
         description: errorMessage(error),

@@ -4,6 +4,7 @@ import Cart from "../models/Cart.js";
 import { AppError } from "../utils/AppError.js";
 import * as imageService from "./image.service.js";
 import { normalizePromotionInput, withPromotion } from "../utils/promotion.js";
+import { parseOptionGroupsInput } from "../utils/menuOptions.js";
 import mongoose from "mongoose";
 import { parsePagination } from "../utils/pagination.js";
 import { containsRegex } from "../utils/regex.js";
@@ -45,9 +46,11 @@ export async function createNewMenuItem({
   available,
   imageUrls,
   promotion,
+  optionGroups,
 }) {
   await validateRestaurantOwnership(restaurantId, userId);
   const numericPrice = await validateMenuItemInput(name, price, category);
+  const groups = parseOptionGroupsInput(optionGroups) ?? [];
   // Validated against the item's own price, so a promotion can never be saved
   // that would sell the dish for less than it is allowed to go for.
   const normalizedPromotion = normalizePromotionInput(promotion, numericPrice);
@@ -60,6 +63,7 @@ export async function createNewMenuItem({
     available: available === true || available === "true",
     imageUrls: imageUrls || [],
     promotion: normalizedPromotion,
+    optionGroups: groups,
     restaurant: restaurantId,
     owner: userId,
   });
@@ -93,6 +97,7 @@ export async function getMenuByCategories(restaurantId) {
             available: "$available",
             imageUrls: "$imageUrls",
             promotion: "$promotion",
+            optionGroups: "$optionGroups",
           },
         },
       },
@@ -194,10 +199,12 @@ export async function updateMenuItem({
   existingImages,
   newFiles,
   promotion,
+  optionGroups,
 }) {
   await validateRestaurantOwnership(restaurantId, userId);
   const numericPrice = await validateMenuItemInput(name, price, category);
   const normalizedPromotion = normalizePromotionInput(promotion, numericPrice);
+  const groups = parseOptionGroupsInput(optionGroups);
 
   const menuItem = await MenuItem.findOne({
     _id: menuItemId,
@@ -228,6 +235,8 @@ export async function updateMenuItem({
   // Replaced wholesale rather than merged: the form always submits the whole
   // promotion block, so a merge would make "turn this deal off" impossible.
   menuItem.promotion = normalizedPromotion;
+  // Absent means an older client that knows nothing about options; leave them.
+  if (groups !== undefined) menuItem.optionGroups = groups;
 
   await menuItem.save();
 

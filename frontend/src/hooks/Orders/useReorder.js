@@ -44,11 +44,16 @@ export function useReorder() {
       for (const line of lines) {
         const menuItemId = line.menuItem?._id || line.menuItem;
         try {
-          await addToCart(String(menuItemId), line.quantity || 1);
+          await addToCart(
+            String(menuItemId),
+            line.quantity || 1,
+            undefined,
+            (line.options || []).map((option) => String(option.optionId)),
+          );
           added += 1;
         } catch {
           // A dish can have been removed from the menu or switched off since
-          // the original order. Skip it and report honestly rather than
+          // the original order, or one of its options sold out or retired. Skip it and report honestly rather than
           // failing the whole reorder.
           skipped += 1;
         }

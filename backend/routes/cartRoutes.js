@@ -17,8 +17,8 @@ router.use(protectedRoute, isCustomerMiddleware);
 
 router.get("/", getCart);
 router.post("/items", addToCart);
-router.patch("/items/:menuItemId", updateCartItemQuantity);
-router.delete("/items/:menuItemId", removeItemFromCart);
+router.patch("/items/:lineId", updateCartItemQuantity);
+router.delete("/items/:lineId", removeItemFromCart);
 router.delete("/", clearCart);
 
 export default router;

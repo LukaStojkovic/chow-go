@@ -124,10 +124,14 @@ export default {
     free: "Besplatno",
     percentOff: "{{value}}% popusta",
     amountOff: "{{value}} popusta",
+    away: "{{distance}} udaljeno",
+    each: "{{price}} po komadu",
+    deliveryFee: "dostava {{fee}}",
   },
 
   time: {
     today: "Danas",
+    todaySuffix: "(danas)",
     yesterday: "Juče",
     tomorrow: "Sutra",
     now: "Sada",
@@ -152,6 +156,30 @@ export default {
     count_other: "{{count}} ocena",
     none: "Još nema ocena",
     new: "Novo",
+  },
+
+  fallback: {
+    restaurant: "Restoran",
+    customer: "Kupac",
+    address: "Adresa",
+    menu: "Meni",
+    addressDefault: "{{label}} (podrazumevana)",
+  },
+
+  count: {
+    items_one: "{{count}} stavka",
+    items_few: "{{count}} stavke",
+    items_other: "{{count}} stavki",
+    dishes_one: "{{count}} jelo",
+    dishes_few: "{{count}} jela",
+    dishes_other: "{{count}} jela",
+    stars_one: "{{count}} zvezdica",
+    stars_few: "{{count}} zvezdice",
+    stars_other: "{{count}} zvezdica",
+    reviews_one: "{{value}} ocena",
+    reviews_few: "{{value}} ocene",
+    reviews_other: "{{value}} ocena",
+    inBasket: "{{count}} u korpi",
   },
 
   taxonomy: {
@@ -326,5 +354,6 @@ export default {
     commandSearch: "Pretражite komandu...",
     decreaseQuantityOf: "Smanji količinu za {{name}}",
     increaseQuantityOf: "Povećaj količinu za {{name}}",
+    quantityOf: "Količina za {{name}}",
   },
 };

@@ -138,7 +138,7 @@ export default function Discover() {
             {deals.length ? (
               <View className="px-5">
                 <PromoBanner
-                  title={`${deals.length} ${deals.length === 1 ? "dish" : "dishes"} on offer near you`}
+                  title={t("discover:summary.dealsNearYou", { count: deals.length })}
                   subtitle={t("restaurant:promotions.priceHint")}
                   image={deals[0]?.image}
                   badge={topDiscount ? `-${topDiscount}%` : undefined}
@@ -331,7 +331,7 @@ function ReorderCard({ order, onPress }) {
         {view.restaurant?.name}
       </Text>
       <Text variant="body-sm" tone="muted" numberOfLines={1}>
-        {view.itemCount} {view.itemCount === 1 ? "item" : "items"} · {view.placedAtLabel}
+        {t("common:count.items", { count: view.itemCount })} · {view.placedAtLabel}
       </Text>
       <View className="mt-1 flex-row items-center gap-1.5 self-start rounded-full bg-primary-subtle px-3 py-1.5">
         <TrendingUp size={13} color={color.primary} />

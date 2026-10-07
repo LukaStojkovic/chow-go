@@ -87,11 +87,11 @@ export function ReorderSection() {
               <div className="flex items-center gap-2">
                 <Avatar
                   src={order.restaurant?.profilePicture}
-                  name={order.restaurant?.name || t("common:taxonomy.cuisine.fallback")}
+                  name={order.restaurant?.name || t("common:fallback.restaurant")}
                 />
                 <div className="min-w-0 flex-1">
                   <h3 className="text-label text-foreground truncate">
-                    {order.restaurant?.name || t("common:taxonomy.cuisine.fallback")}
+                    {order.restaurant?.name || t("common:fallback.restaurant")}
                   </h3>
                   <p className="text-caption text-muted-foreground truncate">
                     {formatOrderDate(order.createdAt)}

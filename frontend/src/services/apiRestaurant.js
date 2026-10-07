@@ -35,6 +35,10 @@ function appendMenuItemFields(formData, menuItemData) {
     }
   }
 
+  if (Array.isArray(menuItemData.optionGroups)) {
+    formData.append("optionGroups", JSON.stringify(menuItemData.optionGroups));
+  }
+
   const images = Array.isArray(menuItemData.images) ? menuItemData.images : [];
   images.forEach((image) => {
     formData.append("images", image);

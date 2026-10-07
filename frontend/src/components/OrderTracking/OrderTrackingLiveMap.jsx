@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Bike, MapPin, UtensilsCrossed } from "lucide-react";
 import { lazyNamed } from "@/lib/lazyNamed";
@@ -13,7 +13,7 @@ const NavigationMap = lazyNamed(
 
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
 
-export function OrderTrackingLiveMap({ orderId, order }) {
+export function OrderTrackingLiveMap({ orderId, order, onRouteSeconds }) {
   const { t } = useTranslation(["order", "courier", "common"]);
   const showLive = Boolean(order.courier) && LIVE_STATUSES.includes(order.status);
 
@@ -35,6 +35,11 @@ export function OrderTrackingLiveMap({ orderId, order }) {
     routeTo,
     showLive && Boolean(routeFrom && routeTo),
   );
+
+  const routeSeconds = showLive && !headingToRestaurant && !isStale && route ? route.duration : null;
+  useEffect(() => {
+    onRouteSeconds?.(routeSeconds);
+  }, [routeSeconds, onRouteSeconds]);
 
   const hasAnyCoords = restaurantCoords || deliveryCoords;
   if (!hasAnyCoords && !showLive) return null;
@@ -97,7 +102,7 @@ export function OrderTrackingLiveMap({ orderId, order }) {
         {restaurantCoords && (
           <span className="flex items-center gap-1.5">
             <UtensilsCrossed className="h-3.5 w-3.5 text-primary" />
-            {t("common:taxonomy.cuisine.fallback")}
+            {t("common:fallback.restaurant")}
           </span>
         )}
         {showLive && (

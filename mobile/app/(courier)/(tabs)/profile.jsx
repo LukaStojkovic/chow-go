@@ -147,7 +147,7 @@ export default function CourierProfile() {
             </Badge>
             {data?.vehicleType ? (
               <Badge tone="neutral" icon={Bike}>
-                {data.vehicleType}
+                {t(`common:taxonomy.vehicle.${data.vehicleType}`, { defaultValue: data.vehicleType })}
               </Badge>
             ) : null}
             <Badge tone="info" icon={Package}>

@@ -1,3 +1,4 @@
+import { formatPrice } from "@chowgo/shared/format";
 import Spinner from "@/components/Spinner";
 import { useTranslation } from "react-i18next";
 import useMarkAsDeliveredOrder from "@/hooks/Courier/useMarkAsDeliveredOrder";
@@ -65,7 +66,7 @@ export function ActiveOrderCard({ order }) {
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-lg font-bold text-foreground ">
-              {order.restaurant?.name ?? "Restaurant"}
+              {order.restaurant?.name ?? t("common:fallback.restaurant")}
             </p>
             <p className="text-sm text-muted-foreground ">
               #
@@ -75,7 +76,7 @@ export function ActiveOrderCard({ order }) {
             </p>{" "}
           </div>
           <span className="text-lg font-bold text-primary ">
-            {order.total != null ? `${order.total.toFixed(2)}` : "—"}
+            {formatPrice(order.total, { fallback: "—", currency: order.currency })}
           </span>{" "}
         </div>
 

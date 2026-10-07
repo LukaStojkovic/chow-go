@@ -16,6 +16,7 @@ import { Card, Inset } from "@/components/ui/Card";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { ArrivalEstimate } from "@/features/orders/ArrivalEstimate";
 import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
 import { OrderTrackingMap } from "@/features/orders/OrderTrackingMap";
 import { CancelOrderPrompt } from "@/features/orders/CancelOrderPrompt";
@@ -45,6 +46,7 @@ export default function OrderTracking() {
   const { data, isLoading, isError, refetch } = useOrder(orderId);
   const cancel = useCancelOrder(orderId);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [routeSeconds, setRouteSeconds] = useState(null);
   const { color } = useTokens();
 
   if (isLoading) {
@@ -112,6 +114,8 @@ export default function OrderTracking() {
             </Text>
           </View>
 
+          <ArrivalEstimate order={order} routeSeconds={routeSeconds} />
+
           <Text variant="body" tone="muted">
             {order.statusDescription}
           </Text>
@@ -128,7 +132,7 @@ export default function OrderTracking() {
         </Card>
 
         {/* Renders itself away unless a courier is assigned and moving. */}
-        <OrderTrackingMap order={data} />
+        <OrderTrackingMap order={data} onRouteSeconds={setRouteSeconds} />
 
         {order.courier ? (
           <Card className="gap-3">
@@ -203,10 +207,10 @@ export default function OrderTracking() {
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
               <Text variant="h3" numberOfLines={1}>
-                {order.restaurant?.name ?? "Restaurant"}
+                {order.restaurant?.name ?? t("common:fallback.restaurant")}
               </Text>
               <Text variant="body-sm" tone="muted">
-                {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+                {t("common:count.items", { count: order.itemCount })}
               </Text>
             </View>
             <Badge tone="neutral">{order.paymentMethodLabel}</Badge>
@@ -225,6 +229,11 @@ export default function OrderTracking() {
                 <Text variant="body" numberOfLines={2}>
                   {line.name}
                 </Text>
+                {line.optionsLabel ? (
+                  <Text variant="caption" tone="muted" numberOfLines={3}>
+                    {line.optionsLabel}
+                  </Text>
+                ) : null}
                 {line.notes ? (
                   <Text variant="caption" tone="muted" numberOfLines={2}>
                     {line.notes}

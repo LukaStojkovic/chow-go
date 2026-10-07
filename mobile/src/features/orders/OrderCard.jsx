@@ -1,7 +1,8 @@
 import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, RotateCcw } from "lucide-react-native";
-import { formatPrice } from "@chowgo/shared/format";
+import { estimateArrival } from "@chowgo/shared/adapters/order";
+import { formatPrice, formatTime } from "@chowgo/shared/format";
 import { PressableScale } from "@/components/motion/Pressable";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -22,11 +23,12 @@ export function OrderCard({ order, onPress, onReorder, isReordering }) {
   const { t } = useTranslation(["order", "common"]);
   const { color, elevation, scheme } = useTokens();
   const motion = useMotion();
+  const eta = estimateArrival(order);
 
   return (
     <PressableScale
       accessibilityRole="button"
-      accessibilityLabel={`Order ${order.number}, ${order.statusLabel}`}
+      accessibilityLabel={`${t("order:detail.numbered", { number: order.number })}, ${order.statusLabel}`}
       onPress={onPress}
       haptic="selection"
       scale={motion.press.card}
@@ -36,10 +38,10 @@ export function OrderCard({ order, onPress, onReorder, isReordering }) {
       <View className="flex-row items-start gap-3">
         <View className="flex-1 gap-1">
           <Text variant="h3" numberOfLines={1}>
-            {order.restaurant?.name ?? "Restaurant"}
+            {order.restaurant?.name ?? t("common:fallback.restaurant")}
           </Text>
           <Text variant="body-sm" tone="muted" numberOfLines={1}>
-            {order.itemCount} {order.itemCount === 1 ? "item" : "items"} · {order.placedAtLabel}
+            {t("common:count.items", { count: order.itemCount })} · {order.placedAtLabel}
           </Text>
         </View>
 
@@ -49,9 +51,16 @@ export function OrderCard({ order, onPress, onReorder, isReordering }) {
         </View>
       </View>
 
-      <Badge tone={STATUS_BADGE_TONE[order.statusTone] ?? "neutral"} size="sm">
-        {shortStatus(order)}
-      </Badge>
+      <View className="flex-row items-center gap-2">
+        <Badge tone={STATUS_BADGE_TONE[order.statusTone] ?? "neutral"} size="sm">
+          {shortStatus(order)}
+        </Badge>
+        {eta && !eta.isLate ? (
+          <Text variant="label-sm" tone="muted">
+            {t("order:eta.around", { time: formatTime(eta.at) })}
+          </Text>
+        ) : null}
+      </View>
 
       {onReorder ? (
         <>

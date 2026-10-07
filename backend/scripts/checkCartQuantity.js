@@ -48,7 +48,7 @@ try {
     });
   const add = (quantity) => call(addToCart, { body: { menuItemId: String(dish._id), quantity } });
   const update = (quantity) =>
-    call(updateCartItemQuantity, { body: { quantity }, params: { menuItemId: String(dish._id) } });
+    call(updateCartItemQuantity, { body: { quantity }, params: { lineId: String(dish._id) } });
   const lineQuantity = async () => (await Cart.findOne({ user: buyer._id }).lean())?.items?.[0]?.quantity;
 
   console.log("\nadding to the basket");

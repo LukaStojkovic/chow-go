@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { Bike, MapPin, Store } from "lucide-react-native";
@@ -27,7 +27,7 @@ function Pin({ icon: Icon, color, background, size = 40 }) {
 
 // Takes the raw order, not the view model: the shared adapter deliberately
 // drops coordinates, and every position here is GeoJSON [lng, lat].
-export function OrderTrackingMap({ order }) {
+export function OrderTrackingMap({ order, onRouteSeconds }) {
   const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
   const { color, elevation, scheme } = useTokens();
 
@@ -42,6 +42,12 @@ export function OrderTrackingMap({ order }) {
   // customer. Routing to the wrong end draws a line going the wrong way.
   const target = order?.status === "assigned" ? restaurant : destination;
   const { route } = useRouteDirections(courier, target);
+
+  const toCustomer = order?.status === "picked_up" || order?.status === "in_transit";
+  const routeSeconds = toCustomer && !isStale && route ? route.duration : null;
+  useEffect(() => {
+    onRouteSeconds?.(routeSeconds);
+  }, [routeSeconds, onRouteSeconds]);
 
   const framed = useMemo(
     () => [courier, restaurant, destination].filter(Boolean),
@@ -86,7 +92,7 @@ export function OrderTrackingMap({ order }) {
           <View className="flex-row items-center gap-2">
             <StatusDot tone={isStale ? "muted" : "success"} />
             <Text variant="label" tone={isStale ? "muted" : "foreground"}>
-              {isStale ? t("courier:delivery.awaitingFix") : `${formatDistance(route.distance)} away`}
+              {isStale ? t("courier:delivery.awaitingFix") : t("common:units.away", { distance: formatDistance(route.distance) })}
             </Text>
           </View>
           {route && !isStale ? (

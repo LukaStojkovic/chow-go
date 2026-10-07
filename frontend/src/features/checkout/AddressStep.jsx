@@ -97,7 +97,13 @@ export function AddressStep({ step }) {
                 name="delivery-address"
                 checked={selectedDeliveryAddress?._id === address._id}
                 onSelect={() => setSelectedDeliveryAddress(address)}
-                label={`${titleCase(address.label) || "Address"}${address.isDefault ? " (default)" : ""}`}
+                label={
+                  address.isDefault
+                    ? t("common:fallback.addressDefault", {
+                        label: titleCase(address.label) || t("common:fallback.address"),
+                      })
+                    : titleCase(address.label) || t("common:fallback.address")
+                }
                 description={
                   <>
                     {address.fullAddress}

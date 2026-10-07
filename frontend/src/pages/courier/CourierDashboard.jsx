@@ -58,7 +58,7 @@ export default function CourierDashboard() {
               {t("dashboard.inProgress")}
             </p>
             <p className="mt-1 font-semibold text-foreground ">
-              {inProgressOrder.restaurant?.name ?? "Restaurant"}
+              {inProgressOrder.restaurant?.name ?? t("common:fallback.restaurant")}
             </p>
           </div>
           <span className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">

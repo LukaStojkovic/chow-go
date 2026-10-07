@@ -3,14 +3,14 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Check, ImagePlus, Loader, LogOut, Store, TicketPercent } from "lucide-react-native";
+import { Check, ImagePlus, Loader, LogOut, MapPin, Store, TicketPercent } from "lucide-react-native";
 import { normalizeSchedule } from "@chowgo/shared/schedule";
 import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, Inset } from "@/components/ui/Card";
 import { ListRow } from "@/components/ui/ListRow";
 import { LanguagePicker } from "@/features/settings/LanguagePicker";
 import { ConnectGoogle } from "@/features/settings/ConnectGoogle";
@@ -52,8 +52,25 @@ export default function SellerSettings() {
       email: data.email ?? "",
       estimatedDeliveryTime: data.estimatedDeliveryTime ?? "",
       schedule: normalizeSchedule(data.schedule),
+      address: {
+        street: data.address?.street ?? "",
+        city: data.address?.city ?? "",
+        zipCode: data.address?.zipCode ?? "",
+      },
     });
   }, [data, draft]);
+
+  // Editing the address text never moves the pin, and the pin is what
+  // couriers and delivery distances use - so say so until the pin moves.
+  const [pinStale, setPinStale] = useState(false);
+  const pinKey = data?.location?.coordinates?.join(",");
+  useEffect(() => {
+    setPinStale(false);
+  }, [pinKey]);
+  const editAddress = (patch) => {
+    setPinStale(true);
+    edit({ address: { ...draft.address, ...patch } });
+  };
 
   // Debounced autosave, matching the web. A seller adjusting hours should not
   // have to find a save button, and a request per keystroke would be absurd.
@@ -204,6 +221,47 @@ export default function SellerSettings() {
             onChangeText={(estimatedDeliveryTime) => edit({ estimatedDeliveryTime })}
             placeholder={t("settings.delivery.estimatePlaceholder")}
             hint={t("settings.delivery.estimateShortHint")}
+          />
+        </Card>
+
+        <Card className="gap-4">
+          <Text variant="h3">{t("settings.location.heading")}</Text>
+
+          <Input
+            label={t("settings.location.address")}
+            value={draft.address.street}
+            onChangeText={(street) => editAddress({ street })}
+          />
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <Input
+                label={t("settings.location.city")}
+                value={draft.address.city}
+                onChangeText={(city) => editAddress({ city })}
+              />
+            </View>
+            <View className="w-32">
+              <Input
+                label={t("settings.location.zip")}
+                value={draft.address.zipCode}
+                onChangeText={(zipCode) => editAddress({ zipCode })}
+                keyboardType="number-pad"
+              />
+            </View>
+          </View>
+
+          {pinStale ? (
+            <Inset tone="warning">
+              <Text variant="body-sm">{t("settings.location.checkPin")}</Text>
+            </Inset>
+          ) : null}
+
+          <ListRow
+            icon={MapPin}
+            title={t("settings.location.pinHeading")}
+            subtitle={t("settings.location.pinHint")}
+            value={t("settings.location.movePin")}
+            onPress={() => router.push("/(seller)/location")}
           />
         </Card>
 

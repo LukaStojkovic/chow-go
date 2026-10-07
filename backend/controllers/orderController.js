@@ -21,6 +21,7 @@ import { pricingFor } from "@chowgo/shared/adapters/pricing";
 import { haversineMeters, toLatLng } from "@chowgo/shared/geo";
 import { env } from "../config/env.js";
 import { parsePagination } from "../utils/pagination.js";
+import { estimatedDeliveryAt } from "../utils/deliveryEta.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -166,6 +167,7 @@ export async function createOrder(req, res, next) {
         price: item.price,
         quantity: item.quantity,
         specialInstructions: item.specialInstructions,
+        options: item.options?.length ? item.options : undefined,
       })),
       deliveryAddress: deliveryAddressId,
       deliveryAddressSnapshot: {
@@ -203,8 +205,9 @@ export async function createOrder(req, res, next) {
       idempotencyKey,
       customerNotes: customerNotes || "",
       estimatedPreparationTime: restaurant.estimatedPreparationTime || 30,
-      estimatedDeliveryTime: new Date(
-        Date.now() + ((restaurant.estimatedPreparationTime || 30) + (deliveryType === "priority" ? 15 : 30)) * 60 * 1000,
+      estimatedDeliveryTime: estimatedDeliveryAt(
+        restaurant.estimatedPreparationTime || 30,
+        deliveryType === "priority",
       ),
     });
 

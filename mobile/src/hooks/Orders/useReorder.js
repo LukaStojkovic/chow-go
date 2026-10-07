@@ -32,11 +32,13 @@ export function useReorder() {
       for (const line of lines) {
         const menuItemId = String(line.menuItem?._id ?? line.menuItem);
         try {
-          await addToCart(menuItemId, line.quantity || 1);
+          const optionIds = (line.options ?? []).map((option) => option.optionId).filter(Boolean);
+          await addToCart(menuItemId, line.quantity || 1, undefined, optionIds);
           added += 1;
         } catch {
-          // A dish can have been removed or switched off since the original
-          // order. Skip it and report honestly rather than failing everything.
+          // A dish, or one of its options, can have been removed or switched
+          // off since the original order. Skip it and report honestly rather
+          // than failing everything.
           skipped.push(line.name ?? line.menuItem?.name);
         }
       }

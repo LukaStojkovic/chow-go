@@ -5,6 +5,28 @@ import * as imageService from "./image.service.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// The pin a seller drops in settings, as {lat, lng} (multipart sends strings).
+// Blank values and the 0,0 a broken form submits are refused rather than
+// silently moving the restaurant into the Atlantic.
+export function parseLocationInput(location) {
+  if (location === undefined) return undefined;
+  const raw = [location?.lat, location?.lng];
+  if (raw.some((value) => value === null || value === undefined || String(value).trim() === "")) {
+    throw new AppError("errors:restaurant.locationInvalid", 400, "LOCATION_INVALID");
+  }
+  const [lat, lng] = raw.map(Number);
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    Math.abs(lat) > 90 ||
+    Math.abs(lng) > 180 ||
+    (lat === 0 && lng === 0)
+  ) {
+    throw new AppError("errors:restaurant.locationInvalid", 400, "LOCATION_INVALID");
+  }
+  return { type: "Point", coordinates: [lng, lat] };
+}
+
 export async function getRestaurantById(restaurantId) {
   const restaurant = await Restaurant.findById(restaurantId).lean();
 
@@ -24,8 +46,10 @@ export async function updateRestaurantInfo({
   schedule,
   estimatedDeliveryTime,
   address,
+  location,
   profilePictureFile,
 }) {
+  const point = parseLocationInput(location);
   const restaurant = await Restaurant.findOne({ ownerId: userId });
 
   if (!restaurant) {
@@ -99,6 +123,8 @@ export async function updateRestaurantInfo({
       restaurant.address.country = address.country.trim();
     }
   }
+
+  if (point) restaurant.location = point;
 
   await restaurant.save();
 

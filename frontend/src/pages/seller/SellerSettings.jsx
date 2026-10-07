@@ -25,7 +25,8 @@ import {
   CopyPlus,
   MoonStar,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useCallback, useState, useEffect, useMemo, useRef } from "react";
+import { lazyNamed } from "@/lib/lazyNamed";
 import { useDebounce } from "use-debounce";
 import { toast } from "sonner";
 import {
@@ -37,6 +38,13 @@ import {
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 import { DownloadMyData } from "@/components/Profile/DownloadMyData";
+
+const LocationMapSelector = lazyNamed(
+  () => import("@/components/Location/LocationMapSelector"),
+  "LocationMapSelector",
+);
+
+const ADDRESS_FIELDS = ["street", "city", "state", "zipCode", "country"];
 
 export const SellerSettings = () => {
   const { t } = useTranslation(["seller", "auth", "profile", "restaurant", "common"]);
@@ -59,7 +67,15 @@ export const SellerSettings = () => {
     country: restaurant.address?.country || "",
     schedule: normalizeSchedule(restaurant.schedule),
     estimatedDeliveryTime: restaurant.estimatedDeliveryTime || "",
+    pin: null,
   });
+  const [pinStale, setPinStale] = useState(false);
+
+  const [storedLng, storedLat] = restaurant.location?.coordinates ?? [];
+  const initialPin = useMemo(
+    () => (Number.isFinite(storedLat) && Number.isFinite(storedLng) ? { lat: storedLat, lng: storedLng } : undefined),
+    [storedLat, storedLng],
+  );
 
   const todayKey = getTodayKey();
 
@@ -116,14 +132,28 @@ export const SellerSettings = () => {
     formDataToSend.append("address[zipCode]", debouncedFormData.zipCode);
     formDataToSend.append("address[country]", debouncedFormData.country);
 
+    // Only a pin the seller actually dropped is sent: re-sending the stored
+    // one would fail every save for a restaurant whose old pin is unusable.
+    if (debouncedFormData.pin) {
+      formDataToSend.append("location[lat]", String(debouncedFormData.pin.lat));
+      formDataToSend.append("location[lng]", String(debouncedFormData.pin.lng));
+    }
+
     apiUpdateRestaurant(formDataToSend);
   }, [debouncedFormData, apiUpdateRestaurant]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     hasUserModified.current = true;
+    if (ADDRESS_FIELDS.includes(id)) setPinStale(true);
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
+
+  const handlePinChange = useCallback((lat, lng) => {
+    hasUserModified.current = true;
+    setPinStale(false);
+    setFormData((prev) => ({ ...prev, pin: { lat, lng } }));
+  }, []);
 
   const updateDay = (dayKey, changes) => {
     hasUserModified.current = true;
@@ -364,6 +394,24 @@ export const SellerSettings = () => {
                 placeholder={t("settings.location.country")}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("settings.location.pinHeading")}</Label>
+            <p className="text-sm text-muted-foreground">{t("settings.location.pinHint")}</p>
+            {pinStale && (
+              <p
+                role="status"
+                className="rounded-md border border-warning/30 bg-warning-subtle p-3 text-sm text-foreground"
+              >
+                {t("settings.location.checkPin")}
+              </p>
+            )}
+            <Suspense
+              fallback={<div className="h-80 w-full animate-pulse rounded-lg border border-border bg-muted" />}
+            >
+              <LocationMapSelector initialPosition={initialPin} onLocationChange={handlePinChange} />
+            </Suspense>
           </div>
         </CardContent>
       </Card>

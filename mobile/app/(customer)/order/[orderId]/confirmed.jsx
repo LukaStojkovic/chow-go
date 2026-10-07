@@ -5,13 +5,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated from "react-native-reanimated";
 import { CheckCircle2 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { toOrderView } from "@chowgo/shared/adapters/order";
+import { estimateArrival, toOrderView } from "@chowgo/shared/adapters/order";
 import { formatPrice } from "@chowgo/shared/format";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { ArrivalEstimate } from "@/features/orders/ArrivalEstimate";
 import { useOrder } from "@/hooks/Orders/useOrders";
 import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
@@ -94,22 +95,15 @@ export default function OrderConfirmed() {
 
             <View className="flex-row items-center gap-3">
               <Text variant="body" className="flex-1" numberOfLines={1}>
-                {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+                {t("common:count.items", { count: order.itemCount })}
               </Text>
               <Text variant="price-lg">{formatPrice(order.pricing?.total ?? 0)}</Text>
             </View>
 
-            {order.restaurant?.deliveryEstimate ? (
+            {estimateArrival(order) ? (
               <>
                 <Divider />
-                <View className="flex-row items-center gap-3">
-                  <View className="flex-1">
-                    <Text variant="caption" tone="muted">
-                      {t("eta.label")}
-                    </Text>
-                    <Text variant="h3">{order.restaurant.deliveryEstimate}</Text>
-                  </View>
-                </View>
+                <ArrivalEstimate order={order} />
               </>
             ) : null}
           </Card>

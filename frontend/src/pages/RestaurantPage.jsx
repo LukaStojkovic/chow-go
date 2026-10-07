@@ -154,7 +154,7 @@ export default function RestaurantPage() {
   // count rather than looking untouched.
   const basketCounts = cartItems.reduce((acc, line) => {
     const id = line.menuItem?._id || line.menuItem?.id;
-    if (id) acc[String(id)] = line.quantity;
+    if (id) acc[String(id)] = (acc[String(id)] ?? 0) + (Number(line.quantity) || 0);
     return acc;
   }, {});
 
@@ -218,7 +218,7 @@ export default function RestaurantPage() {
                 <h2 id={`heading-${section.id}`} className="text-h1 mb-3">
                   {section.label}
                   <span className="text-body-sm text-muted-foreground ml-2 font-normal">
-                    {section.items.length} {section.items.length === 1 ? "dish" : "dishes"}
+                    {t("common:count.dishes", { count: section.items.length })}
                   </span>
                 </h2>
 

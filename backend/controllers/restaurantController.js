@@ -7,7 +7,7 @@ import * as imageService from "../services/image.service.js";
 export async function createMenuItem(req, res, next) {
   try {
     const { restaurantId } = req.params;
-    const { name, description, price, category, available, promotion } =
+    const { name, description, price, category, available, promotion, optionGroups } =
       req.body;
 
     const imageUrls = imageService.getUploadedImageUrls(req.files);
@@ -22,6 +22,7 @@ export async function createMenuItem(req, res, next) {
       available,
       imageUrls,
       promotion,
+      optionGroups,
     });
 
     res.status(201).json({
@@ -126,6 +127,7 @@ export async function editMenuItem(req, res, next) {
       available,
       existingImages,
       promotion,
+      optionGroups,
     } = req.body;
 
     const menuItem = await menuItemService.updateMenuItem({
@@ -140,6 +142,7 @@ export async function editMenuItem(req, res, next) {
       existingImages,
       newFiles: req.files,
       promotion,
+      optionGroups,
     });
 
     res.status(200).json({
@@ -163,6 +166,7 @@ export async function updateRestaurant(req, res, next) {
       schedule,
       estimatedDeliveryTime,
       address,
+      location,
     } = req.body;
 
     await restaurantService.updateRestaurantInfo({
@@ -174,6 +178,7 @@ export async function updateRestaurant(req, res, next) {
       schedule,
       estimatedDeliveryTime,
       address,
+      location,
       profilePictureFile: req.file,
     });
 

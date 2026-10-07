@@ -20,6 +20,7 @@ export default function SellerLayout() {
         <Stack.Screen name="menu-item/[menuItemId]" />
         <Stack.Screen name="promo-codes/index" />
         <Stack.Screen name="promo-codes/[promoId]" />
+        <Stack.Screen name="location" />
       </Stack>
 
       <SellerAlert />

@@ -4,6 +4,7 @@ import { CheckCircle, Clock, Package, XCircle } from "lucide-react";
 import { OrderActionsDropdown } from "./OrderActionsDropdown";
 
 import { formatPrice } from "@chowgo/shared/format";
+import { optionsSummary } from "@chowgo/shared/menuOptions";
 export function OrderTableRow({
   order,
   onConfirm,
@@ -70,10 +71,16 @@ export function OrderTableRow({
         <div className="flex flex-col">
           <span>{order.items.length}x items</span>
           {order.items.length > 0 && (
-            <span className="text-xs text-muted-foreground/70">
-              {order.items[0].name}
-              {order.items.length > 1 && ` +${order.items.length - 1} more`}
-            </span>
+            <ul className="mt-0.5 space-y-0.5 text-xs text-muted-foreground/70">
+              {order.items.map((item, index) => (
+                <li key={item.lineId || index}>
+                  <span className="tabular">{item.quantity}&times;</span> {item.name}
+                  {optionsSummary(item.options) && (
+                    <span className="block pl-4">{optionsSummary(item.options)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </TableCell>

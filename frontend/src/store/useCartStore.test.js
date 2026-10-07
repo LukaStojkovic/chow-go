@@ -38,19 +38,26 @@ describe("addItem", () => {
   it("replaces local state with the server's cart", async () => {
     apiCart.addToCart.mockResolvedValue(cart());
     await expect(useCartStore.getState().addItem("m1", 2, "no onions")).resolves.toBe(true);
-    expect(apiCart.addToCart).toHaveBeenCalledWith("m1", 2, "no onions");
+    expect(apiCart.addToCart).toHaveBeenCalledWith("m1", 2, "no onions", []);
     expect(useCartStore.getState()).toMatchObject({ totalPrice: 10, restaurant: { _id: "r1" } });
+  });
+
+  it("passes the picked option ids through", async () => {
+    apiCart.addToCart.mockResolvedValue(cart());
+    await useCartStore.getState().addItem("m1", 1, undefined, ["o1", "o2"]);
+    expect(apiCart.addToCart).toHaveBeenCalledWith("m1", 1, undefined, ["o1", "o2"]);
   });
 
   it("turns the one-restaurant refusal into a pending conflict, not a toast", async () => {
     apiCart.addToCart.mockRejectedValue(
       new Error("You can only add items from one restaurant. Clear cart first."),
     );
-    await expect(useCartStore.getState().addItem("m2", 1)).resolves.toBe(false);
+    await expect(useCartStore.getState().addItem("m2", 1, undefined, ["o1"])).resolves.toBe(false);
     expect(useCartStore.getState().pendingConflict).toEqual({
       menuItemId: "m2",
       quantity: 1,
       specialInstructions: undefined,
+      options: ["o1"],
     });
     expect(toast.error).not.toHaveBeenCalled();
   });
@@ -64,13 +71,16 @@ describe("addItem", () => {
 
 describe("conflict resolution", () => {
   it("clears the basket and retries the add", async () => {
-    useCartStore.setState({ ...cart().data, pendingConflict: { menuItemId: "m2", quantity: 3 } });
+    useCartStore.setState({
+      ...cart().data,
+      pendingConflict: { menuItemId: "m2", quantity: 3, options: ["o9"] },
+    });
     apiCart.clearCart.mockResolvedValue({});
     apiCart.addToCart.mockResolvedValue(cart([{ menuItem: "m2", quantity: 3 }], 30, { _id: "r2" }));
 
     await expect(useCartStore.getState().resolveConflictByReplacing()).resolves.toBe(true);
     expect(apiCart.clearCart).toHaveBeenCalledOnce();
-    expect(apiCart.addToCart).toHaveBeenCalledWith("m2", 3, undefined);
+    expect(apiCart.addToCart).toHaveBeenCalledWith("m2", 3, undefined, ["o9"]);
     expect(useCartStore.getState()).toMatchObject({ pendingConflict: null, restaurant: { _id: "r2" } });
   });
 
@@ -91,6 +101,15 @@ describe("updateItemQuantity / removeItem", () => {
     apiCart.removeItemFromCart.mockResolvedValue(cart([], 0));
     await useCartStore.getState().removeItem("m1");
     expect(useCartStore.getState().items).toEqual([]);
+  });
+
+  it("addresses a line by its line id", async () => {
+    apiCart.updateCartItemQuantity.mockResolvedValue(cart());
+    apiCart.removeItemFromCart.mockResolvedValue(cart([], 0));
+    await useCartStore.getState().updateItemQuantity("m1~o1-o2", 2);
+    await useCartStore.getState().removeItem("m1~o1-o2");
+    expect(apiCart.updateCartItemQuantity).toHaveBeenCalledWith("m1~o1-o2", 2, undefined);
+    expect(apiCart.removeItemFromCart).toHaveBeenCalledWith("m1~o1-o2");
   });
 
   it("toasts, resyncs from the server and rethrows on failure", async () => {

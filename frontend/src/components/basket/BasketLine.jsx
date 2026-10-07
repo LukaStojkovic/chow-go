@@ -59,6 +59,10 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
           <Price value={line.lineTotal} size="sm" currency={currency} />
         </div>
 
+        {line.optionsLabel && (
+          <p className="text-body-sm text-muted-foreground line-clamp-2">{line.optionsLabel}</p>
+        )}
+
         {line.savings > 0 && (
           <p className="text-body-sm inline-flex items-center gap-2">
             <Badge variant="promo" size="sm">
@@ -74,7 +78,7 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
           </p>
         )}
 
-        {line.description && (
+        {line.description && !line.optionsLabel && (
           <p className="text-body-sm text-muted-foreground line-clamp-1">{line.description}</p>
         )}
 
@@ -97,7 +101,7 @@ export function BasketLine({ line, mode = "edit", onQuantityChange, onRemove, di
             />
             {line.quantity > 1 && (
               <span className="text-caption text-muted-foreground tabular">
-                <Price value={line.unitPrice} size="sm" muted className="font-normal" currency={currency} /> each
+                {t("common:units.each", { price: formatPrice(line.unitPrice, { currency }) })}
               </span>
             )}
           </div>

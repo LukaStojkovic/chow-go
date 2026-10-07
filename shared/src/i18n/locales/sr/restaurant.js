@@ -30,6 +30,24 @@ export default {
     overnight: "Radi do ujutru",
   },
 
+  options: {
+    rule: {
+      optional_one: "Opciono",
+      optional_few: "Opciono, do {{count}}",
+      optional_other: "Opciono, do {{count}}",
+      exactly_one: "Izaberite {{count}}",
+      exactly_few: "Izaberite {{count}}",
+      exactly_other: "Izaberite {{count}}",
+      range: "Izaberite {{min}}-{{max}}",
+    },
+    required: "Obavezno",
+    priceDelta: "+{{price}}",
+    soldOut: "Rasprodato",
+    pickRequired: "Izaberite opciju za: {{group}}",
+    pickAtMost: "Izaberite najviše {{max}} za: {{group}}",
+    customise: "Izaberite opcije",
+  },
+
   menu: {
     heading: "Meni",
     untitledDish: "Stavka menija",

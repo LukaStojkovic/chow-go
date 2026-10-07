@@ -104,7 +104,7 @@ export default function Search() {
           dishes.length ? (
             <Rail
               title={t("discover:search.dishesHeading")}
-              subtitle={`${dishes.length} matching ${dishes.length === 1 ? "dish" : "dishes"}`}
+              subtitle={t("discover:summary.matchingDishes", { count: dishes.length })}
               data={dishes}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
@@ -121,7 +121,7 @@ export default function Search() {
             {index === 0 ? (
               <SectionHeader
                 title={t("discover:search.restaurantsHeading")}
-                subtitle={`${restaurants.length} ${restaurants.length === 1 ? "place" : "places"} match`}
+                subtitle={t("discover:summary.placesMatch", { count: restaurants.length })}
               />
             ) : null}
             <RestaurantCard

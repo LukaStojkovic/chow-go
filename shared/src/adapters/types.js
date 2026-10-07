@@ -81,9 +81,24 @@
  * @property {string | null} image
  * @property {string[]} images
  * @property {boolean} isAvailable
+ * @property {OptionGroupView[]} optionGroups
+ * @property {boolean} hasOptions
+ * @property {boolean} hasRequiredOptions  A quick add has to open the item sheet instead.
  * @property {string | null} restaurantId
  * @property {string | null} restaurantName
  * @property {string | null} restaurantLogo
+ */
+
+/**
+ * @typedef {Object} OptionGroupView
+ * @property {string} id
+ * @property {string} name
+ * @property {number} minSelect
+ * @property {number} maxSelect
+ * @property {boolean} isRequired
+ * @property {boolean} isSingle    At most one pick: radios, not checkboxes.
+ * @property {string} rule         "Choose 1", "Optional, up to 3".
+ * @property {{ id: string, name: string, priceDelta: number, available: boolean }[]} options
  */
 
 /**
@@ -96,7 +111,10 @@
 
 /**
  * @typedef {Object} BasketLineView
- * @property {string} id            The menu item id - the cart's identity key.
+ * @property {string} id            The line id the cart API takes: the dish id, plus option ids when there are any.
+ * @property {string} menuItemId
+ * @property {{ id: string, groupName: string, name: string, priceDelta: number }[]} options
+ * @property {string} optionsLabel  "Large, Extra cheese", or empty.
  * @property {string} name
  * @property {string} description
  * @property {number} unitPrice

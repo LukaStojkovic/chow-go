@@ -30,16 +30,17 @@ const useCartStore = create((set, get) => ({
    * @param {string} menuItemId
    * @param {number} [quantity]
    * @param {string} [specialInstructions]
+   * @param {string[]} [options] Option ids the customer picked.
    * @returns {Promise<boolean>} Whether the item made it into the basket.
    */
-  addItem: async (menuItemId, quantity = 1, specialInstructions) => {
+  addItem: async (menuItemId, quantity = 1, specialInstructions, options = []) => {
     if (!useAuthStore.getState().authUser) {
       useAuthStore.getState().openAuthModal(true);
       return false;
     }
 
     try {
-      const res = await addToCart(menuItemId, quantity, specialInstructions);
+      const res = await addToCart(menuItemId, quantity, specialInstructions, options);
       set({
         items: res.data.items,
         totalPrice: res.data.totalPrice,
@@ -50,7 +51,7 @@ const useCartStore = create((set, get) => ({
       // The backend rejects items from a second restaurant. That is a decision
       // for the customer to make, not an error to shout about.
       if (/one restaurant/i.test(err?.message || "")) {
-        set({ pendingConflict: { menuItemId, quantity, specialInstructions } });
+        set({ pendingConflict: { menuItemId, quantity, specialInstructions, options } });
         return false;
       }
       toast.error(err.message || t("basket:line.addFailedLong"));
@@ -69,14 +70,15 @@ const useCartStore = create((set, get) => ({
       conflict.menuItemId,
       conflict.quantity,
       conflict.specialInstructions,
+      conflict.options,
     );
   },
 
   dismissConflict: () => set({ pendingConflict: null }),
 
-  updateItemQuantity: async (menuItemId, quantity, specialInstructions) => {
+  updateItemQuantity: async (lineId, quantity, specialInstructions) => {
     try {
-      const res = await updateCartItemQuantity(menuItemId, quantity, specialInstructions);
+      const res = await updateCartItemQuantity(lineId, quantity, specialInstructions);
       set({ items: res.data.items, totalPrice: res.data.totalPrice });
     } catch (err) {
       toast.error(err.message || t("basket:line.updateFailedLong"));
@@ -85,9 +87,9 @@ const useCartStore = create((set, get) => ({
     }
   },
 
-  removeItem: async (menuItemId) => {
+  removeItem: async (lineId) => {
     try {
-      const res = await removeItemFromCart(menuItemId);
+      const res = await removeItemFromCart(lineId);
       set({ items: res.data.items, totalPrice: res.data.totalPrice });
     } catch (err) {
       toast.error(err.message || t("basket:line.removeFailedLong"));

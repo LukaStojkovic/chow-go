@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { CURRENCY_CODE, moneySetter } from "../utils/money.js";
+import { lineOptionSchema } from "./lineOption.js";
 import { randomBytes } from "crypto";
 
 const orderItemSchema = new mongoose.Schema(
@@ -13,6 +14,7 @@ const orderItemSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0, set: moneySetter },
     quantity: { type: Number, required: true, min: 1 },
     specialInstructions: { type: String, maxlength: 200 },
+    options: { type: [lineOptionSchema], default: undefined },
   },
   { _id: false },
 );

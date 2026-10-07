@@ -1,15 +1,21 @@
 import mongoose from "mongoose";
 import { lineTotal, moneySetter, sumMoney } from "../utils/money.js";
+import { lineOptionSchema } from "./lineOption.js";
 
 const cartItemSchema = new mongoose.Schema(
   {
+    // The dish id for a plain dish, the dish id plus its option ids otherwise
+    // (utils/menuOptions.js#basketLineId), so one dish can sit on two lines.
+    // Lines saved before options existed have none and fall back to menuItem.
+    lineId: { type: String },
+    options: { type: [lineOptionSchema], default: undefined },
     menuItem: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MenuItem",
       required: true,
     },
     name: { type: String, required: true },
-    /** What this line is charged at - already includes any promotion. */
+    /** What one portion is charged at: any promotion and every option included. */
     price: { type: Number, required: true, min: 0, set: moneySetter },
     /**
      * The undiscounted price, recorded only when a promotion was applied. Lets

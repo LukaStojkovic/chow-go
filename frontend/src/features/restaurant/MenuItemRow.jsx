@@ -65,7 +65,7 @@ export function MenuItemRow({ dish, onSelect, isOrderingDisabled = false, inBask
             {inBasketCount > 0 && (
               <span
                 className="bg-primary text-primary-foreground tabular flex size-5 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold"
-                aria-label={`${inBasketCount} in basket`}
+                aria-label={t("common:count.inBasket", { count: inBasketCount })}
               >
                 {inBasketCount}
               </span>

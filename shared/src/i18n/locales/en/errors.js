@@ -154,12 +154,28 @@ export default {
     imageRequired: "At least one image is required",
   },
 
+  menuOption: {
+    invalid: "The dish options could not be read",
+    groupName: "Option group {{group}} needs a name of up to 60 characters",
+    groupEmpty: "Option group {{group}} needs at least one option",
+    groupRange: "Check how many options can be picked in group {{group}}",
+    name: "Every option in group {{group}} needs a name of up to 60 characters",
+    price: "Extra prices in group {{group}} must be between 0 and 100000",
+    tooManyGroups: "A dish can have at most {{max}} option groups",
+    tooManyOptions: "Option group {{group}} can have at most {{max}} options",
+    required: "Pick an option for {{group}}",
+    tooMany: "Pick at most {{max}} for {{group}}",
+    unavailable: "{{option}} is no longer available",
+    unknown: "One of the options you picked is no longer on the menu",
+  },
+
   restaurant: {
     notFound: "That restaurant was not found",
     invalidEmail: "That email address is not valid",
     invalidId: "That restaurant id is not valid",
     statsUnauthorized: "You cannot see this restaurant's statistics",
     unauthorized: "You do not have access to this restaurant",
+    locationInvalid: "That map location is not valid. Drop the pin again.",
   },
 
   promotion: {
@@ -237,6 +253,12 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    LOCATION_INVALID: "That map location is not valid",
+    OPTION_REQUIRED: "Pick the required options for this dish",
+    OPTION_TOO_MANY: "You picked too many options for this dish",
+    OPTION_UNAVAILABLE: "One of the options you picked is no longer available",
+    OPTION_UNKNOWN: "One of the options you picked is no longer on the menu",
+    OPTION_GROUPS_INVALID: "Check the dish options",
     ACCOUNT_SUSPENDED: "This account has been suspended",
     GOOGLE_LINK_EXPIRED: "That link expired. Please try again.",
     GOOGLE_ALREADY_LINKED: "This account is already connected to a Google account.",

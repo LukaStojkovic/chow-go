@@ -1,14 +1,6 @@
 /**
- * Add a dish to the basket.
- *
- * The MenuItem model has no option groups or modifiers - a dish is a name, a
- * description, a price and a photo. So this sheet does the customisation the
- * data actually supports: quantity, and a note for the kitchen, which is
- * carried through to `Order.items.specialInstructions` on checkout.
- *
- * When option groups are added to the backend, they slot in above the note as
- * required/optional fieldsets, and the running total below already recomputes
- * from a single `lineTotal` value.
+ * Add a dish to the basket: its options, a quantity, and a note for the
+ * kitchen, carried through to `Order.items.specialInstructions` on checkout.
  */
 
 import { useState } from "react";
@@ -16,7 +8,8 @@ import { useTranslation } from "react-i18next";
 import { UtensilsCrossed } from "lucide-react";
 
 import { formatPrice } from "@chowgo/shared/format";
-import { lineTotal as priceTimes } from "@chowgo/shared/money";
+import { lineTotal as priceTimes, sumMoney } from "@chowgo/shared/money";
+import { resolveOptionSelection } from "@chowgo/shared/menuOptions";
 import useCartStore from "@/store/useCartStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +19,7 @@ import { QuantityStepper } from "@/components/common/QuantityStepper";
 import { SoldOutBadge } from "@/components/common/StatusBadges";
 import { ResponsiveSheet } from "./ResponsiveSheet";
 import { ReplaceBasketDialog } from "./ReplaceBasketDialog";
+import { DishOptionGroups } from "./DishOptionGroups";
 
 const MAX_NOTE = 200;
 
@@ -59,16 +53,30 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [selected, setSelected] = useState({});
 
   const { addItem, pendingConflict, resolveConflictByReplacing, dismissConflict, restaurant } =
     useCartStore();
 
+  const groups = dish.optionGroups ?? [];
+  const pickedIds = groups.flatMap((group) => selected[group.id] ?? []);
+  const resolution = resolveOptionSelection(groups, pickedIds);
+  const optionsDelta = sumMoney(
+    ...groups.flatMap((group) =>
+      group.options.filter((option) => pickedIds.includes(option.id)).map((option) => option.priceDelta),
+    ),
+  );
+  const unitPrice = sumMoney(dish.price, optionsDelta);
+  const baseUnitPrice = dish.basePrice ? sumMoney(dish.basePrice, optionsDelta) : null;
+
   const canOrder = dish.isAvailable && !unavailableReason;
-  const lineTotal = priceTimes(dish.price, quantity);
+  const lineTotal = priceTimes(unitPrice, quantity);
+  const selectionHint = !resolution.ok ? selectionMessage(t, resolution) : null;
 
   const handleAdd = async () => {
+    if (!resolution.ok) return;
     setIsAdding(true);
-    const added = await addItem(dish.id, quantity, note.trim() || undefined);
+    const added = await addItem(dish.id, quantity, note.trim() || undefined, pickedIds);
     setIsAdding(false);
     // A cross-restaurant conflict leaves the sheet open behind the confirm
     // dialog, so the choice is not lost if the customer keeps their basket.
@@ -83,24 +91,38 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
         title={dish.name}
         hideHeader
         footer={
-          <div className="flex items-center gap-3">
-            <QuantityStepper
-              value={quantity}
-              onChange={setQuantity}
-              itemName={dish.name}
-              disabled={!canOrder}
-            />
-            <Button
-              size="lg"
-              className="flex-1"
-              disabled={!canOrder}
-              isLoading={isAdding}
-              loadingLabel={t("restaurant:reorder.adding")}
-              onClick={handleAdd}
-            >
-              <span>{t("restaurant:menu.addToBasket")}</span>
-              <span className="tabular ml-auto">{formatPrice(lineTotal)}</span>
-            </Button>
+          <div className="space-y-2">
+            {canOrder && selectionHint && (
+              <p
+                id="dish-options-hint"
+                aria-live="polite"
+                className="text-body-sm text-warning text-center"
+              >
+                {selectionHint}
+              </p>
+            )}
+            <div className="flex items-center gap-3">
+              <QuantityStepper
+                value={quantity}
+                onChange={setQuantity}
+                itemName={dish.name}
+                disabled={!canOrder}
+              />
+              <Button
+                size="lg"
+                className="flex-1"
+                disabled={!canOrder || !resolution.ok}
+                aria-describedby={canOrder && selectionHint ? "dish-options-hint" : undefined}
+                isLoading={isAdding}
+                loadingLabel={t("restaurant:reorder.adding")}
+                onClick={handleAdd}
+              >
+                <span>{t("restaurant:menu.addToBasket")}</span>
+                <span className="tabular ml-auto">
+                  {formatPrice(lineTotal, { currency: dish.currency })}
+                </span>
+              </Button>
+            </div>
           </div>
         }
       >
@@ -117,7 +139,17 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
           <div className="space-y-1.5">
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-h1 min-w-0 flex-1">{dish.name}</h2>
-              <span className="text-price-lg tabular shrink-0">{formatPrice(dish.price)}</span>
+              <span className="flex shrink-0 flex-col items-end">
+                <span className="text-price-lg tabular">
+                  {formatPrice(unitPrice, { currency: dish.currency })}
+                </span>
+                {baseUnitPrice && (
+                  <span className="text-body-sm text-muted-foreground tabular line-through">
+                    <span className="sr-only">{t("common:meta.reducedFrom")} </span>
+                    {formatPrice(baseUnitPrice, { currency: dish.currency })}
+                  </span>
+                )}
+              </span>
             </div>
 
             {dish.restaurantName && (
@@ -148,6 +180,17 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
             >
               {unavailableReason}
             </p>
+          )}
+
+          {groups.length > 0 && (
+            <DishOptionGroups
+              groups={groups}
+              selected={selected}
+              onChange={(groupId, ids) => setSelected((prev) => ({ ...prev, [groupId]: ids }))}
+              currency={dish.currency}
+              disabled={!canOrder}
+              invalidGroup={resolution.ok ? null : resolution.group}
+            />
           )}
 
           <div className="space-y-2">
@@ -181,4 +224,16 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
       />
     </>
   );
+}
+
+function selectionMessage(t, resolution) {
+  if (resolution.code === "OPTION_REQUIRED") {
+    return t("restaurant:options.pickRequired", { group: resolution.group });
+  }
+  if (resolution.code === "OPTION_TOO_MANY") {
+    return t("restaurant:options.pickAtMost", { group: resolution.group, max: resolution.max });
+  }
+  return t(`errors:byCode.${resolution.code}`, {
+    defaultValue: t("errors:byCode.OPTION_UNKNOWN"),
+  });
 }

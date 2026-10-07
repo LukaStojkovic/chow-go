@@ -45,7 +45,7 @@ export function CourierOrderCard({ order, onAccept, isAccepting }) {
             <div className="mt-1 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-card " />
             <div className="min-w-0">
               <p className="truncate font-medium text-foreground ">
-                {order.restaurant?.name ?? "Restaurant"}
+                {order.restaurant?.name ?? t("common:fallback.restaurant")}
               </p>
               <p className="truncate text-sm text-muted-foreground ">
                 {restaurantAddress}

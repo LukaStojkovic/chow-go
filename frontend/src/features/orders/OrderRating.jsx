@@ -31,6 +31,7 @@ import { Avatar } from "@/components/common/SmartImage";
  * @param {boolean} [props.readOnly]
  */
 function StarRating({ name, value, onChange, label, readOnly = false }) {
+  const { t } = useTranslation("common");
   const [hovered, setHovered] = useState(0);
   const shown = hovered || value;
 
@@ -64,7 +65,7 @@ function StarRating({ name, value, onChange, label, readOnly = false }) {
               )}
             >
               <span className="sr-only">
-                {star} {star === 1 ? "star" : "stars"}
+                {t("common:count.stars", { count: star })}
               </span>
               <Star
                 className={cn(
@@ -130,7 +131,7 @@ export function OrderRating({ order }) {
             <Avatar
               size="sm"
               src={order.restaurant?.logo}
-              name={order.restaurant?.name || "Restaurant"}
+              name={order.restaurant?.name || t("common:fallback.restaurant")}
             />
             <span className="text-label min-w-0 flex-1 truncate">
               {order.restaurant?.name || t("rating.restaurantHeading")}
@@ -140,7 +141,9 @@ export function OrderRating({ order }) {
               value={restaurantRating}
               onChange={setRestaurantRating}
               readOnly={hasRated}
-              label={`Rate ${order.restaurant?.name || "the restaurant"}`}
+              label={t("order:rating.rateName", {
+                name: order.restaurant?.name || t("common:fallback.restaurant"),
+              })}
             />
           </div>
 

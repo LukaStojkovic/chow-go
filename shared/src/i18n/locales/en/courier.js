@@ -84,6 +84,7 @@ export default {
   },
 
   delivery: {
+    earned: "{{amount}} earned",
     title: "Delivery",
     notFound: "Delivery not found",
     back: "Back to deliveries",
@@ -127,8 +128,8 @@ export default {
     continue: "Continue delivery",
     loadError: "Could not load this delivery",
     collectCashLabel: "Collect from the customer",
-    alreadyPaid: "Already paid",
-    nothingToCollect: "Nothing to collect on the doorstep",
+    collectInCash: "In cash",
+    collectByCard: "By card, on your terminal",
     route: "Route",
     navigatingTo: "Navigating to",
     locationBlocked:

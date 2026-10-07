@@ -12,8 +12,8 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { Check, LifeBuoy, MapPin, Navigation } from "lucide-react";
 
 import { transitions } from "@/lib/motion";
-import { formatOrderDate } from "@chowgo/shared/format";
-import { toOrderView } from "@chowgo/shared/adapters/order";
+import { formatDeliveryEstimate, formatOrderDate, formatTime } from "@chowgo/shared/format";
+import { estimateArrival, toOrderView } from "@chowgo/shared/adapters/order";
 import { useGetOrderById } from "@/hooks/Orders/useGetOrderById";
 
 import { PageContainer, Stack } from "@/components/layout/primitives";
@@ -59,6 +59,7 @@ export default function OrderConfirmationPage() {
 
   const order = toOrderView(raw);
   if (!order) return <Navigate to="/orders" replace />;
+  const eta = estimateArrival(order);
 
   return (
     <PageContainer width="narrow" withBottomNav={false} className="py-8">
@@ -98,7 +99,9 @@ export default function OrderConfirmationPage() {
             <div>
               <dt className="text-caption text-muted-foreground">{t("eta.label")}</dt>
               <dd className="text-body mt-0.5">
-                {order.restaurant?.deliveryEstimate ?? "30-45 min"}
+                {eta
+                  ? t("eta.around", { time: formatTime(eta.at) })
+                  : formatDeliveryEstimate(order.restaurant?.deliveryEstimate)}
               </dd>
             </div>
             <div>
@@ -126,7 +129,7 @@ export default function OrderConfirmationPage() {
           <div className="border-border flex items-center gap-3 border-b p-4">
             <Avatar
               src={order.restaurant?.logo}
-              name={order.restaurant?.name || "Restaurant"}
+              name={order.restaurant?.name || t("common:fallback.restaurant")}
             />
             <h2 className="text-h3 min-w-0 flex-1 truncate">
               {order.restaurant?.name || t("detail.itemsHeading")}

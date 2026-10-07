@@ -26,7 +26,7 @@ export function CourierOrderRoute({ restaurant, deliveryAddressSnapshot }) {
           <div className="mt-1.5 h-3 w-3 shrink-0 rounded-full border-2 border-primary bg-background" />
           <div className="min-w-0">
             <p className="font-medium text-foreground truncate">
-              {restaurant?.name ?? "Restaurant"}
+              {restaurant?.name ?? t("common:fallback.restaurant")}
             </p>
             <p className="text-sm text-muted-foreground truncate">
               {restaurantAddress}

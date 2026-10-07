@@ -16,7 +16,7 @@ describe("countActiveFilters", () => {
   it("counts everything but sort", () => {
     expect(countActiveFilters(DEFAULT_SEARCH_FILTERS)).toBe(0);
     expect(countActiveFilters(withFilters({ sort: "rating" }))).toBe(0);
-    expect(countActiveFilters(withFilters({ openNow: true, freeDelivery: true, maxDeliveryTime: "30" }))).toBe(3);
+    expect(countActiveFilters(withFilters({ openNow: true, maxDeliveryTime: "30" }))).toBe(2);
   });
 });
 
@@ -27,9 +27,8 @@ describe("applyRestaurantFilters", () => {
     expect(result).not.toBe(restaurants);
   });
 
-  it("filters open and free-delivery restaurants", () => {
+  it("filters open restaurants", () => {
     expect(ids(applyRestaurantFilters(restaurants, withFilters({ openNow: true })))).toEqual(["a", "c", "d"]);
-    expect(ids(applyRestaurantFilters(restaurants, withFilters({ freeDelivery: true })))).toEqual(["a", "d"]);
   });
 
   it("filters by the upper bound of the estimate and keeps unparseable ones", () => {

@@ -3,7 +3,9 @@ import { t } from "@chowgo/shared/i18n";
 
 const handleApiError = (err) => {
   if (err.response?.data?.message) {
-    throw new Error(err.response.data.message);
+    const error = new Error(err.response.data.message);
+    error.code = err.response.data.code;
+    throw error;
   }
   throw new Error(t("common:error.generic"));
 };
@@ -18,12 +20,13 @@ export async function getCart() {
   }
 }
 
-export async function addToCart(menuItemId, quantity, specialInstructions) {
+export async function addToCart(menuItemId, quantity, specialInstructions, options) {
   try {
     const res = await axiosInstance.post(`/cart/items`, {
       menuItemId,
       quantity,
       specialInstructions,
+      ...(options?.length ? { options } : {}),
     });
     return res.data;
   } catch (err) {
@@ -32,9 +35,9 @@ export async function addToCart(menuItemId, quantity, specialInstructions) {
   }
 }
 
-export async function updateCartItemQuantity(menuItemId, quantity, specialInstructions) {
+export async function updateCartItemQuantity(lineId, quantity, specialInstructions) {
   try {
-    const res = await axiosInstance.patch(`/cart/items/${menuItemId}`, {
+    const res = await axiosInstance.patch(`/cart/items/${encodeURIComponent(lineId)}`, {
       quantity,
       specialInstructions,
     });
@@ -45,9 +48,9 @@ export async function updateCartItemQuantity(menuItemId, quantity, specialInstru
   }
 }
 
-export async function removeItemFromCart(menuItemId) {
+export async function removeItemFromCart(lineId) {
   try {
-    const res = await axiosInstance.delete(`/cart/items/${menuItemId}`);
+    const res = await axiosInstance.delete(`/cart/items/${encodeURIComponent(lineId)}`);
     return res.data;
   } catch (err) {
     console.error("Error removing item:", err);

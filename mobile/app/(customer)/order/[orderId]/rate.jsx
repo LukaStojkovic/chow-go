@@ -33,7 +33,7 @@ function Stars({ value, onChange }) {
           <Pressable
             key={score}
             accessibilityRole="button"
-            accessibilityLabel={`${score} ${score === 1 ? "star" : "stars"}`}
+            accessibilityLabel={t("common:count.stars", { count: score })}
             accessibilityState={{ selected: value === score }}
             onPress={() => {
               Haptics.selectionAsync();

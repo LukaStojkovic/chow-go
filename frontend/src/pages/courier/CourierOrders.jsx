@@ -61,7 +61,7 @@ export function CourierOrders() {
               {t("orders.activeInProgress")}
             </p>
             <p className="text-sm text-primary/80 ">
-              {activeOrder.restaurant?.name ?? t("common:taxonomy.cuisine.fallback")} →{" "}
+              {activeOrder.restaurant?.name ?? t("common:fallback.restaurant")} →{" "}
               {t("delivery.customer")}
             </p>
           </div>

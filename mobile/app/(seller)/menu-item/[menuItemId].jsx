@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
@@ -21,6 +21,11 @@ import { Text } from "@/components/ui/Text";
 import { Toggle } from "@/components/ui/Toggle";
 import { MenuItemImages } from "@/features/seller/MenuItemImages";
 import {
+  OptionGroupsEditor,
+  toOptionDrafts,
+  validateOptionDrafts,
+} from "@/features/seller/OptionGroupsEditor";
+import {
   useCreateMenuItem,
   useDeleteMenuItem,
   useMenuItem,
@@ -33,7 +38,7 @@ export default function MenuItemForm() {
   const { menuItemId } = useLocalSearchParams();
   const isNew = menuItemId === "new";
   const { color } = useTokens();
-  const { t, i18n } = useTranslation(["seller", "common", "validation"]);
+  const { t, i18n } = useTranslation(["seller", "common", "validation", "errors"]);
   const categories = useMemo(() => categoryOptions(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
   const promoTypes = useMemo(() => promotionTypes(t), [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -58,6 +63,10 @@ export default function MenuItemForm() {
     },
   });
 
+  const [optionDrafts, setOptionDrafts] = useState([]);
+  const [optionsReady, setOptionsReady] = useState(isNew);
+  const [optionsError, setOptionsError] = useState(null);
+
   const addedImages = watch("images") ?? [];
   const existingImages = watch("existingImages") ?? [];
 
@@ -73,13 +82,26 @@ export default function MenuItemForm() {
       existingImages: existingItem.imageUrls ?? [],
       promotion: { ...EMPTY_PROMOTION, ...(existingItem.promotion ?? {}) },
     });
+    setOptionDrafts(toOptionDrafts(existingItem.optionGroups));
+    setOptionsReady(true);
   }, [existingItem, reset]);
 
   const price = watch("price");
   const promotion = watch("promotion");
   const preview = previewPromotion(Number(price) || 0, promotion);
 
-  async function onSubmit(values) {
+  async function onSubmit(formValues) {
+    let values = formValues;
+    if (optionsReady) {
+      const checked = validateOptionDrafts(optionDrafts, t);
+      if (checked.error) {
+        setOptionsError(checked.error);
+        toast.error(t("menu.dishSaveFailed"), { description: checked.error.message });
+        return;
+      }
+      setOptionsError(null);
+      values = { ...formValues, optionGroups: checked.groups };
+    }
     try {
       if (isNew) {
         await create.mutateAsync(values);
@@ -341,6 +363,15 @@ export default function MenuItemForm() {
             </>
           ) : null}
         </Card>
+
+        <OptionGroupsEditor
+          groups={optionDrafts}
+          error={optionsError}
+          onChange={(next) => {
+            setOptionDrafts(next);
+            if (optionsError) setOptionsError(null);
+          }}
+        />
 
         {!isNew ? (
           <Button

@@ -151,6 +151,10 @@ export default {
     minutes_other: "{{count}} min",
     arriving: "Stiže svakog trenutka",
     unknown: "Još se računa",
+    around: "Oko {{time}}",
+    late: "Malo kasni",
+    lateHint: "Očekivali smo je oko {{time}}",
+    liveHint: "Prema ruti dostavljača",
   },
 
   list: {
@@ -341,6 +345,7 @@ export default {
     stars_one: "{{count}} zvezdica",
     stars_few: "{{count}} zvezdice",
     stars_other: "{{count}} zvezdica",
+    rateName: "Ocenite: {{name}}",
     submitted: "Hvala na vašoj oceni.",
     submitFailedShort: "Slanje ocene nije uspelo",
     yourReview: "Vaša ocena",

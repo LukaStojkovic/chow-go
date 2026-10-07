@@ -43,6 +43,17 @@ export default {
     countDishes_other: "{{count}} dishes",
   },
 
+  summary: {
+    dealsNearYou_one: "{{count}} dish on offer near you",
+    dealsNearYou_other: "{{count}} dishes on offer near you",
+    matchingDishes_one: "{{count}} matching dish",
+    matchingDishes_other: "{{count}} matching dishes",
+    placesMatch_one: "{{count}} place matches",
+    placesMatch_other: "{{count}} places match",
+    favourites_one: "{{count}} restaurant you come back to",
+    favourites_other: "{{count}} restaurants you come back to",
+  },
+
   feed: {
     allTitle: "All dishes near you",
     allDishes: "All dishes",
@@ -64,7 +75,6 @@ export default {
     openNow: "Open now",
     liveNow: "Live now",
     browseDeals: "Browse deals",
-    freeDelivery: "Free delivery",
     sortBy: "Sort by",
     clearAll: "Clear filters",
     clear_one: "Clear filter",

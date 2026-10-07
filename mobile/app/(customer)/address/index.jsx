@@ -61,7 +61,7 @@ export default function Addresses() {
               <View className="flex-1 gap-1">
                 <View className="flex-row items-center gap-2">
                   <Text variant="h3" numberOfLines={1}>
-                    {entry.label ?? "Address"}
+                    {entry.label ?? t("common:fallback.address")}
                   </Text>
                   {entry.fullAddress === activeAddress ? (
                     <Badge tone="mint" size="sm" icon={MapPin}>

@@ -79,7 +79,7 @@ export default function SellerOrderDetail() {
               {shortStatus(order)}
             </Text>
             <Text variant="caption" tone="muted" numberOfLines={1}>
-              {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+              {t("common:count.items", { count: order.itemCount })}
             </Text>
           </View>
           <Text variant="price-lg">{formatPrice(order.pricing?.total ?? 0)}</Text>
@@ -95,9 +95,16 @@ export default function SellerOrderDetail() {
                     {line.quantity}×
                   </Text>
                 </View>
-                <Text variant="body-lg" className="flex-1" numberOfLines={2}>
-                  {line.name}
-                </Text>
+                <View className="flex-1">
+                  <Text variant="body-lg" numberOfLines={2}>
+                    {line.name}
+                  </Text>
+                  {line.optionsLabel ? (
+                    <Text variant="body-sm" tone="muted">
+                      {line.optionsLabel}
+                    </Text>
+                  ) : null}
+                </View>
                 <Text variant="price">{formatPrice(line.lineTotal)}</Text>
               </View>
               {line.notes ? (

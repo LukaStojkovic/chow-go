@@ -71,7 +71,7 @@ export function BasketMiniBar() {
             {restaurant?.name ?? t("basket:title")}
           </Text>
           <Text variant="caption" className="text-background opacity-70">
-            {count} {count === 1 ? "item" : "items"} · {formatPrice(totalPrice)}
+            {t("common:count.items", { count })} · {formatPrice(totalPrice)}
           </Text>
         </View>
 

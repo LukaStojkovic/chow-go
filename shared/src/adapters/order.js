@@ -233,6 +233,34 @@ export function toOrderViews(list) {
   return list.map(toOrderView).filter(Boolean);
 }
 
+const EN_ROUTE_TO_CUSTOMER = ["picked_up", "in_transit"];
+const NO_ARRIVAL = ["delivered", "cancelled", "rejected"];
+
+/**
+ * When the order should reach the customer. Before pickup this is the
+ * server's estimate (placement, then prep time once the restaurant accepts);
+ * once the food is with the courier, a live route duration replaces it.
+ *
+ * @param {{ status: string, etaAt?: string | Date | null }} order
+ * @param {{ routeSeconds?: number | null, now?: number }} [options]
+ * @returns {{ at: Date, minutes: number, isLate: boolean, isLive: boolean } | null}
+ */
+export function estimateArrival(order, { routeSeconds = null, now = Date.now() } = {}) {
+  if (!order || NO_ARRIVAL.includes(order.status)) return null;
+
+  const isLive = EN_ROUTE_TO_CUSTOMER.includes(order.status) && Number.isFinite(routeSeconds);
+  const at = isLive ? new Date(now + routeSeconds * 1000) : order.etaAt ? new Date(order.etaAt) : null;
+  if (!at || Number.isNaN(at.getTime())) return null;
+
+  const remaining = at.getTime() - now;
+  return {
+    at,
+    minutes: Math.max(0, Math.ceil(remaining / 60000)),
+    isLate: remaining < -60000,
+    isLive,
+  };
+}
+
 /** Statuses the "Active" filter covers, matching the backend's ACTIVE_STATUSES. */
 export const ACTIVE_STATUS_FILTER =
   "pending,confirmed,preparing,ready,assigned,picked_up,in_transit";

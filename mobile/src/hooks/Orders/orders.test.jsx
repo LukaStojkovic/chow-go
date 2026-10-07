@@ -6,7 +6,7 @@ import { addToCart } from "@/services/apiCart";
 import { cancelOrder, createOrder } from "@/services/apiOrder";
 import { useCartStore } from "@/store/useCartStore";
 import { useToastStore } from "@/store/useToastStore";
-import { createTestQueryClient, createWrapper } from "@/test/utils";
+import { axiosError, createTestQueryClient, createWrapper } from "@/test/utils";
 import { useCancelOrder, useCreateOrder } from "./useOrders";
 import { useReorder } from "./useReorder";
 
@@ -89,7 +89,12 @@ describe("useReorder", () => {
     _id: "o1",
     restaurant: "r1",
     items: [
-      { menuItem: { _id: "m1", name: "Pizza" }, name: "Pizza", quantity: 2 },
+      {
+        menuItem: { _id: "m1", name: "Pizza" },
+        name: "Pizza",
+        quantity: 2,
+        options: [{ groupId: "g1", groupName: "Size", optionId: "o1", name: "Large", priceDelta: 2 }],
+      },
       { menuItem: "m2", name: "Cola" },
       { menuItem: null },
     ],
@@ -105,14 +110,16 @@ describe("useReorder", () => {
     await reorderAndSettle(result, pastOrder);
     await waitFor(() => expect(router.push).toHaveBeenCalledWith("/(customer)/checkout"));
     expect(addToCart.mock.calls).toEqual([
-      ["m1", 2],
-      ["m2", 1],
+      ["m1", 2, undefined, ["o1"]],
+      ["m2", 1, undefined, []],
     ]);
     expect(fetchCart).toHaveBeenCalled();
   });
 
   it("names the dishes it could not add", async () => {
-    addToCart.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error("gone"));
+    addToCart
+      .mockResolvedValueOnce({})
+      .mockRejectedValueOnce(axiosError(400, { code: "OPTION_UNAVAILABLE", message: "Option sold out" }));
     const { result } = await render(() => useReorder());
     await reorderAndSettle(result, pastOrder);
     await waitFor(() => expect(useToastStore.getState().toasts).toHaveLength(1));

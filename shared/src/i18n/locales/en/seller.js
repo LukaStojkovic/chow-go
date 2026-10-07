@@ -159,6 +159,26 @@ export default {
     emptyFiltered: "No {{status}} orders found",
   },
 
+  menuOptions: {
+    title: "Options",
+    hint: "Sizes, extras and removals. Customers pick these when they add the dish.",
+    empty: "No options yet. Add a group for sizes, extras or removals.",
+    addGroup: "Add option group",
+    groupName: "Group name",
+    groupNamePlaceholder: "e.g. Size",
+    minSelect: "Pick at least",
+    maxSelect: "Pick at most",
+    addOption: "Add option",
+    optionName: "Option",
+    optionNamePlaceholder: "e.g. Large",
+    priceDelta: "Extra price",
+    available: "Available",
+    removeGroup: "Remove group",
+    removeOption: "Remove option",
+    moveUp: "Move group up",
+    moveDown: "Move group down",
+  },
+
   menu: {
     title: "Menu",
     subtitle: "What customers can order from you.",
@@ -376,7 +396,12 @@ export default {
       zip: "Postcode",
       state: "State / Region",
       country: "Country",
-      pinHint: "Drag the pin to where couriers collect from.",
+      pinHeading: "Pin on the map",
+      pinHint: "Tap the map where couriers collect orders.",
+      checkPin: "You changed the address. Check the pin still marks your door: couriers and delivery distances use the pin, not the text.",
+      movePin: "Move pin",
+      savePin: "Save location",
+      pinSaved: "Location updated",
     },
 
     hours: {

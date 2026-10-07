@@ -16,6 +16,7 @@
     "./i18n/config": "./src/i18n/config.js",
     "./i18n/fieldErrors": "./src/i18n/fieldErrors.js",
     "./menuItemSchema": "./src/menuItemSchema.js",
+    "./menuOptions": "./src/menuOptions.js",
     "./money": "./src/money.js",
     "./promoCode": "./src/promoCode.js",
     "./promotion": "./src/promotion.js",

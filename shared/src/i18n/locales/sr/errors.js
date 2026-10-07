@@ -147,12 +147,28 @@ export default {
     imageRequired: "Potrebna je bar jedna slika",
   },
 
+  menuOption: {
+    invalid: "Nismo uspeli da pročitamo opcije jela",
+    groupName: "Grupa opcija {{group}} mora imati naziv do 60 znakova",
+    groupEmpty: "Grupa opcija {{group}} mora imati bar jednu opciju",
+    groupRange: "Proverite koliko opcija može da se izabere u grupi {{group}}",
+    name: "Svaka opcija u grupi {{group}} mora imati naziv do 60 znakova",
+    price: "Doplate u grupi {{group}} moraju biti između 0 i 100000",
+    tooManyGroups: "Jelo može imati najviše {{max}} grupa opcija",
+    tooManyOptions: "Grupa opcija {{group}} može imati najviše {{max}} opcija",
+    required: "Izaberite opciju za: {{group}}",
+    tooMany: "Izaberite najviše {{max}} za: {{group}}",
+    unavailable: "{{option}} više nije dostupno",
+    unknown: "Jedna od izabranih opcija više nije na meniju",
+  },
+
   restaurant: {
     notFound: "Taj restoran nije pronađen",
     invalidEmail: "Ta imejl adresa nije ispravna",
     invalidId: "Taj identifikator restorana nije ispravan",
     statsUnauthorized: "Ne možete videti statistiku ovog restorana",
     unauthorized: "Nemate pristup ovom restoranu",
+    locationInvalid: "Ta lokacija na mapi nije ispravna. Postavite oznaku ponovo.",
   },
 
   promotion: {
@@ -227,6 +243,12 @@ export default {
   },
 
   byCode: {
+    LOCATION_INVALID: "Ta lokacija na mapi nije ispravna",
+    OPTION_REQUIRED: "Izaberite obavezne opcije za ovo jelo",
+    OPTION_TOO_MANY: "Izabrali ste previše opcija za ovo jelo",
+    OPTION_UNAVAILABLE: "Jedna od izabranih opcija više nije dostupna",
+    OPTION_UNKNOWN: "Jedna od izabranih opcija više nije na meniju",
+    OPTION_GROUPS_INVALID: "Proverite opcije jela",
     ACCOUNT_SUSPENDED: "Ovaj nalog je suspendovan",
     GOOGLE_LINK_EXPIRED: "Veza je istekla. Pokušajte ponovo.",
     GOOGLE_ALREADY_LINKED: "Ovaj nalog je već povezan sa Google nalogom.",

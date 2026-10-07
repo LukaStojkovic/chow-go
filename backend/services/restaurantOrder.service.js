@@ -1,6 +1,7 @@
 import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
+import { estimatedDeliveryAt } from "../utils/deliveryEta.js";
 import * as orderStatus from "../utils/orderStatus.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
@@ -146,6 +147,9 @@ export async function confirmOrderOperation(
   estimatedPreparationTime,
 ) {
   const prepTime = Number(estimatedPreparationTime) > 0 ? Number(estimatedPreparationTime) : 30;
+  const pricing = await Order.findOne({ _id: orderId, restaurant: restaurantId })
+    .select("priorityFee")
+    .lean();
 
   const order = await transition({
     orderId,
@@ -155,7 +159,7 @@ export async function confirmOrderOperation(
       status: "confirmed",
       confirmedAt: new Date(),
       estimatedPreparationTime: prepTime,
-      estimatedDeliveryTime: new Date(Date.now() + prepTime * 60 * 1000 + 30 * 60 * 1000),
+      estimatedDeliveryTime: estimatedDeliveryAt(prepTime, pricing?.priorityFee > 0),
     },
     conflictMessage: "That order is no longer pending",
   });

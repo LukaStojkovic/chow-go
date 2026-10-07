@@ -113,7 +113,9 @@ export function CourierOrderDetailSheet({
               />
               <CourierOrderEarnings
                 deliveryFee={order.deliveryFee}
+                priorityFee={order.priorityFee}
                 tip={order.tip}
+                currency={order.currency}
               />
               <CourierOrderItems items={order.items} total={order.total} currency={order.currency} />
               <CourierOrderNotes

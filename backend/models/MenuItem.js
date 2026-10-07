@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { moneySetter } from "../utils/money.js";
+import { OPTION_LIMITS } from "../utils/menuOptions.js";
 import {
   MAX_PERCENTAGE_OFF,
   MAX_PROMOTION_LABEL,
@@ -33,6 +34,24 @@ promotionSchema.path("value").validate(function (value) {
   return value <= MAX_PERCENTAGE_OFF;
 }, `A percentage promotion cannot exceed ${MAX_PERCENTAGE_OFF}%`);
 
+// The schema guards shapes; utils/menuOptions.js (the shared rules) owns what
+// a pick range means.
+const menuOptionSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: OPTION_LIMITS.nameLength },
+  priceDelta: { type: Number, default: 0, min: 0, max: OPTION_LIMITS.maxPriceDelta, set: moneySetter },
+  available: { type: Boolean, default: true },
+});
+
+const optionGroupSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: OPTION_LIMITS.nameLength },
+  minSelect: { type: Number, default: 0, min: 0 },
+  maxSelect: { type: Number, default: 1, min: 1 },
+  options: {
+    type: [menuOptionSchema],
+    validate: [(list) => list.length > 0 && list.length <= OPTION_LIMITS.optionsPerGroup, "Invalid option count"],
+  },
+});
+
 const menuItemSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, maxlength: 120 },
@@ -43,6 +62,12 @@ const menuItemSchema = new mongoose.Schema(
     available: { type: Boolean, default: true },
 
     promotion: { type: promotionSchema, default: () => ({}) },
+
+    optionGroups: {
+      type: [optionGroupSchema],
+      default: [],
+      validate: [(list) => list.length <= OPTION_LIMITS.groups, "Too many option groups"],
+    },
 
     restaurant: {
       type: mongoose.Schema.Types.ObjectId,

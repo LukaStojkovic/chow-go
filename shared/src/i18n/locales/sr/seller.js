@@ -159,6 +159,26 @@ export default {
     emptyFiltered: "Nema porudžbina sa statusom {{status}}",
   },
 
+  menuOptions: {
+    title: "Opcije",
+    hint: "Veličine, dodaci i izostavljanja. Kupci ih biraju kada dodaju jelo.",
+    empty: "Još nema opcija. Dodajte grupu za veličine, dodatke ili izostavljanja.",
+    addGroup: "Dodaj grupu opcija",
+    groupName: "Naziv grupe",
+    groupNamePlaceholder: "npr. Veličina",
+    minSelect: "Najmanje",
+    maxSelect: "Najviše",
+    addOption: "Dodaj opciju",
+    optionName: "Opcija",
+    optionNamePlaceholder: "npr. Velika",
+    priceDelta: "Doplata",
+    available: "Dostupno",
+    removeGroup: "Ukloni grupu",
+    removeOption: "Ukloni opciju",
+    moveUp: "Pomeri grupu gore",
+    moveDown: "Pomeri grupu dole",
+  },
+
   menu: {
     title: "Meni",
     subtitle: "Šta kupci mogu da poruče od vas.",
@@ -377,7 +397,12 @@ export default {
       zip: "Poštanski broj",
       state: "Okrug / Pokrajina",
       country: "Država",
-      pinHint: "Prevucite oznaku na mesto odakle kuriri preuzimaju.",
+      pinHeading: "Oznaka na mapi",
+      pinHint: "Dodirnite mapu na mestu odakle kuriri preuzimaju porudžbine.",
+      checkPin: "Promenili ste adresu. Proverite da oznaka i dalje stoji na vašim vratima: kuriri i udaljenost dostave koriste oznaku, ne tekst.",
+      movePin: "Pomeri oznaku",
+      savePin: "Sačuvaj lokaciju",
+      pinSaved: "Lokacija je ažurirana",
     },
 
     hours: {

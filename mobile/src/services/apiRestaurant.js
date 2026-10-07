@@ -24,7 +24,7 @@ export async function getMenuItem(restaurantId, menuItemId) {
   return data.data;
 }
 
-function menuItemFields({ name, category, price, available, description, promotion = {} }) {
+function menuItemFields({ name, category, price, available, description, promotion = {}, optionGroups }) {
   const fields = {
     name,
     category,
@@ -34,6 +34,7 @@ function menuItemFields({ name, category, price, available, description, promoti
   };
 
   if (description) fields.description = description;
+  if (Array.isArray(optionGroups)) fields.optionGroups = JSON.stringify(optionGroups);
 
   if (promotion.isActive) {
     fields["promotion[type]"] = promotion.type || "percentage";
@@ -77,7 +78,7 @@ export async function getOwnRestaurant(restaurantId) {
  * Partial update. Every field is optional server-side and the schedule merges
  * day by day, so an autosave can send only what changed without wiping the rest.
  */
-export async function updateRestaurant({ profilePicture, schedule, address, ...fields }) {
+export async function updateRestaurant({ profilePicture, schedule, address, location, ...fields }) {
   const flat = { ...fields };
 
   // multer's append-field rebuilds schedule[monday][isOpen] into a real object;
@@ -89,6 +90,10 @@ export async function updateRestaurant({ profilePicture, schedule, address, ...f
   }
   for (const [key, value] of Object.entries(address ?? {})) {
     flat[`address[${key}]`] = String(value);
+  }
+  if (location) {
+    flat["location[lat]"] = String(location.lat);
+    flat["location[lng]"] = String(location.lng);
   }
 
   const form = toFormData(flat, profilePicture ? { profilePicture: [profilePicture] } : {});

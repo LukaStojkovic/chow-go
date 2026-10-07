@@ -93,7 +93,9 @@ export default function IncomingOrder() {
           </Text>
 
           <Text variant="body-lg" tone="inverse" className="opacity-85">
-            {order ? `#${order.number} · ${order.itemCount} items` : "Loading…"}
+            {order
+              ? `#${order.number} · ${t("common:count.items", { count: order.itemCount })}`
+              : t("common:state.loading")}
           </Text>
         </View>
       </LinearGradient>
@@ -112,9 +114,16 @@ export default function IncomingOrder() {
                     {line.quantity}×
                   </Text>
                 </View>
-                <Text variant="body-lg" className="flex-1" numberOfLines={2}>
-                  {line.name}
-                </Text>
+                <View className="flex-1">
+                  <Text variant="body-lg" numberOfLines={2}>
+                    {line.name}
+                  </Text>
+                  {line.optionsLabel ? (
+                    <Text variant="body-sm" tone="muted">
+                      {line.optionsLabel}
+                    </Text>
+                  ) : null}
+                </View>
                 <Text variant="price">{formatPrice(line.lineTotal)}</Text>
               </View>
             </View>
@@ -175,7 +184,7 @@ export default function IncomingOrder() {
             {PREP_TIMES.map((minutes) => (
               <Chip
                 key={minutes}
-                label={`${minutes} min`}
+                label={t("common:units.minutes", { value: minutes })}
                 active={prepTime === minutes}
                 onPress={() => setPrepTime(minutes)}
                 className="flex-1 justify-center"

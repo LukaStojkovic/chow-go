@@ -46,6 +46,21 @@ export default {
     countDishes_other: "{{count}} jela",
   },
 
+  summary: {
+    dealsNearYou_one: "{{count}} jelo na akciji u blizini",
+    dealsNearYou_few: "{{count}} jela na akciji u blizini",
+    dealsNearYou_other: "{{count}} jela na akciji u blizini",
+    matchingDishes_one: "{{count}} odgovarajuće jelo",
+    matchingDishes_few: "{{count}} odgovarajuća jela",
+    matchingDishes_other: "{{count}} odgovarajućih jela",
+    placesMatch_one: "{{count}} mesto odgovara",
+    placesMatch_few: "{{count}} mesta odgovaraju",
+    placesMatch_other: "{{count}} mesta odgovara",
+    favourites_one: "{{count}} restoran kojem se vraćate",
+    favourites_few: "{{count}} restorana kojima se vraćate",
+    favourites_other: "{{count}} restorana kojima se vraćate",
+  },
+
   feed: {
     allTitle: "Sva jela u vašoj blizini",
     allDishes: "Sva jela",
@@ -66,7 +81,6 @@ export default {
     openNow: "Otvoreno sada",
     liveNow: "Aktivno sada",
     browseDeals: "Pogledaj ponude",
-    freeDelivery: "Besplatna dostava",
     sortBy: "Sortiraj po",
     clearAll: "Poništi filtere",
     clear_one: "Poništi {{count}} filter",

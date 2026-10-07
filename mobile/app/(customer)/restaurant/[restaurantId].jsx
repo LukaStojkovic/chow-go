@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Heart, Info, UtensilsCrossed } from "lucide-react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { toDishViews } from "@chowgo/shared/adapters/menu";
+import { menuCategoryLabel, toDishViews } from "@chowgo/shared/adapters/menu";
 import { toRestaurantView, unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
@@ -45,11 +45,11 @@ export default function RestaurantPage() {
     () =>
       (menu.data ?? [])
         .map((group) => ({
-          title: group.category ?? group._id ?? "Menu",
+          title: menuCategoryLabel(group.category ?? group._id),
           data: toDishViews(group.items ?? []),
         }))
         .filter((section) => section.data.length > 0),
-    [menu.data],
+    [menu.data, t],
   );
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -131,7 +131,7 @@ export default function RestaurantPage() {
                 {section.title}
               </Text>
               <Text variant="label-sm" tone="muted">
-                {section.data.length} {section.data.length === 1 ? "dish" : "dishes"}
+                {t("common:count.dishes", { count: section.data.length })}
               </Text>
             </View>
           )}

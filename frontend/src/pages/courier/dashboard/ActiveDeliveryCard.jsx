@@ -67,7 +67,7 @@ export function ActiveDeliveryCard({
               <div className="relative mb-6">
                 <div className="absolute -left-6 top-1 h-3 w-3 rounded-full border-2 border-primary bg-card " />
                 <h4 className="font-semibold text-foreground ">
-                  {activeOrder?.restaurant?.name ?? "Restaurant"}
+                  {activeOrder?.restaurant?.name ?? t("common:fallback.restaurant")}
                 </h4>
                 <p className="text-sm text-muted-foreground ">
                   {activeOrder?.restaurant?.address

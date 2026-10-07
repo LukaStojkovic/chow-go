@@ -70,7 +70,7 @@ export function ParallaxHero({ restaurant, scrollY }) {
               ·
             </Text>
             <Text variant="label-sm" tone="muted">
-              {formatFee(restaurant.deliveryFee)} delivery
+              {t("common:units.deliveryFee", { fee: formatFee(restaurant.deliveryFee) })}
             </Text>
           </View>
         ) : null}
@@ -97,7 +97,10 @@ export function ParallaxHero({ restaurant, scrollY }) {
               <Text variant="label-sm">{formatRating(restaurant.rating)}</Text>
               {restaurant.reviewCount ? (
                 <Text variant="label-sm" tone="muted" numberOfLines={1}>
-                  {formatReviewCount(restaurant.reviewCount)} reviews
+                  {t("common:count.reviews", {
+                    count: restaurant.reviewCount,
+                    value: formatReviewCount(restaurant.reviewCount),
+                  })}
                 </Text>
               ) : null}
             </View>
@@ -110,7 +113,7 @@ export function ParallaxHero({ restaurant, scrollY }) {
                   : t("restaurant:availability.openNow")}
             </Badge>
 
-            {distance ? <Badge tone="neutral" icon={MapPin}>{`${distance} away`}</Badge> : null}
+            {distance ? <Badge tone="neutral" icon={MapPin}>{t("common:units.away", { distance })}</Badge> : null}
           </View>
         ) : null}
       </View>

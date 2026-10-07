@@ -23,7 +23,11 @@ const pastOrder = {
   _id: "o1",
   restaurant: { _id: "r1" },
   items: [
-    { menuItem: { _id: "m1" }, quantity: 2 },
+    {
+      menuItem: { _id: "m1" },
+      quantity: 2,
+      options: [{ groupId: "g1", optionId: "o-large", name: "Large", priceDelta: 2 }],
+    },
     { menuItem: "m2" },
     { menuItem: null, quantity: 1 },
   ],
@@ -46,8 +50,8 @@ describe("useReorder", () => {
     await act(() => result.current.reorder(pastOrder));
 
     expect(addToCart.mock.calls).toEqual([
-      ["m1", 2],
-      ["m2", 1],
+      ["m1", 2, undefined, ["o-large"]],
+      ["m2", 1, undefined, []],
     ]);
     expect(fetchCart).toHaveBeenCalledOnce();
     expect(toast.success).toHaveBeenCalled();
@@ -57,6 +61,16 @@ describe("useReorder", () => {
 
   it("reports dishes that are no longer available", async () => {
     addToCart.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error("unavailable"));
+    const { result } = renderReorder();
+    await act(() => result.current.reorder(pastOrder));
+    expect(toast.warning).toHaveBeenCalledOnce();
+    expect(navigate).toHaveBeenCalledWith("/checkout");
+  });
+
+  it("counts a refused option as a dish that could not be re-added", async () => {
+    addToCart
+      .mockRejectedValueOnce(Object.assign(new Error("Large is sold out"), { code: "OPTION_UNAVAILABLE" }))
+      .mockResolvedValueOnce({});
     const { result } = renderReorder();
     await act(() => result.current.reorder(pastOrder));
     expect(toast.warning).toHaveBeenCalledOnce();

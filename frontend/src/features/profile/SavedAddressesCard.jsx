@@ -120,7 +120,7 @@ export function SavedAddressesCard() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-label truncate">
-                    {titleCase(address.label) || "Address"}
+                    {titleCase(address.label) || t("common:fallback.address")}
                   </span>
                   {address.isDefault && (
                     <Badge variant="primary">{t("address.isDefault")}</Badge>

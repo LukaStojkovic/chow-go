@@ -75,7 +75,7 @@ export function CourierDeliveryPanel({ order, onDelivered }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-lg font-bold text-foreground ">
-              {order.restaurant?.name ?? "Restaurant"}
+              {order.restaurant?.name ?? t("common:fallback.restaurant")}
             </p>
             <p className="text-sm text-muted-foreground ">
               {t("order:detail.numbered", { number: shortNum })}

@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:pagination`, `check:search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:pagination`, `check:search`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -200,6 +200,15 @@ The resolved price is computed server-side everywhere it matters: the discover f
 Deleting a dish is a soft delete: `deleteMenuItemById` sets `MenuItem.deletedAt` and `available: false`, pulls it from every cart, and keeps its images so past orders still show it. Customer-facing reads are covered by their existing `available: true` filter; anything that can see unavailable dishes (the seller's list, update, delete, `addToCart`) must also filter `deletedAt: null`. Order populates and stats deliberately still resolve deleted dishes.
 
 `GET /api/discover/promotions?lat&lon` returns `{ deals, newRestaurants }` and backs the two discovery rails. There is no "free delivery" promotion: delivery fees are a flat platform charge with no per-restaurant field, so the card would advertise something checkout could not honour.
+
+## Dish options
+
+`MenuItem.optionGroups` holds sizes, extras and removals: each group has `minSelect`/`maxSelect` (min 0 = optional, max 1 = pick one) and up to 20 `options` with a `priceDelta` and an `available` switch. `@chowgo/shared/menuOptions` is the single source of truth, used unchanged by `backend/utils/menuOptions.js`: `normalizeOptionGroups` validates seller input (an array, or the JSON string a multipart form sends as `optionGroups`; omitting the field on update keeps the groups, `"[]"` clears them), and `resolveOptionSelection` checks and prices a customer's picks (`OPTION_REQUIRED` / `OPTION_TOO_MANY` / `OPTION_UNAVAILABLE` / `OPTION_UNKNOWN`, all 400).
+
+- **A basket line is a dish plus a set of options.** `Cart.items.lineId` is `basketLineId(dishId, optionIds)` - the bare dish id when nothing was chosen, so carts and clients from before options keep working - and `PATCH`/`DELETE /api/cart/items/:lineId` address it (URL-encode it, it contains `~`). Lines without a `lineId` fall back to the dish id (`cartPricing.service.js#lineIdOf`).
+- **Price.** A line's `price` is one portion including its options. Promotions discount the dish, never the extras (`linePricing`), and `basePrice` is the undiscounted dish plus the same options.
+- **Repricing** re-resolves every line's options against the current menu: a changed `priceDelta` is a `PRICE_CHANGED` like any other, and a removed or sold-out option, or a new required group, makes the line `ITEM_UNAVAILABLE`. Keep option `_id`s when editing a dish, or every basket holding it goes unavailable.
+- **Orders copy the chosen options** (`Order.items.options`, schema in `models/lineOption.js`), so a past order reads the same after the seller renames or deletes them. `check:menu-options` covers all of the above end to end.
 
 ## Promo codes and vouchers
 

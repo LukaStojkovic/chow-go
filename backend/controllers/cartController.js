@@ -1,8 +1,8 @@
 import Cart from "../models/Cart.js";
 import MenuItem from "../models/MenuItem.js";
 import { AppError } from "../utils/AppError.js";
-import { effectivePrice } from "../utils/promotion.js";
-import { repriceCartLines } from "../services/cartPricing.service.js";
+import { linePricing, lineIdOf, repriceCartLines } from "../services/cartPricing.service.js";
+import { basketLineId, resolveSelectionOrThrow } from "../utils/menuOptions.js";
 
 export const MAX_LINE_QUANTITY = 50;
 
@@ -46,7 +46,7 @@ export async function getCart(req, res, next) {
 }
 
 export async function addToCart(req, res, next) {
-  const { menuItemId, specialInstructions } = req.body;
+  const { menuItemId, specialInstructions, options } = req.body;
   const quantity = parseQuantity(req.body.quantity ?? 1, { min: 1 });
 
   if (!menuItemId) {
@@ -64,6 +64,18 @@ export async function addToCart(req, res, next) {
       new AppError("errors:order.itemUnavailable", 400, "ITEM_UNAVAILABLE", { name: menuItem.name }),
     );
   }
+
+  if (options !== undefined && !Array.isArray(options)) {
+    return next(new AppError("errors:menuOption.unknown", 400, "OPTION_UNKNOWN"));
+  }
+  const selection = resolveSelectionOrThrow(menuItem.optionGroups, options);
+  const lineId = basketLineId(
+    String(menuItem._id),
+    selection.selections.map((pick) => pick.optionId),
+  );
+  // Priced from the menu item, never from the client. getCart and checkout
+  // bring it back to the current price if the menu changes afterwards.
+  const { price, basePrice } = linePricing(menuItem, selection.priceDelta);
 
   let cart = await Cart.findOne({ user: req.user.id });
 
@@ -92,31 +104,26 @@ export async function addToCart(req, res, next) {
     });
   }
 
-  const existingItem = cart.items.find(
-    (item) => item.menuItem.toString() === menuItemId
-  );
+  const existingItem = cart.items.find((item) => lineIdOf(item) === lineId);
 
   if (existingItem) {
     if (existingItem.quantity + quantity > MAX_LINE_QUANTITY) return next(quantityError());
     existingItem.quantity += quantity;
-    const unitPrice = effectivePrice(menuItem.price, menuItem.promotion);
-    existingItem.price = unitPrice;
-    existingItem.basePrice = unitPrice < menuItem.price ? menuItem.price : undefined;
+    existingItem.price = price;
+    existingItem.basePrice = basePrice;
     // A note supplied on a later add replaces the line's note; sending none
     // leaves whatever was already there untouched.
     if (specialInstructions !== undefined) {
       existingItem.specialInstructions = specialInstructions;
     }
   } else {
-    // Priced from the menu item, never from the client. getCart and checkout
-    // bring it back to the current price if the menu changes afterwards.
-    const unitPrice = effectivePrice(menuItem.price, menuItem.promotion);
-
     cart.items.push({
+      lineId,
+      options: selection.selections.length > 0 ? selection.selections : undefined,
       menuItem: menuItem._id,
       name: menuItem.name,
-      price: unitPrice,
-      basePrice: unitPrice < menuItem.price ? menuItem.price : undefined,
+      price,
+      basePrice,
       quantity,
       specialInstructions,
     });
@@ -132,7 +139,7 @@ export async function addToCart(req, res, next) {
 }
 
 export const removeItemFromCart = async (req, res, next) => {
-  const { menuItemId } = req.params;
+  const { lineId } = req.params;
 
   const cart = await Cart.findOne({ user: req.user.id });
 
@@ -140,9 +147,7 @@ export const removeItemFromCart = async (req, res, next) => {
     return next(new AppError("Cart not found", 404));
   }
 
-  cart.items = cart.items.filter(
-    (item) => item.menuItem.toString() !== menuItemId
-  );
+  cart.items = cart.items.filter((item) => lineIdOf(item) !== lineId);
 
   await cart.save();
 
@@ -171,7 +176,7 @@ export const clearCart = async (req, res, next) => {
 };
 
 export const updateCartItemQuantity = async (req, res, next) => {
-  const { menuItemId } = req.params;
+  const { lineId } = req.params;
   const { specialInstructions } = req.body;
   const quantity = parseQuantity(req.body.quantity, { min: 0 });
 
@@ -183,18 +188,14 @@ export const updateCartItemQuantity = async (req, res, next) => {
     return next(new AppError("Cart not found", 404));
   }
 
-  const item = cart.items.find(
-    (item) => item.menuItem.toString() === menuItemId
-  );
+  const item = cart.items.find((line) => lineIdOf(line) === lineId);
 
   if (!item) {
     return next(new AppError("Item not found in cart", 404));
   }
 
   if (quantity === 0) {
-    cart.items = cart.items.filter(
-      (item) => item.menuItem.toString() !== menuItemId
-    );
+    cart.items = cart.items.filter((line) => lineIdOf(line) !== lineId);
   } else {
     item.quantity = quantity;
     if (specialInstructions !== undefined) {

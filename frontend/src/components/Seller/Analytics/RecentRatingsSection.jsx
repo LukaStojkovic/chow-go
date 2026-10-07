@@ -23,7 +23,7 @@ export const RecentRatingsSection = ({ ratings }) => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium ">
-                  {order.customer?.name || "Customer"}
+                  {order.customer?.name || t("common:fallback.customer")}
                 </span>
 
                 <div className="flex">

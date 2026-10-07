@@ -36,8 +36,8 @@ export function CourierActiveDeliveryMap({
     : deliveryCoords;
 
   const destinationLabel = headingToRestaurant
-    ? (order.restaurant?.name ?? "Restaurant")
-    : (order.deliveryAddressSnapshot?.fullAddress ?? "Customer");
+    ? (order.restaurant?.name ?? t("common:fallback.restaurant"))
+    : (order.deliveryAddressSnapshot?.fullAddress ?? t("common:fallback.customer"));
 
   const routeFrom =
     courierCoords ?? (headingToRestaurant ? null : restaurantCoords);

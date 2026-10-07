@@ -20,7 +20,7 @@ export function CourierOrderPayment({ paymentMethod }) {
         variant={paymentMethod === "cash" ? "outline" : "secondary"}
         className="capitalize font-medium"
       >
-        {PAYMENT_LABELS[paymentMethod] ?? paymentMethod}
+        {PAYMENT_LABELS[paymentMethod] ? t(PAYMENT_LABELS[paymentMethod]) : paymentMethod}
       </Badge>
     </div>
   );

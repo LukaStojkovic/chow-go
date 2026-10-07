@@ -80,7 +80,7 @@ export function QuantityStepper({
 
       <output
         aria-live="polite"
-        aria-label={`${itemName} quantity`}
+        aria-label={t("common:a11y.quantityOf", { name: itemName })}
         className={cn(
           "tabular text-foreground min-w-8 text-center font-semibold",
           size === "sm" ? "text-body-sm" : "text-body",

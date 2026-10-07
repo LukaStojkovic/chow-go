@@ -169,7 +169,7 @@ export default function Checkout() {
               {addresses.data.map((entry) => (
                 <OptionRow
                   key={entry._id}
-                  label={entry.label ?? "Address"}
+                  label={entry.label ?? t("common:fallback.address")}
                   description={entry.fullAddress}
                   selected={addressId === entry._id}
                   onPress={() => setAddressId(entry._id)}

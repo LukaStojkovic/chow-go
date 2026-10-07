@@ -12,7 +12,8 @@ import { Link } from "react-router-dom";
 import { ChevronRight, RotateCcw } from "lucide-react";
 
 import { listItem } from "@/lib/motion";
-import { formatOrderDate, formatPrice } from "@chowgo/shared/format";
+import { estimateArrival } from "@chowgo/shared/adapters/order";
+import { formatOrderDate, formatPrice, formatTime } from "@chowgo/shared/format";
 import { Avatar } from "@/components/common/SmartImage";
 import { OrderStatusBadge } from "@/components/common/StatusBadges";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
   const summary = order.items
     .map((line) => `${line.quantity}x ${line.name}`)
     .join(", ");
+  const eta = estimateArrival(order);
 
   return (
     <motion.li variants={listItem}>
@@ -37,7 +39,7 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
         <div className="flex items-start gap-3 p-4">
           <Avatar
             src={order.restaurant?.logo}
-            name={order.restaurant?.name || "Restaurant"}
+            name={order.restaurant?.name || t("common:fallback.restaurant")}
           />
 
           <div className="min-w-0 flex-1">
@@ -47,7 +49,7 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
                   to={`/orders/${order.id}`}
                   className="truncate outline-none after:absolute after:inset-0 after:content-[''] focus-visible:underline"
                 >
-                  {order.restaurant?.name || "Restaurant"}
+                  {order.restaurant?.name || t("common:fallback.restaurant")}
                 </Link>
               </h3>
               <ChevronRight
@@ -62,8 +64,13 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
               {formatOrderDate(order.placedAt)}
             </p>
 
-            <div className="mt-2">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <OrderStatusBadge status={order.status} />
+              {eta && !eta.isLate && (
+                <span className="text-label text-muted-foreground tabular">
+                  {t("order:eta.around", { time: formatTime(eta.at) })}
+                </span>
+              )}
             </div>
 
             <p className="text-body-sm text-muted-foreground mt-2 line-clamp-2">

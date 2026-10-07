@@ -30,6 +30,22 @@ export default {
     overnight: "Runs into the next morning",
   },
 
+  options: {
+    rule: {
+      optional_one: "Optional",
+      optional_other: "Optional, up to {{count}}",
+      exactly_one: "Choose {{count}}",
+      exactly_other: "Choose {{count}}",
+      range: "Choose {{min}}-{{max}}",
+    },
+    required: "Required",
+    priceDelta: "+{{price}}",
+    soldOut: "Sold out",
+    pickRequired: "Pick an option for {{group}}",
+    pickAtMost: "Pick at most {{max}} for {{group}}",
+    customise: "Choose options",
+  },
+
   menu: {
     heading: "Menu",
     untitledDish: "Menu item",

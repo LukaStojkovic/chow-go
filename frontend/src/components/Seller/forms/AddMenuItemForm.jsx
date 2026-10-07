@@ -21,6 +21,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Spinner from "@/components/Spinner";
 import { MenuItemImageUploader } from "./MenuItemImageUploader";
 import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
+import { MenuItemOptionGroupsEditor } from "./MenuItemOptionGroupsEditor";
+import { validateOptionGroups } from "./optionGroupsForm";
 
 // The local list used to offer "burger", "salad" and "japanese" - values no
 // `MenuItem.category` filter on the customer side matches, so a dish filed
@@ -33,6 +35,8 @@ export const AddMenuItemForm = ({ onClose }) => {
   const categories = useMemo(() => categoryOptions(t), [i18n.language]);
 
   const [previews, setPreviews] = useState([]);
+  const [optionGroups, setOptionGroups] = useState([]);
+  const [optionsError, setOptionsError] = useState(null);
   const { createMenuItem, isCreating } = useCreateMenuItem();
   const { authUser } = useAuthStore();
   const restaurantId =
@@ -60,9 +64,14 @@ export const AddMenuItemForm = ({ onClose }) => {
   const images = watch("images") || [];
 
   const onSubmit = (data) => {
+    const options = validateOptionGroups(optionGroups, t);
+    if (options.error) {
+      setOptionsError(options.error);
+      return;
+    }
     if (restaurantId) {
       createMenuItem(
-        { restaurantId, menuItemData: data },
+        { restaurantId, menuItemData: { ...data, optionGroups: options.groups } },
         { onSuccess: onClose },
       );
     }
@@ -157,6 +166,15 @@ export const AddMenuItemForm = ({ onClose }) => {
         watch={watch}
         setValue={setValue}
         errors={errors}
+      />
+
+      <MenuItemOptionGroupsEditor
+        value={optionGroups}
+        onChange={(next) => {
+          setOptionGroups(next);
+          setOptionsError(null);
+        }}
+        error={optionsError}
       />
 
       <MenuItemImageUploader

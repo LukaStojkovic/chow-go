@@ -54,6 +54,7 @@ import { ReplaceBasketDialog } from "@/components/basket/ReplaceBasketDialog";
 import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
 import { OrderRating } from "@/features/orders/OrderRating";
 import { OrderTrackingLiveMap } from "@/components/OrderTracking/OrderTrackingLiveMap";
+import { ArrivalEstimate } from "@/components/OrderTracking/ArrivalEstimate";
 
 /** A labelled block of order metadata. */
 function InfoCard({ icon: Icon, title, children, action }) {
@@ -79,6 +80,7 @@ export default function OrderTrackingPage() {
   const { reorder, isReordering, conflict, confirmReplace, cancelReplace } = useReorder();
   const { socket, isConnected } = useSocket();
   const [showSupport, setShowSupport] = useState(false);
+  const [routeSeconds, setRouteSeconds] = useState(null);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -164,7 +166,7 @@ export default function OrderTrackingPage() {
                       {t("detail.numbered", { number: order.number })}
                     </h1>
                     <p className="text-body-sm text-muted-foreground mt-0.5">
-                      Placed {formatOrderDate(order.placedAt)}
+                      {t("order:detail.placedAt", { value: formatOrderDate(order.placedAt) })}
                     </p>
                   </div>
                   <OrderStatusBadge status={order.status} size="lg" />
@@ -187,11 +189,14 @@ export default function OrderTrackingPage() {
                     </div>
                   </div>
                 ) : (
-                  <OrderStatusTimeline order={order} />
+                  <>
+                    <ArrivalEstimate order={order} routeSeconds={routeSeconds} />
+                    <OrderStatusTimeline order={order} />
+                  </>
                 )}
               </Card>
 
-              {!isCancelled && <OrderTrackingLiveMap orderId={orderId} order={raw} />}
+              {!isCancelled && <OrderTrackingLiveMap orderId={orderId} order={raw} onRouteSeconds={setRouteSeconds} />}
 
               {order.courier && (
                 <InfoCard
@@ -230,7 +235,7 @@ export default function OrderTrackingPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 <InfoCard
                   icon={Store}
-                  title={t("common:taxonomy.cuisine.fallback")}
+                  title={t("common:fallback.restaurant")}
                   action={
                     order.restaurant?.id ? (
                       <Button variant="link" size="sm" asChild>
@@ -244,11 +249,11 @@ export default function OrderTrackingPage() {
                   <div className="flex items-center gap-3">
                     <Avatar
                       src={order.restaurant?.logo}
-                      name={order.restaurant?.name || "Restaurant"}
+                      name={order.restaurant?.name || t("common:fallback.restaurant")}
                     />
                     <div className="min-w-0">
                       <p className="text-label truncate">
-                        {order.restaurant?.name || "Restaurant"}
+                        {order.restaurant?.name || t("common:fallback.restaurant")}
                       </p>
                       {order.restaurant?.address && (
                         <p className="text-body-sm text-muted-foreground truncate">
@@ -285,7 +290,7 @@ export default function OrderTrackingPage() {
               <Card className="overflow-hidden">
                 <div className="border-border border-b p-4">
                   <h2 className="text-h3">
-                    {order.itemCount} {order.itemCount === 1 ? "item" : "items"}
+                    {t("common:count.items", { count: order.itemCount })}
                   </h2>
                 </div>
                 <div className="max-h-80 overflow-y-auto px-4">

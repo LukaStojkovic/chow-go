@@ -151,6 +151,10 @@ export default {
     minutes_other: "{{count}} min",
     arriving: "Arriving now",
     unknown: "Being worked out",
+    around: "Around {{time}}",
+    late: "Running a little late",
+    lateHint: "We expected it around {{time}}",
+    liveHint: "Based on the courier's route",
   },
 
   list: {
@@ -339,6 +343,7 @@ export default {
     submitFailed: "Could not submit your rating",
     stars_one: "{{count}} star",
     stars_other: "{{count}} stars",
+    rateName: "Rate {{name}}",
     submitted: "Thank you for your review.",
     submitFailedShort: "Could not submit your review",
     yourReview: "Your review",

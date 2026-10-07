@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ORDER_STATUSES, statusMeta, toOrderSteps, toOrderView, toOrderViews } from "../src/adapters/order.js";
+import { ORDER_STATUSES, estimateArrival, statusMeta, toOrderSteps, toOrderView, toOrderViews } from "../src/adapters/order.js";
 
 const states = (order) => Object.fromEntries(toOrderSteps(order).map((s) => [s.id, s.state]));
 
@@ -118,5 +118,43 @@ describe("toOrderView", () => {
       toOrderView({ ...base, status: "cancelled", cancellationReason: "Changed mind", rejectionReason: "x" })
         .cancellationReason,
     ).toBe("Changed mind");
+  });
+});
+
+describe("estimateArrival", () => {
+  const now = Date.parse("2026-10-04T18:00:00Z");
+  const etaAt = "2026-10-04T18:25:00Z";
+
+  it("uses the server estimate before pickup", () => {
+    expect(estimateArrival({ status: "preparing", etaAt }, { now, routeSeconds: 120 })).toMatchObject({
+      minutes: 25,
+      isLate: false,
+      isLive: false,
+    });
+  });
+
+  it("switches to the live route once the courier has the food", () => {
+    const eta = estimateArrival({ status: "in_transit", etaAt }, { now, routeSeconds: 450 });
+    expect(eta).toMatchObject({ minutes: 8, isLive: true, isLate: false });
+    expect(eta.at.toISOString()).toBe("2026-10-04T18:07:30.000Z");
+  });
+
+  it("falls back to the server estimate when the route is unknown", () => {
+    expect(estimateArrival({ status: "picked_up", etaAt }, { now })).toMatchObject({ minutes: 25, isLive: false });
+  });
+
+  it("flags an estimate more than a minute in the past as late", () => {
+    expect(estimateArrival({ status: "ready", etaAt: "2026-10-04T17:58:00Z" }, { now })).toMatchObject({
+      minutes: 0,
+      isLate: true,
+    });
+    expect(estimateArrival({ status: "ready", etaAt: "2026-10-04T17:59:30Z" }, { now }).isLate).toBe(false);
+  });
+
+  it("has nothing to say about finished orders or a missing estimate", () => {
+    expect(estimateArrival({ status: "delivered", etaAt }, { now })).toBeNull();
+    expect(estimateArrival({ status: "cancelled", etaAt }, { now })).toBeNull();
+    expect(estimateArrival({ status: "pending", etaAt: null }, { now })).toBeNull();
+    expect(estimateArrival(null)).toBeNull();
   });
 });

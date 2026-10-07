@@ -6,6 +6,20 @@ import { normalizeCurrency } from "../currency.js";
 import { lineTotal, sumMoney } from "../money.js";
 import { t } from "../i18n/index.js";
 import { titleCase } from "../format.js";
+import { optionRuleLabel, optionsSummary } from "../menuOptions.js";
+
+/**
+ * A menu section heading. Platform categories ("Pizza") are translated; any
+ * other free-text category is shown as the seller wrote it.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+export function menuCategoryLabel(value) {
+  const label = titleCase(value);
+  if (!label) return t("restaurant:menu.otherCategory");
+  return t(`common:taxonomy.category.${label}`, { defaultValue: label });
+}
 
 /** @typedef {import("./types").DishView} DishView */
 /** @typedef {import("./types").MenuSectionView} MenuSectionView */
@@ -24,6 +38,38 @@ export function categorySlug(value) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * A dish's option groups as the item sheet shows them. Option ids are kept as
+ * `id`, which is what the cart API takes.
+ *
+ * @param {unknown} groups
+ */
+export function toOptionGroupViews(groups) {
+  if (!Array.isArray(groups)) return [];
+  return groups
+    .filter((group) => group && Array.isArray(group.options) && group.options.length > 0)
+    .map((group) => {
+      const minSelect = Number(group.minSelect) || 0;
+      const maxSelect = Number(group.maxSelect) || 1;
+      return {
+        id: String(group._id ?? group.id),
+        name: group.name || "",
+        minSelect,
+        maxSelect,
+        isRequired: minSelect > 0,
+        /** One pick at most: render as radios rather than checkboxes. */
+        isSingle: maxSelect === 1,
+        rule: optionRuleLabel({ minSelect, maxSelect }),
+        options: group.options.map((option) => ({
+          id: String(option._id ?? option.id),
+          name: option.name || "",
+          priceDelta: Number(option.priceDelta) || 0,
+          available: option.available !== false,
+        })),
+      };
+    });
 }
 
 /**
@@ -46,6 +92,7 @@ export function toDishView(raw) {
   const percentOff = Number(raw.discountPercent) || 0;
   const isDiscounted = percentOff > 0 && price < basePrice;
   const promoLabel = String(raw.promotion?.label || "").trim();
+  const optionGroups = toOptionGroupViews(raw.optionGroups);
 
   return {
     id: String(raw._id),
@@ -59,7 +106,7 @@ export function toDishView(raw) {
     /** Seller-written copy for the badge ("Weekend deal"), when they set one. */
     promoLabel: isDiscounted && promoLabel ? promoLabel : null,
     category: categorySlug(raw.category),
-    categoryLabel: titleCase(raw.category) || t("restaurant:menu.otherCategory"),
+    categoryLabel: menuCategoryLabel(raw.category),
     image: images[0] || null,
     images,
     // `available` defaults to true on the schema; treat a missing value as
@@ -69,6 +116,10 @@ export function toDishView(raw) {
     restaurantName: restaurant?.name || null,
     restaurantLogo: restaurant?.profilePicture || null,
     currency: normalizeCurrency(restaurant?.currency ?? raw.currency),
+    optionGroups,
+    hasOptions: optionGroups.length > 0,
+    /** A quick "+" cannot add this dish; it has to open the item sheet. */
+    hasRequiredOptions: optionGroups.some((group) => group.isRequired),
   };
 }
 
@@ -98,7 +149,7 @@ export function toMenuSections(raw) {
       if (items.length === 0) return null;
       return {
         id: categorySlug(group.category),
-        label: titleCase(group.category) || t("restaurant:menu.otherCategory"),
+        label: menuCategoryLabel(group.category),
         items,
         availableCount: items.filter((item) => item.isAvailable).length,
       };
@@ -162,8 +213,21 @@ export function toBasketLines(items) {
       const baseUnitPrice = Number(line.basePrice) || 0;
       const isDiscounted = baseUnitPrice > unitPrice;
 
+      const options = Array.isArray(line.options)
+        ? line.options.map((option) => ({
+            id: String(option.optionId ?? option._id ?? option.id),
+            groupName: option.groupName || "",
+            name: option.name || "",
+            priceDelta: Number(option.priceDelta) || 0,
+          }))
+        : [];
+
       return {
-        id: String(id),
+        /** The line's own id - what the cart API's PATCH and DELETE take. */
+        id: String(line.lineId || id),
+        menuItemId: String(id),
+        options,
+        optionsLabel: optionsSummary(options),
         name: line.name || menuItem?.name || t("restaurant:menu.untitledDish"),
         description: menuItem?.description || line.description || "",
         unitPrice,
