@@ -3,6 +3,7 @@ import MenuItem from "../models/MenuItem.js";
 import { AppError } from "../utils/AppError.js";
 import { linePricing, lineIdOf, repriceCartLines } from "../services/cartPricing.service.js";
 import { basketLineId, resolveSelectionOrThrow } from "../utils/menuOptions.js";
+import { orderingBlockedError } from "../utils/restaurantAvailability.js";
 
 export const MAX_LINE_QUANTITY = 50;
 
@@ -64,6 +65,9 @@ export async function addToCart(req, res, next) {
       new AppError("errors:order.itemUnavailable", 400, "ITEM_UNAVAILABLE", { name: menuItem.name }),
     );
   }
+
+  const blocked = orderingBlockedError(menuItem.restaurant);
+  if (blocked) return next(blocked);
 
   if (options !== undefined && !Array.isArray(options)) {
     return next(new AppError("errors:menuOption.unknown", 400, "OPTION_UNKNOWN"));

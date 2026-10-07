@@ -22,6 +22,7 @@ import { haversineMeters, toLatLng } from "@chowgo/shared/geo";
 import { env } from "../config/env.js";
 import { parsePagination } from "../utils/pagination.js";
 import { estimatedDeliveryAt } from "../utils/deliveryEta.js";
+import { orderingBlockedError } from "../utils/restaurantAvailability.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -83,15 +84,14 @@ export async function createOrder(req, res, next) {
 
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant || !restaurant.isActive) {
-      return next(new AppError("Restaurant not available", 400));
+      return next(orderingBlockedError(restaurant));
     }
     if (String(restaurant.ownerId) === String(userId)) {
       return next(new AppError("errors:role.customerRequired", 403, "ROLE_REQUIRED"));
     }
 
-    if (!restaurant.isOpenNow) {
-      return next(new AppError("Restaurant is currently closed", 400));
-    }
+    const blocked = orderingBlockedError(restaurant);
+    if (blocked) return next(blocked);
 
     const restaurantPoint = toLatLng(restaurant.location?.coordinates);
     const addressPoint = toLatLng(deliveryAddress.location?.coordinates);

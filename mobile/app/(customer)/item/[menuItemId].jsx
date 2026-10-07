@@ -3,22 +3,25 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { UtensilsCrossed } from "lucide-react-native";
 import { toDishViews } from "@chowgo/shared/adapters/menu";
+import { toRestaurantView, unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { formatPrice } from "@chowgo/shared/format";
 import { MAX_ORDER_NOTES } from "@chowgo/shared/constants";
 import { resolveOptionSelection } from "@chowgo/shared/menuOptions";
 import { lineTotal, sumMoney } from "@chowgo/shared/money";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Inset } from "@/components/ui/Card";
 import { DockedBar } from "@/components/ui/FloatingBar";
 import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { OptionGroupPicker, toggleOption } from "@/features/restaurant/OptionGroupPicker";
+import { useRestaurant } from "@/hooks/Restaurants/useRestaurant";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "@/store/useToastStore";
 import { cloudinaryUrl } from "@chowgo/shared/image";
@@ -26,7 +29,7 @@ import { cloudinaryUrl } from "@chowgo/shared/image";
 export default function ItemCustomization() {
   const { t } = useTranslation(["order", "restaurant", "basket", "profile", "auth", "errors", "validation", "courier", "common"]);
   const { menuItemId, restaurantId } = useLocalSearchParams();
-  const queryClient = useQueryClient();
+  const { info, menu } = useRestaurant(restaurantId);
   const addItem = useCartStore((state) => state.addItem);
 
   const [quantity, setQuantity] = useState(1);
@@ -34,13 +37,14 @@ export default function ItemCustomization() {
   const [selected, setSelected] = useState([]);
   const [busy, setBusy] = useState(false);
 
-  // Read from the menu the restaurant page already loaded rather than
-  // refetching a single item the API has no endpoint for.
+  // The restaurant's menu, not a single-dish endpoint (there is no public
+  // one): opened from its restaurant page this is already cached; opened cold
+  // from a link or a notification it is fetched here.
   const dish = useMemo(() => {
-    const menu = queryClient.getQueryData(["restaurantMenu", restaurantId]) ?? [];
-    const all = toDishViews(menu.flatMap((group) => group.items ?? []));
+    const all = toDishViews((menu.data ?? []).flatMap((group) => group.items ?? []));
     return all.find((item) => item.id === menuItemId) ?? null;
-  }, [queryClient, restaurantId, menuItemId]);
+  }, [menu.data, menuItemId]);
+  const closedReason = unavailableReason(info.data ? toRestaurantView(info.data) : null);
 
   async function add() {
     setBusy(true);
@@ -55,11 +59,43 @@ export default function ItemCustomization() {
       router.push("/(auth)/login");
       return;
     }
+    if (result.status === "error") {
+      info.refetch();
+      return;
+    }
     if (result.status === "conflict") {
       router.back();
       // The dialog lives above the tab bar so it survives this sheet closing.
       toast.info(t("basket:heading"));
     }
+  }
+
+  if (!dish && (menu.isLoading || (menu.isFetching && !menu.data))) {
+    return (
+      <Screen>
+        <ScreenHeader />
+        <View className="gap-4 px-5">
+          <Skeleton className="aspect-[16/10] w-full rounded-lg" />
+          <Skeleton className="h-8 w-2/3 rounded-md" />
+          <Skeleton className="h-20 w-full rounded-md" />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!dish && menu.isError) {
+    return (
+      <Screen>
+        <ScreenHeader />
+        <EmptyState
+          tone="danger"
+          title={t("restaurant:error.title")}
+          description={t("restaurant:error.description")}
+          actionLabel={t("common:actions.retry")}
+          onAction={() => menu.refetch()}
+        />
+      </Screen>
+    );
   }
 
   if (!dish) {
@@ -110,7 +146,9 @@ export default function ItemCustomization() {
 
           {dish.discountPercent > 0 ? (
             <View className="absolute left-5 top-5">
-              <Badge tone="solid-citrus">{dish.promoLabel ?? `${dish.discountPercent}% off`}</Badge>
+              <Badge tone="solid-citrus">
+                {dish.promoLabel ?? t("common:units.percentOff", { value: dish.discountPercent })}
+              </Badge>
             </View>
           ) : null}
         </View>
@@ -162,15 +200,27 @@ export default function ItemCustomization() {
       </ScrollView>
 
       <DockedBar className="gap-2">
-        {blocker ? (
+        {closedReason ? (
+          <Inset tone="warning" accessibilityLiveRegion="polite">
+            <Text variant="body-sm">{closedReason}</Text>
+          </Inset>
+        ) : blocker ? (
           <Text variant="label-sm" tone="tertiary" className="text-center" accessibilityLiveRegion="polite">
             {blocker}
           </Text>
         ) : null}
         <View className="flex-row items-center gap-3">
           <Stepper value={quantity} onChange={setQuantity} />
-          <Button className="flex-1" size="lg" loading={busy} disabled={!selection.ok} onPress={add}>
-            {t("basket:addItem", { price: formatPrice(total, { currency }) })}
+          <Button
+            className="flex-1"
+            size="lg"
+            loading={busy}
+            disabled={!selection.ok || Boolean(closedReason)}
+            onPress={add}
+          >
+            {closedReason
+              ? t("restaurant:availability.closedNow")
+              : t("basket:addItem", { price: formatPrice(total, { currency }) })}
           </Button>
         </View>
       </DockedBar>

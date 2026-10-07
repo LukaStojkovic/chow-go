@@ -44,6 +44,7 @@ try {
       profilePicture: img(`${tag}-logo`),
       address: { street: "S 1", city: "C", zipCode: "11000", country: "Serbia" },
       location: { type: "Point", coordinates: [20.45, 44.8] },
+      isActive: true, isOpenNow: true,
     });
     return { owner, restaurant };
   }

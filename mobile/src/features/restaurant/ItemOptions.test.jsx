@@ -14,8 +14,13 @@ jest.mock("expo-router", () => ({
   router: { back: jest.fn(), push: jest.fn() },
   useLocalSearchParams: () => ({ menuItemId: "m1", restaurantId: "r1" }),
 }));
+jest.mock("@/services/apiRestaurant", () => ({
+  __esModule: true,
+  getRestaurantInfo: jest.fn(async () => ({ _id: "r1", isActive: true, isOpenNow: true })),
+  getRestaurantMenu: jest.fn(async () => [{ category: "pizza", items: [mockDish] }]),
+}));
 
-const dish = {
+const mockDish = {
   _id: "m1",
   name: "Pizza",
   price: 10,
@@ -50,7 +55,7 @@ const addButton = (amount) => screen.getByRole("button", { name: t("basket:addIt
 
 async function renderSheet() {
   const queryClient = createTestQueryClient();
-  queryClient.setQueryData(["restaurantMenu", "r1"], [{ category: "pizza", items: [dish] }]);
+  queryClient.setQueryData(["restaurantMenu", "r1"], [{ category: "pizza", items: [mockDish] }]);
   const addItem = jest.fn(async () => ({ status: "added" }));
   useCartStore.setState({ addItem });
   const Wrapper = createWrapper(queryClient);

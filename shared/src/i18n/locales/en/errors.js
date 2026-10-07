@@ -253,6 +253,8 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    RESTAURANT_CLOSED: "That restaurant is closed right now",
+    RESTAURANT_UNAVAILABLE: "That restaurant is not taking orders right now",
     LOCATION_INVALID: "That map location is not valid",
     OPTION_REQUIRED: "Pick the required options for this dish",
     OPTION_TOO_MANY: "You picked too many options for this dish",

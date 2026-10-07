@@ -32,6 +32,7 @@ try {
     description: "t", profilePicture: "https://res.cloudinary.com/demo/image/upload/x.jpg",
     address: { street: "S", city: "C", zipCode: "11000", country: "Serbia" },
     location: { type: "Point", coordinates: [20.45, 44.8] },
+    isActive: true, isOpenNow: true,
   });
   const dish = await MenuItem.create({
     restaurant: restaurant._id, owner: owner._id, name: "Pizza", description: "d", price: 9.5,
@@ -85,6 +86,22 @@ try {
   r = await add(1);
   ok("cannot be added to a basket", !r.ok && r.error?.code === "ITEM_UNAVAILABLE", r.error?.code ?? "accepted");
   await MenuItem.updateOne({ _id: dish._id }, { $set: { available: true } });
+
+  console.log("\na restaurant that cannot take orders");
+  await Cart.deleteMany({ user: buyer._id });
+  await Restaurant.updateOne({ _id: restaurant._id }, { $set: { isOpenNow: false } });
+  r = await add(1);
+  ok("a closed restaurant's dish is refused as RESTAURANT_CLOSED", !r.ok && r.error?.code === "RESTAURANT_CLOSED", r.error?.code ?? "accepted");
+  await Restaurant.updateOne({ _id: restaurant._id }, { $set: { isOpenNow: true, isActive: false } });
+  r = await add(1);
+  ok("an offline restaurant's dish is refused as RESTAURANT_UNAVAILABLE", !r.ok && r.error?.code === "RESTAURANT_UNAVAILABLE", r.error?.code ?? "accepted");
+  await Restaurant.updateOne({ _id: restaurant._id }, { $set: { isActive: true, approvalStatus: "pending" } });
+  r = await add(1);
+  ok("a restaurant awaiting approval is refused too", !r.ok && r.error?.code === "RESTAURANT_UNAVAILABLE", r.error?.code ?? "accepted");
+  ok("none of them reached the basket", (await lineQuantity()) === undefined);
+  await Restaurant.updateOne({ _id: restaurant._id }, { $set: { approvalStatus: "approved" } });
+  r = await add(1);
+  ok("open again, the dish goes in", r.ok && (await lineQuantity()) === 1);
 
   console.log("\nthe schema backs it up");
   let schemaError = null;

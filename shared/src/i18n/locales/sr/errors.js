@@ -243,6 +243,8 @@ export default {
   },
 
   byCode: {
+    RESTAURANT_CLOSED: "Taj restoran je trenutno zatvoren",
+    RESTAURANT_UNAVAILABLE: "Taj restoran trenutno ne prima porudžbine",
     LOCATION_INVALID: "Ta lokacija na mapi nije ispravna",
     OPTION_REQUIRED: "Izaberite obavezne opcije za ovo jelo",
     OPTION_TOO_MANY: "Izabrali ste previše opcija za ovo jelo",
