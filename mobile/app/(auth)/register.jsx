@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
+import { normalizeReferralCode } from "@chowgo/shared/referral";
 import { LogIn } from "lucide-react-native";
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +17,13 @@ import {
 } from "@/features/auth/AuthScreen";
 import { GoogleButton } from "@/features/auth/GoogleButton";
 import { registerSchema } from "@/features/auth/schemas";
+import {
+  clearPendingReferral,
+  readPendingReferral,
+  savePendingReferral,
+  useReferralApplyToast,
+} from "@/features/referral/pendingReferral";
+import { useApplyReferralCode } from "@/hooks/Referral/useReferral";
 import { homeForRole } from "@/navigation/homeForRole";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "@/store/useToastStore";
@@ -80,18 +89,35 @@ const SIGN_IN_OPTION = {
 };
 
 export default function Register() {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "profile"]);
   const { register, isSubmitting } = useAuthStore();
   const { control, handleSubmit, formState } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", email: "", phoneNumber: "", password: "", confirmPassword: "" },
   });
 
+  const [inviteCode, setInviteCode] = useState("");
+  const applyReferral = useApplyReferralCode();
+  const notifyReferral = useReferralApplyToast();
+
+  useEffect(() => {
+    readPendingReferral().then((code) => {
+      if (code) setInviteCode((current) => current || code);
+    });
+  }, []);
+
   async function onSubmit({ confirmPassword, ...payload }) {
+    const code = normalizeReferralCode(inviteCode);
+    const pending = await readPendingReferral();
+    if (pending) await clearPendingReferral();
     try {
       const user = await register(payload);
+      if (code && user?.role === "customer") {
+        applyReferral.mutateAsync(code).then(notifyReferral.success, notifyReferral.failure);
+      }
       router.replace(homeForRole(user?.role));
     } catch (error) {
+      if (pending) savePendingReferral(pending);
       toast.error(t("register.createFailed"), { description: errorMessage(error) });
     }
   }
@@ -131,6 +157,16 @@ export default function Register() {
           )}
         />
       ))}
+
+      <Input
+        label={t("profile:referral.enterCode")}
+        placeholder={t("profile:referral.enterCodePlaceholder")}
+        value={inviteCode}
+        onChangeText={(value) => setInviteCode(value.toUpperCase())}
+        autoCapitalize="characters"
+        autoCorrect={false}
+        maxLength={16}
+      />
 
       <Button size="lg" fullWidth loading={isSubmitting} onPress={handleSubmit(onSubmit)}>
         {t("register.submit")}

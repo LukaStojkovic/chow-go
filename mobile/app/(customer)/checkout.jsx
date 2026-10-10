@@ -8,6 +8,7 @@ import { buildPriceBreakdown, pricingFor } from "@chowgo/shared/adapters/pricing
 import { formatPrice } from "@chowgo/shared/format";
 import { computePromoDiscount } from "@chowgo/shared/promoCode";
 import { errorMessage } from "@/api/client";
+import { DeliveryTimePicker } from "@/features/checkout/DeliveryTimePicker";
 import { PromoCodeField } from "@/features/checkout/PromoCodeField";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/Badge";
@@ -19,10 +20,13 @@ import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { UpsellRail } from "@/features/basket/UpsellRail";
 import { OptionRow } from "@/features/checkout/OptionRow";
 import { Section } from "@/features/checkout/Section";
 import { useAddresses } from "@/hooks/Address/useAddresses";
 import { useCreateOrder } from "@/hooks/Orders/useOrders";
+import { useNow } from "@/hooks/useNow";
+import { slotsFor } from "@chowgo/shared/deliveryTime";
 import { useCartStore } from "@/store/useCartStore";
 import { registerForPush } from "@/notifications/register";
 import { toast } from "@/store/useToastStore";
@@ -55,6 +59,20 @@ export default function Checkout() {
   const [tip, setTip] = useState(0);
   const [notes, setNotes] = useState("");
   const [appliedPromo, setAppliedPromo] = useState(null);
+  const [later, setLater] = useState(false);
+  const [slot, setSlot] = useState(null);
+  const [day, setDay] = useState(null);
+  const [slotsStamp, setSlotsStamp] = useState(0);
+  const now = useNow(60000);
+
+  const closedNow = restaurant?.isOpenNow === false;
+  const scheduling = later || closedNow;
+  const slots = useMemo(() => slotsFor(restaurant, Date.now()), [restaurant, now, slotsStamp]); // eslint-disable-line react-hooks/exhaustive-deps
+  const speed = scheduling ? "standard" : deliveryType;
+
+  useEffect(() => {
+    if (slot && !slots.some((entry) => entry.toISOString() === slot)) setSlot(null);
+  }, [slots, slot]);
 
   // The basket in memory can be a mutation response older than the server's
   // view - notably one that carried the restaurant as a bare id. Re-reading it
@@ -76,11 +94,16 @@ export default function Checkout() {
   const discount = appliedPromo
     ? computePromoDiscount({ promo: appliedPromo.promo, subtotal: totalPrice, deliveryFee: fees.deliveryFee })
     : 0;
-  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip, discount, currency });
+  const breakdown = buildPriceBreakdown({ subtotal: totalPrice, deliveryType: speed, tip, discount, currency });
 
   async function placeOrder() {
     if (!addressId) {
       toast.warning(t("basket:chooseAddress"));
+      return;
+    }
+
+    if (scheduling && !slot) {
+      toast.warning(t("basket:schedule.pickTime"));
       return;
     }
 
@@ -98,10 +121,11 @@ export default function Checkout() {
         restaurantId,
         deliveryAddressId: addressId,
         paymentMethod,
-        deliveryType,
+        deliveryType: speed,
         tip,
         customerNotes: notes.trim() || undefined,
         ...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
+        ...(scheduling ? { scheduledFor: slot } : {}),
       });
       // The backend deletes the cart document as part of creating the order.
       clearLocalCart();
@@ -110,7 +134,12 @@ export default function Checkout() {
       router.replace(`/(customer)/order/${order._id}/confirmed`);
     } catch (error) {
       const code = error?.response?.data?.code;
-      if (code === "PRICE_CHANGED" || code === "ITEM_UNAVAILABLE") fetchCart();
+      if (code === "PRICE_CHANGED" || code === "ITEM_UNAVAILABLE" || code === "RESTAURANT_CLOSED") fetchCart();
+      if (typeof code === "string" && code.startsWith("SCHEDULE_")) {
+        setSlot(null);
+        setSlotsStamp(Date.now());
+        fetchCart();
+      }
       if (typeof code === "string" && code.startsWith("PROMO_")) setAppliedPromo(null);
       toast.error(t("order:detail.placeFailed"), { description: errorMessage(error) });
     }
@@ -183,14 +212,30 @@ export default function Checkout() {
           )}
         </Section>
 
-        <Section title={t("basket:checkout.speed.title")}>
+        <DeliveryTimePicker
+          closedNow={closedNow}
+          scheduling={scheduling}
+          onScheduling={setLater}
+          slots={slots}
+          slot={slot}
+          onSlot={setSlot}
+          day={day}
+          onDay={setDay}
+          now={now}
+        />
+
+        <Section
+          title={t("basket:checkout.speed.title")}
+          subtitle={scheduling ? t("basket:schedule.priorityOff") : undefined}
+        >
           <View className="gap-2">
             {speeds.map((option) => (
               <OptionRow
                 key={option.value}
                 label={option.label}
                 description={option.description}
-                selected={deliveryType === option.value}
+                selected={speed === option.value}
+                disabled={scheduling && option.value === "priority"}
                 onPress={() => setDeliveryType(option.value)}
                 trailing={
                   option.value === "priority" ? (
@@ -254,6 +299,8 @@ export default function Checkout() {
             onRemove={() => setAppliedPromo(null)}
           />
         </Section>
+
+        <UpsellRail className="py-2" />
 
         <Card>
           <Text variant="h3" className="mb-2">

@@ -15,6 +15,8 @@ import { transitions } from "@/lib/motion";
 import { formatDeliveryEstimate, formatOrderDate, formatTime } from "@chowgo/shared/format";
 import { estimateArrival, toOrderView } from "@chowgo/shared/adapters/order";
 import { useGetOrderById } from "@/hooks/Orders/useGetOrderById";
+import { formatScheduledFor } from "@chowgo/shared/deliveryTime";
+import { ScheduledDelivery } from "@/features/orders/ScheduledDelivery";
 
 import { PageContainer, Stack } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
@@ -76,11 +78,19 @@ export default function OrderConfirmationPage() {
 
           <h1 className="text-h1">{t("confirmed.heading")}</h1>
           <p className="text-body text-muted-foreground mt-1.5 max-w-sm">
-            {t("confirmed.confirmSoonLong", {
-              name: order.restaurant?.name ?? t("confirmed.fallbackRestaurant"),
-            })}
+            {order.isScheduled
+              ? order.statusDescription
+              : t("confirmed.confirmSoonLong", {
+                  name: order.restaurant?.name ?? t("confirmed.fallbackRestaurant"),
+                })}
           </p>
         </div>
+
+        {order.isScheduled && (
+          <Card padded>
+            <ScheduledDelivery order={order} releaseAt={raw?.releaseAt} />
+          </Card>
+        )}
 
         <Card padded className="space-y-4">
           <dl className="grid grid-cols-2 gap-3">
@@ -96,14 +106,21 @@ export default function OrderConfirmationPage() {
               </dt>
               <dd className="text-body mt-0.5">{formatOrderDate(order.placedAt)}</dd>
             </div>
-            <div>
-              <dt className="text-caption text-muted-foreground">{t("eta.label")}</dt>
-              <dd className="text-body mt-0.5">
-                {eta
-                  ? t("eta.around", { time: formatTime(eta.at) })
-                  : formatDeliveryEstimate(order.restaurant?.deliveryEstimate)}
-              </dd>
-            </div>
+            {order.isScheduled ? (
+              <div>
+                <dt className="text-caption text-muted-foreground">{t("scheduled.title")}</dt>
+                <dd className="text-body mt-0.5">{formatScheduledFor(order.scheduledFor)}</dd>
+              </div>
+            ) : (
+              <div>
+                <dt className="text-caption text-muted-foreground">{t("eta.label")}</dt>
+                <dd className="text-body mt-0.5">
+                  {eta
+                    ? t("eta.around", { time: formatTime(eta.at) })
+                    : formatDeliveryEstimate(order.restaurant?.deliveryEstimate)}
+                </dd>
+              </div>
+            )}
             <div>
               <dt className="text-caption text-muted-foreground">
                 {t("confirmed.payingBy")}

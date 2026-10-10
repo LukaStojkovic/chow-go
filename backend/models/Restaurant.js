@@ -173,6 +173,17 @@ const restaurantSchema = new mongoose.Schema(
     },
     // The exact total behind averageRating, which is only ever derived from it.
     ratingSum: Number,
+    // Seller-named menu sections in display order. Dishes point at one by
+    // MenuItem.sectionId; services/menuLayout.service.js owns the rules.
+    menuSections: {
+      type: [
+        {
+          name: { type: String, required: true, trim: true, maxlength: 40 },
+        },
+      ],
+      default: [],
+      validate: [(list) => list.length <= 30, "Too many menu sections"],
+    },
     estimatedDeliveryTime: {
       type: String,
       default: "30-45 min",

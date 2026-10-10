@@ -31,8 +31,9 @@ const MAX_NOTE = 200;
  * @param {() => void} props.onClose
  * @param {string | null} [props.unavailableReason] Set when the restaurant is
  *   closed - the dish is fine, the kitchen is not.
+ * @param {string | null} [props.notice] Shown without blocking, e.g. a pre-order.
  */
-export function ItemCustomizationSheet({ dish, onClose, unavailableReason }) {
+export function ItemCustomizationSheet({ dish, onClose, unavailableReason, notice = null }) {
   // Remounted per dish by the key below, so quantity and notes reset without
   // an effect - and without a frame where the previous dish's values are
   // visible against the new dish's name.
@@ -44,11 +45,12 @@ export function ItemCustomizationSheet({ dish, onClose, unavailableReason }) {
       dish={dish}
       onClose={onClose}
       unavailableReason={unavailableReason}
+      notice={notice}
     />
   );
 }
 
-function CustomizationForm({ dish, onClose, unavailableReason }) {
+function CustomizationForm({ dish, onClose, unavailableReason, notice }) {
   const { t } = useTranslation(["basket", "restaurant", "common"]);
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
@@ -179,6 +181,15 @@ function CustomizationForm({ dish, onClose, unavailableReason }) {
               className="border-border bg-muted text-body-sm text-muted-foreground rounded-md border p-3"
             >
               {unavailableReason}
+            </p>
+          )}
+
+          {dish.isAvailable && !unavailableReason && notice && (
+            <p
+              role="status"
+              className="border-border bg-muted text-body-sm text-muted-foreground rounded-md border p-3"
+            >
+              {notice}
             </p>
           )}
 

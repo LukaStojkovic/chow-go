@@ -22,6 +22,7 @@ import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
 import { OptionGroupPicker, toggleOption } from "@/features/restaurant/OptionGroupPicker";
 import { useRestaurant } from "@/hooks/Restaurants/useRestaurant";
+import { takesPreorders } from "@chowgo/shared/deliveryTime";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "@/store/useToastStore";
 import { cloudinaryUrl } from "@chowgo/shared/image";
@@ -44,7 +45,8 @@ export default function ItemCustomization() {
     const all = toDishViews((menu.data ?? []).flatMap((group) => group.items ?? []));
     return all.find((item) => item.id === menuItemId) ?? null;
   }, [menu.data, menuItemId]);
-  const closedReason = unavailableReason(info.data ? toRestaurantView(info.data) : null);
+  const preorder = takesPreorders(info.data);
+  const closedReason = preorder ? null : unavailableReason(info.data ? toRestaurantView(info.data) : null);
 
   async function add() {
     setBusy(true);
@@ -203,6 +205,10 @@ export default function ItemCustomization() {
         {closedReason ? (
           <Inset tone="warning" accessibilityLiveRegion="polite">
             <Text variant="body-sm">{closedReason}</Text>
+          </Inset>
+        ) : preorder && selection.ok ? (
+          <Inset tone="citrus" accessibilityLiveRegion="polite">
+            <Text variant="body-sm">{t("restaurant:availability.preorder")}</Text>
           </Inset>
         ) : blocker ? (
           <Text variant="label-sm" tone="tertiary" className="text-center" accessibilityLiveRegion="polite">

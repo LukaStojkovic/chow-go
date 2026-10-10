@@ -17,9 +17,12 @@ import { toBasketLines } from "@chowgo/shared/adapters/menu";
 import { buildPriceBreakdown, pricingFor } from "@chowgo/shared/adapters/pricing";
 import { fractionDigitsFor } from "@chowgo/shared/currency";
 import { computePromoDiscount } from "@chowgo/shared/promoCode";
+import { SCHEDULING } from "@chowgo/shared/scheduling";
 import useCartStore from "@/store/useCartStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useCreateOrder } from "@/hooks/Orders/useCreateOrder";
+import { useNow } from "@/hooks/useNow";
+import { slotsFor } from "@chowgo/shared/deliveryTime";
 
 import { ContentShell, PageContainer, StickyActionBar, Stack } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
@@ -32,6 +35,8 @@ import { CheckoutSection, OptionRow } from "@/features/checkout/CheckoutSection"
 import { AddressStep } from "@/features/checkout/AddressStep";
 import { OrderSummaryCard } from "@/features/checkout/OrderSummaryCard";
 import { PromoCodeField } from "@/features/checkout/PromoCodeField";
+import { DeliveryTimeStep } from "@/features/checkout/DeliveryTimeStep";
+import { UpsellRail } from "@/components/basket/UpsellRail";
 import { LegalConsent } from "@/components/common/LegalConsent";
 
 export default function CheckoutPage() {
@@ -50,10 +55,26 @@ export default function CheckoutPage() {
   const [customTip, setCustomTip] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [appliedPromo, setAppliedPromo] = useState(null);
+  const [timing, setTiming] = useState("asap");
+  const [chosenSlot, setChosenSlot] = useState(null);
+  const [scheduleError, setScheduleError] = useState(null);
+  const [refreshedAt, setRefreshedAt] = useState(0);
+  const tick = useNow(60000);
 
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
+
+  const slotsNow = useMemo(() => new Date(Math.max(tick, refreshedAt)), [tick, refreshedAt]);
+  const slots = useMemo(() => slotsFor(restaurant, slotsNow), [restaurant, slotsNow]);
+  const isClosedNow = Boolean(restaurant) && !restaurant.isOpenNow;
+  const effectiveTiming = isClosedNow ? "later" : timing;
+  const isScheduled = effectiveTiming === "later";
+  const scheduledFor =
+    isScheduled && chosenSlot && slots.some((slot) => slot.toISOString() === chosenSlot)
+      ? chosenSlot
+      : null;
+  const effectiveDeliveryType = isScheduled ? "standard" : deliveryType;
 
   const lines = useMemo(() => toBasketLines(items), [items]);
   const discount = appliedPromo
@@ -61,16 +82,39 @@ export default function CheckoutPage() {
     : 0;
   const pricing = useMemo(
     () => ({
-      ...buildPriceBreakdown({ subtotal: totalPrice, deliveryType, tip: tipAmount, discount, currency: fees.currency }),
+      ...buildPriceBreakdown({
+        subtotal: totalPrice,
+        deliveryType: effectiveDeliveryType,
+        tip: tipAmount,
+        discount,
+        currency: fees.currency,
+      }),
       promoCode: appliedPromo?.code ?? null,
     }),
-    [totalPrice, deliveryType, tipAmount, discount, fees.currency, appliedPromo?.code],
+    [totalPrice, effectiveDeliveryType, tipAmount, discount, fees.currency, appliedPromo?.code],
   );
 
   const blockers = [];
   if (!selectedDeliveryAddress) blockers.push(t("checkout.blockers.address"));
   if (!paymentMethod) blockers.push(t("checkout.blockers.payment"));
   if (!restaurant?._id) blockers.push(t("checkout.blockers.restaurant"));
+  if (isScheduled && !scheduledFor) {
+    blockers.push(
+      slots.length > 0
+        ? t("schedule.pickTime")
+        : t("schedule.noSlots", { days: SCHEDULING.maxDaysAhead }),
+    );
+  }
+
+  const handleTimingChange = (next) => {
+    setTiming(next);
+    setScheduleError(null);
+  };
+
+  const handleSlotChange = (next) => {
+    setChosenSlot(next);
+    setScheduleError(null);
+  };
 
   const handlePlaceOrder = () => {
     if (blockers.length > 0) return;
@@ -81,12 +125,20 @@ export default function CheckoutPage() {
       paymentMethod,
       customerNotes: customerNotes.trim(),
       tip: tipAmount,
-      deliveryType,
+      deliveryType: effectiveDeliveryType,
+      ...(scheduledFor ? { scheduledFor } : {}),
       ...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
     }, {
       onError: (error) => {
         const code = error?.response?.data?.code;
         if (typeof code === "string" && code.startsWith("PROMO_")) setAppliedPromo(null);
+        if (typeof code === "string" && code.startsWith("SCHEDULE_")) {
+          setScheduleError(error?.response?.data?.message || null);
+          setChosenSlot(null);
+          setRefreshedAt(Date.now());
+          fetchCart();
+        }
+        if (code === "RESTAURANT_CLOSED") fetchCart();
       },
     });
   };
@@ -145,8 +197,20 @@ export default function CheckoutPage() {
             <Stack gap="2xl">
               <AddressStep step={1} />
 
-              <CheckoutSection
+              <DeliveryTimeStep
                 step={2}
+                slots={slots}
+                now={slotsNow}
+                isClosedNow={isClosedNow}
+                mode={effectiveTiming}
+                slot={scheduledFor}
+                onModeChange={handleTimingChange}
+                onSlotChange={handleSlotChange}
+                error={scheduleError}
+              />
+
+              <CheckoutSection
+                step={3}
                 title={t("checkout.speed.title")}
                 isComplete
                 description={t("checkout.speed.description", {
@@ -160,10 +224,15 @@ export default function CheckoutPage() {
                       key={option.value}
                       id={`delivery-${option.value}`}
                       name="delivery-type"
-                      checked={deliveryType === option.value}
+                      checked={effectiveDeliveryType === option.value}
+                      disabled={isScheduled && option.value === "priority"}
                       onSelect={() => setDeliveryType(option.value)}
                       label={option.label}
-                      description={option.description}
+                      description={
+                        isScheduled && option.value === "priority"
+                          ? t("schedule.priorityOff")
+                          : option.description
+                      }
                       meta={
                         option.value === "priority"
                           ? `+${formatPrice(fees.priorityFee, { currency: fees.currency })}`
@@ -175,7 +244,7 @@ export default function CheckoutPage() {
               </CheckoutSection>
 
               <CheckoutSection
-                step={3}
+                step={4}
                 title={t("checkout.payment.title")}
                 isComplete={Boolean(paymentMethod)}
                 description={t("checkout.payment.description")}
@@ -197,7 +266,7 @@ export default function CheckoutPage() {
               </CheckoutSection>
 
               <CheckoutSection
-                step={4}
+                step={5}
                 title={t("checkout.tip.title")}
                 description={t("checkout.tip.description")}
                 isComplete
@@ -248,7 +317,7 @@ export default function CheckoutPage() {
               </CheckoutSection>
 
               <CheckoutSection
-                step={5}
+                step={6}
                 title={t("checkout.notes.title")}
                 description={t("checkout.notes.description")}
                 isComplete
@@ -277,23 +346,26 @@ export default function CheckoutPage() {
             </Stack>
           }
           aside={
-            <OrderSummaryCard
-              lines={lines}
-              restaurant={restaurant}
-              pricing={pricing}
-              blockers={blockers}
-              isPlacing={isCreatingOrder}
-              onPlaceOrder={handlePlaceOrder}
-              promoSlot={
-                <PromoCodeField
-                  restaurantId={restaurant?._id}
-                  currency={fees.currency}
-                  applied={appliedPromo ? { ...appliedPromo, discount } : null}
-                  onApply={setAppliedPromo}
-                  onRemove={() => setAppliedPromo(null)}
-                />
-              }
-            />
+            <div className="space-y-4">
+              <OrderSummaryCard
+                lines={lines}
+                restaurant={restaurant}
+                pricing={pricing}
+                blockers={blockers}
+                isPlacing={isCreatingOrder}
+                onPlaceOrder={handlePlaceOrder}
+                promoSlot={
+                  <PromoCodeField
+                    restaurantId={restaurant?._id}
+                    currency={fees.currency}
+                    applied={appliedPromo ? { ...appliedPromo, discount } : null}
+                    onApply={setAppliedPromo}
+                    onRemove={() => setAppliedPromo(null)}
+                  />
+                }
+              />
+              <UpsellRail lines={lines} />
+            </div>
           }
         />
 

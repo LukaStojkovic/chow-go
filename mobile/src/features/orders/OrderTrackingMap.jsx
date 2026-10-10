@@ -8,6 +8,7 @@ import { StatusDot } from "@/components/ui/Badge";
 import { Text } from "@/components/ui/Text";
 import { useCourierLocation } from "@/hooks/Map/useCourierLocation";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
+import { useSmoothPosition } from "@/hooks/Map/useSmoothPosition";
 import { useTokens } from "@/theme/useTokens";
 
 const LIVE_STATUSES = ["assigned", "picked_up", "in_transit"];
@@ -21,6 +22,37 @@ function Pin({ icon: Icon, color, background, size = 40 }) {
       className="items-center justify-center rounded-full border-[3px] border-scrim-foreground"
     >
       <Icon size={Math.round(size * 0.44)} color={color} />
+    </View>
+  );
+}
+
+// The courier pin, with an arrow on its ring once it is known which way the
+// courier is going.
+function CourierPin({ rotation, color }) {
+  return (
+    <View className="h-14 w-14 items-center justify-center">
+      {rotation != null ? (
+        <View
+          className="absolute inset-0 items-center"
+          style={{ transform: [{ rotate: `${rotation}deg` }] }}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <View
+            style={{
+              width: 0,
+              height: 0,
+              borderLeftWidth: 6,
+              borderRightWidth: 6,
+              borderBottomWidth: 9,
+              borderLeftColor: "transparent",
+              borderRightColor: "transparent",
+              borderBottomColor: color["primary-bright"],
+            }}
+          />
+        </View>
+      ) : null}
+      <Pin icon={Bike} color={color["primary-foreground"]} background={color["primary-bright"]} />
     </View>
   );
 }
@@ -42,6 +74,8 @@ export function OrderTrackingMap({ order, onRouteSeconds }) {
   // customer. Routing to the wrong end draws a line going the wrong way.
   const target = order?.status === "assigned" ? restaurant : destination;
   const { route } = useRouteDirections(courier, target);
+  // The pin glides between fixes; the route and framing follow the real fix.
+  const smooth = useSmoothPosition(courier);
 
   const toCustomer = order?.status === "picked_up" || order?.status === "in_transit";
   const routeSeconds = toCustomer && !isStale && route ? route.duration : null;
@@ -75,12 +109,8 @@ export function OrderTrackingMap({ order, onRouteSeconds }) {
         <MapMarker position={destination} title={t("courier:delivery.dropoff")}>
           <Pin icon={MapPin} color={color["info-foreground"]} background={color.info} size={36} />
         </MapMarker>
-        <MapMarker position={courier} title={t("order:tracking.courierHeading")}>
-          <Pin
-            icon={Bike}
-            color={color["primary-foreground"]}
-            background={color["primary-bright"]}
-          />
+        <MapMarker id="courier" position={smooth.position ?? courier} title={t("order:tracking.courierHeading")}>
+          <CourierPin rotation={smooth.rotation} color={color} />
         </MapMarker>
       </Map>
 

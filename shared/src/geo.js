@@ -63,3 +63,40 @@ export function isSamePosition(a, b) {
   if (!a || !b) return a === b;
   return haversineMeters(a, b) < 1;
 }
+
+/** Compass bearing from one [lat, lng] to another: 0 is north, 90 east. */
+export function bearingDegrees(from, to) {
+  const rad = (deg) => (deg * Math.PI) / 180;
+  const [lat1, lng1] = from.map(rad);
+  const [lat2, lng2] = to.map(rad);
+  const y = Math.sin(lng2 - lng1) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lng2 - lng1);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+/**
+ * How a live courier marker moves between location updates: it glides for
+ * about as long as the gap since the last fix, so it keeps moving instead of
+ * hopping and waiting; it turns only on a real move, so GPS jitter while
+ * parked does not spin it; and it jumps outright across a gap too big to be
+ * a ride.
+ */
+export const COURIER_MOTION = { minHeadingMeters: 5, snapMeters: 500, minGlideMs: 600, maxGlideMs: 4000 };
+
+export function glideDurationMs(sinceLastFixMs) {
+  if (!Number.isFinite(sinceLastFixMs)) return 1000;
+  return Math.min(COURIER_MOTION.maxGlideMs, Math.max(COURIER_MOTION.minGlideMs, sinceLastFixMs));
+}
+
+/** The heading after a move, or the previous one when the move is just jitter. */
+export function nextHeading(from, to, previous = null) {
+  if (!from || !to || haversineMeters(from, to) < COURIER_MOTION.minHeadingMeters) return previous;
+  return bearingDegrees(from, to);
+}
+
+/** The rotation to animate to, taking the short way round (350 to 10 turns 20, not 340). */
+export function shortestRotation(current, target) {
+  if (current == null) return target;
+  const delta = ((target - current + 540) % 360) - 180;
+  return current + delta;
+}

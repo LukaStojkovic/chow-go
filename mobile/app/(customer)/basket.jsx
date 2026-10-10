@@ -10,13 +10,16 @@ import { formatDeliveryEstimate, formatFee, formatPrice } from "@chowgo/shared/f
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/Badge";
 import { Button, IconButton } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { toRestaurantView, unavailableReason } from "@chowgo/shared/adapters/restaurant";
+import { Card, Inset } from "@/components/ui/Card";
 import { DockedBar } from "@/components/ui/FloatingBar";
 
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Divider } from "@/components/ui/Section";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
+import { UpsellRail } from "@/features/basket/UpsellRail";
+import { takesPreorders } from "@chowgo/shared/deliveryTime";
 import { useCartStore } from "@/store/useCartStore";
 import { useTokens } from "@/theme/useTokens";
 import { cloudinaryUrl } from "@chowgo/shared/image";
@@ -66,6 +69,10 @@ export default function Basket() {
   const breakdown = buildPriceBreakdown({ subtotal: totalPrice, currency: restaurant?.currency });
   const { currency } = breakdown;
   const count = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
+  const known = typeof restaurant?.isOpenNow === "boolean";
+  const preorder = known && takesPreorders(restaurant);
+  const blocked = known && !preorder ? unavailableReason(toRestaurantView(restaurant)) : null;
+  const closedNotice = preorder ? t("restaurant:availability.preorder") : blocked;
 
   return (
     <Screen edges={["top", "bottom"]}>
@@ -88,6 +95,14 @@ export default function Basket() {
                 </View>
                 <Badge tone="mint">{formatFee(breakdown.deliveryFee, { currency })}</Badge>
               </View>
+
+              {closedNotice ? (
+                <Inset tone={preorder ? "citrus" : "warning"} accessibilityLiveRegion="polite">
+                  <Text variant="body-sm" className={preorder ? undefined : "text-warning"}>
+                    {closedNotice}
+                  </Text>
+                </Inset>
+              ) : null}
 
               {restaurant?.name ? (
                 <>
@@ -182,41 +197,49 @@ export default function Basket() {
           );
         }}
         ListFooterComponent={
-          <Card className="mt-2">
-            <Text variant="h3" className="mb-2">
-              {t("basket:summary.title")}
-            </Text>
-            <FeeRow
-              currency={currency}
-              label={t("basket:summary.subtotal")}
-              value={breakdown.subtotal}
-            />
-            <FeeRow
-              currency={currency}
-              label={t("basket:summary.deliveryFee")}
-              value={breakdown.deliveryFee}
-            />
-            <FeeRow
-              currency={currency}
-              label={t("basket:summary.serviceFee")}
-              value={breakdown.serviceFee}
-            />
-            <Divider className="my-2" />
-            <FeeRow
-              currency={currency}
-              label={t("basket:summary.total")}
-              value={breakdown.total}
-              strong
-            />
-            <Text variant="caption" tone="muted">
-              {t("basket:summary.extrasAtCheckout")}
-            </Text>
-          </Card>
+          <View className="mt-2 gap-5">
+            <UpsellRail />
+            <Card>
+              <Text variant="h3" className="mb-2">
+                {t("basket:summary.title")}
+              </Text>
+              <FeeRow
+                currency={currency}
+                label={t("basket:summary.subtotal")}
+                value={breakdown.subtotal}
+              />
+              <FeeRow
+                currency={currency}
+                label={t("basket:summary.deliveryFee")}
+                value={breakdown.deliveryFee}
+              />
+              <FeeRow
+                currency={currency}
+                label={t("basket:summary.serviceFee")}
+                value={breakdown.serviceFee}
+              />
+              <Divider className="my-2" />
+              <FeeRow
+                currency={currency}
+                label={t("basket:summary.total")}
+                value={breakdown.total}
+                strong
+              />
+              <Text variant="caption" tone="muted">
+                {t("basket:summary.extrasAtCheckout")}
+              </Text>
+            </Card>
+          </View>
         }
       />
 
       <DockedBar>
-        <Button size="lg" fullWidth onPress={() => router.push("/(customer)/checkout")}>
+        <Button
+          size="lg"
+          fullWidth
+          disabled={Boolean(blocked)}
+          onPress={() => router.push("/(customer)/checkout")}
+        >
           <View className="flex-row items-center gap-2">
             <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
               {t("basket:goToCheckout")}

@@ -18,7 +18,8 @@ import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { shortStatus } from "@/features/orders/orderStatus";
 import { RejectOrderPrompt } from "@/features/seller/RejectOrderPrompt";
-import { useCancelRestaurantOrder } from "@/hooks/SellerOrders/useSellerOrders";
+import { ScheduledFor } from "@/features/orders/ScheduledFor";
+import { useCancelRestaurantOrder, useRejectOrder } from "@/hooks/SellerOrders/useSellerOrders";
 import { getRestaurantOrderById } from "@/services/apiRestaurantOrder";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
@@ -30,6 +31,7 @@ export default function SellerOrderDetail() {
   const { t } = useTranslation(["seller", "profile", "order", "basket", "common"]);
   const { orderId } = useLocalSearchParams();
   const cancel = useCancelRestaurantOrder();
+  const reject = useRejectOrder();
   const [cancelling, setCancelling] = useState(false);
   const { color } = useTokens();
 
@@ -67,6 +69,8 @@ export default function SellerOrderDetail() {
   }
 
   const order = toOrderView(data);
+  const rejectable = order.status === "scheduled";
+  const pulling = rejectable ? reject : cancel;
 
   return (
     <Screen edges={["top", "bottom"]}>
@@ -84,6 +88,12 @@ export default function SellerOrderDetail() {
           </View>
           <Text variant="price-lg">{formatPrice(order.pricing?.total ?? 0)}</Text>
         </Card>
+
+        {order.isScheduled ? (
+          <Card>
+            <ScheduledFor order={order} prepMinutes={data.estimatedPreparationTime} />
+          </Card>
+        ) : null}
 
         <Card className="gap-3">
           {order.items.map((line, index) => (
@@ -173,7 +183,19 @@ export default function SellerOrderDetail() {
           ) : null}
         </Card>
 
-        {CANCELLABLE.includes(order.status) ? (
+        {rejectable ? (
+          <Button
+            variant="outline"
+            size="lg"
+            fullWidth
+            className="mt-2"
+            onPress={() => setCancelling(true)}
+          >
+            <Text variant="label" tone="destructive">
+              {t("orders.actions.reject")}
+            </Text>
+          </Button>
+        ) : CANCELLABLE.includes(order.status) ? (
           <Button
             variant="outline"
             size="lg"
@@ -190,16 +212,18 @@ export default function SellerOrderDetail() {
 
       <RejectOrderPrompt
         visible={cancelling}
-        isPending={cancel.isPending}
+        isPending={pulling.isPending}
         onCancel={() => setCancelling(false)}
         onConfirm={async (reason) => {
           try {
-            await cancel.mutateAsync({ orderId, reason });
+            await pulling.mutateAsync({ orderId, reason });
             setCancelling(false);
-            toast.info(t("order:detail.cancelled"));
+            toast.info(rejectable ? t("seller:orders.rejected") : t("order:detail.cancelled"));
             router.back();
           } catch (error) {
-            toast.error(t("order:detail.cancelFailed"), { description: errorMessage(error) });
+            toast.error(rejectable ? t("seller:orders.rejectFailed") : t("order:detail.cancelFailed"), {
+              description: errorMessage(error),
+            });
           }
         }}
       />

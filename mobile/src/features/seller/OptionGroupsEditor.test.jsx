@@ -39,9 +39,24 @@ describe("option drafts", () => {
     });
   });
 
-  it("refuses a range the options cannot satisfy", () => {
+  it("says which numbers clash when \"pick at least\" is above \"pick at most\"", () => {
     const drafts = toOptionDrafts(saved);
-    drafts[0].maxSelect = "3";
+    drafts[0].minSelect = "2";
+    drafts[0].maxSelect = "1";
+    expect(validateOptionDrafts(drafts, t).error.message).toBe(
+      t("errors:menuOption.minAboveMax", { group: 1, min: 2, max: 1 }),
+    );
+  });
+
+  it("accepts \"pick at most\" above the number of options", () => {
+    const drafts = toOptionDrafts(saved);
+    drafts[0].maxSelect = "9";
+    expect(validateOptionDrafts(drafts, t).error).toBeUndefined();
+  });
+
+  it("names a pick count that is not a whole number", () => {
+    const drafts = toOptionDrafts(saved);
+    drafts[0].maxSelect = "1,5";
     expect(validateOptionDrafts(drafts, t).error.message).toBe(t("errors:menuOption.groupRange", { group: 1 }));
   });
 });

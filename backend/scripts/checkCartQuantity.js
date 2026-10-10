@@ -89,9 +89,19 @@ try {
 
   console.log("\na restaurant that cannot take orders");
   await Cart.deleteMany({ user: buyer._id });
-  await Restaurant.updateOne({ _id: restaurant._id }, { $set: { isOpenNow: false } });
+  const weekly = (entry) =>
+    Object.fromEntries(["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => [day, entry]));
+  await Restaurant.updateOne({ _id: restaurant._id }, {
+    $set: { isOpenNow: false, schedule: weekly({ isOpen: false, openingTime: "09:00", closingTime: "17:00" }) },
+  });
   r = await add(1);
-  ok("a closed restaurant's dish is refused as RESTAURANT_CLOSED", !r.ok && r.error?.code === "RESTAURANT_CLOSED", r.error?.code ?? "accepted");
+  ok("a restaurant shut all week is refused as RESTAURANT_CLOSED", !r.ok && r.error?.code === "RESTAURANT_CLOSED", r.error?.code ?? "accepted");
+  await Restaurant.updateOne({ _id: restaurant._id }, {
+    $set: { schedule: weekly({ isOpen: true, openingTime: "00:00", closingTime: "00:00" }) },
+  });
+  r = await add(1);
+  ok("a closed restaurant with times ahead takes the dish for a pre-order", r.ok && (await lineQuantity()) === 1, r.error?.code);
+  await Cart.deleteMany({ user: buyer._id });
   await Restaurant.updateOne({ _id: restaurant._id }, { $set: { isOpenNow: true, isActive: false } });
   r = await add(1);
   ok("an offline restaurant's dish is refused as RESTAURANT_UNAVAILABLE", !r.ok && r.error?.code === "RESTAURANT_UNAVAILABLE", r.error?.code ?? "accepted");

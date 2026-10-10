@@ -9,6 +9,7 @@
 
 export default {
   short: {
+    scheduled: "Scheduled",
     pending: "Awaiting confirmation",
     confirmed: "Confirmed",
     preparing: "Preparing",
@@ -31,7 +32,18 @@ export default {
     delivered: "Delivered",
   },
 
+  scheduled: {
+    title: "Scheduled for",
+    at: "{{day}}, {{time}}",
+    hint: "The restaurant starts on it about {{minutes}} minutes before.",
+    cancelHint: "You can cancel until the restaurant starts on it.",
+  },
+
   status: {
+    scheduled: {
+      label: "Scheduled",
+      description: "We will send it to the restaurant in time for your delivery slot.",
+    },
     pending: {
       label: "Waiting for confirmation",
       description: "The restaurant has your order and will confirm it shortly.",

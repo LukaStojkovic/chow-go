@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Referral from "../models/Referral.js";
 import Addresses from "../models/Addresses.js";
 import Cart from "../models/Cart.js";
 import Order from "../models/Order.js";
@@ -28,7 +29,7 @@ const plainItems = (items = []) =>
   }));
 
 async function customerData(userId) {
-  const [addresses, cart, orders, vouchers] = await Promise.all([
+  const [addresses, cart, orders, vouchers, user, invited, joined] = await Promise.all([
     Addresses.find({ userId }).select("-userId -__v").lean(),
     Cart.findOne({ user: userId }).populate("restaurant", "name").lean(),
     Order.find({ customer: userId })
@@ -39,11 +40,15 @@ async function customerData(userId) {
     PromoCode.find({ assignedTo: userId })
       .select("code label type value maxDiscount currency status redemptionCount endsAt createdAt -_id")
       .lean(),
+    User.findById(userId).select("referralCode").lean(),
+    Referral.find({ referrer: userId }).select("status createdAt rewardedAt -_id").lean(),
+    Referral.findOne({ referred: userId }).select("code createdAt -_id").lean(),
   ]);
 
   return {
     addresses,
     vouchers,
+    referral: { code: user?.referralCode ?? null, invited, joinedWith: joined ?? null },
     cart: cart
       ? { restaurant: cart.restaurant?.name ?? null, items: plainItems(cart.items), updatedAt: cart.updatedAt }
       : null,

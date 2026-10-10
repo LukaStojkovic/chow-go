@@ -3,6 +3,7 @@ import {
   addToCart,
   clearCart,
   getCart,
+  getCartSuggestions,
   removeItemFromCart,
   updateCartItemQuantity,
 } from "../controllers/cartController.js";
@@ -16,6 +17,7 @@ const router = Router();
 router.use(protectedRoute, isCustomerMiddleware);
 
 router.get("/", getCart);
+router.get("/suggestions", getCartSuggestions);
 router.post("/items", addToCart);
 router.patch("/items/:lineId", updateCartItemQuantity);
 router.delete("/items/:lineId", removeItemFromCart);

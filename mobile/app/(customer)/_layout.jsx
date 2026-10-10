@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { Stack } from "expo-router";
 import { BasketMiniBar } from "@/features/basket/BasketMiniBar";
 import { ReplaceBasketDialog } from "@/features/basket/ReplaceBasketDialog";
+import { usePendingReferral } from "@/features/referral/pendingReferral";
 import { useAuthStore } from "@/store/useAuthStore";
 import { fullScreenModalOptions, sheetOptions, stackScreenOptions } from "@/navigation/transitions";
 import { useCartStore } from "@/store/useCartStore";
@@ -12,6 +13,7 @@ export default function CustomerLayout() {
   const { color } = useTokens();
   const authUser = useAuthStore((state) => state.authUser);
   const fetchCart = useCartStore((state) => state.fetchCart);
+  usePendingReferral();
 
   // The server owns the cart, so a cold start or a fresh sign-in re-reads it
   // rather than trusting anything held locally.
@@ -38,6 +40,7 @@ export default function CustomerLayout() {
         <Stack.Screen name="address/[addressId]" />
         <Stack.Screen name="settings/profile" />
         <Stack.Screen name="settings/vouchers" />
+        <Stack.Screen name="settings/invite" />
         <Stack.Screen name="order/[orderId]/confirmed" options={fullScreenModalOptions} />
       </Stack>
 

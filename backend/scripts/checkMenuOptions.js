@@ -99,11 +99,27 @@ try {
   };
   ok("unreadable JSON is refused", (await refused("{nope")) === "OPTION_GROUPS_INVALID");
   ok("a group with no options is refused", (await refused([{ name: "Size", options: [] }])) === "OPTION_GROUPS_INVALID");
-  ok("a pick range wider than the options is refused",
-    (await refused([{ name: "Size", minSelect: 0, maxSelect: 4, options: [{ name: "a" }] }])) === "OPTION_GROUPS_INVALID");
+  ok("\"pick at least\" above the number of options is refused",
+    (await refused([{ name: "Size", minSelect: 2, maxSelect: 2, options: [{ name: "a" }] }])) === "OPTION_GROUPS_INVALID");
+  let minAboveMax = null;
+  try {
+    await menuService.createNewMenuItem({ ...base, optionGroups: [{ name: "Size", minSelect: 2, maxSelect: 1, options: [{ name: "a" }, { name: "b" }] }] });
+  } catch (error) {
+    minAboveMax = error.message;
+  }
+  ok("and \"pick at least\" above \"pick at most\" says which numbers clash",
+    /group 1/.test(minAboveMax ?? "") && /\(2\)/.test(minAboveMax ?? "") && /\(1\)/.test(minAboveMax ?? ""), minAboveMax);
   ok("a negative extra price is refused",
     (await refused([{ name: "Size", options: [{ name: "a", priceDelta: -5 }] }])) === "OPTION_GROUPS_INVALID");
   ok("nothing was stored by those", (await MenuItem.countDocuments({})) === 0);
+
+  const generous = await menuService.createNewMenuItem({
+    ...base,
+    name: "Salad",
+    optionGroups: [{ name: "Toppings", minSelect: "0", maxSelect: "5", options: [{ name: "Corn" }, { name: "Egg" }] }],
+  });
+  ok("\"pick up to 5\" over two toppings is saved as up to 2", generous.optionGroups[0].maxSelect === 2, String(generous.optionGroups[0].maxSelect));
+  await MenuItem.deleteOne({ _id: generous._id });
 
   const dish = await menuService.createNewMenuItem({
     ...base,

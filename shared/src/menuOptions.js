@@ -18,9 +18,12 @@ export const OPTION_LIMITS = {
 
 const idOf = (value) => (value?._id ?? value?.id ?? value) != null ? String(value?._id ?? value?.id ?? value) : "";
 
+// A blank field takes the default; anything else that is not a whole number
+// is NaN, so the caller can say so instead of quietly using the default.
 const toInt = (value, fallback) => {
-  const n = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
-  return Number.isInteger(n) ? n : fallback;
+  if (value === undefined || value === null || (typeof value === "string" && value.trim() === "")) return fallback;
+  const n = typeof value === "string" ? Number(value.trim()) : value;
+  return Number.isInteger(n) ? n : NaN;
 };
 
 const fail = (code, details = {}) => ({ error: { code, ...details } });
@@ -80,10 +83,18 @@ export function normalizeOptionGroups(input) {
     }
 
     const minSelect = toInt(group.minSelect, 0);
-    const maxSelect = toInt(group.maxSelect, 1);
-    if (minSelect < 0 || maxSelect < 1 || minSelect > maxSelect || maxSelect > options.length) {
+    const rawMax = toInt(group.maxSelect, 1);
+    if (Number.isNaN(minSelect) || Number.isNaN(rawMax) || minSelect < 0 || rawMax < 1) {
       return fail("OPTION_GROUP_RANGE", { group: g });
     }
+    if (minSelect > rawMax) {
+      return fail("OPTION_MIN_ABOVE_MAX", { group: g, min: minSelect, max: rawMax });
+    }
+    if (minSelect > options.length) {
+      return fail("OPTION_MIN_ABOVE_OPTIONS", { group: g, min: minSelect, count: options.length });
+    }
+    // "Pick up to 5" over three extras just means "any of them".
+    const maxSelect = Math.min(rawMax, options.length);
 
     const id = idOf(group._id ?? group.id ?? null);
     groups.push({ ...(id ? { _id: id } : {}), name, minSelect, maxSelect, options });

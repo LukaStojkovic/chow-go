@@ -4,6 +4,7 @@ const VALID_TRANSITIONS = {
 };
 
 export const ACTIVE_STATUSES = [
+  "scheduled",
   "pending",
   "confirmed",
   "preparing",
@@ -14,6 +15,7 @@ export const ACTIVE_STATUSES = [
 ];
 
 const STATUS_METADATA = {
+  scheduled: { label: "Scheduled", priority: "low" },
   pending: { label: "Pending", priority: "high" },
   confirmed: { label: "Confirmed", priority: "high" },
   preparing: { label: "Preparing", priority: "medium" },
@@ -42,8 +44,11 @@ export function canConfirm(status) {
   return status === "pending";
 }
 
+// A scheduled order can be turned down before it is released to the kitchen.
+export const RESTAURANT_REJECTABLE = ["pending", "scheduled"];
+
 export function canReject(status) {
-  return status === "pending";
+  return RESTAURANT_REJECTABLE.includes(status);
 }
 
 /** Restaurant-side cancel. */
@@ -74,7 +79,7 @@ export function statusesThatReach(newStatus) {
  * "assigned" stays cancellable - a courier on the way to the restaurant is not
  * a reason to trap the customer - but the handler must release that courier.
  */
-export const CUSTOMER_CANCELLABLE = ["pending", "confirmed", "ready", "assigned"];
+export const CUSTOMER_CANCELLABLE = ["scheduled", "pending", "confirmed", "ready", "assigned"];
 
 export function canCustomerCancel(status) {
   return CUSTOMER_CANCELLABLE.includes(status);

@@ -67,3 +67,13 @@ export async function clearCart() {
     handleApiError(err);
   }
 }
+
+export async function getCartSuggestions() {
+  try {
+    const res = await axiosInstance.get(`/cart/suggestions`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching suggestions:", err);
+    handleApiError(err);
+  }
+}

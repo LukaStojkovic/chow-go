@@ -19,6 +19,7 @@ import { Text } from "@/components/ui/Text";
 import { ArrivalEstimate } from "@/features/orders/ArrivalEstimate";
 import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
 import { OrderTrackingMap } from "@/features/orders/OrderTrackingMap";
+import { ScheduledFor } from "@/features/orders/ScheduledFor";
 import { CancelOrderPrompt } from "@/features/orders/CancelOrderPrompt";
 import { useCancelOrder, useOrder } from "@/hooks/Orders/useOrders";
 import { toast } from "@/store/useToastStore";
@@ -115,6 +116,8 @@ export default function OrderTracking() {
           </View>
 
           <ArrivalEstimate order={order} routeSeconds={routeSeconds} />
+
+          <ScheduledFor order={order} prepMinutes={data.estimatedPreparationTime} showCancelHint={order.canCancel} />
 
           <Text variant="body" tone="muted">
             {order.statusDescription}

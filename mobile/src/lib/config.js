@@ -64,3 +64,7 @@ export const API_URL = resolve(process.env.EXPO_PUBLIC_API_URL, "api");
 export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL?.trim()
   ? resolve(process.env.EXPO_PUBLIC_SOCKET_URL, "socket")
   : API_URL.replace(/\/api$/, "");
+
+export const WEB_URL = (
+  process.env.EXPO_PUBLIC_WEB_URL?.trim() || API_URL.replace(/\/api$/, "")
+).replace(/\/+$/, "");

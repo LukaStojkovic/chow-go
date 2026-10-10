@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:pagination`, `check:search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:pagination`, `check:search`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -98,7 +98,7 @@ All GeoJSON is `[lng, lat]`. 2dsphere indexes exist on `Restaurant.location`, `A
 
 ## Order lifecycle — the core of the app
 
-`pending → confirmed → preparing → ready → assigned → picked_up → in_transit → delivered`, plus terminal `cancelled` / `rejected`. Ownership of each leg is split across three services, and each actor's routes are scoped to their own id:
+`pending → confirmed → preparing → ready → assigned → picked_up → in_transit → delivered`, plus terminal `cancelled` / `rejected`, and `scheduled` before `pending` for an order booked for later (see "Scheduled orders"). Ownership of each leg is split across three services, and each actor's routes are scoped to their own id:
 
 | Actor | Service | Transitions |
 |---|---|---|
@@ -121,6 +121,8 @@ claim takes the courier first (`Courier.findOneAndUpdate` on `isAvailable: true,
 null`) and only then the order, releasing the courier if the order claim fails. That order is
 what stops one courier holding two orders, and it guarantees a cancel landing after the claim
 always finds the courier to free.
+
+`Order.estimatedDeliveryTime` is revised as the order moves (`utils/deliveryEta.js`): prep + travel at placement and on accept, a courier's wait plus the restaurant-to-door ride when marked `ready`, and the ride alone at `picked_up` (distance-based, 8–60 min, 30 without coordinates). The clients show it through `@chowgo/shared/adapters/order#estimateArrival`, which swaps in the live route once the food is on its way and reports `progress` for the countdown bar. `check:eta` covers the revisions.
 
 Order creation snapshots data deliberately — item name/price are copied into
 `order.items`, and the address is copied into `deliveryAddressSnapshot` — then the cart
@@ -173,6 +175,12 @@ Persisted notifications (`models/OrderNotification.js`, registered as model `"No
 
 Those same templates are the source of push copy via `pushPayloadFor`, so the two can't drift. `services/orderSocket.service.js#deliverToCustomer` emits, and sends an Expo push only when `isCustomerLive` is false — an empty room on every instance. iOS suspends the socket ~30s after backgrounding, which makes that a good proxy for "the app isn't in front of them"; Android can hold a socket open while hidden, so a notification is occasionally skipped there. Making it exact needs the client to leave its rooms on background. `courier:location` deliberately never pushes — that would be thousands of notifications per delivery. Device tokens live on `User.pushTokens` with `select: false`, because `toJSON` runs with virtuals on and they would otherwise ride along in every `checkAuth` response. Each entry's `deviceId` is a per-install `inst_<uuid>` kept in SecureStore (`mobile/src/lib/installationId.js`); `registerDevice` only moves a token off another account when the request presents that same id, so a leaked token can't redirect someone's notifications. Older entries carry the OS build number, which proves nothing and still moves freely.
 
+## Scheduled orders
+
+`createOrder` takes an optional `scheduledFor` (ISO). `@chowgo/shared/scheduling` is the single source of truth, used by the backend to validate and by both clients to build the picker: slots every 15 minutes, at least 45 minutes ahead, at most 3 days out, and only where the restaurant is open when the kitchen would start (`releaseTimeFor` = delivery time minus prep (default 30) minus 30 travel). Refusals are `SCHEDULE_INVALID` / `SCHEDULE_TOO_SOON` / `SCHEDULE_TOO_FAR` / `SCHEDULE_CLOSED` (400). A scheduled order is created as `scheduled` with `scheduledFor`, `releaseAt` and `estimatedDeliveryTime = scheduledFor`, never charges priority, and alerts nobody; `orderRecovery.service.js#releaseDueScheduledOrders` (the per-minute cron) moves it to `pending` at `releaseAt`, stamps `releasedAt` and fires the normal `emitOrderPlaced`. The pending timeout counts from `releasedAt` when it exists. The customer can cancel and the seller reject a `scheduled` order (`CUSTOMER_CANCELLABLE`, `RESTAURANT_REJECTABLE`).
+
+A closed restaurant takes pre-orders: `utils/restaurantAvailability.js#orderingBlockedError(restaurant, { allowScheduled: true })` admits it while `deliverySlots` has anything, which is what `addToCart`, basket suggestions and a scheduled checkout use; an order for now still needs `isOpenNow`. `isOpenAt` itself now lives in `@chowgo/shared/scheduling` and `utils/schedule.js` delegates to it. `check:scheduled` covers all of it, with slots derived from the real clock.
+
 ## Opening hours and `isOpenNow`
 
 `Restaurant.schedule` holds a per-day `{isOpen, openingTime, closingTime}` entry (24-hour `HH:MM`, regex-validated in the schema). Two conventions matter: `openingTime === closingTime` means open around the clock, and a `closingTime` earlier than `openingTime` is an overnight window that runs into the next morning.
@@ -209,6 +217,20 @@ Deleting a dish is a soft delete: `deleteMenuItemById` sets `MenuItem.deletedAt`
 - **Price.** A line's `price` is one portion including its options. Promotions discount the dish, never the extras (`linePricing`), and `basePrice` is the undiscounted dish plus the same options.
 - **Repricing** re-resolves every line's options against the current menu: a changed `priceDelta` is a `PRICE_CHANGED` like any other, and a removed or sold-out option, or a new required group, makes the line `ITEM_UNAVAILABLE`. Keep option `_id`s when editing a dish, or every basket holding it goes unavailable.
 - **Orders copy the chosen options** (`Order.items.options`, schema in `models/lineOption.js`), so a past order reads the same after the seller renames or deletes them. `check:menu-options` covers all of the above end to end.
+
+## Menu sections
+
+`MenuItem.category` is the platform taxonomy (discovery filters on it) and stays a fixed list. On top of it a seller names their own sections: `Restaurant.menuSections` (ordered, max 30, names up to 40 and unique case-insensitively) and `MenuItem.sectionId` + `sortOrder`. `services/menuLayout.service.js` owns the rules. `GET`/`PUT /api/restaurant/menu-layout` (seller-only, singular like `/api/restaurant/promo-codes`) reads and replaces the whole layout in one save: section order and names, and each section's dishes in order; existing section `_id`s are kept, and a dish left out of every section gets `sectionId: null`. The item form sends an optional `sectionId` (empty clears it; a changed section puts the dish at that section's end). Every refusal is `400 MENU_LAYOUT_INVALID` and changes nothing.
+
+The customer menu (`getMenuByCategories`) returns the seller's non-empty sections first, in order, as `{ sectionId, label, category, items }`, then the dishes outside them grouped by category as before, so a restaurant without sections sees no change. Clients label groups with `@chowgo/shared/adapters/menu#menuGroupLabel` (a section name as written, a category translated) and anchor them with `menuGroupId`. `check:menu-layout` covers it.
+
+## Basket suggestions (upsell)
+
+`GET /api/cart/suggestions` (customer) returns up to 6 dishes for the current basket, each with a `reason`: `together` (ordered with what is in the basket in at least 2 of the restaurant's last 500 delivered orders within 90 days, max 4), then one `drink` and one `dessert` (the restaurant's most popular `Drinks`/`Desserts` dish) when neither the basket nor a `together` pick already covers that category. Dishes already in the basket, unavailable or deleted ones, and anything from a restaurant `orderingBlockedError` refuses are never offered. `services/upsell.service.js` owns it; the order stats are a 10-minute shared cache per restaurant (`cache:upsell:`), so a new pairing shows up within 10 minutes. Responses are priced like the menu (`withPromotion`, restaurant `currency`, `optionGroups`); clients read them through `@chowgo/shared/adapters/menu#toUpsellViews`. `check:upsell` covers it.
+
+## Referrals
+
+Every customer gets an 8-character invite code (`User.referralCode`, created on first `GET /api/referrals/me`; alphabet without 0/O/1/I). A new customer applies a friend's code with `POST /api/referrals/apply` before their first placed order (cancelled and rejected ones don't count) and immediately gets a first-order personal voucher; when that friend's first order is **delivered**, `courierOrder.service.js#markDeliveredOperation` calls `referral.service.js#rewardReferrerSafely` (fire-and-forget) and the referrer gets one. Amounts and validity live in `@chowgo/shared/referral` (RSD: 300 each, friend's minimum 1000; EUR/USD 3/3/10; 30 and 60 days). One `Referral` row per invited customer (`referred` unique), moved `pending → rewarded` by a conditional update so a reward is paid once; past 20 rewards in 30 days it becomes `capped` instead. Vouchers come from `promoCode.service.js#createPersonalVoucher` (shared with support's `issueVoucher`) with `sourceReferral` set. Refusals: `REFERRAL_INVALID_CODE` / `_OWN_CODE` / `_ALREADY_APPLIED` (409) / `_NOT_NEW` / `_CUSTOMER_ONLY` (403); apply shares `promoLimiter`. The share link is the web's `/invite/<code>` (`referralLink`). `check:referral` covers it. Loyalty or a subscription is not built.
 
 ## Promo codes and vouchers
 

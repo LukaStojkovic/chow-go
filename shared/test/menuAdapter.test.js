@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { t } from "../src/i18n/index.js";
 
 import {
   categorySlug,
@@ -7,6 +8,7 @@ import {
   toDishView,
   toDishViews,
   toMenuSections,
+  toUpsellViews,
 } from "../src/adapters/menu.js";
 
 describe("categorySlug", () => {
@@ -90,6 +92,16 @@ describe("toMenuSections", () => {
     expect(toMenuSections(null)).toEqual([]);
   });
 
+  it("keeps the seller's section names and order, then the category groups", () => {
+    const sections = toMenuSections([
+      { sectionId: "s2", label: "Combos", category: "Combos", items: [{ _id: "4", name: "Menu 1" }] },
+      { sectionId: "s1", label: "Pizza", category: "Pizza", items: [{ _id: "5", name: "Margherita" }] },
+      { category: "Pizza", items: [{ _id: "6", name: "Calzone" }] },
+    ]);
+    expect(sections.map((s) => s.id)).toEqual(["section-s2", "section-s1", "pizza"]);
+    expect(sections.map((s) => s.label)).toEqual(["Combos", "Pizza", "Pizza"]);
+  });
+
   it("filters by name or description and recounts availability", () => {
     const sections = toMenuSections(raw);
     expect(filterMenuSections(sections, "  ")).toBe(sections);
@@ -120,5 +132,20 @@ describe("toBasketLines", () => {
   it("ignores a basePrice that is not higher", () => {
     const [line] = toBasketLines([{ menuItem: "m1", price: 10, basePrice: 10, quantity: 1 }]);
     expect(line).toMatchObject({ baseUnitPrice: null, savings: 0 });
+  });
+});
+
+describe("toUpsellViews", () => {
+  it("turns suggestions into dish views with a reason label", () => {
+    const views = toUpsellViews([
+      { _id: "1", name: "Fries", price: 300, promotionalPrice: 240, discountPercent: 20, currency: "RSD", reason: "together" },
+      { _id: "2", name: "Cola", price: 200, reason: "drink" },
+      { _id: "3", name: "Odd", price: 100, reason: "nonsense" },
+      null,
+    ]);
+    expect(views.map((v) => [v.id, v.reason])).toEqual([["1", "together"], ["2", "drink"], ["3", "together"]]);
+    expect(views[0]).toMatchObject({ price: 240, basePrice: 300, currency: "RSD" });
+    expect(views[1].reasonLabel).toBe(t("basket:upsell.drink"));
+    expect(toUpsellViews(undefined)).toEqual([]);
   });
 });

@@ -1,10 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { CheckCircle, Clock, Package, XCircle } from "lucide-react";
+import { CalendarClock, CheckCircle, Clock, Package, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { OrderActionsDropdown } from "./OrderActionsDropdown";
 
 import { formatPrice } from "@chowgo/shared/format";
 import { optionsSummary } from "@chowgo/shared/menuOptions";
+import { formatScheduledFor } from "@chowgo/shared/deliveryTime";
 export function OrderTableRow({
   order,
   onConfirm,
@@ -17,6 +19,7 @@ export function OrderTableRow({
   isCancelling,
   isUpdating,
 }) {
+  const { t } = useTranslation(["order", "seller"]);
   const getStatusVariant = (status) => {
     switch (status) {
       case "pending":
@@ -38,6 +41,8 @@ export function OrderTableRow({
 
   const getStatusIcon = (status) => {
     switch (status) {
+      case "scheduled":
+        return <CalendarClock className="w-3 h-3" />;
       case "pending":
         return <Clock className="w-3 h-3" />;
       case "confirmed":
@@ -91,6 +96,11 @@ export function OrderTableRow({
             {order.status.replace("_", " ").toUpperCase()}
           </span>
         </Badge>
+        {order.status === "scheduled" && order.scheduledFor && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            {t("order:scheduled.title")} {formatScheduledFor(order.scheduledFor)}
+          </div>
+        )}
       </TableCell>
       <TableCell className="font-bold">{formatPrice(order.total, { currency: order.currency })}</TableCell>
       <TableCell className="text-right">

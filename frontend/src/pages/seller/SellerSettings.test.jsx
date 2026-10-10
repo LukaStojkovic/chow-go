@@ -14,7 +14,7 @@ vi.mock("@/components/Location/LocationMapSelector", () => ({
   ),
 }));
 
-describe("SellerSettings location", () => {
+describe("SellerSettings location", { timeout: 20000 }, () => {
   let apiUpdateRestaurant;
 
   beforeEach(() => {

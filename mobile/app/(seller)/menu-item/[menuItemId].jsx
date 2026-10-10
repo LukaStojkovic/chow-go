@@ -31,6 +31,7 @@ import {
   useMenuItem,
   useUpdateMenuItem,
 } from "@/hooks/Restaurants/useMenuItems";
+import { useMenuLayout } from "@/hooks/Restaurants/useMenuLayout";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
@@ -45,6 +46,8 @@ export default function MenuItemForm() {
   const create = useCreateMenuItem();
   const update = useUpdateMenuItem();
   const remove = useDeleteMenuItem();
+  const sections = useMenuLayout().data?.sections ?? [];
+  const [sectionId, setSectionId] = useState("");
 
   const { data: fetchedItem } = useMenuItem(isNew ? null : menuItemId);
   const existingItem = isNew ? null : (fetchedItem ?? null);
@@ -83,6 +86,7 @@ export default function MenuItemForm() {
       promotion: { ...EMPTY_PROMOTION, ...(existingItem.promotion ?? {}) },
     });
     setOptionDrafts(toOptionDrafts(existingItem.optionGroups));
+    setSectionId(existingItem.sectionId ? String(existingItem.sectionId) : "");
     setOptionsReady(true);
   }, [existingItem, reset]);
 
@@ -101,6 +105,10 @@ export default function MenuItemForm() {
       }
       setOptionsError(null);
       values = { ...formValues, optionGroups: checked.groups };
+    }
+    if (sections.length > 0) {
+      const known = sections.some((section) => String(section._id) === sectionId);
+      values = { ...values, sectionId: known ? sectionId : "" };
     }
     try {
       if (isNew) {
@@ -216,6 +224,29 @@ export default function MenuItemForm() {
             )}
           />
         </Card>
+
+        {sections.length > 0 ? (
+          <Card className="gap-3">
+            <Text variant="h3">{t("menuLayout.section")}</Text>
+            <View className="flex-row flex-wrap gap-2">
+              <Chip
+                label={t("menuLayout.noSection")}
+                active={!sections.some((section) => String(section._id) === sectionId)}
+                showCheck
+                onPress={() => setSectionId("")}
+              />
+              {sections.map((section) => (
+                <Chip
+                  key={section._id}
+                  label={section.name}
+                  active={String(section._id) === sectionId}
+                  showCheck
+                  onPress={() => setSectionId(String(section._id))}
+                />
+              ))}
+            </View>
+          </Card>
+        ) : null}
 
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">

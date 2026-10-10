@@ -38,6 +38,8 @@ const ERROR_MESSAGES = {
   OPTION_GROUP_NAME: (t, params) => t("errors:menuOption.groupName", params),
   OPTION_GROUP_EMPTY: (t, params) => t("errors:menuOption.groupEmpty", params),
   OPTION_GROUP_RANGE: (t, params) => t("errors:menuOption.groupRange", params),
+  OPTION_MIN_ABOVE_MAX: (t, params) => t("errors:menuOption.minAboveMax", params),
+  OPTION_MIN_ABOVE_OPTIONS: (t, params) => t("errors:menuOption.minAboveOptions", params),
   OPTION_NAME: (t, params) => t("errors:menuOption.name", params),
   OPTION_PRICE: (t, params) => t("errors:menuOption.price", params),
   OPTION_TOO_MANY_GROUPS: (t, params) => t("errors:menuOption.tooManyGroups", params),
@@ -48,8 +50,8 @@ export function validateOptionDrafts(drafts, t) {
   const payload = drafts.map(({ _id, name, minSelect, maxSelect, options }) => ({
     ...(_id ? { _id } : {}),
     name,
-    minSelect: minSelect.trim() === "" ? 0 : Number(minSelect),
-    maxSelect: maxSelect.trim() === "" ? 1 : Number(maxSelect),
+    minSelect,
+    maxSelect,
     options: options.map((option) => ({
       ...(option._id ? { _id: option._id } : {}),
       name: option.name,
@@ -60,13 +62,15 @@ export function validateOptionDrafts(drafts, t) {
   const result = normalizeOptionGroups(payload);
   if (!result.error) return { groups: result.groups };
 
-  const { code, group, max } = result.error;
+  const { code, group, max, min, count } = result.error;
   return {
     error: {
       group,
       message: (ERROR_MESSAGES[code] ?? ERROR_MESSAGES.OPTION_GROUPS_INVALID)(t, {
         group: group === undefined ? "" : group + 1,
         max,
+        min,
+        count,
       }),
     },
   };

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { formatScheduledFor } from "@chowgo/shared/deliveryTime";
 import { STATUS_BADGE_TONE, shortStatus } from "./orderStatus";
 import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
@@ -55,7 +56,11 @@ export function OrderCard({ order, onPress, onReorder, isReordering }) {
         <Badge tone={STATUS_BADGE_TONE[order.statusTone] ?? "neutral"} size="sm">
           {shortStatus(order)}
         </Badge>
-        {eta && !eta.isLate ? (
+        {order.isScheduled && order.scheduledFor ? (
+          <Text variant="label-sm" tone="muted" numberOfLines={1} className="shrink">
+            {formatScheduledFor(order.scheduledFor)}
+          </Text>
+        ) : eta && !eta.isLate ? (
           <Text variant="label-sm" tone="muted">
             {t("order:eta.around", { time: formatTime(eta.at) })}
           </Text>

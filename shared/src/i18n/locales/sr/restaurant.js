@@ -14,6 +14,8 @@ export default {
     closedUntil: "Trenutno zatvoreno. Otvara se ponovo u {{time}}.",
     closedNoSlot: "Trenutno zatvoreno. Pogledajte radno vreme za sledeći termin.",
     closedNow: "Trenutno zatvoreno",
+    preorder: "Trenutno zatvoreno. Poručite unapred za kasnije.",
+    preorderShort: "Poruči unapred",
     openNow: "Sada otvoreno",
     open: "Otvoreno",
     closed: "Zatvoreno",

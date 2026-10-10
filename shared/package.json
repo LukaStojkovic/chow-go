@@ -6,6 +6,7 @@
   "description": "Platform-neutral business logic shared by the web and mobile clients.",
   "exports": {
     "./constants": "./src/constants.js",
+    "./deliveryTime": "./src/deliveryTime.js",
     "./currency": "./src/currency.js",
     "./dates": "./src/dates.js",
     "./format": "./src/format.js",
@@ -21,6 +22,8 @@
     "./promoCode": "./src/promoCode.js",
     "./promotion": "./src/promotion.js",
     "./schedule": "./src/schedule.js",
+    "./scheduling": "./src/scheduling.js",
+    "./referral": "./src/referral.js",
     "./searchFilters": "./src/searchFilters.js",
     "./strings": "./src/strings.js",
     "./validation": "./src/validation.js",

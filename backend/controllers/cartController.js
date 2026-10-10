@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { linePricing, lineIdOf, repriceCartLines } from "../services/cartPricing.service.js";
 import { basketLineId, resolveSelectionOrThrow } from "../utils/menuOptions.js";
 import { orderingBlockedError } from "../utils/restaurantAvailability.js";
+import { suggestionsForCart } from "../services/upsell.service.js";
 
 export const MAX_LINE_QUANTITY = 50;
 
@@ -66,7 +67,7 @@ export async function addToCart(req, res, next) {
     );
   }
 
-  const blocked = orderingBlockedError(menuItem.restaurant);
+  const blocked = orderingBlockedError(menuItem.restaurant, { allowScheduled: true });
   if (blocked) return next(blocked);
 
   if (options !== undefined && !Array.isArray(options)) {
@@ -216,3 +217,8 @@ export const updateCartItemQuantity = async (req, res, next) => {
     data: cart,
   });
 };
+
+export async function getCartSuggestions(req, res) {
+  const suggestions = await suggestionsForCart(req.user.id);
+  res.status(200).json({ status: "success", data: { suggestions } });
+}

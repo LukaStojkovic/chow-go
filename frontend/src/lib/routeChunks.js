@@ -12,6 +12,7 @@ export const routeChunks = {
   "/seller/dashboard": () => import("@/pages/seller/dashboard/SellerDashboard"),
   "/seller/orders": () => import("@/pages/seller/SellerOrders"),
   "/seller/menu": () => import("@/pages/seller/SellerMenu"),
+  "/seller/menu/arrange": () => import("@/pages/seller/SellerMenuLayout"),
   "/seller/analytics": () => import("@/pages/seller/SellerAnalytics"),
   "/seller/promotions": () => import("@/pages/seller/SellerPromoCodes"),
   "/seller/settings": () => import("@/pages/seller/SellerSettings"),

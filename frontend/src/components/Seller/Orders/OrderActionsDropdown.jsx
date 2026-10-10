@@ -31,6 +31,16 @@ export function OrderActionsDropdown({
   const { t } = useTranslation(["seller", "common"]);
   const getMenuItems = () => {
     switch (order.status) {
+      case "scheduled":
+        return (
+          <DropdownMenuItem
+            onClick={() => onReject(order._id)}
+            disabled={isRejecting}
+          >
+            <XCircle className="w-4 h-4 mr-2" />
+            {t("orders.actions.reject")}
+          </DropdownMenuItem>
+        );
       case "pending":
         return (
           <>

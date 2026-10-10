@@ -27,6 +27,10 @@ import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
 import { MenuItemOptionGroupsEditor } from "./MenuItemOptionGroupsEditor";
 import { optionGroupsToEditorState, validateOptionGroups } from "./optionGroupsForm";
 import { X } from "lucide-react";
+import { MenuItemSectionSelect } from "./MenuItemSectionSelect";
+import { useMenuSections } from "../hooks/useMenuLayout";
+
+const sectionOf = (menuItem) => (menuItem?.sectionId ? String(menuItem.sectionId) : "");
 
 export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
   const { t, i18n } = useTranslation(["seller", "common"]);
@@ -40,8 +44,11 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
   );
   const [optionsError, setOptionsError] = useState(null);
   const [optionsSource, setOptionsSource] = useState(menuItem);
+  const sections = useMenuSections();
+  const [sectionId, setSectionId] = useState(() => sectionOf(menuItem));
   if (menuItem !== optionsSource) {
     setOptionsSource(menuItem);
+    setSectionId(sectionOf(menuItem));
     setOptionGroups(optionGroupsToEditorState(menuItem?.optionGroups));
     setOptionsError(null);
   }
@@ -110,6 +117,7 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
       ...data,
       existingImages: existingImages,
       optionGroups: options.groups,
+      sectionId: sectionId !== sectionOf(menuItem) ? sectionId : undefined,
     };
 
     updateMenuItem(
@@ -169,6 +177,10 @@ export const EditMenuItemForm = ({ menuItem, onClose, onSuccess }) => {
             </p>
           )}
         </div>
+
+        {sections.length > 0 && (
+          <MenuItemSectionSelect sections={sections} value={sectionId} onChange={setSectionId} />
+        )}
 
         <div>
           <Label htmlFor="price">{t("menu.form.priceLabel")}</Label>

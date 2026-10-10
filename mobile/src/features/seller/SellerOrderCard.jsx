@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { STATUS_BADGE_TONE, shortStatus } from "@/features/orders/orderStatus";
+import { formatScheduledFor } from "@chowgo/shared/deliveryTime";
 
 // The one action the seller can take from here, per status. Anything beyond
 // `ready` belongs to the courier, so the card stops offering buttons.
@@ -38,6 +39,11 @@ export function SellerOrderCard({ order, onPress, onAdvance, onOpen, isBusy }) {
           <Text variant="body-sm" tone="muted" numberOfLines={1}>
             {t("basket:itemCount", { count: order.itemCount })} · {order.placedAtLabel}
           </Text>
+          {order.isScheduled && order.scheduledFor ? (
+            <Text variant="label-sm" tone="info" numberOfLines={1}>
+              {`${t("order:scheduled.title")} ${formatScheduledFor(order.scheduledFor)}`}
+            </Text>
+          ) : null}
         </View>
 
         <View className="shrink-0 items-end gap-1.5">

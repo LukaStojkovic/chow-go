@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 
-import { Bike, LogOut, MapPin, Receipt, Store, TicketPercent, UserRound } from "lucide-react-native";
+import { Bike, Gift, LogOut, MapPin, Receipt, Store, TicketPercent, UserRound } from "lucide-react-native";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -149,6 +149,14 @@ export default function Profile() {
               title={t("promo:vouchers.title")}
               subtitle={t("promo:vouchers.description")}
               onPress={() => router.push("/(customer)/settings/vouchers")}
+            />
+
+            <Divider />
+            <ListRow
+              icon={Gift}
+              title={t("profile:referral.title")}
+              subtitle={t("profile:referral.yourCode")}
+              onPress={() => router.push("/(customer)/settings/invite")}
             />
           </View>
         </Card>

@@ -88,3 +88,38 @@ it("treats a restaurant that is not taking orders the same way", async () => {
   expect(await screen.findByText(t("restaurant:availability.notAccepting"))).toBeOnTheScreen();
   expect(screen.getByRole("button", { name: t("restaurant:availability.closedNow") })).toBeDisabled();
 });
+
+describe("a closed restaurant that takes pre-orders", () => {
+  const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const schedule = Object.fromEntries(
+    DAYS.map((day) => [day, { isOpen: true, openingTime: "10:00", closingTime: "22:00" }]),
+  );
+
+  beforeEach(() => {
+    jest.useFakeTimers({ advanceTimers: true });
+    jest.setSystemTime(new Date("2026-10-07T06:00:00Z"));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("lets the dish into the basket and says it is for later", async () => {
+    getRestaurantInfo.mockResolvedValue({ ...open, isOpenNow: false, timezone: "Europe/Belgrade", schedule });
+    const addItem = await renderScreen();
+
+    expect(await screen.findByText(t("restaurant:availability.preorder"))).toBeOnTheScreen();
+    expect(screen.queryByText(t("restaurant:availability.closedNoSlot"))).toBeNull();
+
+    await fireEvent.press(screen.getByRole("button", { name: addLabel }));
+    expect(addItem).toHaveBeenCalledWith("m1", 1, undefined, []);
+  });
+
+  it("still blocks a restaurant that is not taking orders", async () => {
+    getRestaurantInfo.mockResolvedValue({ ...open, isActive: false, isOpenNow: false, schedule });
+    await renderScreen();
+
+    expect(await screen.findByText(t("restaurant:availability.notAccepting"))).toBeOnTheScreen();
+    expect(screen.getByRole("button", { name: t("restaurant:availability.closedNow") })).toBeDisabled();
+  });
+});

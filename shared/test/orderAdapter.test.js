@@ -158,3 +158,31 @@ describe("estimateArrival", () => {
     expect(estimateArrival(null)).toBeNull();
   });
 });
+
+describe("arrival progress", () => {
+  const now = Date.parse("2026-10-10T18:30:00Z");
+
+  it("fills from when the kitchen got the order to the arrival time", () => {
+    const eta = estimateArrival(
+      { status: "preparing", placedAt: "2026-10-10T18:00:00Z", etaAt: "2026-10-10T19:00:00Z" },
+      { now },
+    );
+    expect(eta.progress).toBe(0.5);
+  });
+
+  it("starts a released scheduled order at its release, not at booking", () => {
+    const view = toOrderView({
+      _id: "o1",
+      status: "pending",
+      createdAt: "2026-10-08T09:00:00Z",
+      releasedAt: "2026-10-10T18:15:00Z",
+      estimatedDeliveryTime: "2026-10-10T18:45:00Z",
+    });
+    expect(estimateArrival(view, { now }).progress).toBe(0.5);
+  });
+
+  it("stays between 0 and 1 and is null without a start", () => {
+    expect(estimateArrival({ status: "ready", placedAt: "2026-10-10T17:00:00Z", etaAt: "2026-10-10T18:00:00Z" }, { now }).progress).toBe(1);
+    expect(estimateArrival({ status: "ready", etaAt: "2026-10-10T19:00:00Z" }, { now }).progress).toBeNull();
+  });
+});

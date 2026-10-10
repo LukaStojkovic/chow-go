@@ -23,6 +23,7 @@ import { env } from "../config/env.js";
 import { parsePagination } from "../utils/pagination.js";
 import { estimatedDeliveryAt } from "../utils/deliveryEta.js";
 import { orderingBlockedError } from "../utils/restaurantAvailability.js";
+import { releaseTimeFor, schedulingInputs, slotProblem } from "@chowgo/shared/scheduling";
 
 export async function createOrder(req, res, next) {
   try {
@@ -32,9 +33,14 @@ export async function createOrder(req, res, next) {
       paymentMethod,
       customerNotes,
       tip,
-      deliveryType,
+      deliveryType: requestedDeliveryType,
       promoCode,
+      scheduledFor: requestedSlot,
     } = req.body;
+    const isScheduled = requestedSlot !== undefined && requestedSlot !== null && requestedSlot !== "";
+    // Priority means "jump the queue now", which a delivery booked for later
+    // has no use for.
+    const deliveryType = isScheduled ? "standard" : requestedDeliveryType;
 
     const userId = req.user._id;
 
@@ -90,8 +96,18 @@ export async function createOrder(req, res, next) {
       return next(new AppError("errors:role.customerRequired", 403, "ROLE_REQUIRED"));
     }
 
-    const blocked = orderingBlockedError(restaurant);
+    const blocked = orderingBlockedError(restaurant, { allowScheduled: isScheduled });
     if (blocked) return next(blocked);
+
+    // Validated with the same rule the clients build their time picker from.
+    let scheduledFor = null;
+    if (isScheduled) {
+      const problem = slotProblem(schedulingInputs(restaurant), requestedSlot);
+      if (problem) {
+        return next(new AppError(`errors:order.schedule.${problem}`, 400, problem));
+      }
+      scheduledFor = new Date(requestedSlot);
+    }
 
     const restaurantPoint = toLatLng(restaurant.location?.coordinates);
     const addressPoint = toLatLng(deliveryAddress.location?.coordinates);
@@ -205,10 +221,16 @@ export async function createOrder(req, res, next) {
       idempotencyKey,
       customerNotes: customerNotes || "",
       estimatedPreparationTime: restaurant.estimatedPreparationTime || 30,
-      estimatedDeliveryTime: estimatedDeliveryAt(
-        restaurant.estimatedPreparationTime || 30,
-        deliveryType === "priority",
-      ),
+      estimatedDeliveryTime: scheduledFor
+        ? scheduledFor
+        : estimatedDeliveryAt(restaurant.estimatedPreparationTime || 30, deliveryType === "priority"),
+      ...(scheduledFor
+        ? {
+            status: "scheduled",
+            scheduledFor,
+            releaseAt: releaseTimeFor(scheduledFor, restaurant.estimatedPreparationTime),
+          }
+        : {}),
     });
 
     // These four writes used to be independent: a failure after the order was
@@ -295,7 +317,8 @@ export async function createOrder(req, res, next) {
       .populate("restaurant", "name profilePicture address phone")
       .populate("items.menuItem", "name imageUrls");
 
-    await orderSocketService.emitOrderPlaced(order);
+    // A scheduled order reaches the kitchen when the cron releases it.
+    if (!scheduledFor) await orderSocketService.emitOrderPlaced(order);
 
     res.status(201).json({
       status: "success",

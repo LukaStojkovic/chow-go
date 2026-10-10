@@ -105,6 +105,33 @@ export default {
   orderingFrom: "Ordering from",
   addMore: "Add more items",
 
+  upsell: {
+    title: "Goes well with your order",
+    together: "Often ordered together",
+    drink: "Add a drink?",
+    dessert: "Room for dessert?",
+    popular: "Popular here",
+    add: "Add {{name}}",
+    choose: "Choose options for {{name}}",
+    added: "{{name}} added",
+  },
+
+  schedule: {
+    title: "Delivery time",
+    asap: "As soon as possible",
+    later: "Schedule for later",
+    day: "Day",
+    time: "Time",
+    today: "Today",
+    tomorrow: "Tomorrow",
+    noSlots: "There are no delivery times in the next {{days}} days.",
+    closedNow: "Closed now. Schedule your order for later.",
+    required: "Choose a delivery time to order from a closed restaurant.",
+    pickTime: "Choose a delivery time",
+    priorityOff: "Priority delivery is only for orders sent now.",
+    summary: "Delivered {{when}}",
+  },
+
   checkout: {
     title: "Checkout",
     loading: "Loading your order",

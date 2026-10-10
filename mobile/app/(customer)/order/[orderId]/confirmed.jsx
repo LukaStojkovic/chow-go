@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { ArrivalEstimate } from "@/features/orders/ArrivalEstimate";
+import { ScheduledFor } from "@/features/orders/ScheduledFor";
 import { useOrder } from "@/hooks/Orders/useOrders";
 import { useMotion } from "@/theme/motion";
 import { useTokens } from "@/theme/useTokens";
@@ -104,6 +105,13 @@ export default function OrderConfirmed() {
               <>
                 <Divider />
                 <ArrivalEstimate order={order} />
+              </>
+            ) : null}
+
+            {order.isScheduled ? (
+              <>
+                <Divider />
+                <ScheduledFor order={order} prepMinutes={data.estimatedPreparationTime} showCancelHint />
               </>
             ) : null}
           </Card>

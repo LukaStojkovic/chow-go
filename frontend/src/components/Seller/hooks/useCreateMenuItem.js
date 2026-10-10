@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { t } from "@chowgo/shared/i18n";
 
 import { toast } from "sonner";
+import { invalidateMenuQueries } from "./useMenuLayout";
 
 export function useCreateMenuItem() {
   const queryClient = useQueryClient();
@@ -11,7 +12,7 @@ export function useCreateMenuItem() {
     mutationFn: ({ restaurantId, menuItemData }) =>
       createMenuItemApi(restaurantId, menuItemData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      invalidateMenuQueries(queryClient);
       toast.success(t("seller:menu.createdShort"));
     },
     onError: (error) => {

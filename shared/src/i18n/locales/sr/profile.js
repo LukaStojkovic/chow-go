@@ -95,6 +95,33 @@ export default {
     dragOrClick: "Prevucite slike ili kliknite da izaberete",
   },
 
+  referral: {
+    title: "Pozovite prijatelje",
+    hint: "Prijatelji dobijaju {{friend}} popusta na prvu porudžbinu od {{min}} ili više. Vi dobijate {{referrer}} kada im bude dostavljena.",
+    yourCode: "Vaš kod za poziv",
+    copy: "Kopiraj kod",
+    copyLink: "Kopiraj link",
+    copied: "Kopirano",
+    share: "Podeli poziv",
+    shareMessage: "Dobij {{amount}} popusta na prvu Chow&Go porudžbinu uz moj kod {{code}}: {{link}}",
+    invited_one: "{{count}} pozvan prijatelj",
+    invited_few: "{{count}} pozvana prijatelja",
+    invited_other: "{{count}} pozvanih prijatelja",
+    rewarded_one: "{{count}} zarađena nagrada",
+    rewarded_few: "{{count}} zarađene nagrade",
+    rewarded_other: "{{count}} zarađenih nagrada",
+    haveCode: "Imate kod za poziv?",
+    enterCode: "Kod za poziv",
+    enterCodePlaceholder: "npr. K7PQ2M9X",
+    apply: "Primeni",
+    applied: "Kod je primenjen. {{amount}} popusta na prvu porudžbinu je u vašim vaučerima.",
+    appliedCode: "Pridružili ste se uz kod {{code}}",
+    landingTitle: "Prijatelj vas je pozvao",
+    landingBody: "Registrujte se i dobijte {{amount}} popusta na prvu porudžbinu od {{min}} ili više.",
+    landingCta: "Poruči sada",
+    pending: "Vaš kod za poziv biće primenjen kada se prijavite.",
+  },
+
   notifications: {
     orderUpdates: "Obaveštenja o porudžbini",
     orderUpdatesHint:

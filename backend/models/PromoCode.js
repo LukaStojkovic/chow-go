@@ -35,6 +35,7 @@ const promoCodeSchema = new mongoose.Schema(
     firstOrderOnly: { type: Boolean, default: false },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     sourceOrder: { type: mongoose.Schema.Types.ObjectId, ref: "Order" },
+    sourceReferral: { type: mongoose.Schema.Types.ObjectId, ref: "Referral" },
     redemptionCount: { type: Number, min: 0, default: 0 },
     status: { type: String, enum: PROMO_STATUSES, default: "active" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

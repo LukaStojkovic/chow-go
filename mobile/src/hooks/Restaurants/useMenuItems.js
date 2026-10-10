@@ -57,6 +57,7 @@ function useMenuMutation(mutationFn) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menuItems"] });
       queryClient.invalidateQueries({ queryKey: ["menuItem"] });
+      queryClient.invalidateQueries({ queryKey: ["menuLayout"] });
       // The customer-facing menu reads a different endpoint entirely.
       queryClient.invalidateQueries({ queryKey: ["restaurantMenu", restaurantId] });
     },

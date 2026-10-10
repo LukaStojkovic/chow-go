@@ -31,6 +31,7 @@ export function useRestaurant(restaurantId) {
 
   return {
     restaurant: toRestaurantView(restaurantQuery.data),
+    rawRestaurant: restaurantQuery.data ?? null,
     menu: toMenuSections(menuQuery.data),
     isLoadingRestaurant: restaurantQuery.isLoading,
     isLoadingMenu: menuQuery.isLoading,

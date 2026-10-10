@@ -30,6 +30,7 @@ export function OrdersTableHeader({
     // Status wording comes from the shared adapter, so a filter chip here and
     // the badge on the row below it can never disagree.
     { value: "active", label: t("dashboard.stats.activeOrders") },
+    { value: "scheduled", label: statusMeta("scheduled").label },
     { value: "pending", label: statusMeta("pending").label },
     { value: "confirmed", label: statusMeta("confirmed").label },
     { value: "preparing", label: statusMeta("preparing").label },

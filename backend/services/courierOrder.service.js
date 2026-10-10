@@ -1,3 +1,5 @@
+import { rewardReferrerSafely } from "./referral.service.js";
+import { etaWhenPickedUp, rideMinutesForOrder } from "../utils/deliveryEta.js";
 import Order from "../models/Order.js";
 import { COURIER_EARNINGS_EXPR, courierEarningsOf } from "../utils/earnings.js";
 import { CURRENCY_CODE, toMoney } from "../utils/money.js";
@@ -414,11 +416,12 @@ export async function cancelAssignedOrderOperation({
 
 export async function markPickedUpOperation({ orderId, courierUserId }) {
   const courier = await getCourierByUserId(courierUserId);
+  const ride = await rideMinutesForOrder(orderId);
   const order = await transition({
     orderId,
     courierId: courier._id,
     fromStatuses: ["assigned"],
-    set: { status: "picked_up", pickedUpAt: new Date() },
+    set: { status: "picked_up", pickedUpAt: new Date(), estimatedDeliveryTime: etaWhenPickedUp(ride) },
     conflictMessage: "That order is no longer waiting to be picked up",
   });
 
@@ -470,6 +473,7 @@ export async function markDeliveredOperation({ orderId, courierUserId }) {
 
   await notificationService.createOrderStatusNotification(order, "delivered");
   await socketService.emitOrderDelivered(order);
+  rewardReferrerSafely(order);
 
   return await populateOrder(order._id);
 }

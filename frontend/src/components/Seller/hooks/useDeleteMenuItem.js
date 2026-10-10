@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteMenuItem as deleteMenuItemApi } from "@/services/apiRestaurant";
 import { toast } from "sonner";
+import { invalidateMenuQueries } from "./useMenuLayout";
 import { t } from "@chowgo/shared/i18n";
 
 export default function useDeleteMenuItem() {
@@ -13,7 +14,7 @@ export default function useDeleteMenuItem() {
       toast.error(error.message);
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      invalidateMenuQueries(queryClient);
       toast.success(data?.message || t("seller:menu.deletedShort"));
     },
   });

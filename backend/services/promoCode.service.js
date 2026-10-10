@@ -617,26 +617,15 @@ export async function issueVoucher({ actor, orderId, input = {}, requestId }) {
   const endsAt =
     doc.endsAt ?? new Date(Date.now() + (Number.isInteger(days) && days > 0 ? Math.min(days, 365) : 90) * 86_400_000);
 
-  let created;
-  for (let attempt = 0; attempt < 5 && !created; attempt++) {
-    try {
-      created = await insertPromo({
-        ...doc,
-        code: voucherCode(),
-        label: doc.label || `Order ${order.orderNumber}`,
-        endsAt,
-        scope: "platform",
-        restaurants: [],
-        currency: normalizeCurrency(order.currency),
-        assignedTo: order.customer,
-        sourceOrder: order._id,
-        createdBy: actor._id,
-      });
-    } catch (err) {
-      if (err?.code !== "PROMO_CODE_TAKEN") throw err;
-    }
-  }
-  if (!created) throw new AppError("Could not generate a unique code", 500);
+  const created = await createPersonalVoucher({
+    ...doc,
+    label: doc.label || `Order ${order.orderNumber}`,
+    endsAt,
+    currency: order.currency,
+    assignedTo: order.customer,
+    sourceOrder: order._id,
+    createdBy: actor._id,
+  });
 
   await audit(actor, {
     action: "promo.issueVoucher",
@@ -646,19 +635,49 @@ export async function issueVoucher({ actor, orderId, input = {}, requestId }) {
     requestId,
   });
 
-  const amount =
-    created.type === "percentage"
-      ? `${created.value}%`
-      : created.type === "fixed"
-        ? `${created.value} ${created.currency}`
-        : null;
-  sendPushToUser(order.customer, (locale) => ({
-    title: tFor(locale, "promo:push.voucherTitle"),
-    body: amount
-      ? tFor(locale, "promo:push.voucherBody", { amount, code: created.code })
-      : tFor(locale, "promo:push.voucherBodyFreeDelivery", { code: created.code }),
-    data: { type: "voucher", code: created.code },
-  }));
+  pushVoucher(created);
 
   return created;
+}
+
+/**
+ * A single-use platform voucher for one customer, with a fresh GIFT- code.
+ * Used by support-issued vouchers and by referral rewards.
+ */
+export async function createPersonalVoucher(fields) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await insertPromo({
+        ...fields,
+        code: voucherCode(),
+        scope: "platform",
+        restaurants: [],
+        currency: normalizeCurrency(fields.currency),
+        perCustomerLimit: 1,
+        maxRedemptions: 1,
+      });
+    } catch (err) {
+      if (err?.code !== "PROMO_CODE_TAKEN") throw err;
+    }
+  }
+  throw new AppError("Could not generate a unique code", 500);
+}
+
+/** Tells a customer about a voucher they were given. */
+export function pushVoucher(voucher, { titleKey = "promo:push.voucherTitle", bodyKey } = {}) {
+  const amount =
+    voucher.type === "percentage"
+      ? `${voucher.value}%`
+      : voucher.type === "fixed"
+        ? `${voucher.value} ${voucher.currency}`
+        : null;
+  sendPushToUser(voucher.assignedTo, (locale) => ({
+    title: tFor(locale, titleKey),
+    body: bodyKey
+      ? tFor(locale, bodyKey, { amount, code: voucher.code })
+      : amount
+        ? tFor(locale, "promo:push.voucherBody", { amount, code: voucher.code })
+        : tFor(locale, "promo:push.voucherBodyFreeDelivery", { code: voucher.code }),
+    data: { type: "voucher", code: voucher.code },
+  }));
 }

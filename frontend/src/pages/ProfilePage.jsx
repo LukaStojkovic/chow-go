@@ -54,6 +54,7 @@ import PasswordChangeModal from "@/components/Profile/PasswordChangeModal";
 import { PersonalDetailsCard } from "@/features/profile/PersonalDetailsCard";
 import { SavedAddressesCard } from "@/features/profile/SavedAddressesCard";
 import { VouchersCard } from "@/features/profile/VouchersCard";
+import { ReferralCard } from "@/features/profile/ReferralCard";
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 import { DownloadMyData } from "@/components/Profile/DownloadMyData";
@@ -110,6 +111,7 @@ export default function ProfilePage() {
           <PersonalDetailsCard />
           <SavedAddressesCard />
           <VouchersCard />
+          <ReferralCard />
         </Stack>
 
         <Stack gap="lg">

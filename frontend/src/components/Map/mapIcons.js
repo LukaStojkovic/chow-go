@@ -45,8 +45,10 @@ function token(name, fallback) {
  *   Already translated - see the exported factories below.
  * @param {number} [options.size]
  * @param {boolean} [options.pulse] Only the live courier marker pulses.
+ * @param {boolean} [options.heading] A direction arrow on the ring, turned by
+ *   `[data-heading]`'s transform and hidden until a heading is known.
  */
-function createLabeledIcon({ glyph, bg, shadow, label, size = 36, pulse = false }) {
+function createLabeledIcon({ glyph, bg, shadow, label, size = 36, pulse = false, heading = false }) {
   const half = size / 2;
   const surface = token("--card", "#ffffff");
 
@@ -56,6 +58,18 @@ function createLabeledIcon({ glyph, bg, shadow, label, size = 36, pulse = false 
         border:2.5px solid ${bg};opacity:.45;
         animation:markerPing 1.8s cubic-bezier(0,0,.2,1) infinite;
       "></span>`
+    : "";
+
+  const arrow = heading
+    ? `<span data-heading aria-hidden="true" style="
+        position:absolute;inset:-10px;opacity:0;pointer-events:none;
+        transition:transform .45s ease-out, opacity .3s;
+      "><span style="
+        position:absolute;left:50%;top:0;margin-left:-6px;width:0;height:0;
+        border-left:6px solid transparent;border-right:6px solid transparent;
+        border-bottom:9px solid ${bg};
+        filter:drop-shadow(0 0 1.5px ${surface});
+      "></span></span>`
     : "";
 
   const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(size * 0.5)}" height="${Math.round(size * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="${surface}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPHS[glyph]}</svg>`;
@@ -69,7 +83,8 @@ function createLabeledIcon({ glyph, bg, shadow, label, size = 36, pulse = false 
         border:3px solid ${surface};
         box-shadow:0 2px 8px ${shadow};
         display:flex;align-items:center;justify-content:center;
-      ">${icon}</div>
+        position:relative;
+      ">${arrow}${icon}</div>
       <span aria-hidden="true" style="
         margin-top:3px;
         padding:1px 6px;
@@ -136,4 +151,5 @@ export const courierIcon = (t) =>
     shadow: "rgba(30,111,168,.35)",
     label: t("courier:delivery.courier"),
     pulse: true,
+    heading: true,
   });

@@ -20,7 +20,7 @@ export const HERO_HEIGHT = 260;
  * The name and the rest of the detail sit on a white sheet that overlaps the
  * image from below, so type is never fighting a photograph for contrast.
  */
-export function ParallaxHero({ restaurant, scrollY }) {
+export function ParallaxHero({ restaurant, preorder = false, scrollY }) {
   const { t } = useTranslation(["restaurant", "seller", "common"]);
   const { color } = useTokens();
 
@@ -105,10 +105,12 @@ export function ParallaxHero({ restaurant, scrollY }) {
               ) : null}
             </View>
 
-            <Badge tone={closed ? "neutral" : "mint"}>
+            <Badge tone={preorder ? "citrus" : closed ? "neutral" : "mint"}>
               {restaurant.availability === "unavailable"
                 ? t("seller:settings.notTakingOrders")
-                : closed
+                : preorder
+                  ? t("restaurant:availability.preorderShort")
+                  : closed
                   ? t("restaurant:availability.closedNow")
                   : t("restaurant:availability.openNow")}
             </Badge>

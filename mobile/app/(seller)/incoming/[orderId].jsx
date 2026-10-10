@@ -17,6 +17,7 @@ import { DockedBar } from "@/components/ui/FloatingBar";
 
 import { Divider } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { ScheduledFor } from "@/features/orders/ScheduledFor";
 import { RejectOrderPrompt } from "@/features/seller/RejectOrderPrompt";
 import { silenceAlert } from "@/features/seller/SellerAlert";
 import { useConfirmOrder, useRejectOrder } from "@/hooks/SellerOrders/useSellerOrders";
@@ -57,8 +58,10 @@ export default function IncomingOrder() {
 
   const order = data ? toOrderView(data) : null;
   const notes = (order?.items ?? []).filter((line) => line.notes);
+  const canAccept = Boolean(order) && !order.isScheduled;
 
   async function accept() {
+    if (!canAccept) return;
     silenceAlert();
     try {
       await confirm.mutateAsync({ orderId, estimatedPreparationTime: prepTime });
@@ -104,6 +107,12 @@ export default function IncomingOrder() {
         contentContainerClassName="-mt-6 gap-3 rounded-t-3xl bg-background px-5 pb-6 pt-6"
         showsVerticalScrollIndicator={false}
       >
+        {order?.isScheduled ? (
+          <Card>
+            <ScheduledFor order={order} prepMinutes={data?.estimatedPreparationTime} />
+          </Card>
+        ) : null}
+
         <Card className="gap-3">
           {(order?.items ?? []).map((line, index) => (
             <View key={line.id}>
@@ -170,39 +179,43 @@ export default function IncomingOrder() {
           </Card>
         ) : null}
 
-        <Card className="gap-3">
-          <View className="flex-row items-center gap-3">
-            <View className="flex-1">
-              <Text variant="h3">{t("orders.prepTimeQuestion")}</Text>
-              <Text variant="caption" tone="muted">
-                {t("orders.prepTimeCustomerHint")}
-              </Text>
+        {canAccept ? (
+          <Card className="gap-3">
+            <View className="flex-row items-center gap-3">
+              <View className="flex-1">
+                <Text variant="h3">{t("orders.prepTimeQuestion")}</Text>
+                <Text variant="caption" tone="muted">
+                  {t("orders.prepTimeCustomerHint")}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View className="flex-row gap-2">
-            {PREP_TIMES.map((minutes) => (
-              <Chip
-                key={minutes}
-                label={t("common:units.minutes", { value: minutes })}
-                active={prepTime === minutes}
-                onPress={() => setPrepTime(minutes)}
-                className="flex-1 justify-center"
-              />
-            ))}
-          </View>
-        </Card>
+            <View className="flex-row gap-2">
+              {PREP_TIMES.map((minutes) => (
+                <Chip
+                  key={minutes}
+                  label={t("common:units.minutes", { value: minutes })}
+                  active={prepTime === minutes}
+                  onPress={() => setPrepTime(minutes)}
+                  className="flex-1 justify-center"
+                />
+              ))}
+            </View>
+          </Card>
+        ) : null}
       </ScrollView>
 
       <DockedBar className="gap-2.5">
-        <Button size="lg" fullWidth loading={confirm.isPending} onPress={accept}>
-          <View className="flex-row items-center gap-2">
-            <Check size={20} strokeWidth={3} color={color["primary-foreground"]} />
-            <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              {t("orders.acceptWithTime", { minutes: prepTime })}
-            </Text>
-          </View>
-        </Button>
+        {canAccept ? (
+          <Button size="lg" fullWidth loading={confirm.isPending} onPress={accept}>
+            <View className="flex-row items-center gap-2">
+              <Check size={20} strokeWidth={3} color={color["primary-foreground"]} />
+              <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+                {t("orders.acceptWithTime", { minutes: prepTime })}
+              </Text>
+            </View>
+          </Button>
+        ) : null}
         <Button
           size="lg"
           variant="ghost"

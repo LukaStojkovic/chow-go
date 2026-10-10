@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, RefreshControl, ScrollView, View } from "react-native";
 import { router } from "expo-router";
-import { Plus, UtensilsCrossed } from "lucide-react-native";
+import { ListOrdered, Plus, UtensilsCrossed } from "lucide-react-native";
 import { categoryOptions } from "@chowgo/shared/constants";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { SearchInput } from "@/components/ui/Input";
+import { ListRow } from "@/components/ui/ListRow";
 import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
@@ -66,6 +68,14 @@ export default function SellerMenu() {
               </View>
             </Button>
           </View>
+
+          <Card className="py-0">
+            <ListRow
+              icon={ListOrdered}
+              title={t("menuLayout.open")}
+              onPress={() => router.push("/(seller)/menu-layout")}
+            />
+          </Card>
 
           <SearchInput
             value={text}

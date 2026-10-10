@@ -9,6 +9,7 @@
 
 export default {
   short: {
+    scheduled: "Zakazano",
     pending: "Čeka potvrdu",
     confirmed: "Potvrđeno",
     preparing: "Priprema se",
@@ -29,7 +30,18 @@ export default {
     delivered: "Dostavljeno",
   },
 
+  scheduled: {
+    title: "Zakazano za",
+    at: "{{day}}, {{time}}",
+    hint: "Restoran počinje da je sprema oko {{minutes}} minuta ranije.",
+    cancelHint: "Možete otkazati dok restoran ne počne da je sprema.",
+  },
+
   status: {
+    scheduled: {
+      label: "Zakazano",
+      description: "Poslaćemo je restoranu na vreme za vaš termin dostave.",
+    },
     pending: {
       label: "Čeka se potvrda",
       description: "Restoran je primio vašu porudžbinu i uskoro će je potvrditi.",

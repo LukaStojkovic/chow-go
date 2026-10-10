@@ -35,6 +35,10 @@ function appendMenuItemFields(formData, menuItemData) {
     }
   }
 
+  if (menuItemData.sectionId !== undefined) {
+    formData.append("sectionId", menuItemData.sectionId ?? "");
+  }
+
   if (Array.isArray(menuItemData.optionGroups)) {
     formData.append("optionGroups", JSON.stringify(menuItemData.optionGroups));
   }
@@ -150,6 +154,16 @@ export async function deleteMenuItem(restaurantId, menuItemId) {
     console.error("Error deleting menu item:", err);
     throw err;
   }
+}
+
+export async function getMenuLayout() {
+  const res = await axiosInstance.get("/restaurant/menu-layout");
+  return res.data.data;
+}
+
+export async function saveMenuLayout(layout) {
+  const res = await axiosInstance.put("/restaurant/menu-layout", layout);
+  return res.data.data;
 }
 
 export async function getRestaurantInformations(restaurantId) {

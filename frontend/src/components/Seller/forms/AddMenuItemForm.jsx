@@ -23,6 +23,8 @@ import { MenuItemImageUploader } from "./MenuItemImageUploader";
 import { MenuItemPromotionFields } from "./MenuItemPromotionFields";
 import { MenuItemOptionGroupsEditor } from "./MenuItemOptionGroupsEditor";
 import { validateOptionGroups } from "./optionGroupsForm";
+import { MenuItemSectionSelect } from "./MenuItemSectionSelect";
+import { useMenuSections } from "../hooks/useMenuLayout";
 
 // The local list used to offer "burger", "salad" and "japanese" - values no
 // `MenuItem.category` filter on the customer side matches, so a dish filed
@@ -37,11 +39,12 @@ export const AddMenuItemForm = ({ onClose }) => {
   const [previews, setPreviews] = useState([]);
   const [optionGroups, setOptionGroups] = useState([]);
   const [optionsError, setOptionsError] = useState(null);
+  const sections = useMenuSections();
+  const [sectionId, setSectionId] = useState("");
   const { createMenuItem, isCreating } = useCreateMenuItem();
   const { authUser } = useAuthStore();
   const restaurantId =
     authUser?.restaurant?._id || authUser?.restaurant?.[0]?._id;
-  console.log(authUser);
   const {
     register,
     handleSubmit,
@@ -71,7 +74,14 @@ export const AddMenuItemForm = ({ onClose }) => {
     }
     if (restaurantId) {
       createMenuItem(
-        { restaurantId, menuItemData: { ...data, optionGroups: options.groups } },
+        {
+          restaurantId,
+          menuItemData: {
+            ...data,
+            optionGroups: options.groups,
+            sectionId: sections.length > 0 ? sectionId : undefined,
+          },
+        },
         { onSuccess: onClose },
       );
     }
@@ -120,6 +130,10 @@ export const AddMenuItemForm = ({ onClose }) => {
             </p>
           )}
         </div>
+
+        {sections.length > 0 && (
+          <MenuItemSectionSelect sections={sections} value={sectionId} onChange={setSectionId} />
+        )}
 
         <div>
           <Label htmlFor="price">{t("menu.form.priceLabel")}</Label>

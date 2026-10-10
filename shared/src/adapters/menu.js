@@ -133,7 +133,28 @@ export function toDishViews(list) {
 }
 
 /**
- * `GET /restaurants/:id/menu` returns `[{ category, items }]`. Normalise it,
+ * A menu group's heading: the seller's own section name as written, or the
+ * translated platform category for dishes outside any section.
+ *
+ * @param {{ label?: string, category?: string }} group
+ */
+export function menuGroupLabel(group) {
+  return group?.label || menuCategoryLabel(group?.category);
+}
+
+/**
+ * A stable anchor for a menu group. Sections use their id, so a section named
+ * like a category ("Pizza") never collides with that category's group.
+ *
+ * @param {{ sectionId?: string, category?: string }} group
+ */
+export function menuGroupId(group) {
+  return group?.sectionId ? `section-${group.sectionId}` : categorySlug(group?.category);
+}
+
+/**
+ * `GET /restaurants/:id/menu` returns the seller's sections in their order,
+ * then `[{ category, items }]` for dishes outside them. Normalise it,
  * drop empty sections, and push sections that are entirely sold out to the
  * bottom so the browsable menu stays at the top.
  *
@@ -148,8 +169,8 @@ export function toMenuSections(raw) {
       const items = toDishViews(group?.items);
       if (items.length === 0) return null;
       return {
-        id: categorySlug(group.category),
-        label: menuCategoryLabel(group.category),
+        id: menuGroupId(group),
+        label: menuGroupLabel(group),
         items,
         availableCount: items.filter((item) => item.isAvailable).length,
       };
@@ -238,6 +259,26 @@ export function toBasketLines(items) {
         image: menuItem?.imageUrls?.[0] || null,
         notes: line.specialInstructions || null,
       };
+    })
+    .filter(Boolean);
+}
+
+const UPSELL_REASONS = ["together", "drink", "dessert", "popular"];
+
+/**
+ * `GET /cart/suggestions` items as dish views, each with why it is offered.
+ *
+ * @param {unknown} list
+ * @returns {(DishView & { reason: string, reasonLabel: string })[]}
+ */
+export function toUpsellViews(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .map((raw) => {
+      const dish = toDishView(raw);
+      if (!dish) return null;
+      const reason = UPSELL_REASONS.includes(raw.reason) ? raw.reason : "together";
+      return { ...dish, reason, reasonLabel: t(`basket:upsell.${reason}`, { defaultValue: "" }) };
     })
     .filter(Boolean);
 }

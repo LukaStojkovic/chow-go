@@ -11,17 +11,19 @@ import { useTokens } from "@/theme/useTokens";
  * and a filled tick - because at checkout the cost of getting the wrong one is
  * a wrong order, and one signal is not enough to be certain at a glance.
  */
-export function OptionRow({ label, description, selected, onPress, trailing }) {
+export function OptionRow({ label, description, selected, onPress, trailing, disabled = false }) {
   const { color } = useTokens();
 
   return (
     <Pressable
       accessibilityRole="radio"
-      accessibilityState={{ selected }}
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
       onPress={onPress}
       className={cn(
         "flex-row items-center gap-3 rounded-md border-2 p-3.5 active:opacity-80",
         selected ? "border-primary bg-primary-subtle" : "border-transparent bg-muted",
+        disabled && "opacity-50",
       )}
     >
       <View className="flex-1 gap-0.5">

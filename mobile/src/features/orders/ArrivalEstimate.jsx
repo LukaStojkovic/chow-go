@@ -10,7 +10,7 @@ import { useTokens } from "@/theme/useTokens";
 export function ArrivalEstimate({ order, routeSeconds = null }) {
   const { t } = useTranslation(["order", "common"]);
   const { color } = useTokens();
-  const now = useNow(30000, Boolean(order?.etaAt) || routeSeconds != null);
+  const now = useNow(15000, Boolean(order?.etaAt) || routeSeconds != null);
   const eta = estimateArrival(order, { routeSeconds, now });
   if (!eta) return null;
 
@@ -26,28 +26,48 @@ export function ArrivalEstimate({ order, routeSeconds = null }) {
         .filter(Boolean)
         .join(" · ");
 
+  const percent = eta.progress === null ? null : Math.round(eta.progress * 100);
+
   return (
-    <View
-      className="flex-row items-center gap-3"
-      accessible
-      accessibilityRole="text"
-      accessibilityLiveRegion="polite"
-      accessibilityLabel={`${t("order:eta.label")}: ${headline}. ${detail}`}
-    >
-      <View className={`h-12 w-12 items-center justify-center rounded-full ${eta.isLate ? "bg-tertiary-subtle" : "bg-primary-subtle"}`}>
-        <Clock size={22} color={eta.isLate ? color.tertiary : color.primary} />
+    <View className="gap-3">
+      <View
+        className="flex-row items-center gap-3"
+        accessible
+        accessibilityRole="text"
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`${t("order:eta.label")}: ${headline}. ${detail}`}
+      >
+        <View
+          className={`h-12 w-12 items-center justify-center rounded-full ${eta.isLate ? "bg-tertiary-subtle" : "bg-primary-subtle"}`}
+        >
+          <Clock size={22} color={eta.isLate ? color.tertiary : color.primary} />
+        </View>
+        <View className="flex-1">
+          <Text variant="caption" tone="muted">
+            {t("order:eta.label")}
+          </Text>
+          <Text variant="h1" tone={eta.isLate ? "tertiary" : "foreground"} numberOfLines={1}>
+            {headline}
+          </Text>
+          <Text variant="body-sm" tone="muted" numberOfLines={1}>
+            {detail}
+          </Text>
+        </View>
       </View>
-      <View className="flex-1">
-        <Text variant="caption" tone="muted">
-          {t("order:eta.label")}
-        </Text>
-        <Text variant="h1" tone={eta.isLate ? "tertiary" : "foreground"} numberOfLines={1}>
-          {headline}
-        </Text>
-        <Text variant="body-sm" tone="muted" numberOfLines={1}>
-          {detail}
-        </Text>
-      </View>
+      {percent !== null ? (
+        <View
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel={t("order:eta.label")}
+          accessibilityValue={{ min: 0, max: 100, now: percent }}
+          className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+        >
+          <View
+            className={`h-full rounded-full ${eta.isLate ? "bg-tertiary" : "bg-primary"}`}
+            style={{ width: `${percent}%` }}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

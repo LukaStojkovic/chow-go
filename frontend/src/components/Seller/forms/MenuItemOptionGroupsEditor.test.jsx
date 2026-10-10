@@ -76,10 +76,17 @@ describe("validateOptionGroups", () => {
   it("translates the first problem with a 1-based group number", () => {
     const state = optionGroupsToEditorState([
       { name: "Size", minSelect: 1, maxSelect: 1, options: [{ name: "Large" }] },
-      { name: "Extras", minSelect: 0, maxSelect: 3, options: [{ name: "Cheese" }] },
+      { name: "Extras", minSelect: 2, maxSelect: 3, options: [{ name: "Cheese" }] },
     ]);
     expect(validateOptionGroups(state, t)).toEqual({
-      error: t("errors:menuOption.groupRange", { group: 2 }),
+      error: t("errors:menuOption.minAboveOptions", { group: 2, min: 2, count: 1 }),
     });
+  });
+
+  it("accepts \"pick at most\" above the number of options", () => {
+    const state = optionGroupsToEditorState([
+      { name: "Extras", minSelect: 0, maxSelect: 5, options: [{ name: "Cheese" }, { name: "Bacon" }] },
+    ]);
+    expect(validateOptionGroups(state, t).groups[0]).toMatchObject({ minSelect: 0, maxSelect: 2 });
   });
 });

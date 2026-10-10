@@ -22,14 +22,18 @@ import {
   restaurantIcon,
 } from "@/components/Map/mapIcons";
 import {
+  COURIER_MOTION,
+  glideDurationMs,
   haversineMeters,
   isSamePosition,
   lerpLatLng,
+  nextHeading,
+  shortestRotation,
 } from "@chowgo/shared/geo";
 
 const FALLBACK_CENTER = [44.8176, 20.4633];
 
-const SNAP_THRESHOLD_M = 500;
+const SNAP_THRESHOLD_M = COURIER_MOTION.snapMeters;
 
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
@@ -61,11 +65,24 @@ function KeepSizeInSync() {
   return null;
 }
 
-function SmoothMarker({ position, icon, tooltip, durationMs = 1000 }) {
+function SmoothMarker({ position, icon, tooltip }) {
   const map = useMap();
   const markerRef = useRef(null);
   const frameRef = useRef(null);
   const renderedRef = useRef(null);
+  const lastFixRef = useRef(null);
+  const rotationRef = useRef(null);
+
+  const turnTo = (marker, from, to) => {
+    const heading = nextHeading(from, to, null);
+    if (heading == null) return;
+    rotationRef.current = shortestRotation(rotationRef.current, heading);
+    const arrow = marker.getElement()?.querySelector("[data-heading]");
+    if (arrow) {
+      arrow.style.opacity = "1";
+      arrow.style.transform = `rotate(${rotationRef.current}deg)`;
+    }
+  };
 
   const lat = position?.[0];
   const lng = position?.[1];
@@ -107,6 +124,9 @@ function SmoothMarker({ position, icon, tooltip, durationMs = 1000 }) {
 
     const marker = markerRef.current;
     const from = renderedRef.current;
+    const fixAt = performance.now();
+    const durationMs = glideDurationMs(lastFixRef.current == null ? undefined : fixAt - lastFixRef.current);
+    lastFixRef.current = fixAt;
 
     if (
       !from ||
@@ -114,16 +134,18 @@ function SmoothMarker({ position, icon, tooltip, durationMs = 1000 }) {
       haversineMeters(from, target) > SNAP_THRESHOLD_M ||
       isSamePosition(from, target)
     ) {
+      if (from && !isSamePosition(from, target)) turnTo(marker, from, target);
       renderedRef.current = target;
       marker.setLatLng(target);
       return;
     }
 
+    turnTo(marker, from, target);
     cancelAnimationFrame(frameRef.current);
     const start = performance.now();
     const step = (now) => {
       const t = Math.min(1, (now - start) / durationMs);
-      const eased = t * (2 - t);
+      const eased = t;
       const next = lerpLatLng(from, target, eased);
       marker.setLatLng(next);
       renderedRef.current = next;
@@ -137,7 +159,7 @@ function SmoothMarker({ position, icon, tooltip, durationMs = 1000 }) {
 
     frameRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frameRef.current);
-  }, [map, lat, lng, icon, tooltip, durationMs]);
+  }, [map, lat, lng, icon, tooltip]);
 
   return null;
 }

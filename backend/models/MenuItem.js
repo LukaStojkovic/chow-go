@@ -87,6 +87,11 @@ const menuItemSchema = new mongoose.Schema(
     // populate items.menuItem for its image, and a hard delete left baskets
     // pointing at nothing, which crashed checkout.
     deletedAt: { type: Date, default: null },
+
+    // Restaurant.menuSections[]._id, or null to fall back to the category
+    // grouping; sortOrder is the dish's place within whichever group it is in.
+    sectionId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    sortOrder: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

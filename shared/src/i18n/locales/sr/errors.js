@@ -98,6 +98,12 @@ export default {
     addressNotFound: "Ta adresa za dostavu nije pronađena",
     restaurantUnavailable: "Taj restoran trenutno ne prima porudžbine",
     restaurantClosed: "Taj restoran je trenutno zatvoren",
+    schedule: {
+      SCHEDULE_INVALID: "To vreme dostave nije ispravno. Izaberite ga sa liste.",
+      SCHEDULE_TOO_SOON: "To vreme dostave je prerano. Izaberite kasnije.",
+      SCHEDULE_TOO_FAR: "Možete zakazati najviše 3 dana unapred.",
+      SCHEDULE_CLOSED: "Restoran ne radi za to vreme dostave. Izaberite drugo.",
+    },
     itemUnavailable: "{{name}} više nije dostupno",
     alreadyPlaced: "Ova korpa je upravo poručena. Proverite svoje porudžbine.",
     tipInvalid: "Napojnica mora biti između 0 i {{max}}",
@@ -151,7 +157,9 @@ export default {
     invalid: "Nismo uspeli da pročitamo opcije jela",
     groupName: "Grupa opcija {{group}} mora imati naziv do 60 znakova",
     groupEmpty: "Grupa opcija {{group}} mora imati bar jednu opciju",
-    groupRange: "Proverite koliko opcija može da se izabere u grupi {{group}}",
+    groupRange: "U grupi opcija {{group}} unesite cele brojeve: \"najmanje\" od 0, a \"najviše\" od 1",
+    minAboveMax: "U grupi opcija {{group}} \"najmanje\" ({{min}}) ne može biti veće od \"najviše\" ({{max}})",
+    minAboveOptions: "Grupa opcija {{group}} traži da kupac izabere najmanje {{min}}, a ima samo {{count}} opcija",
     name: "Svaka opcija u grupi {{group}} mora imati naziv do 60 znakova",
     price: "Doplate u grupi {{group}} moraju biti između 0 i 100000",
     tooManyGroups: "Jelo može imati najviše {{max}} grupa opcija",
@@ -160,6 +168,24 @@ export default {
     tooMany: "Izaberite najviše {{max}} za: {{group}}",
     unavailable: "{{option}} više nije dostupno",
     unknown: "Jedna od izabranih opcija više nije na meniju",
+  },
+
+  menuLayout: {
+    invalid: "Nismo uspeli da pročitamo raspored menija",
+    sectionName: "Odeljak {{section}} mora imati naziv do {{max}} znakova",
+    duplicateName: "Već postoji odeljak pod nazivom {{name}}",
+    tooManySections: "Meni može imati najviše {{max}} odeljaka",
+    unknownSection: "Taj odeljak menija više ne postoji. Osvežite i pokušajte ponovo.",
+    unknownItem: "Jedno od tih jela više nije na vašem meniju. Osvežite i pokušajte ponovo.",
+    duplicateItem: "Jelo može biti samo u jednom odeljku",
+  },
+
+  referral: {
+    invalidCode: "Taj kod za poziv ne postoji. Proverite ga i pokušajte ponovo.",
+    ownCode: "To je vaš kod za poziv. Podelite ga sa prijateljem.",
+    alreadyApplied: "Već ste iskoristili kod za poziv.",
+    notNew: "Kodovi za poziv su za nove kupce, pre prve porudžbine.",
+    customerOnly: "Kodovi za poziv su za naloge kupaca.",
   },
 
   restaurant: {
@@ -243,6 +269,16 @@ export default {
   },
 
   byCode: {
+    REFERRAL_INVALID_CODE: "Taj kod za poziv ne postoji",
+    REFERRAL_OWN_CODE: "Ne možete iskoristiti sopstveni kod za poziv",
+    REFERRAL_ALREADY_APPLIED: "Već ste iskoristili kod za poziv",
+    REFERRAL_NOT_NEW: "Kodovi za poziv su za nove kupce",
+    REFERRAL_CUSTOMER_ONLY: "Kodovi za poziv su za naloge kupaca",
+    SCHEDULE_INVALID: "To vreme dostave nije ispravno. Izaberite ga sa liste.",
+    SCHEDULE_TOO_SOON: "To vreme dostave je prerano. Izaberite kasnije.",
+    SCHEDULE_TOO_FAR: "Možete zakazati najviše 3 dana unapred.",
+    SCHEDULE_CLOSED: "Restoran ne radi za to vreme dostave. Izaberite drugo.",
+    MENU_LAYOUT_INVALID: "Proverite odeljke menija i pokušajte ponovo",
     RESTAURANT_CLOSED: "Taj restoran je trenutno zatvoren",
     RESTAURANT_UNAVAILABLE: "Taj restoran trenutno ne prima porudžbine",
     LOCATION_INVALID: "Ta lokacija na mapi nije ispravna",

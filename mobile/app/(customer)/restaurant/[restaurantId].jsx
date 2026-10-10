@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Heart, Info, UtensilsCrossed } from "lucide-react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { menuCategoryLabel, toDishViews } from "@chowgo/shared/adapters/menu";
+import { menuGroupId, menuGroupLabel, toDishViews } from "@chowgo/shared/adapters/menu";
 import { toRestaurantView, unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
@@ -20,6 +20,7 @@ import { MenuItemRow } from "@/features/restaurant/MenuItemRow";
 import { RestaurantInfoSheet } from "@/features/restaurant/RestaurantInfoSheet";
 import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
 import { useRestaurant } from "@/hooks/Restaurants/useRestaurant";
+import { takesPreorders } from "@chowgo/shared/deliveryTime";
 import { useTokens } from "@/theme/useTokens";
 
 const AnimatedSectionList = Animated.createAnimatedComponent(SectionList);
@@ -38,14 +39,16 @@ export default function RestaurantPage() {
   const [active, setActive] = useState(null);
 
   const restaurant = info.data ? toRestaurantView(info.data) : null;
-  const closedReason = unavailableReason(restaurant);
+  const preorder = takesPreorders(info.data);
+  const closedReason = preorder ? t("restaurant:availability.preorder") : unavailableReason(restaurant);
   const saved = isFavourite(restaurantId);
 
   const sections = useMemo(
     () =>
       (menu.data ?? [])
         .map((group) => ({
-          title: menuCategoryLabel(group.category ?? group._id),
+          key: menuGroupId(group),
+          title: menuGroupLabel(group),
           data: toDishViews(group.items ?? []),
         }))
         .filter((section) => section.data.length > 0),
@@ -56,10 +59,10 @@ export default function RestaurantPage() {
     scrollY.value = event.contentOffset.y;
   });
 
-  function jumpTo(title) {
-    const index = sections.findIndex((section) => section.title === title);
+  function jumpTo(key) {
+    const index = sections.findIndex((section) => section.key === key);
     if (index < 0) return;
-    setActive(title);
+    setActive(key);
     listRef.current?.scrollToLocation({
       sectionIndex: index,
       itemIndex: 0,
@@ -97,11 +100,11 @@ export default function RestaurantPage() {
           contentContainerClassName="pb-36"
           ListHeaderComponent={
             <>
-              <ParallaxHero restaurant={restaurant} scrollY={scrollY} />
+              <ParallaxHero restaurant={restaurant} preorder={preorder} scrollY={scrollY} />
 
               {closedReason ? (
-                <Inset tone="warning" className="mx-5 mb-1 mt-3 flex-row items-center gap-3">
-                  <Text variant="body-sm" className="flex-1 text-warning">
+                <Inset tone={preorder ? "citrus" : "warning"} className="mx-5 mb-1 mt-3 flex-row items-center gap-3">
+                  <Text variant="body-sm" className={preorder ? "flex-1" : "flex-1 text-warning"}>
                     {closedReason}
                   </Text>
                 </Inset>
@@ -110,7 +113,7 @@ export default function RestaurantPage() {
               {sections.length > 0 ? (
                 <CategoryTabs
                   sections={sections}
-                  active={active ?? sections[0]?.title}
+                  active={active ?? sections[0]?.key}
                   onSelect={jumpTo}
                 />
               ) : null}
@@ -121,7 +124,7 @@ export default function RestaurantPage() {
           onViewableItemsChanged={
             useRef(({ viewableItems }) => {
               const first = viewableItems.find((entry) => entry.section);
-              if (first?.section?.title) setActive(first.section.title);
+              if (first?.section?.key) setActive(first.section.key);
             }).current
           }
           viewabilityConfig={useRef({ itemVisiblePercentThreshold: 40 }).current}

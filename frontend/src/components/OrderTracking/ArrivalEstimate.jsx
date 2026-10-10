@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export function ArrivalEstimate({ order, routeSeconds = null, className }) {
   const { t } = useTranslation(["order", "common"]);
-  const now = useNow(30000, Boolean(order?.etaAt) || routeSeconds != null);
+  const now = useNow(15000, Boolean(order?.etaAt) || routeSeconds != null);
   const eta = estimateArrival(order, { routeSeconds, now });
   if (!eta) return null;
 
@@ -19,28 +19,64 @@ export function ArrivalEstimate({ order, routeSeconds = null, className }) {
       : t("order:eta.minutes", { count: eta.minutes });
   const detail = eta.isLate
     ? t("order:eta.lateHint", { time })
-    : [t("order:eta.around", { time }), eta.isLive ? t("order:eta.liveHint") : null]
+    : [
+        t("order:eta.around", { time }),
+        eta.isLive ? t("order:eta.liveHint") : null,
+      ]
         .filter(Boolean)
         .join(" · ");
 
+  const percent = eta.progress === null ? null : Math.round(eta.progress * 100);
+
   return (
-    <div className={cn("flex items-center gap-3", className)} role="status" aria-live="polite">
-      <span
-        className={cn(
-          "flex size-12 shrink-0 items-center justify-center rounded-full",
-          eta.isLate ? "bg-warning-subtle text-warning" : "bg-primary-subtle text-primary",
-        )}
-        aria-hidden="true"
-      >
-        <Clock className="size-5" />
-      </span>
-      <div className="min-w-0">
-        <p className="text-caption text-muted-foreground">{t("order:eta.label")}</p>
-        <p className={cn("text-h2 tabular", eta.isLate ? "text-warning" : "text-foreground")}>
-          {headline}
-        </p>
-        <p className="text-body-sm text-muted-foreground truncate">{detail}</p>
+    <div className={cn("space-y-3", className)}>
+      <div className="flex items-center gap-3" role="status" aria-live="polite">
+        <span
+          className={cn(
+            "flex size-12 shrink-0 items-center justify-center rounded-full",
+            eta.isLate
+              ? "bg-warning-subtle text-warning"
+              : "bg-primary-subtle text-primary",
+          )}
+          aria-hidden="true"
+        >
+          <Clock className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-caption text-muted-foreground">
+            {t("order:eta.label")}
+          </p>
+          <p
+            className={cn(
+              "text-h2 tabular",
+              eta.isLate ? "text-warning" : "text-foreground",
+            )}
+          >
+            {headline}
+          </p>
+          <p className="text-body-sm text-muted-foreground truncate">
+            {detail}
+          </p>
+        </div>
       </div>
+      {percent !== null && (
+        <div
+          role="progressbar"
+          aria-label={t("order:eta.label")}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+          className="bg-muted h-1.5 w-full overflow-hidden rounded-full"
+        >
+          <div
+            className={cn(
+              "h-full rounded-full motion-safe:transition-[width] motion-safe:duration-700",
+              eta.isLate ? "bg-warning" : "bg-primary",
+            )}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

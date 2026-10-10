@@ -107,6 +107,12 @@ export default {
     addressNotFound: "That delivery address was not found",
     restaurantUnavailable: "That restaurant is not taking orders right now",
     restaurantClosed: "That restaurant is closed right now",
+    schedule: {
+      SCHEDULE_INVALID: "That delivery time is not valid. Pick one from the list.",
+      SCHEDULE_TOO_SOON: "That delivery time is too soon. Pick a later one.",
+      SCHEDULE_TOO_FAR: "You can schedule up to 3 days ahead.",
+      SCHEDULE_CLOSED: "The restaurant is closed for that delivery time. Pick another.",
+    },
     itemUnavailable: "{{name}} is no longer available",
     alreadyPlaced: "This basket was just ordered. Check your orders.",
     tipInvalid: "A tip must be between 0 and {{max}}",
@@ -158,7 +164,9 @@ export default {
     invalid: "The dish options could not be read",
     groupName: "Option group {{group}} needs a name of up to 60 characters",
     groupEmpty: "Option group {{group}} needs at least one option",
-    groupRange: "Check how many options can be picked in group {{group}}",
+    groupRange: "In option group {{group}}, use whole numbers: \"pick at least\" from 0 and \"pick at most\" from 1",
+    minAboveMax: "In option group {{group}}, \"pick at least\" ({{min}}) cannot be more than \"pick at most\" ({{max}})",
+    minAboveOptions: "Option group {{group}} asks customers to pick at least {{min}}, but it only has {{count}} options",
     name: "Every option in group {{group}} needs a name of up to 60 characters",
     price: "Extra prices in group {{group}} must be between 0 and 100000",
     tooManyGroups: "A dish can have at most {{max}} option groups",
@@ -167,6 +175,24 @@ export default {
     tooMany: "Pick at most {{max}} for {{group}}",
     unavailable: "{{option}} is no longer available",
     unknown: "One of the options you picked is no longer on the menu",
+  },
+
+  menuLayout: {
+    invalid: "The menu layout could not be read",
+    sectionName: "Section {{section}} needs a name of up to {{max}} characters",
+    duplicateName: "There is already a section called {{name}}",
+    tooManySections: "A menu can have at most {{max}} sections",
+    unknownSection: "That menu section no longer exists. Reload and try again.",
+    unknownItem: "One of those dishes is not on your menu any more. Reload and try again.",
+    duplicateItem: "A dish can only be in one section",
+  },
+
+  referral: {
+    invalidCode: "That invite code does not exist. Check it and try again.",
+    ownCode: "That is your own invite code. Share it with a friend instead.",
+    alreadyApplied: "You have already used an invite code.",
+    notNew: "Invite codes are for new customers, before their first order.",
+    customerOnly: "Invite codes are for customer accounts.",
   },
 
   restaurant: {
@@ -253,6 +279,16 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    REFERRAL_INVALID_CODE: "That invite code does not exist",
+    REFERRAL_OWN_CODE: "You cannot use your own invite code",
+    REFERRAL_ALREADY_APPLIED: "You have already used an invite code",
+    REFERRAL_NOT_NEW: "Invite codes are for new customers",
+    REFERRAL_CUSTOMER_ONLY: "Invite codes are for customer accounts",
+    SCHEDULE_INVALID: "That delivery time is not valid. Pick one from the list.",
+    SCHEDULE_TOO_SOON: "That delivery time is too soon. Pick a later one.",
+    SCHEDULE_TOO_FAR: "You can schedule up to 3 days ahead.",
+    SCHEDULE_CLOSED: "The restaurant is closed for that delivery time. Pick another.",
+    MENU_LAYOUT_INVALID: "Check the menu sections and try again",
     RESTAURANT_CLOSED: "That restaurant is closed right now",
     RESTAURANT_UNAVAILABLE: "That restaurant is not taking orders right now",
     LOCATION_INVALID: "That map location is not valid",

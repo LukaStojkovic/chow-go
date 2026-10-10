@@ -9,6 +9,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import { useDarkMode } from "./hooks/useDarkMode";
 import { useMotionPreference } from "./hooks/useMotionPreference";
 import { useGlobalSocketEvents } from "./hooks/Sockets/useGlobalSocketEvents";
+import { useReferralAutoApply } from "./hooks/Referral/useReferralAutoApply";
 import { SocketProvider } from "./contexts/SocketContext";
 import ScrollToTop from "./hooks/ScrollToTop";
 import Spinner from "./components/Spinner";
@@ -34,6 +35,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AdminRoute from "./components/Auth/components/AdminRoute";
 const AdminPage = lazyWithReload(() => import("./pages/admin/AdminPage"));
 const LegalPage = lazyWithReload(() => import("./pages/LegalPage"));
+const InvitePage = lazyWithReload(() => import("./pages/InvitePage"));
 import BecomeCourierPage from "./pages/BecomeCourierPage";
 import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
 import AuthModal from "./components/Auth/AuthModal";
@@ -53,6 +55,7 @@ const SellerDashboard = lazyNamed(
 );
 const SellerOrders = lazyNamed(routeChunks["/seller/orders"], "SellerOrders");
 const SellerMenu = lazyNamed(routeChunks["/seller/menu"], "SellerMenu");
+const SellerMenuLayout = lazyNamed(routeChunks["/seller/menu/arrange"], "SellerMenuLayout");
 const SellerAnalytics = lazyNamed(
   routeChunks["/seller/analytics"],
   "SellerAnalytics",
@@ -101,6 +104,7 @@ function AppContent() {
   const { t } = useTranslation(["common", "order", "basket", "profile"]);
 
   useGlobalSocketEvents();
+  useReferralAutoApply();
 
   useEffect(() => {
     checkAuth();
@@ -118,6 +122,7 @@ function AppContent() {
           <Route path="/auth/google/callback" element={<GoogleAuthCallbackPage />} />
           <Route path="/terms" element={<LegalPage kind="terms" />} />
           <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+          <Route path="/invite/:code" element={<InvitePage />} />
 
           {/* Browsable without an account. Signing in is required at the point
               it actually matters - adding to the basket. */}
@@ -233,6 +238,7 @@ function AppContent() {
             <Route path="dashboard" element={<SellerDashboard />} />
             <Route path="orders" element={<SellerOrders />} />
             <Route path="menu" element={<SellerMenu />} />
+            <Route path="menu/arrange" element={<SellerMenuLayout />} />
             <Route path="analytics" element={<SellerAnalytics />} />
             <Route path="promotions" element={<SellerPromoCodes />} />
             <Route path="settings" element={<SellerSettings />} />

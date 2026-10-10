@@ -113,6 +113,7 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
+        "scheduled",
         "pending",
         "confirmed",
         "preparing",
@@ -177,6 +178,11 @@ const orderSchema = new mongoose.Schema(
 
     isScheduled: { type: Boolean, default: false },
     scheduledFor: Date,
+    // A scheduled order sits as "scheduled" until releaseAt (the delivery
+    // time minus prep and travel), when the cron hands it to the restaurant
+    // as a new pending order and stamps releasedAt.
+    releaseAt: Date,
+    releasedAt: Date,
     deviceInfo: {
       platform: String,
       userAgent: String,
@@ -198,6 +204,7 @@ orderSchema.index(
 orderSchema.index({ restaurant: 1, status: 1, createdAt: -1 });
 orderSchema.index({ courier: 1, status: 1, createdAt: -1 });
 orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ status: 1, releaseAt: 1 });
 // The courier pool's $geoNear filters on status and courier; leading with
 // them keeps it from walking every delivered order near the courier. The
 // pool query names its key, so the old single-field index can coexist until

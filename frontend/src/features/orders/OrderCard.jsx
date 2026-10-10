@@ -14,6 +14,7 @@ import { ChevronRight, RotateCcw } from "lucide-react";
 import { listItem } from "@/lib/motion";
 import { estimateArrival } from "@chowgo/shared/adapters/order";
 import { formatOrderDate, formatPrice, formatTime } from "@chowgo/shared/format";
+import { formatScheduledFor } from "@chowgo/shared/deliveryTime";
 import { Avatar } from "@/components/common/SmartImage";
 import { OrderStatusBadge } from "@/components/common/StatusBadges";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,11 @@ export function OrderCard({ order, onReorder, isReordering = false }) {
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <OrderStatusBadge status={order.status} />
+              {order.isScheduled && order.scheduledFor && (
+                <span className="text-label text-muted-foreground tabular">
+                  {formatScheduledFor(order.scheduledFor)}
+                </span>
+              )}
               {eta && !eta.isLate && (
                 <span className="text-label text-muted-foreground tabular">
                   {t("order:eta.around", { time: formatTime(eta.at) })}

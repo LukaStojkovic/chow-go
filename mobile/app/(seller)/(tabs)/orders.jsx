@@ -22,6 +22,7 @@ import { useRefreshTint } from "@/theme/useRefreshTint";
 
 const FILTERS = [
   { key: "active", label: "Active", status: ACTIVE_STATUS_FILTER },
+  { key: "scheduled", labelKey: "order:status.scheduled.label", status: "scheduled" },
   { key: "pending", label: "New", status: "pending" },
   { key: "preparing", label: "Preparing", status: "preparing" },
   { key: "ready", label: "Ready", status: "ready" },
@@ -78,10 +79,11 @@ export default function SellerOrdersScreen() {
         >
           {FILTERS.map((entry) => {
             const count = entry.key === "active" ? undefined : counts[entry.key];
+            const label = entry.labelKey ? t(entry.labelKey) : entry.label;
             return (
               <Chip
                 key={entry.key}
-                label={count ? `${entry.label} · ${count}` : entry.label}
+                label={count ? `${label} · ${count}` : label}
                 active={filter === entry.key}
                 onPress={() => setFilter(entry.key)}
               />

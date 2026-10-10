@@ -58,6 +58,18 @@ describe("normalizeOptionGroups", () => {
     });
   });
 
+  it("caps \"pick at most\" at the number of options instead of refusing it", () => {
+    const { groups } = normalizeOptionGroups([
+      { name: "Extras", minSelect: "0", maxSelect: "5", options: [{ name: "Cheese" }, { name: "Bacon" }, { name: "Egg" }] },
+    ]);
+    expect(groups[0]).toMatchObject({ minSelect: 0, maxSelect: 3 });
+  });
+
+  it("uses the defaults for blank pick fields", () => {
+    const { groups } = normalizeOptionGroups([{ name: "Sauce", minSelect: "", maxSelect: " ", options: [{ name: "a" }] }]);
+    expect(groups[0]).toMatchObject({ minSelect: 0, maxSelect: 1 });
+  });
+
   it("keeps existing ids so baskets still match after an edit", () => {
     const { groups } = normalizeOptionGroups([size]);
     expect(groups[0]._id).toBe("g1");
@@ -76,11 +88,18 @@ describe("normalizeOptionGroups", () => {
     );
     expect(
       normalizeOptionGroups([{ name: "Size", minSelect: 2, maxSelect: 1, options: [{ name: "a" }, { name: "b" }] }])
-        .error.code,
-    ).toBe("OPTION_GROUP_RANGE");
+        .error,
+    ).toEqual({ code: "OPTION_MIN_ABOVE_MAX", group: 0, min: 2, max: 1 });
     expect(
-      normalizeOptionGroups([{ name: "Size", minSelect: 0, maxSelect: 3, options: [{ name: "a" }] }]).error.code,
-    ).toBe("OPTION_GROUP_RANGE");
+      normalizeOptionGroups([{ name: "Size", minSelect: 3, maxSelect: 3, options: [{ name: "a" }, { name: "b" }] }])
+        .error,
+    ).toEqual({ code: "OPTION_MIN_ABOVE_OPTIONS", group: 0, min: 3, count: 2 });
+    for (const [min, max] of [["1.5", "2"], ["1", "x"], [-1, 1], [0, 0], ["1,5", "2"]]) {
+      expect(
+        normalizeOptionGroups([{ name: "Size", minSelect: min, maxSelect: max, options: [{ name: "a" }, { name: "b" }] }])
+          .error.code,
+      ).toBe("OPTION_GROUP_RANGE");
+    }
     const many = Array.from({ length: OPTION_LIMITS.groups + 1 }, () => ({ name: "g", options: [{ name: "a" }] }));
     expect(normalizeOptionGroups(many).error.code).toBe("OPTION_TOO_MANY_GROUPS");
   });

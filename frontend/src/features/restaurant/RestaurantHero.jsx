@@ -22,6 +22,7 @@ import {
   RatingDisplay,
 } from "@/components/common/Meta";
 import { AvailabilityBadge } from "@/components/common/StatusBadges";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -39,9 +40,10 @@ export function RestaurantHero({
   onToggleFavourite,
   isTogglingFavourite,
   onShowInfo,
+  isPreorder = false,
 }) {
   const { t } = useTranslation(["restaurant", "common"]);
-  const closedNotice = unavailableReason(restaurant);
+  const closedNotice = isPreorder ? null : unavailableReason(restaurant);
 
   return (
     <header>
@@ -60,6 +62,11 @@ export function RestaurantHero({
             <h1 className="text-display min-w-0">{restaurant.name}</h1>
             {restaurant.availability !== "open" && (
               <AvailabilityBadge availability={restaurant.availability} size="lg" />
+            )}
+            {isPreorder && (
+              <Badge variant="info" size="lg">
+                {t("availability.preorderShort")}
+              </Badge>
             )}
           </div>
           <p className="text-body text-muted-foreground">{restaurant.cuisine}</p>
@@ -104,6 +111,15 @@ export function RestaurantHero({
           className="border-border bg-muted text-body-sm text-muted-foreground mt-4 rounded-md border p-3"
         >
           {closedNotice} {t("menu.browseWhileClosedSuffix")}
+        </p>
+      )}
+
+      {isPreorder && (
+        <p
+          role="status"
+          className="border-border bg-muted text-body-sm text-muted-foreground mt-4 rounded-md border p-3"
+        >
+          {t("availability.preorder")}
         </p>
       )}
 

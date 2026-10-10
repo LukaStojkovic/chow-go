@@ -55,6 +55,7 @@ import { OrderStatusTimeline } from "@/features/orders/OrderStatusTimeline";
 import { OrderRating } from "@/features/orders/OrderRating";
 import { OrderTrackingLiveMap } from "@/components/OrderTracking/OrderTrackingLiveMap";
 import { ArrivalEstimate } from "@/components/OrderTracking/ArrivalEstimate";
+import { ScheduledDelivery } from "@/features/orders/ScheduledDelivery";
 
 /** A labelled block of order metadata. */
 function InfoCard({ icon: Icon, title, children, action }) {
@@ -190,7 +191,14 @@ export default function OrderTrackingPage() {
                   </div>
                 ) : (
                   <>
-                    <ArrivalEstimate order={order} routeSeconds={routeSeconds} />
+                    {order.isScheduled ? (
+                      <ScheduledDelivery
+                        order={order}
+                        releaseAt={raw?.releaseAt}
+                      />
+                    ) : (
+                      <ArrivalEstimate order={order} routeSeconds={routeSeconds} />
+                    )}
                     <OrderStatusTimeline order={order} />
                   </>
                 )}

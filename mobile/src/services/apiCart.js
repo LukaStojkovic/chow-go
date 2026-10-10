@@ -34,3 +34,8 @@ export async function clearCart() {
   const { data } = await api.delete("/cart");
   return data;
 }
+
+export async function getCartSuggestions() {
+  const { data } = await api.get("/cart/suggestions");
+  return data?.data?.suggestions ?? [];
+}

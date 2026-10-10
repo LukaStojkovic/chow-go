@@ -14,6 +14,8 @@ export default {
     closedUntil: "Closed right now. Opens again at {{time}}.",
     closedNoSlot: "Closed right now. Check the opening hours for the next slot.",
     closedNow: "Closed now",
+    preorder: "Closed now. Order ahead for later.",
+    preorderShort: "Order ahead",
     openNow: "Open now",
     open: "Open",
     closed: "Closed",

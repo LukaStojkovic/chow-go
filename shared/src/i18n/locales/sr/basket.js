@@ -106,6 +106,33 @@ export default {
   orderingFrom: "Poručujete iz",
   addMore: "Dodaj još stavki",
 
+  upsell: {
+    title: "Uz vašu porudžbinu",
+    together: "Često se poručuje zajedno",
+    drink: "Nešto za piće?",
+    dessert: "Ima mesta za desert?",
+    popular: "Popularno ovde",
+    add: "Dodaj: {{name}}",
+    choose: "Izaberi opcije za: {{name}}",
+    added: "{{name}} dodato",
+  },
+
+  schedule: {
+    title: "Vreme dostave",
+    asap: "Što pre",
+    later: "Zakaži za kasnije",
+    day: "Dan",
+    time: "Vreme",
+    today: "Danas",
+    tomorrow: "Sutra",
+    noSlots: "Nema termina dostave u narednih {{days}} dana.",
+    closedNow: "Trenutno zatvoreno. Zakažite porudžbinu za kasnije.",
+    required: "Izaberite vreme dostave da biste poručili iz zatvorenog restorana.",
+    pickTime: "Izaberite vreme dostave",
+    priorityOff: "Prioritetna dostava važi samo za porudžbine koje se šalju odmah.",
+    summary: "Dostava {{when}}",
+  },
+
   checkout: {
     title: "Plaćanje",
     loading: "Učitavanje vaše porudžbine",

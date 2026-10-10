@@ -2,6 +2,10 @@ export default {
   push: {
     voucherTitle: "You've received a voucher",
     voucherBody: "{{amount}} off your next order. Code: {{code}}",
+    referralFriendTitle: "Welcome to Chow&Go",
+    referralFriendBody: "{{amount}} off your first order, thanks to a friend. Code: {{code}}",
+    referralRewardTitle: "Your friend ordered",
+    referralRewardBody: "Thanks for inviting them. Here is {{amount}} off your next order. Code: {{code}}",
     voucherBodyFreeDelivery: "Free delivery on your next order. Code: {{code}}",
   },
 

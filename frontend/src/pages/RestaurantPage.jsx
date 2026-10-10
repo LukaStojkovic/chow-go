@@ -20,6 +20,8 @@ import { buildPriceBreakdown } from "@chowgo/shared/adapters/pricing";
 import { useRestaurant } from "@/hooks/Restaurants/useRestaurant";
 import { useFavourites } from "@/hooks/Favourites/useFavourites";
 import useCartStore from "@/store/useCartStore";
+import { useNow } from "@/hooks/useNow";
+import { takesPreorders } from "@chowgo/shared/deliveryTime";
 
 import { PageContainer, StickyActionBar } from "@/components/layout/primitives";
 import { Button } from "@/components/ui/button";
@@ -40,10 +42,11 @@ const SCROLL_OFFSET = 132;
 export default function RestaurantPage() {
   const { t } = useTranslation(["restaurant", "basket", "common"]);
   const { restaurantId } = useParams();
-  const { restaurant, menu, isLoadingRestaurant, isLoadingMenu, error, refetch } =
+  const { restaurant, rawRestaurant, menu, isLoadingRestaurant, isLoadingMenu, error, refetch } =
     useRestaurant(restaurantId);
   const { isFavourite, toggleFavourite, isPending } = useFavourites();
   const { openBasket } = useBasketUI();
+  const now = useNow(60000);
 
   const cartItems = useCartStore((state) => state.items);
   const cartTotal = useCartStore((state) => state.totalPrice);
@@ -147,7 +150,9 @@ export default function RestaurantPage() {
     );
   }
 
-  const closedNotice = unavailableReason(restaurant);
+  const isPreorder =
+    restaurant.availability === "closed" && takesPreorders(rawRestaurant, new Date(now));
+  const closedNotice = isPreorder ? null : unavailableReason(restaurant);
   const isOrderingDisabled = Boolean(closedNotice);
 
   // Quantities already in the basket, so a dish the customer has added shows a
@@ -171,6 +176,7 @@ export default function RestaurantPage() {
           onToggleFavourite={() => toggleFavourite(restaurant.id)}
           isTogglingFavourite={isPending}
           onShowInfo={() => setShowInfo(true)}
+          isPreorder={isPreorder}
         />
 
         <div className="mt-6">
@@ -267,6 +273,7 @@ export default function RestaurantPage() {
         dish={selectedDish}
         onClose={() => setSelectedDish(null)}
         unavailableReason={closedNotice}
+        notice={isPreorder ? t("restaurant:availability.preorder") : null}
       />
 
       <RestaurantInfoSheet

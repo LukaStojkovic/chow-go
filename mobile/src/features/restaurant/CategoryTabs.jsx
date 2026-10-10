@@ -24,18 +24,18 @@ export function CategoryTabs({ sections, active, onSelect }) {
       contentContainerClassName="gap-2 px-5 py-3"
     >
       {sections.map((section) => {
-        const selected = active === section.title;
+        const selected = active === section.key;
         return (
           <Pressable
-            key={section.title}
+            key={section.key}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
             onLayout={(event) => {
-              offsets.current[section.title] = event.nativeEvent.layout.x;
+              offsets.current[section.key] = event.nativeEvent.layout.x;
             }}
             onPress={() => {
               Haptics.selectionAsync();
-              onSelect(section.title);
+              onSelect(section.key);
             }}
             className={cn(
               "h-10 justify-center rounded-full border px-4 active:opacity-70",

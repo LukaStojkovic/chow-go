@@ -2,6 +2,10 @@ export default {
   push: {
     voucherTitle: "Dobili ste vaučer",
     voucherBody: "{{amount}} popusta na sledeću porudžbinu. Kod: {{code}}",
+    referralFriendTitle: "Dobro došli u Chow&Go",
+    referralFriendBody: "{{amount}} popusta na prvu porudžbinu, zahvaljujući prijatelju. Kod: {{code}}",
+    referralRewardTitle: "Vaš prijatelj je poručio",
+    referralRewardBody: "Hvala što ste ga pozvali. Evo {{amount}} popusta na sledeću porudžbinu. Kod: {{code}}",
     voucherBodyFreeDelivery: "Besplatna dostava za sledeću porudžbinu. Kod: {{code}}",
   },
 

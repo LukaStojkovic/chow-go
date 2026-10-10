@@ -28,6 +28,7 @@ import { breakdownFromOrder } from "./pricing.js";
  * tokens, never onto a raw colour.
  */
 export const ORDER_STATUS_META = {
+  scheduled: { tone: "info", lifecycle: "active" },
   pending: { tone: "warning", lifecycle: "pending" },
   confirmed: { tone: "info", lifecycle: "active" },
   preparing: { tone: "info", lifecycle: "active" },
@@ -200,12 +201,17 @@ export function toOrderView(raw) {
     // Mirrors utils/orderStatus.js#canCustomerCancel exactly. The previous
     // list offered Cancel during "preparing", where the API returns 400 - and
     // that is where an order sits longest.
-    canCancel: ["pending", "confirmed", "ready", "assigned"].includes(status),
+    canCancel: ["scheduled", "pending", "confirmed", "ready", "assigned"].includes(status),
     canReorder: isTerminal,
     canRate: status === "delivered" && !raw.customerRating?.ratedAt,
     placedAt: raw.createdAt,
+    /** When the kitchen got it: the release of a scheduled order, else placement. */
+    startedAt: raw.releasedAt || raw.createdAt || null,
     placedAtLabel: formatOrderDate(raw.createdAt),
     etaAt: raw.estimatedDeliveryTime || null,
+    /** The delivery time a scheduled order was booked for, or null for ASAP. */
+    scheduledFor: raw.scheduledFor || null,
+    isScheduled: status === "scheduled",
     items,
     itemCount: items.reduce((sum, line) => sum + line.quantity, 0),
     pricing: breakdownFromOrder(raw),
@@ -234,7 +240,8 @@ export function toOrderViews(list) {
 }
 
 const EN_ROUTE_TO_CUSTOMER = ["picked_up", "in_transit"];
-const NO_ARRIVAL = ["delivered", "cancelled", "rejected"];
+// A scheduled order shows the time it was booked for, not a countdown in days.
+const NO_ARRIVAL = ["scheduled", "delivered", "cancelled", "rejected"];
 
 /**
  * When the order should reach the customer. Before pickup this is the
@@ -243,7 +250,7 @@ const NO_ARRIVAL = ["delivered", "cancelled", "rejected"];
  *
  * @param {{ status: string, etaAt?: string | Date | null }} order
  * @param {{ routeSeconds?: number | null, now?: number }} [options]
- * @returns {{ at: Date, minutes: number, isLate: boolean, isLive: boolean } | null}
+ * @returns {{ at: Date, minutes: number, isLate: boolean, isLive: boolean, progress: number | null } | null}
  */
 export function estimateArrival(order, { routeSeconds = null, now = Date.now() } = {}) {
   if (!order || NO_ARRIVAL.includes(order.status)) return null;
@@ -253,14 +260,19 @@ export function estimateArrival(order, { routeSeconds = null, now = Date.now() }
   if (!at || Number.isNaN(at.getTime())) return null;
 
   const remaining = at.getTime() - now;
+  // How far along the wait is, for a bar that fills from "placed" to "here".
+  const start = new Date(order.startedAt ?? order.placedAt ?? NaN).getTime();
+  const span = at.getTime() - start;
+  const progress = Number.isFinite(span) && span > 0 ? Math.min(1, Math.max(0, (now - start) / span)) : null;
   return {
     at,
     minutes: Math.max(0, Math.ceil(remaining / 60000)),
     isLate: remaining < -60000,
     isLive,
+    progress,
   };
 }
 
 /** Statuses the "Active" filter covers, matching the backend's ACTIVE_STATUSES. */
 export const ACTIVE_STATUS_FILTER =
-  "pending,confirmed,preparing,ready,assigned,picked_up,in_transit";
+  "scheduled,pending,confirmed,preparing,ready,assigned,picked_up,in_transit";

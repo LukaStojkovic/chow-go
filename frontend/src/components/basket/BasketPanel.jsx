@@ -35,7 +35,9 @@ import { Avatar } from "@/components/common/SmartImage";
 import { EmptyState } from "@/components/common/StateViews";
 import { BasketLine } from "./BasketLine";
 import { FeeBreakdown } from "./FeeBreakdown";
+import { UpsellRail } from "./UpsellRail";
 import { lineTotal, sumMoney } from "@chowgo/shared/money";
+import { takesPreorders } from "@chowgo/shared/deliveryTime";
 
 const rawLineId = (item) =>
   String(item.lineId || item.menuItem?._id || item.menuItem?.id || item.menuItem);
@@ -230,7 +232,14 @@ export function BasketPanel({ isOpen, onClose }) {
                 </AnimatePresence>
               </ul>
 
-              {restaurant?.estimatedDeliveryTime && (
+              {restaurant && restaurant.isOpenNow === false ? (
+                <p role="status" className="text-body-sm text-muted-foreground flex items-center gap-2 py-3">
+                  <Clock className="size-4 shrink-0" aria-hidden="true" />
+                  {takesPreorders(restaurant)
+                    ? t("restaurant:availability.preorder")
+                    : t("restaurant:availability.closedNow")}
+                </p>
+              ) : restaurant?.estimatedDeliveryTime && (
                 <p className="text-body-sm text-muted-foreground flex items-center gap-2 py-3">
                   <Clock className="size-4 shrink-0" aria-hidden="true" />
                   {t("restaurant:info.estimatedDelivery", {
@@ -238,6 +247,8 @@ export function BasketPanel({ isOpen, onClose }) {
                   })}
                 </p>
               )}
+
+              <UpsellRail lines={lines} className="border-border border-t py-3" />
             </div>
 
             <div className="border-border bg-card border-t px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-5">

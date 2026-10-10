@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema(
       required: true,
       maxlength: 100,
     },
+    // A customer's personal invite code, created the first time they open
+    // their referral page (services/referral.service.js).
+    referralCode: { type: String, unique: true, sparse: true },
     email: {
       unique: true,
       type: String,

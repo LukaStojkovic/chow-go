@@ -184,7 +184,7 @@ export function ResponsiveGrid({ variant = "cards", className, ...props }) {
  * carousels. Bleeds to the screen edge on mobile so the last card is visibly
  * cut off - the affordance that tells people it scrolls.
  */
-export function Rail({ className, children, ...props }) {
+export function Rail({ className, children, bleed = true, ...props }) {
   const { t } = useTranslation("common");
   const scrollerRef = useRef(null);
   const [edges, setEdges] = useState({ start: false, end: false });
@@ -222,7 +222,8 @@ export function Rail({ className, children, ...props }) {
         ref={scrollerRef}
         onScroll={measure}
         className={cn(
-          "rail-bleed scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1",
+          bleed && "rail-bleed",
+          "scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1",
           className,
         )}
         {...props}

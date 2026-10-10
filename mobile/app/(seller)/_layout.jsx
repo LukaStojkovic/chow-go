@@ -18,6 +18,7 @@ export default function SellerLayout() {
         <Stack.Screen name="incoming/[orderId]" options={fullScreenModalOptions} />
         <Stack.Screen name="order/[orderId]" />
         <Stack.Screen name="menu-item/[menuItemId]" />
+        <Stack.Screen name="menu-layout" />
         <Stack.Screen name="promo-codes/index" />
         <Stack.Screen name="promo-codes/[promoId]" />
         <Stack.Screen name="location" />

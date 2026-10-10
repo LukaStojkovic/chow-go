@@ -8,6 +8,8 @@ const GROUP_ERRORS = {
   OPTION_GROUP_NAME: "groupName",
   OPTION_GROUP_EMPTY: "groupEmpty",
   OPTION_GROUP_RANGE: "groupRange",
+  OPTION_MIN_ABOVE_MAX: "minAboveMax",
+  OPTION_MIN_ABOVE_OPTIONS: "minAboveOptions",
   OPTION_NAME: "name",
   OPTION_PRICE: "price",
   OPTION_TOO_MANY_GROUPS: "tooManyGroups",
@@ -27,10 +29,12 @@ export function parseOptionGroupsInput(input) {
   const result = normalizeOptionGroups(input);
   if (!result.error) return result.groups;
 
-  const { code, group, max } = result.error;
+  const { code, group, max, min, count } = result.error;
   throw new AppError(`errors:menuOption.${GROUP_ERRORS[code]}`, 400, "OPTION_GROUPS_INVALID", {
     group: group === undefined ? undefined : group + 1,
     max,
+    min,
+    count,
   });
 }
 

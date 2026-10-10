@@ -21,10 +21,39 @@ const minutesAgo = (now, minutes) => new Date(now.getTime() - minutes * 60 * 100
 export const AUTO_REJECT_REASON = "The restaurant did not respond in time";
 export const AUTO_RELEASE_REASON = "Released automatically: not picked up in time";
 
+// A scheduled order becomes a new pending order once the kitchen has to
+// start on it. From here it is an ordinary order: the seller is alerted, and
+// the pending timeout counts from this moment rather than from when it was
+// booked days ago.
+export async function releaseDueScheduledOrders(now = new Date()) {
+  const due = await Order.find({ status: "scheduled", releaseAt: { $lte: now } })
+    .select("_id")
+    .limit(BATCH)
+    .lean();
+
+  let released = 0;
+  for (const { _id } of due) {
+    const order = await Order.findOneAndUpdate(
+      { _id, status: "scheduled" },
+      { $set: { status: "pending", releasedAt: now } },
+      { new: true },
+    );
+    if (!order) continue;
+    await socketService.emitOrderPlaced(order);
+    released++;
+  }
+  return released;
+}
+
 export async function rejectStalePendingOrders(now = new Date()) {
+  const cutoff = minutesAgo(now, env.pendingTimeoutMinutes);
   const stale = await Order.find({
     status: "pending",
-    createdAt: { $lt: minutesAgo(now, env.pendingTimeoutMinutes) },
+    $or: [
+      { releasedAt: { $lt: cutoff } },
+      { releasedAt: { $exists: false }, createdAt: { $lt: cutoff } },
+      { releasedAt: null, createdAt: { $lt: cutoff } },
+    ],
   })
     .select("_id restaurant")
     .limit(BATCH)
@@ -93,16 +122,17 @@ export async function reportStuckDeliveries(now = new Date()) {
 }
 
 export async function recoverStuckOrders(now = new Date()) {
-  const [rejected, released, stuck, promos] = [
+  const [scheduled, rejected, released, stuck, promos] = [
+    await releaseDueScheduledOrders(now),
     await rejectStalePendingOrders(now),
     await releaseStaleAssignments(now),
     await reportStuckDeliveries(now),
     await releaseOrphanedRedemptions(now),
   ];
-  if (rejected || released || promos) {
-    logger.info({ rejected, released, stuck, promos }, "Recovered stuck orders");
+  if (scheduled || rejected || released || promos) {
+    logger.info({ scheduled, rejected, released, stuck, promos }, "Recovered stuck orders");
   }
-  return { rejected, released, stuck, promos };
+  return { scheduled, rejected, released, stuck, promos };
 }
 
 /**

@@ -18,6 +18,8 @@ const ERROR_KEYS = {
   OPTION_GROUP_NAME: "groupName",
   OPTION_GROUP_EMPTY: "groupEmpty",
   OPTION_GROUP_RANGE: "groupRange",
+  OPTION_MIN_ABOVE_MAX: "minAboveMax",
+  OPTION_MIN_ABOVE_OPTIONS: "minAboveOptions",
   OPTION_NAME: "name",
   OPTION_PRICE: "price",
   OPTION_TOO_MANY_GROUPS: "tooManyGroups",
@@ -63,11 +65,13 @@ export function validateOptionGroups(state, t) {
   }));
   const result = normalizeOptionGroups(payload);
   if (!result.error) return { groups: result.groups };
-  const { code, group, max } = result.error;
+  const { code, group, max, min, count } = result.error;
   return {
     error: t(`errors:menuOption.${ERROR_KEYS[code] ?? "invalid"}`, {
       group: typeof group === "number" ? group + 1 : "",
       max,
+      min,
+      count,
       defaultValue: t("errors:menuOption.invalid"),
     }),
   };

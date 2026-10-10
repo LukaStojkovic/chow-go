@@ -95,6 +95,31 @@ export default {
     dragOrClick: "Drag and drop images, or click to select",
   },
 
+  referral: {
+    title: "Invite friends",
+    hint: "Give friends {{friend}} off their first order of {{min}} or more. You get {{referrer}} when it is delivered.",
+    yourCode: "Your invite code",
+    copy: "Copy code",
+    copyLink: "Copy link",
+    copied: "Copied",
+    share: "Share invite",
+    shareMessage: "Get {{amount}} off your first Chow&Go order with my code {{code}}: {{link}}",
+    invited_one: "{{count}} friend invited",
+    invited_other: "{{count}} friends invited",
+    rewarded_one: "{{count}} reward earned",
+    rewarded_other: "{{count}} rewards earned",
+    haveCode: "Have an invite code?",
+    enterCode: "Invite code",
+    enterCodePlaceholder: "e.g. K7PQ2M9X",
+    apply: "Apply",
+    applied: "Code applied. {{amount}} off your first order is in your vouchers.",
+    appliedCode: "You joined with code {{code}}",
+    landingTitle: "A friend invited you",
+    landingBody: "Sign up and get {{amount}} off your first order of {{min}} or more.",
+    landingCta: "Order now",
+    pending: "Your invite code will be applied when you sign in.",
+  },
+
   notifications: {
     orderUpdates: "Order updates",
     orderUpdatesHint:

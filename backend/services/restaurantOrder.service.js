@@ -1,7 +1,7 @@
 import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
-import { estimatedDeliveryAt } from "../utils/deliveryEta.js";
+import { estimatedDeliveryAt, etaWhenReady, rideMinutesForOrder } from "../utils/deliveryEta.js";
 import * as orderStatus from "../utils/orderStatus.js";
 import * as notificationService from "./orderNotification.service.js";
 import * as socketService from "./orderSocket.service.js";
@@ -175,7 +175,7 @@ export async function rejectOrderOperation(orderId, restaurantId, reason) {
   const order = await transition({
     orderId,
     restaurantId,
-    fromStatuses: ["pending"],
+    fromStatuses: orderStatus.RESTAURANT_REJECTABLE,
     set: {
       status: "rejected",
       rejectedAt: new Date(),
@@ -209,6 +209,9 @@ export async function updateOrderStatusOperation(
     throw new AppError("Invalid status transition", 400, "INVALID_TRANSITION");
   }
 
+  // Computed before the write; the status guard is still the write itself.
+  const ride = newStatus === "ready" ? await rideMinutesForOrder(orderId) : null;
+
   const order = await transition({
     orderId,
     restaurantId,
@@ -216,7 +219,7 @@ export async function updateOrderStatusOperation(
     set: {
       status: newStatus,
       ...(newStatus === "preparing" ? { preparingAt: new Date() } : {}),
-      ...(newStatus === "ready" ? { readyAt: new Date() } : {}),
+      ...(newStatus === "ready" ? { readyAt: new Date(), estimatedDeliveryTime: etaWhenReady(ride) } : {}),
     },
     conflictMessage: `That order cannot move to ${newStatus} from its current status`,
   });

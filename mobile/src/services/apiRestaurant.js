@@ -24,7 +24,7 @@ export async function getMenuItem(restaurantId, menuItemId) {
   return data.data;
 }
 
-function menuItemFields({ name, category, price, available, description, promotion = {}, optionGroups }) {
+function menuItemFields({ name, category, price, available, description, promotion = {}, optionGroups, sectionId }) {
   const fields = {
     name,
     category,
@@ -35,6 +35,7 @@ function menuItemFields({ name, category, price, available, description, promoti
 
   if (description) fields.description = description;
   if (Array.isArray(optionGroups)) fields.optionGroups = JSON.stringify(optionGroups);
+  if (sectionId !== undefined) fields.sectionId = sectionId ? String(sectionId) : "";
 
   if (promotion.isActive) {
     fields["promotion[type]"] = promotion.type || "percentage";
@@ -67,6 +68,22 @@ export async function updateMenuItem(restaurantId, menuItemId, payload) {
 export async function deleteMenuItem(restaurantId, menuItemId) {
   const { data } = await api.delete(`/restaurants/${restaurantId}/menu/${menuItemId}`);
   return data;
+}
+
+export async function getMenuLayout() {
+  const { data } = await api.get("/restaurant/menu-layout");
+  return data.data;
+}
+
+export async function saveMenuLayout(sections) {
+  const { data } = await api.put("/restaurant/menu-layout", {
+    sections: sections.map(({ _id, name, itemIds }) => ({
+      ...(_id ? { _id } : {}),
+      name,
+      itemIds,
+    })),
+  });
+  return data.data;
 }
 
 export async function getOwnRestaurant(restaurantId) {
