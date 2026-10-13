@@ -39,3 +39,19 @@ export async function getTrendingSearches({ lat, lon }) {
   const { data } = await api.get("/discover/search/trending", { params: { lat, lon } });
   return { trending: data.trending ?? [], cuisines: data.cuisines ?? [] };
 }
+
+export async function getCollections({ lat, lon }) {
+  const { data } = await api.get("/discover/collections", { params: { lat, lon } });
+  return data.collections ?? [];
+}
+
+export async function getCollection({ slug, lat, lon, page = 1, limit = 20 }) {
+  const { data } = await api.get(`/discover/collections/${encodeURIComponent(slug)}`, {
+    params: { lat, lon, page, limit },
+  });
+  return {
+    collection: data.collection,
+    items: data.items ?? [],
+    pagination: data.pagination ?? { page, limit, total: 0, hasNext: false },
+  };
+}

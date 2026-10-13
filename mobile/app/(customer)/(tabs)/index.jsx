@@ -20,9 +20,11 @@ import { IconButton } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
+import { CollectionRails } from "@/features/collections/CollectionRails";
 import { LocationGate } from "@/features/discover/LocationGate";
 import { Rail } from "@/features/discover/Rail";
 import {
+  useCollections,
   useDiscoverFeed,
   useNearbyRestaurants,
   usePopularItems,
@@ -49,6 +51,7 @@ export default function Discover() {
   const popular = usePopularItems();
   const promotions = usePromotions();
   const nearby = useNearbyRestaurants();
+  const collections = useCollections();
 
   // Past orders only mean something once there is an account behind them.
   const authUser = useAuthStore((state) => state.authUser);
@@ -64,7 +67,8 @@ export default function Discover() {
     popular.refetch();
     promotions.refetch();
     nearby.refetch();
-  }, [feed, popular, promotions, nearby]);
+    collections.refetch();
+  }, [feed, popular, promotions, nearby, collections]);
 
   if (!coordinates) return <LocationGate />;
 
@@ -177,6 +181,12 @@ export default function Discover() {
                   className="w-72"
                 />
               )}
+            />
+
+            <CollectionRails
+              query={collections}
+              isFavourite={isFavourite}
+              toggleFavourite={toggleFavourite}
             />
 
             <Rail

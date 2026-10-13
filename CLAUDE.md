@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:collections`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -242,6 +242,27 @@ Every customer gets an 8-character invite code (`User.referralCode`, created on 
 - **Trending.** `GET /api/discover/search/trending?lat&lon` returns `trending`: terms searched at least 3 times in the last 7 days in roughly the same ~11 km area. It also returns the most common nearby `cuisines`.
 - **What gets counted.** A search counts toward trending only when the term exactly names a restaurant, dish, cuisine or category that the search returned, so no free text is ever stored. Counts are kept in `models/SearchTrend.js` and expire after 30 days.
 - **Testing.** `check:discover-search` covers all of the above.
+
+## Editorial collections
+
+`models/Collection.js` holds the discovery home's curated rails, such as "Best burgers" or "Under 500 RSD". `services/collection.service.js` evaluates them when a viewer asks, against the active restaurants within 20 km of that viewer, so admins can change the home without an app release. `@chowgo/shared/collections#normalizeCollectionInput` is the single validator and returns `COLLECTION_*` codes.
+
+- **What a collection holds.** Its `kind` is `restaurants` or `dishes`. It has a localized `title`/`subtitle` (one string per locale, with English required and used as the fallback), `rules`, ordered `pins`, `manualOnly`, `maxItems` (3–30, default 12), optional `startsAt`/`endsAt` dates, a `status` (`draft → published`, `archived`) and a `position`.
+- **Rules.** These are `cuisines`, `categories`, `minRating`, `openNow`, `newWithinDays`, `onlyDeals`, and for dishes only, `maxPrice` together with a `currency`. The price cap compares the promoted price and only considers restaurants that price in that currency.
+- **Sorting.** Each kind has its own `sort` options (`COLLECTION_SORTS`). "Popular" counts delivered orders from the last 30 days, cached for 10 minutes per area.
+- **Pins.** Pins come first, followed by the rule matches. A `manualOnly` collection shows only its pins.
+- **Public endpoints.**
+  - `GET /api/discover/collections?lat&lon` returns up to 8 live rails in `position` order. It drops any rail with fewer than 3 matches nearby and titles each in `req.locale`. The result is cached for 60 s per area and locale, and every admin write clears that cache.
+  - `GET /api/discover/collections/:slug` is one collection's full list, paged.
+- **Admin endpoints.** These live under `/api/admin/collections`:
+  - list, get, create and update (`PUT` replaces the whole collection, and refuses a write that races another one with `COLLECTION_STATUS_CONFLICT`);
+  - `POST /:id/status` with `{action: publish|unpublish|archive|restore}`;
+  - `PUT /order` with `{ids}`;
+  - `POST /preview?lat&lon` to show an unsaved draft;
+  - `GET /pins?kind&q|ids` to find pinnable items and to name the pins already chosen.
+
+  Every write is audited as `targetType: "collection"`.
+- **Testing.** `check:collections` covers all of it.
 
 ## Reviews
 

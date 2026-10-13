@@ -31,6 +31,7 @@ export default function CustomerLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="restaurant/[restaurantId]" />
         <Stack.Screen name="restaurant/reviews/[restaurantId]" />
+        <Stack.Screen name="collection/[slug]" />
         <Stack.Screen name="item/[menuItemId]" options={sheetOptions([0.85])} />
         <Stack.Screen name="basket" options={sheetOptions([0.9])} />
         <Stack.Screen name="checkout" />

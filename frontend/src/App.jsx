@@ -36,6 +36,7 @@ import AdminRoute from "./components/Auth/components/AdminRoute";
 const AdminPage = lazyWithReload(() => import("./pages/admin/AdminPage"));
 const LegalPage = lazyWithReload(() => import("./pages/LegalPage"));
 const InvitePage = lazyWithReload(() => import("./pages/InvitePage"));
+const CollectionPage = lazyNamed(routeChunks["/collections"], "CollectionPage");
 import BecomeCourierPage from "./pages/BecomeCourierPage";
 import GoogleAuthCallbackPage from "./pages/GoogleAuthCallbackPage";
 import AuthModal from "./components/Auth/AuthModal";
@@ -131,6 +132,7 @@ function AppContent() {
             <Route element={<CustomerShell />}>
               <Route path="/discovery" element={<DiscoverPage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/collections/:slug" element={<CollectionPage />} />
               <Route path="/restaurant/:restaurantId" element={<RestaurantPage />} />
             </Route>
             <Route path="/become-courier" element={<BecomeCourierPage />} />

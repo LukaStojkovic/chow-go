@@ -53,6 +53,19 @@ export default {
     countDishes_other: "{{count}} dishes",
   },
 
+  collections: {
+    seeAll: "See all",
+    seeAllLabel: "See all in {{title}}",
+    countRestaurants_one: "{{count}} restaurant",
+    countRestaurants_other: "{{count}} restaurants",
+    countDishes_one: "{{count}} dish",
+    countDishes_other: "{{count}} dishes",
+    empty: "Nothing in this collection delivers to you right now.",
+    notFound: "This collection is not available any more.",
+    loadMore: "Show more",
+    backHome: "Back to discover",
+  },
+
   summary: {
     dealsNearYou_one: "{{count}} dish on offer near you",
     dealsNearYou_other: "{{count}} dishes on offer near you",

@@ -20,6 +20,7 @@ export const routeChunks = {
   "/courier/dashboard": () => import("@/pages/courier/CourierDashboard"),
   "/courier/orders": () => import("@/pages/courier/CourierOrders"),
   "/courier/profile": () => import("@/pages/courier/CourierProfile"),
+  "/collections": () => import("@/pages/CollectionPage"),
 };
 
 /** Best effort: a failed warm-up is retried for real by `lazy()`. */

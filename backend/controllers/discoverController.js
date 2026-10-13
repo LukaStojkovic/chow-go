@@ -7,6 +7,7 @@ import { parsePagination } from "../utils/pagination.js";
 import { escapeRegex } from "../utils/regex.js";
 import { createSharedCache } from "../utils/sharedCache.js";
 import * as searchService from "../services/search.service.js";
+import * as collectionService from "../services/collection.service.js";
 
 const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const popularCache = createSharedCache({ name: "popular", ttlMs: 5 * 60 * 1000, maxEntries: 500 });
@@ -158,6 +159,14 @@ export async function getPopularItems(req, res, next) {
 
 export async function searchDiscover(req, res) {
   res.status(200).json(await searchService.searchNearby(req.query));
+}
+
+export async function listCollections(req, res) {
+  res.status(200).json(await collectionService.listHomeCollections(req.query, req.locale));
+}
+
+export async function getCollection(req, res) {
+  res.status(200).json(await collectionService.getCollection(req.params.slug, req.query, req.locale));
 }
 
 export async function suggestSearch(req, res) {

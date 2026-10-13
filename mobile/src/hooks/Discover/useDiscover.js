@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { SEARCH_LIMITS, normalizeSearchTerm } from "@chowgo/shared/search";
 import { toSearchParams } from "@chowgo/shared/searchFilters";
 import {
+  getCollection,
+  getCollections,
   getDiscoverFeed,
   getPopularItems,
   getPromotions,
@@ -108,5 +111,34 @@ export function useNearbyRestaurants() {
     queryKey: ["nearbyRestaurants", coordinates?.lat, coordinates?.lon],
     enabled,
     queryFn: () => getNearbyRestaurants(coordinates),
+  });
+}
+
+export function useCollections() {
+  const { coordinates, enabled } = useCoordinates();
+  const { i18n } = useTranslation();
+  const locale = i18n.language;
+
+  return useQuery({
+    queryKey: ["discoverCollections", coordinates?.lat, coordinates?.lon, locale],
+    enabled,
+    queryFn: () => getCollections(coordinates),
+    staleTime: 60_000,
+  });
+}
+
+export function useCollection(slug) {
+  const { coordinates, enabled } = useCoordinates();
+  const { i18n } = useTranslation();
+  const locale = i18n.language;
+
+  return useInfiniteQuery({
+    queryKey: ["discoverCollection", slug, coordinates?.lat, coordinates?.lon, locale],
+    enabled: enabled && Boolean(slug),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => getCollection({ ...coordinates, slug, page: pageParam }),
+    getNextPageParam: (last) =>
+      last.pagination?.hasNext ? last.pagination.page + 1 : undefined,
+    retry: (count, error) => error?.response?.status !== 404 && count < 1,
   });
 }

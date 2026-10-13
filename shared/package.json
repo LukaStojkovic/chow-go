@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Platform-neutral business logic shared by the web and mobile clients.",
   "exports": {
+    "./collections": "./src/collections.js",
     "./constants": "./src/constants.js",
     "./deliveryTime": "./src/deliveryTime.js",
     "./currency": "./src/currency.js",

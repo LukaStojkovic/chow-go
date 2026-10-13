@@ -14,7 +14,15 @@ import { Text } from "./Text";
  * of rails where every heading is set at display size reads as a series of
  * unrelated pages rather than one scrollable surface.
  */
-export function SectionHeader({ title, subtitle, size = "md", actionLabel, onAction, className }) {
+export function SectionHeader({
+  title,
+  subtitle,
+  size = "md",
+  actionLabel,
+  actionAccessibilityLabel,
+  onAction,
+  className,
+}) {
   const { t } = useTranslation("common");
   const { color } = useTokens();
 
@@ -34,7 +42,7 @@ export function SectionHeader({ title, subtitle, size = "md", actionLabel, onAct
       {onAction ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={actionLabel ?? t("common:state.seeAll")}
+          accessibilityLabel={actionAccessibilityLabel ?? actionLabel ?? t("common:state.seeAll")}
           hitSlop={10}
           onPress={onAction}
           className="shrink-0 flex-row items-center gap-0.5 active:opacity-60"

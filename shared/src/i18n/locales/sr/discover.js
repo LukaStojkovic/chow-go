@@ -57,6 +57,21 @@ export default {
     countDishes_other: "{{count}} jela",
   },
 
+  collections: {
+    seeAll: "Prikaži sve",
+    seeAllLabel: "Prikaži sve iz kolekcije {{title}}",
+    countRestaurants_one: "{{count}} restoran",
+    countRestaurants_few: "{{count}} restorana",
+    countRestaurants_other: "{{count}} restorana",
+    countDishes_one: "{{count}} jelo",
+    countDishes_few: "{{count}} jela",
+    countDishes_other: "{{count}} jela",
+    empty: "Ništa iz ove kolekcije trenutno ne dostavlja na vašu adresu.",
+    notFound: "Ova kolekcija više nije dostupna.",
+    loadMore: "Prikaži još",
+    backHome: "Nazad na istraživanje",
+  },
+
   summary: {
     dealsNearYou_one: "{{count}} jelo na akciji u blizini",
     dealsNearYou_few: "{{count}} jela na akciji u blizini",

@@ -23,6 +23,7 @@ import { PromotionsSection } from "@/features/home/PromotionsSection";
 import { NearbyRestaurantsSection } from "@/features/home/NearbyRestaurantsSection";
 import { NewInTownSection } from "@/features/home/NewInTownSection";
 import { ReorderSection } from "@/features/home/ReorderSection";
+import { CollectionRails } from "@/features/home/CollectionRails";
 import { PopularDishesSection } from "@/features/home/PopularDishesSection";
 import { DiscoveryFeed } from "@/features/home/DiscoveryFeed";
 
@@ -81,6 +82,7 @@ export default function DiscoverPage() {
           <ReorderSection />
           <NearbyRestaurantsSection />
           <NewInTownSection />
+          <CollectionRails onAddDish={setSelectedDish} />
           <PopularDishesSection onAddDish={setSelectedDish} />
           <DiscoveryFeed onAddDish={setSelectedDish} />
         </Stack>

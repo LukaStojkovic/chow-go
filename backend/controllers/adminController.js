@@ -1,5 +1,6 @@
 import * as adminService from "../services/admin.service.js";
 import * as promoService from "../services/promoCode.service.js";
+import * as collectionService from "../services/collection.service.js";
 
 const context = (req) => ({ actor: req.user, requestId: req.id, reason: req.body?.reason });
 
@@ -96,4 +97,53 @@ export async function issueVoucher(req, res) {
     requestId: req.id,
   });
   res.status(201).json({ data });
+}
+
+export async function listCollections(req, res) {
+  res.status(200).json({ data: await collectionService.listAdminCollections(req.query) });
+}
+
+export async function getCollection(req, res) {
+  res.status(200).json({ data: await collectionService.getAdminCollection(req.params.collectionId) });
+}
+
+export async function createCollection(req, res) {
+  const data = await collectionService.createCollection({ actor: req.user, input: req.body, requestId: req.id });
+  res.status(201).json({ data });
+}
+
+export async function updateCollection(req, res) {
+  const data = await collectionService.updateCollection({
+    actor: req.user,
+    id: req.params.collectionId,
+    input: req.body,
+    requestId: req.id,
+  });
+  res.status(200).json({ data });
+}
+
+export async function setCollectionStatus(req, res) {
+  const data = await collectionService.setCollectionStatus({
+    actor: req.user,
+    id: req.params.collectionId,
+    action: req.body?.action,
+    requestId: req.id,
+  });
+  res.status(200).json({ data });
+}
+
+export async function reorderCollections(req, res) {
+  const data = await collectionService.reorderCollections({ actor: req.user, ids: req.body?.ids, requestId: req.id });
+  res.status(200).json({ data });
+}
+
+export async function previewCollection(req, res) {
+  res.status(200).json({ data: await collectionService.previewCollection({ input: req.body, query: req.query }) });
+}
+
+export async function searchCollectionPins(req, res) {
+  const data = req.query.ids
+    ? await collectionService.describePins({ kind: req.query.kind, ids: req.query.ids })
+    : await collectionService.searchPinCandidates({ kind: req.query.kind, q: req.query.q });
+  res.status(200).json({ data });
 }

@@ -188,6 +188,18 @@ export default {
     customerOnly: "Kodovi za poziv su za naloge kupaca.",
   },
 
+  collection: {
+    notFound: "Ta kolekcija nije dostupna",
+    title: "Dajte kolekciji naziv do {{max}} znakova",
+    slug: "Naziv linka sme da sadrži samo mala slova, brojeve i crtice",
+    slugTaken: "Druga kolekcija već koristi taj naziv linka",
+    kind: "Izaberite da li kolekcija prikazuje restorane ili jela",
+    rule: "Proverite pravila kolekcije",
+    pins: "Izaberite bar jednu stavku za izdvajanje, i to samo postojeće",
+    dates: "Datum završetka mora biti posle datuma početka",
+    statusConflict: "Neko drugi je izmenio ovu kolekciju. Osvežite i pokušajte ponovo.",
+  },
+
   review: {
     notFound: "Ta recenzija nije pronađena",
     replyLength: "Odgovor mora imati između 1 i {{max}} znakova",
@@ -274,6 +286,15 @@ export default {
   },
 
   byCode: {
+    COLLECTION_NOT_FOUND: "Ta kolekcija nije dostupna",
+    COLLECTION_TITLE: "Dajte kolekciji naziv",
+    COLLECTION_SLUG: "Naziv linka sme da sadrži samo mala slova, brojeve i crtice",
+    COLLECTION_SLUG_TAKEN: "Druga kolekcija već koristi taj naziv linka",
+    COLLECTION_KIND: "Izaberite da li kolekcija prikazuje restorane ili jela",
+    COLLECTION_RULE: "Proverite pravila kolekcije",
+    COLLECTION_PINS: "Izaberite bar jednu stavku za izdvajanje, i to samo postojeće",
+    COLLECTION_DATES: "Datum završetka mora biti posle datuma početka",
+    COLLECTION_STATUS_CONFLICT: "Neko drugi je izmenio ovu kolekciju. Osvežite i pokušajte ponovo.",
     REVIEW_NOT_FOUND: "Ta recenzija nije pronađena",
     REVIEW_REPLY_INVALID: "Odgovor mora imati između 1 i 500 znakova",
     REFERRAL_INVALID_CODE: "Taj kod za poziv ne postoji",

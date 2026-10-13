@@ -195,6 +195,18 @@ export default {
     customerOnly: "Invite codes are for customer accounts.",
   },
 
+  collection: {
+    notFound: "That collection is not available",
+    title: "Give the collection a title of up to {{max}} characters",
+    slug: "The link name may only use lowercase letters, numbers and dashes",
+    slugTaken: "Another collection already uses that link name",
+    kind: "Choose whether the collection lists restaurants or dishes",
+    rule: "Check the collection's rules",
+    pins: "Pick at least one item to pin, and only items that exist",
+    dates: "The end date must be after the start date",
+    statusConflict: "Someone else changed this collection. Reload and try again.",
+  },
+
   review: {
     notFound: "That review was not found",
     replyLength: "A reply must be between 1 and {{max}} characters",
@@ -284,6 +296,15 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    COLLECTION_NOT_FOUND: "That collection is not available",
+    COLLECTION_TITLE: "Give the collection a title",
+    COLLECTION_SLUG: "The link name may only use lowercase letters, numbers and dashes",
+    COLLECTION_SLUG_TAKEN: "Another collection already uses that link name",
+    COLLECTION_KIND: "Choose whether the collection lists restaurants or dishes",
+    COLLECTION_RULE: "Check the collection's rules",
+    COLLECTION_PINS: "Pick at least one item to pin, and only items that exist",
+    COLLECTION_DATES: "The end date must be after the start date",
+    COLLECTION_STATUS_CONFLICT: "Someone else changed this collection. Reload and try again.",
     REVIEW_NOT_FOUND: "That review was not found",
     REVIEW_REPLY_INVALID: "A reply must be between 1 and 500 characters",
     REFERRAL_INVALID_CODE: "That invite code does not exist",

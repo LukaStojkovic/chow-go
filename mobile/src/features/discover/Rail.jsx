@@ -5,7 +5,16 @@ import { SectionHeader } from "@/components/ui/Section";
 // Horizontal section. FlatList rather than FlashList: these are short, bounded
 // lists where FlashList's recycling buys nothing and its sizing estimate is
 // another thing to keep correct.
-export function Rail({ title, subtitle, data, renderItem, keyExtractor, onAction, actionLabel }) {
+export function Rail({
+  title,
+  subtitle,
+  data,
+  renderItem,
+  keyExtractor,
+  onAction,
+  actionLabel,
+  actionAccessibilityLabel,
+}) {
   if (!data?.length) return null;
 
   return (
@@ -15,6 +24,7 @@ export function Rail({ title, subtitle, data, renderItem, keyExtractor, onAction
         subtitle={subtitle}
         onAction={onAction}
         actionLabel={actionLabel}
+        actionAccessibilityLabel={actionAccessibilityLabel}
         className="px-5"
       />
       <FlatList

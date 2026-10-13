@@ -22,6 +22,14 @@ router.post("/promo-codes", admin.createPromo);
 router.patch("/promo-codes/:promoId", admin.updatePromo);
 router.post("/promo-codes/:promoId/status", admin.setPromoStatus);
 router.get("/promo-codes/:promoId/stats", admin.promoStats);
+router.get("/collections", admin.listCollections);
+router.post("/collections", admin.createCollection);
+router.put("/collections/order", admin.reorderCollections);
+router.post("/collections/preview", admin.previewCollection);
+router.get("/collections/pins", admin.searchCollectionPins);
+router.get("/collections/:collectionId", admin.getCollection);
+router.put("/collections/:collectionId", admin.updateCollection);
+router.post("/collections/:collectionId/status", admin.setCollectionStatus);
 router.get("/audit", admin.listAudit);
 
 export default router;

@@ -54,3 +54,39 @@ export async function issueOrderVoucher({ id, ...input }) {
   const res = await axiosInstance.post(`/admin/orders/${id}/voucher`, input);
   return res.data.data;
 }
+
+export async function getAdminCollections(params) {
+  const res = await axiosInstance.get("/admin/collections", { params });
+  return res.data.data;
+}
+
+export async function createAdminCollection(input) {
+  const res = await axiosInstance.post("/admin/collections", input);
+  return res.data.data;
+}
+
+export async function updateAdminCollection({ id, ...input }) {
+  const res = await axiosInstance.put(`/admin/collections/${id}`, input);
+  return res.data.data;
+}
+
+export async function setAdminCollectionStatus({ id, action }) {
+  const res = await axiosInstance.post(`/admin/collections/${id}/status`, { action });
+  return res.data.data;
+}
+
+export async function reorderAdminCollections(ids) {
+  const res = await axiosInstance.put("/admin/collections/order", { ids });
+  return res.data.data;
+}
+
+export async function previewAdminCollection({ lat, lon, input }) {
+  const res = await axiosInstance.post("/admin/collections/preview", input, { params: { lat, lon } });
+  return res.data.data;
+}
+
+export async function searchCollectionPins({ kind, q, ids }) {
+  const params = ids ? { kind, ids: ids.join(",") } : { kind, q };
+  const res = await axiosInstance.get("/admin/collections/pins", { params });
+  return res.data.data;
+}
