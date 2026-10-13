@@ -1,13 +1,19 @@
 import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import { Avatar } from "@/components/common/SmartImage";
 
 export const RecentRatingsSection = ({ ratings }) => {
-  const { t } = useTranslation(["seller", "common"]);
+  const { t } = useTranslation(["seller", "restaurant", "common"]);
   return (
     <div className="bg-card p-6 rounded-3xl border border-border ">
-      <h3 className="text-lg font-bold mb-6 ">{t("analytics.recentRatings")}</h3>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h3 className="text-lg font-bold">{t("analytics.recentRatings")}</h3>
+        <Link to="/seller/reviews" className="text-sm font-medium text-primary hover:underline">
+          {t("restaurant:reviews.seeAll")}
+        </Link>
+      </div>
 
       <div className="space-y-4">
         {ratings.length === 0 && (

@@ -35,6 +35,7 @@ import {
 import { MenuNavigation } from "@/features/restaurant/MenuNavigation";
 import { MenuItemRow, MenuItemRowSkeleton } from "@/features/restaurant/MenuItemRow";
 import { RestaurantInfoSheet } from "@/features/restaurant/RestaurantInfoSheet";
+import { RestaurantReviewsSheet } from "@/features/restaurant/RestaurantReviewsSheet";
 
 /** Sticky header (64px) plus the sticky menu nav (~53px), with breathing room. */
 const SCROLL_OFFSET = 132;
@@ -69,6 +70,7 @@ export default function RestaurantPage() {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedDish, setSelectedDish] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   const sectionRefs = useRef({});
   // Suppresses the scroll observer while a tab click is smooth-scrolling, so
@@ -176,6 +178,7 @@ export default function RestaurantPage() {
           onToggleFavourite={() => toggleFavourite(restaurant.id)}
           isTogglingFavourite={isPending}
           onShowInfo={() => setShowInfo(true)}
+          onShowReviews={() => setShowReviews(true)}
           isPreorder={isPreorder}
         />
 
@@ -279,6 +282,12 @@ export default function RestaurantPage() {
       <RestaurantInfoSheet
         open={showInfo}
         onClose={() => setShowInfo(false)}
+        restaurant={restaurant}
+      />
+
+      <RestaurantReviewsSheet
+        open={showReviews}
+        onClose={() => setShowReviews(false)}
         restaurant={restaurant}
       />
     </>

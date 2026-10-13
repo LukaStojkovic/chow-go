@@ -195,6 +195,11 @@ export default {
     customerOnly: "Invite codes are for customer accounts.",
   },
 
+  review: {
+    notFound: "That review was not found",
+    replyLength: "A reply must be between 1 and {{max}} characters",
+  },
+
   restaurant: {
     notFound: "That restaurant was not found",
     invalidEmail: "That email address is not valid",
@@ -279,6 +284,8 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    REVIEW_NOT_FOUND: "That review was not found",
+    REVIEW_REPLY_INVALID: "A reply must be between 1 and 500 characters",
     REFERRAL_INVALID_CODE: "That invite code does not exist",
     REFERRAL_OWN_CODE: "You cannot use your own invite code",
     REFERRAL_ALREADY_APPLIED: "You have already used an invite code",

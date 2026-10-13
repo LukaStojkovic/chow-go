@@ -14,6 +14,7 @@ import { DockedBar } from "@/components/ui/FloatingBar";
 import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { ReviewTagPicker, keepOfferedTags } from "@/features/reviews/ReviewTagPicker";
 import { useOrder } from "@/hooks/Orders/useOrders";
 import { rateOrder } from "@/services/apiOrder";
 import { toast } from "@/store/useToastStore";
@@ -68,6 +69,18 @@ export default function RateOrder() {
   const [restaurantReview, setRestaurantReview] = useState("");
   const [courierRating, setCourierRating] = useState(0);
   const [courierReview, setCourierReview] = useState("");
+  const [restaurantTags, setRestaurantTags] = useState([]);
+  const [courierTags, setCourierTags] = useState([]);
+
+  function rateRestaurant(score) {
+    setRestaurantRating(score);
+    setRestaurantTags((tags) => keepOfferedTags("restaurant", score, tags));
+  }
+
+  function rateCourier(score) {
+    setCourierRating(score);
+    setCourierTags((tags) => keepOfferedTags("courier", score, tags));
+  }
 
   const order = data ? toOrderView(data) : null;
 
@@ -76,9 +89,10 @@ export default function RateOrder() {
       rateOrder(orderId, {
         restaurantRating,
         restaurantReview: restaurantReview.trim() || undefined,
+        restaurantTags,
         // Only sent when a courier actually delivered it.
         ...(order?.courier && courierRating
-          ? { courierRating, courierReview: courierReview.trim() || undefined }
+          ? { courierRating, courierReview: courierReview.trim() || undefined, courierTags }
           : {}),
       }),
     onSuccess: () => {
@@ -110,7 +124,14 @@ export default function RateOrder() {
             </View>
           </View>
 
-          <Stars value={restaurantRating} onChange={setRestaurantRating} />
+          <Stars value={restaurantRating} onChange={rateRestaurant} />
+
+          <ReviewTagPicker
+            kind="restaurant"
+            rating={restaurantRating}
+            value={restaurantTags}
+            onChange={setRestaurantTags}
+          />
 
           <Input
             value={restaurantReview}
@@ -132,7 +153,14 @@ export default function RateOrder() {
               </View>
             </View>
 
-            <Stars value={courierRating} onChange={setCourierRating} />
+            <Stars value={courierRating} onChange={rateCourier} />
+
+            <ReviewTagPicker
+              kind="courier"
+              rating={courierRating}
+              value={courierTags}
+              onChange={setCourierTags}
+            />
 
             <Input
               value={courierReview}

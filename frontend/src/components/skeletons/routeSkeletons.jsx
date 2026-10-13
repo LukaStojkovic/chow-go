@@ -27,6 +27,7 @@ const ROUTE_SKELETONS = [
   ["/seller/menu", SellerMenuSkeleton],
   ["/seller/analytics", SellerAnalyticsSkeleton],
   ["/seller/promotions", SellerMenuSkeleton],
+  ["/seller/reviews", SellerMenuSkeleton],
   ["/seller/settings", SellerSettingsSkeleton],
   ["/courier/dashboard", CourierDashboardSkeleton],
   ["/courier/orders", CourierOrdersSkeleton],

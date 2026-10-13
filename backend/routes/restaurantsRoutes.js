@@ -1,3 +1,4 @@
+import { listRestaurantReviews } from "../controllers/reviewController.js";
 import { Router } from "express";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import {
@@ -26,6 +27,7 @@ const uploadRestaurantImage = createUpload("restaurants");
 // moment they opened a restaurant. Everything below `router.use` stays gated.
 router.get("/:restaurantId", getRestaurantInformations);
 router.get("/:restaurantId/menu", getRestaurantMenuByCategories);
+router.get("/:restaurantId/reviews", listRestaurantReviews);
 
 router.use(protectedRoute);
 

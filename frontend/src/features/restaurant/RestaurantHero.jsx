@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * @param {() => void} props.onToggleFavourite
  * @param {boolean} props.isTogglingFavourite
  * @param {() => void} props.onShowInfo
+ * @param {() => void} [props.onShowReviews]
  */
 export function RestaurantHero({
   restaurant,
@@ -40,6 +41,7 @@ export function RestaurantHero({
   onToggleFavourite,
   isTogglingFavourite,
   onShowInfo,
+  onShowReviews,
   isPreorder = false,
 }) {
   const { t } = useTranslation(["restaurant", "common"]);
@@ -82,11 +84,27 @@ export function RestaurantHero({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <RatingDisplay
-          rating={restaurant.rating}
-          reviewCount={restaurant.reviewCount}
-          size="md"
-        />
+        {onShowReviews && restaurant.reviewCount > 0 ? (
+          <button
+            type="button"
+            onClick={onShowReviews}
+            title={t("restaurant:reviews.seeAll")}
+            className="hover:bg-muted -mx-1 rounded-sm px-1 underline-offset-4 outline-none hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <RatingDisplay
+              rating={restaurant.rating}
+              reviewCount={restaurant.reviewCount}
+              size="md"
+            />
+            <span className="sr-only">{t("restaurant:reviews.seeAll")}</span>
+          </button>
+        ) : (
+          <RatingDisplay
+            rating={restaurant.rating}
+            reviewCount={restaurant.reviewCount}
+            size="md"
+          />
+        )}
         <MetaDot />
         <DeliveryEstimate estimate={restaurant.deliveryEstimate} />
         <MetaDot />

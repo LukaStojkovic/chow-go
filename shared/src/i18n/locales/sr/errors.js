@@ -188,6 +188,11 @@ export default {
     customerOnly: "Kodovi za poziv su za naloge kupaca.",
   },
 
+  review: {
+    notFound: "Ta recenzija nije pronađena",
+    replyLength: "Odgovor mora imati između 1 i {{max}} znakova",
+  },
+
   restaurant: {
     notFound: "Taj restoran nije pronađen",
     invalidEmail: "Ta imejl adresa nije ispravna",
@@ -269,6 +274,8 @@ export default {
   },
 
   byCode: {
+    REVIEW_NOT_FOUND: "Ta recenzija nije pronađena",
+    REVIEW_REPLY_INVALID: "Odgovor mora imati između 1 i 500 znakova",
     REFERRAL_INVALID_CODE: "Taj kod za poziv ne postoji",
     REFERRAL_OWN_CODE: "Ne možete iskoristiti sopstveni kod za poziv",
     REFERRAL_ALREADY_APPLIED: "Već ste iskoristili kod za poziv",

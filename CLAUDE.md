@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:pagination`, `check:search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -231,6 +231,17 @@ The customer menu (`getMenuByCategories`) returns the seller's non-empty section
 ## Referrals
 
 Every customer gets an 8-character invite code (`User.referralCode`, created on first `GET /api/referrals/me`; alphabet without 0/O/1/I). A new customer applies a friend's code with `POST /api/referrals/apply` before their first placed order (cancelled and rejected ones don't count) and immediately gets a first-order personal voucher; when that friend's first order is **delivered**, `courierOrder.service.js#markDeliveredOperation` calls `referral.service.js#rewardReferrerSafely` (fire-and-forget) and the referrer gets one. Amounts and validity live in `@chowgo/shared/referral` (RSD: 300 each, friend's minimum 1000; EUR/USD 3/3/10; 30 and 60 days). One `Referral` row per invited customer (`referred` unique), moved `pending → rewarded` by a conditional update so a reward is paid once; past 20 rewards in 30 days it becomes `capped` instead. Vouchers come from `promoCode.service.js#createPersonalVoucher` (shared with support's `issueVoucher`) with `sourceReferral` set. Refusals: `REFERRAL_INVALID_CODE` / `_OWN_CODE` / `_ALREADY_APPLIED` (409) / `_NOT_NEW` / `_CUSTOMER_ONLY` (403); apply shares `promoLimiter`. The share link is the web's `/invite/<code>` (`referralLink`). `check:referral` covers it. Loyalty or a subscription is not built.
+
+## Reviews
+
+A rating lives on the order (`Order.customerRating`), and that is also the review. Along with the stars, a customer can pick quick tags (`restaurantTags`/`courierTags`). `@chowgo/shared/reviews` defines them, and `normalizeReviewTags` drops any tag that does not fit the stars: 4–5 keeps only positive tags, 1–3 only negative ones. It also removes duplicates and caps the list at 5. The tags are written in the same conditional claim as the stars. `services/review.service.js` owns the rest:
+
+- `GET /api/restaurants/:restaurantId/reviews` is public. It returns reviews newest first and filters by `rating`/`withText`. Page 1 also carries `summary`: the average and count from the restaurant, a star `distribution`, and the 5 `topTags`. Authors appear as "Marko P." (`reviewerDisplayName`).
+- `GET /api/restaurant/reviews` is the seller's list. It adds `orderNumber` and an `unreplied` filter.
+- `PUT`/`DELETE /api/restaurant/reviews/:orderId/reply` writes the restaurant's public answer (`customerRating.restaurantReply`, 1–500 characters). The first reply stamps `repliedAt` and sends the customer a push. An edit keeps `repliedAt` and stamps `editedAt`.
+- Refusals are `REVIEW_REPLY_INVALID` (400) and `REVIEW_NOT_FOUND` (404). A review of another restaurant, or an order with no rating, is a `REVIEW_NOT_FOUND` too.
+- Copy lives under `restaurant:reviews.*`, and tag labels under `restaurant:reviews.tags.<tag>`.
+- `check:reviews` covers it.
 
 ## Promo codes and vouchers
 

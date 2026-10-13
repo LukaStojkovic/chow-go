@@ -494,15 +494,17 @@ export async function cancelOrder(req, res, next) {
 export async function rateOrder(req, res, next) {
   try {
     const { orderId } = req.params;
-    const { restaurantRating, restaurantReview, courierRating, courierReview } = req.body;
+    const { restaurantRating, restaurantReview, restaurantTags, courierRating, courierReview, courierTags } = req.body;
 
     const order = await rateOrderOperation({
       orderId,
       customerUserId: req.user._id,
       restaurantRating,
       restaurantReview,
+      restaurantTags,
       courierRating,
       courierReview,
+      courierTags,
     });
 
     res.status(200).json({

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Check, ImagePlus, Loader, LogOut, MapPin, Store, TicketPercent } from "lucide-react-native";
+import { Check, ImagePlus, Loader, LogOut, MapPin, MessageSquareText, Store, TicketPercent } from "lucide-react-native";
 import { normalizeSchedule } from "@chowgo/shared/schedule";
 import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
@@ -18,7 +18,7 @@ import { DownloadMyData } from "@/features/settings/DownloadMyData";
 
 import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
-import { SectionHeader } from "@/components/ui/Section";
+import { Divider, SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { ScheduleEditor } from "@/features/seller/ScheduleEditor";
 import { useOwnRestaurant, useUpdateRestaurant } from "@/hooks/Restaurants/useOwnRestaurant";
@@ -287,6 +287,13 @@ export default function SellerSettings() {
               title={t("promo:manage.title")}
               subtitle={t("promo:manage.emptyDescription")}
               onPress={() => router.push("/(seller)/promo-codes")}
+            />
+            <Divider />
+            <ListRow
+              icon={MessageSquareText}
+              title={t("restaurant:reviews.title")}
+              subtitle={t("restaurant:reviews.replyHint")}
+              onPress={() => router.push("/(seller)/reviews")}
             />
           </View>
         </Card>

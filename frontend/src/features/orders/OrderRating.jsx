@@ -21,6 +21,9 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/common/SmartImage";
+import { TagChip } from "@/components/reviews/ReviewParts";
+import { useTagLabel } from "@/hooks/Reviews/useTagLabel";
+import { REVIEW_LIMITS, tagsForRating } from "@chowgo/shared/reviews";
 
 /**
  * @param {Object} props
@@ -82,6 +85,58 @@ function StarRating({ name, value, onChange, label, readOnly = false }) {
   );
 }
 
+function TagPicker({ kind, rating, value, onChange, readOnly = false }) {
+  const { t } = useTranslation("restaurant");
+  const tagLabel = useTagLabel();
+
+  if (readOnly) {
+    if (!value?.length) return null;
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {value.map((tag) => (
+          <TagChip key={tag}>{tagLabel(tag)}</TagChip>
+        ))}
+      </div>
+    );
+  }
+
+  const offered = tagsForRating(kind, rating);
+  if (offered.length === 0) return null;
+  const isFull = value.length >= REVIEW_LIMITS.maxTags;
+  const promptId = `${kind}-tags-prompt`;
+
+  const toggle = (tag) =>
+    onChange(value.includes(tag) ? value.filter((v) => v !== tag) : [...value, tag]);
+
+  return (
+    <div className="space-y-2" role="group" aria-labelledby={promptId}>
+      <p id={promptId} className="text-body-sm text-muted-foreground">
+        {t("restaurant:reviews.tagsPrompt")}
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {offered.map((tag) => {
+          const isActive = value.includes(tag);
+          return (
+            <TagChip
+              key={tag}
+              isActive={isActive}
+              disabled={!isActive && isFull}
+              onClick={() => toggle(tag)}
+            >
+              {tagLabel(tag)}
+            </TagChip>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function keepOffered(kind, rating, tags) {
+  const offered = tagsForRating(kind, rating);
+  return tags.filter((tag) => offered.includes(tag));
+}
+
 /**
  * @param {Object} props
  * @param {import("@chowgo/shared/adapters/types").OrderView} props.order
@@ -97,6 +152,17 @@ export function OrderRating({ order }) {
   const [courierRating, setCourierRating] = useState(existing?.courierRating ?? 0);
   const [restaurantReview, setRestaurantReview] = useState(existing?.restaurantReview ?? "");
   const [courierReview, setCourierReview] = useState(existing?.courierReview ?? "");
+  const [restaurantTags, setRestaurantTags] = useState([]);
+  const [courierTags, setCourierTags] = useState([]);
+
+  const changeRestaurantRating = (stars) => {
+    setRestaurantRating(stars);
+    setRestaurantTags((tags) => keepOffered("restaurant", stars, tags));
+  };
+  const changeCourierRating = (stars) => {
+    setCourierRating(stars);
+    setCourierTags((tags) => keepOffered("courier", stars, tags));
+  };
 
   const canSubmit = restaurantRating > 0 || courierRating > 0;
 
@@ -107,8 +173,8 @@ export function OrderRating({ order }) {
     rateOrder({
       // Omit a rating that was never given rather than sending 0, which the
       // schema rejects (min: 1).
-      ...(restaurantRating > 0 && { restaurantRating }),
-      ...(courierRating > 0 && { courierRating }),
+      ...(restaurantRating > 0 && { restaurantRating, restaurantTags }),
+      ...(courierRating > 0 && { courierRating, courierTags }),
       ...(restaurantReview.trim() && { restaurantReview: restaurantReview.trim() }),
       ...(courierReview.trim() && { courierReview: courierReview.trim() }),
     });
@@ -139,13 +205,21 @@ export function OrderRating({ order }) {
             <StarRating
               name="restaurant-rating"
               value={restaurantRating}
-              onChange={setRestaurantRating}
+              onChange={changeRestaurantRating}
               readOnly={hasRated}
               label={t("order:rating.rateName", {
                 name: order.restaurant?.name || t("common:fallback.restaurant"),
               })}
             />
           </div>
+
+          <TagPicker
+            kind="restaurant"
+            rating={restaurantRating}
+            value={hasRated ? (existing?.restaurantTags ?? []) : restaurantTags}
+            onChange={setRestaurantTags}
+            readOnly={hasRated}
+          />
 
           {!hasRated && restaurantRating > 0 && (
             <>
@@ -180,11 +254,19 @@ export function OrderRating({ order }) {
               <StarRating
                 name="courier-rating"
                 value={courierRating}
-                onChange={setCourierRating}
+                onChange={changeCourierRating}
                 readOnly={hasRated}
                 label={`Rate ${order.courier.name}`}
               />
             </div>
+
+            <TagPicker
+              kind="courier"
+              rating={courierRating}
+              value={hasRated ? (existing?.courierTags ?? []) : courierTags}
+              onChange={setCourierTags}
+              readOnly={hasRated}
+            />
 
             {!hasRated && courierRating > 0 && (
               <>

@@ -1,12 +1,13 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { SectionList, View } from "react-native";
+import { Pressable, SectionList, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ArrowLeft, Heart, Info, UtensilsCrossed } from "lucide-react-native";
+import { ArrowLeft, ChevronRight, Heart, Info, Star, UtensilsCrossed } from "lucide-react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { menuGroupId, menuGroupLabel, toDishViews } from "@chowgo/shared/adapters/menu";
 import { toRestaurantView, unavailableReason } from "@chowgo/shared/adapters/restaurant";
+import { formatRating } from "@chowgo/shared/format";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { IconButton } from "@/components/ui/Button";
@@ -108,6 +109,30 @@ export default function RestaurantPage() {
                     {closedReason}
                   </Text>
                 </Inset>
+              ) : null}
+
+              {restaurant?.reviewCount ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t("restaurant:reviews.seeAll")}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(customer)/restaurant/reviews/[restaurantId]",
+                      params: { restaurantId },
+                    })
+                  }
+                  className="mx-5 mt-3 flex-row items-center gap-2 rounded-lg bg-card px-4 py-3 active:opacity-60"
+                >
+                  <Star size={16} color={color.rating} fill={color.rating} />
+                  <Text variant="label">{formatRating(restaurant.rating) ?? "-"}</Text>
+                  <Text variant="caption" tone="muted" className="flex-1" numberOfLines={1}>
+                    {t("restaurant:reviews.basedOn", { count: restaurant.reviewCount })}
+                  </Text>
+                  <Text variant="label-sm" tone="primary">
+                    {t("restaurant:reviews.seeAll")}
+                  </Text>
+                  <ChevronRight size={16} color={color.primary} />
+                </Pressable>
               ) : null}
 
               {sections.length > 0 ? (

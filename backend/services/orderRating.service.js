@@ -2,6 +2,7 @@ import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
 import Courier from "../models/Courier.js";
 import { AppError } from "../utils/AppError.js";
+import { REVIEW_LIMITS, normalizeReviewTags } from "@chowgo/shared/reviews";
 
 
 /**
@@ -43,9 +44,12 @@ async function applyRating(Model, id, rating, countField) {
 
 // The claim and the "already rated" guard are one write, so two submissions
 // landing together cannot both pass a read and both count in the average.
-async function claimRating(order, customerUserId, field, value, reviewField, review, extraFilter = {}) {
+async function claimRating(order, customerUserId, field, value, reviewField, review, extraFilter = {}, tags = {}) {
   const set = { [`customerRating.${field}`]: value, "customerRating.ratedAt": new Date() };
   if (review) set[`customerRating.${reviewField}`] = review;
+  for (const [tagField, list] of Object.entries(tags)) {
+    if (list.length > 0) set[`customerRating.${tagField}`] = list;
+  }
   const result = await Order.updateOne(
     {
       _id: order._id,
@@ -64,8 +68,10 @@ export async function rateOrderOperation({
   customerUserId,
   restaurantRating,
   restaurantReview,
+  restaurantTags,
   courierRating,
   courierReview,
+  courierTags,
 }) {
   const order = await Order.findOne({
     _id: orderId,
@@ -84,13 +90,14 @@ export async function rateOrderOperation({
       throw new AppError("Restaurant rating must be an integer between 1 and 5", 400);
     }
     const rReview = typeof restaurantReview === "string" ? restaurantReview.trim() : "";
-    if (rReview.length > 500) throw new AppError("Review must be 500 chars or less", 400);
+    if (rReview.length > REVIEW_LIMITS.textLength) throw new AppError("Review must be 500 chars or less", 400);
     
     if (order.customerRating?.restaurantRating) {
       throw new AppError("You have already reviewed this restaurant", 400);
     }
     updates.restaurantRating = rRating;
     updates.restaurantReview = rReview || undefined;
+    updates.restaurantTags = normalizeReviewTags("restaurant", rRating, restaurantTags);
   }
 
   if (courierRating) {
@@ -99,13 +106,14 @@ export async function rateOrderOperation({
       throw new AppError("Courier rating must be an integer between 1 and 5", 400);
     }
     const cReview = typeof courierReview === "string" ? courierReview.trim() : "";
-    if (cReview.length > 500) throw new AppError("Review must be 500 chars or less", 400);
+    if (cReview.length > REVIEW_LIMITS.textLength) throw new AppError("Review must be 500 chars or less", 400);
     
     if (order.customerRating?.courierRating) {
       throw new AppError("You have already reviewed this courier", 400);
     }
     updates.courierRating = cRating;
     updates.courierReview = cReview || undefined;
+    updates.courierTags = normalizeReviewTags("courier", cRating, courierTags);
   }
 
   if (Object.keys(updates).length === 0) {
@@ -117,7 +125,7 @@ export async function rateOrderOperation({
   if (updates.restaurantRating) {
     const claimed = await claimRating(
       order, customerUserId, "restaurantRating", updates.restaurantRating,
-      "restaurantReview", updates.restaurantReview,
+      "restaurantReview", updates.restaurantReview, {}, { restaurantTags: updates.restaurantTags },
     );
     if (!claimed) throw new AppError("You have already reviewed this restaurant", 400);
     await applyRating(Restaurant, order.restaurant, updates.restaurantRating, "totalReviews");
@@ -126,7 +134,7 @@ export async function rateOrderOperation({
   if (updates.courierRating && order.courier) {
     const claimed = await claimRating(
       order, customerUserId, "courierRating", updates.courierRating,
-      "courierReview", updates.courierReview, { courier: order.courier },
+      "courierReview", updates.courierReview, { courier: order.courier }, { courierTags: updates.courierTags },
     );
     if (!claimed) throw new AppError("You have already reviewed this courier", 400);
     await applyRating(Courier, order.courier, updates.courierRating, "totalRatings");

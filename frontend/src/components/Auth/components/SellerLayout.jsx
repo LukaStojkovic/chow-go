@@ -9,6 +9,7 @@ import {
   UtensilsCrossed,
   BarChart3,
   TicketPercent,
+  MessageSquareText,
   Settings,
   LogOut,
   Menu,
@@ -22,7 +23,7 @@ import { SidebarLink } from "@/components/ui/SidebarLink";
 import UserMenu from "@/components/Navbar/UserMenu";
 
 export default function SellerLayout() {
-  const { t } = useTranslation(["seller", "common"]);
+  const { t } = useTranslation(["seller", "restaurant", "common"]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { logout, authUser } = useAuthStore();
   const location = useLocation();
@@ -33,6 +34,7 @@ export default function SellerLayout() {
     { to: "/seller/menu", icon: UtensilsCrossed, label: t("seller:nav.menu") },
     { to: "/seller/analytics", icon: BarChart3, label: t("seller:nav.analytics") },
     { to: "/seller/promotions", icon: TicketPercent, label: t("seller:nav.promotions") },
+    { to: "/seller/reviews", icon: MessageSquareText, label: t("restaurant:reviews.title") },
     { to: "/seller/settings", icon: Settings, label: t("seller:nav.settings") },
   ];
 
