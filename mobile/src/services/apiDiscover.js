@@ -1,3 +1,5 @@
+import { SEARCH_LIMITS } from "@chowgo/shared/search";
+import { toSearchParams } from "@chowgo/shared/searchFilters";
 import { api } from "@/api/client";
 
 export async function getDiscoverFeed({ lat, lon, category, page = 1, limit = 12 }) {
@@ -17,7 +19,23 @@ export async function getPromotions({ lat, lon }) {
   return { deals: data.deals, newRestaurants: data.newRestaurants };
 }
 
-export async function searchDiscover({ lat, lon, query }) {
-  const { data } = await api.get("/discover/search", { params: { lat, lon, query } });
-  return { restaurants: data.restaurants, items: data.items };
+export async function searchDiscover({ lat, lon, q, filters, page = 1, limit = SEARCH_LIMITS.pageSize }) {
+  const { data } = await api.get("/discover/search", {
+    params: { lat, lon, q, ...toSearchParams(filters), page, limit },
+  });
+  return {
+    restaurants: data.restaurants ?? [],
+    items: data.items ?? [],
+    pagination: data.pagination ?? { page, limit, total: 0, hasNext: false },
+  };
+}
+
+export async function suggestSearch({ lat, lon, q }) {
+  const { data } = await api.get("/discover/search/suggest", { params: { lat, lon, q } });
+  return data.suggestions ?? [];
+}
+
+export async function getTrendingSearches({ lat, lon }) {
+  const { data } = await api.get("/discover/search/trending", { params: { lat, lon } });
+  return { trending: data.trending ?? [], cuisines: data.cuisines ?? [] };
 }

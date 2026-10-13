@@ -4,9 +4,9 @@
  * Kept out of the component file so `SearchFilters.jsx` exports only a
  * component - which is what keeps fast refresh working for it.
  *
- * The search endpoint returns an unfiltered set of nearby matches (capped at
- * five restaurants server-side), so refining happens here rather than in
- * another round trip. That keeps typing responsive at this data volume.
+ * The search endpoint filters, sorts and pages on the server; `toSearchParams`
+ * turns this state into its query string. `applyRestaurantFilters` is the same
+ * rule for a list already in hand.
  */
 
 /**
@@ -44,7 +44,7 @@ export function countActiveFilters(filters) {
  * @param {string} estimate
  * @returns {number} Minutes, or Infinity when nothing parses.
  */
-function upperBoundMinutes(estimate) {
+export function upperBoundMinutes(estimate) {
   const numbers = String(estimate || "").match(/\d+/g);
   return numbers?.length ? Number(numbers[numbers.length - 1]) : Infinity;
 }
@@ -91,4 +91,25 @@ export function applyRestaurantFilters(restaurants, filters) {
   }
 
   return sorted;
+}
+
+export const SEARCH_SORTS = ["relevance", "rating", "delivery_time", "distance"];
+
+/** The filter state as /discover/search query params, leaving defaults out. */
+export function toSearchParams(filters = DEFAULT_SEARCH_FILTERS) {
+  const params = {};
+  if (filters.openNow) params.openNow = "true";
+  if (filters.maxDeliveryTime && filters.maxDeliveryTime !== "any") params.maxDeliveryTime = String(filters.maxDeliveryTime);
+  if (filters.sort && filters.sort !== "relevance") params.sort = filters.sort;
+  return params;
+}
+
+/** Reads query params back into filter state, ignoring anything unknown. */
+export function parseSearchFilters(query = {}) {
+  const minutes = Number(query.maxDeliveryTime);
+  return {
+    openNow: query.openNow === true || query.openNow === "true",
+    maxDeliveryTime: Number.isInteger(minutes) && minutes > 0 && minutes <= 180 ? String(minutes) : "any",
+    sort: SEARCH_SORTS.includes(query.sort) ? query.sort : "relevance",
+  };
 }

@@ -78,10 +78,17 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
         ) : null}
 
         {closed ? (
-          <View className="absolute inset-0 items-center justify-center bg-black/50">
+          <View
+            className={cn(
+              "absolute inset-0 items-center justify-center",
+              restaurant.availability === "unavailable" ? "bg-black/50" : "bg-black/35",
+            )}
+          >
             <View className="rounded-full bg-card px-3.5 py-1.5">
               <Text variant="label-sm">
-                {restaurant.availability === "unavailable" ? "Unavailable" : "Closed"}
+                {restaurant.availability === "unavailable"
+                  ? t("restaurant:availability.unavailable")
+                  : t("restaurant:availability.closedNow")}
               </Text>
             </View>
           </View>

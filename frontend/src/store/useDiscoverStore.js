@@ -5,7 +5,7 @@ import { toDishViews } from "@chowgo/shared/adapters/menu";
 import { toRestaurantViews } from "@chowgo/shared/adapters/restaurant";
 
 /**
- * Discovery feed, popular items and search.
+ * Discovery feed, popular items and promotions. Search lives in React Query (`hooks/Search`).
  *
  * This store bypasses React Query deliberately - it owns cursor-style
  * pagination that appends rather than replaces, which does not map cleanly
@@ -23,19 +23,15 @@ export const useDiscoverStore = create((set, get) => ({
   deals: [],
   /** Restaurants that joined within the backend's "new in town" window. */
   newRestaurants: [],
-  searchRestaurants: [],
-  searchDishes: [],
   activeCategory: "All",
   page: 1,
   hasMore: true,
   isLoadingFeed: false,
   isLoadingPopular: false,
   isLoadingPromotions: false,
-  isSearching: false,
   feedError: null,
   popularError: null,
   promotionsError: null,
-  searchError: null,
 
   setActiveCategory: (category) => {
     set({
@@ -126,31 +122,5 @@ export const useDiscoverStore = create((set, get) => ({
   retryPromotions: async (lat, lon) => {
     set({ promotionsError: null });
     await get().fetchPromotions(lat, lon);
-  },
-
-  search: async (lat, lon, query) => {
-    if (!query) {
-      set({ searchRestaurants: [], searchDishes: [], searchError: null });
-      return;
-    }
-
-    set({ isSearching: true, searchError: null });
-    try {
-      const res = await axiosInstance.get("/discover/search", {
-        params: { lat, lon, query },
-      });
-      set({
-        searchRestaurants: toRestaurantViews(res.data.restaurants),
-        searchDishes: toDishViews(res.data.items),
-        isSearching: false,
-      });
-    } catch (error) {
-      console.error("Error searching:", error);
-      set({ isSearching: false, searchError: "search" });
-    }
-  },
-
-  clearSearch: () => {
-    set({ searchRestaurants: [], searchDishes: [], searchError: null });
   },
 }));

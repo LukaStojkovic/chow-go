@@ -16,7 +16,7 @@ import { cloudinaryUrl } from "@chowgo/shared/image";
  * Like the restaurant card, no surface: photograph, name, price. Three lines of
  * information is the whole card, and every one of them truncates.
  */
-export function DishCard({ dish, onPress, onAdd, className }) {
+export function DishCard({ dish, onPress, onAdd, closed = false, className }) {
   const { t } = useTranslation(["restaurant", "common"]);
   const { color } = useTokens();
   const motion = useMotion();
@@ -45,6 +45,14 @@ export function DishCard({ dish, onPress, onAdd, className }) {
           <View className="absolute left-2.5 top-2.5 rounded-xs bg-tertiary px-2 py-1">
             <Text variant="label-sm" className="text-tertiary-foreground" numberOfLines={1}>
               -{dish.discountPercent}%
+            </Text>
+          </View>
+        ) : null}
+
+        {closed ? (
+          <View className="absolute bottom-2.5 left-2.5 rounded-full bg-card px-2.5 py-1">
+            <Text variant="label-sm" numberOfLines={1}>
+              {t("restaurant:availability.closedNow")}
             </Text>
           </View>
         ) : null}

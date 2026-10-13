@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { parsePagination } from "../utils/pagination.js";
 import { escapeRegex } from "../utils/regex.js";
 import { createSharedCache } from "../utils/sharedCache.js";
+import * as searchService from "../services/search.service.js";
 
 const POPULAR_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const popularCache = createSharedCache({ name: "popular", ttlMs: 5 * 60 * 1000, maxEntries: 500 });
@@ -155,51 +156,16 @@ export async function getPopularItems(req, res, next) {
   }
 }
 
-export async function searchDiscover(req, res, next) {
-  try {
-    const { lat, lon, query } = req.query;
-    if (!lat || !lon) {
-      return res.status(400).json({ message: "Location required" });
-    }
-    const term = String(query ?? "")
-      .trim()
-      .slice(0, 80);
-    if (!term) return res.status(200).json({ restaurants: [], items: [] });
+export async function searchDiscover(req, res) {
+  res.status(200).json(await searchService.searchNearby(req.query));
+}
 
-    const restaurantIds = await getNearbyRestaurantIds(lat, lon);
-    if (!restaurantIds.length) {
-      return res.status(200).json({ restaurants: [], items: [] });
-    }
+export async function suggestSearch(req, res) {
+  res.status(200).json(await searchService.suggest(req.query));
+}
 
-    const regex = new RegExp(escapeRegex(term), "i");
-
-    const matchedRestaurants = await Restaurant.find({
-      _id: { $in: restaurantIds },
-      $or: [{ name: regex }, { cuisineType: regex }, { description: regex }],
-      isActive: true,
-    })
-      .select("name profilePicture averageRating estimatedDeliveryTime cuisineType")
-      .limit(5)
-      .lean();
-
-    const matchedItems = await MenuItem.find({
-      restaurant: { $in: restaurantIds },
-      $or: [{ name: regex }, { description: regex }, { category: regex }],
-      available: true,
-    })
-      .populate({ path: "restaurant", select: "name" })
-      .limit(10)
-      .lean();
-
-    const now = new Date();
-
-    res.status(200).json({
-      restaurants: matchedRestaurants,
-      items: matchedItems.map((item) => withPromotion(item, now)),
-    });
-  } catch (error) {
-    next(error);
-  }
+export async function trendingSearches(req, res) {
+  res.status(200).json(await searchService.trending(req.query));
 }
 
 /**

@@ -25,6 +25,7 @@
     "./scheduling": "./src/scheduling.js",
     "./referral": "./src/referral.js",
     "./reviews": "./src/reviews.js",
+    "./search": "./src/search.js",
     "./searchFilters": "./src/searchFilters.js",
     "./strings": "./src/strings.js",
     "./validation": "./src/validation.js",

@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -231,6 +231,17 @@ The customer menu (`getMenuByCategories`) returns the seller's non-empty section
 ## Referrals
 
 Every customer gets an 8-character invite code (`User.referralCode`, created on first `GET /api/referrals/me`; alphabet without 0/O/1/I). A new customer applies a friend's code with `POST /api/referrals/apply` before their first placed order (cancelled and rejected ones don't count) and immediately gets a first-order personal voucher; when that friend's first order is **delivered**, `courierOrder.service.js#markDeliveredOperation` calls `referral.service.js#rewardReferrerSafely` (fire-and-forget) and the referrer gets one. Amounts and validity live in `@chowgo/shared/referral` (RSD: 300 each, friend's minimum 1000; EUR/USD 3/3/10; 30 and 60 days). One `Referral` row per invited customer (`referred` unique), moved `pending → rewarded` by a conditional update so a reward is paid once; past 20 rewards in 30 days it becomes `capped` instead. Vouchers come from `promoCode.service.js#createPersonalVoucher` (shared with support's `issueVoucher`) with `sourceReferral` set. Refusals: `REFERRAL_INVALID_CODE` / `_OWN_CODE` / `_ALREADY_APPLIED` (409) / `_NOT_NEW` / `_CUSTOMER_ONLY` (403); apply shares `promoLimiter`. The share link is the web's `/invite/<code>` (`referralLink`). `check:referral` covers it. Loyalty or a subscription is not built.
+
+## Search
+
+`services/search.service.js` handles discovery search, using `@chowgo/shared/search` for matching. That module folds accents, so "cevapi" finds "Ćevapi" and the reverse also works. `searchPattern` escapes the term into a literal before matching, and `matchRank` ranks a match at the start of the name highest, then one at the start of a word, then one anywhere else.
+
+- **Search.** `GET /api/discover/search?lat&lon&q` takes `openNow`, `maxDeliveryTime`, `sort` (`relevance|rating|delivery_time|distance`) and `page`/`limit`. It searches active restaurants within 20 km, closed ones included because they take pre-orders. A restaurant matches on its name, its cuisine (by slug or by the cuisine's label in either language) or a matching dish, and only through its description when nothing else matched. Filters, sorting and paging all run on the server, and the response echoes the applied `filters`. Dishes (up to 20, ranked the same way) come back on page 1 only.
+- **Filter params.** Clients build the query with `@chowgo/shared/searchFilters#toSearchParams`, and the server parses it with `parseSearchFilters`.
+- **Typeahead.** `GET /api/discover/search/suggest?lat&lon&q` (`suggestLimiter`, 120/min) returns up to 8 suggestions in this order: restaurants, then cuisines that someone nearby actually cooks, then dish names. Dish names are deduplicated, each with `count`, the number of places that serve it.
+- **Trending.** `GET /api/discover/search/trending?lat&lon` returns `trending`: terms searched at least 3 times in the last 7 days in roughly the same ~11 km area. It also returns the most common nearby `cuisines`.
+- **What gets counted.** A search counts toward trending only when the term exactly names a restaurant, dish, cuisine or category that the search returned, so no free text is ever stored. Counts are kept in `models/SearchTrend.js` and expire after 30 days.
+- **Testing.** `check:discover-search` covers all of the above.
 
 ## Reviews
 

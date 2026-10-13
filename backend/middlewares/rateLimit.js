@@ -139,6 +139,14 @@ export const searchLimiter = rateLimit({
   message: tooMany("Too many searches. Please wait a moment."),
 });
 
+/** Typeahead fires on every debounced keystroke, so it gets its own, looser bucket. */
+export const suggestLimiter = rateLimit({
+  ...base("suggest"),
+  windowMs: 60_000,
+  limit: 120,
+  message: tooMany("Too many searches. Please wait a moment."),
+});
+
 /**
  * Promo code lookups, keyed on the signed-in account so code guessing costs
  * the guesser, not their neighbours on the same carrier address. Only

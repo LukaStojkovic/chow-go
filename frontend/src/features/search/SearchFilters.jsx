@@ -1,12 +1,10 @@
 /**
  * Search filters and sorting.
  *
- * The search endpoint returns an unfiltered set of nearby matches, so these
- * refine client-side. That is honest for the data volume involved (the backend
- * caps restaurant results at five) and keeps typing responsive.
+ * The state is sent to the search endpoint, which filters, sorts and pages.
  *
- * Filters are visible rather than hidden behind a modal - on a result set this
- * small, a "Filters (2)" button that opens a sheet is more taps for less
+ * Filters are visible rather than hidden behind a modal - with only a couple
+ * of them, a "Filters (2)" button that opens a sheet is more taps for less
  * information.
  */
 

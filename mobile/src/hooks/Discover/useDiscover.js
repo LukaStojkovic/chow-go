@@ -1,9 +1,14 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { SEARCH_LIMITS, normalizeSearchTerm } from "@chowgo/shared/search";
+import { toSearchParams } from "@chowgo/shared/searchFilters";
 import {
   getDiscoverFeed,
   getPopularItems,
   getPromotions,
+  getTrendingSearches,
   searchDiscover,
+  suggestSearch,
 } from "@/services/apiDiscover";
 import { getNearbyRestaurants } from "@/services/apiLocation";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
@@ -47,17 +52,52 @@ export function usePromotions() {
   });
 }
 
-export function useDiscoverSearch(query) {
+export function useDiscoverSearch(query, filters) {
   const { coordinates, enabled } = useCoordinates();
-  const trimmed = query?.trim() ?? "";
+  const q = normalizeSearchTerm(query);
+  const params = toSearchParams(filters);
+
+  return useInfiniteQuery({
+    queryKey: ["discoverSearch", coordinates?.lat, coordinates?.lon, q, params],
+    enabled: enabled && q.length > 0,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => searchDiscover({ ...coordinates, q, filters, page: pageParam }),
+    getNextPageParam: (last) =>
+      last.pagination?.hasNext ? last.pagination.page + 1 : undefined,
+    staleTime: 30_000,
+  });
+}
+
+function useDebouncedValue(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
+export function useSearchSuggestions(text) {
+  const { coordinates, enabled } = useCoordinates();
+  const q = useDebouncedValue(normalizeSearchTerm(text), 180);
 
   return useQuery({
-    queryKey: ["discoverSearch", coordinates?.lat, coordinates?.lon, trimmed],
-    enabled: enabled && trimmed.length > 0,
-    queryFn: () => searchDiscover({ ...coordinates, query: trimmed }),
-    // Search is the tightest-limited endpoint on the backend; a short cache
-    // stops back-navigation re-spending the budget.
-    staleTime: 30_000,
+    queryKey: ["discoverSuggest", coordinates?.lat, coordinates?.lon, q],
+    enabled: enabled && q.length >= SEARCH_LIMITS.minLength,
+    queryFn: () => suggestSearch({ ...coordinates, q }),
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+  });
+}
+
+export function useTrendingSearches() {
+  const { coordinates, enabled } = useCoordinates();
+
+  return useQuery({
+    queryKey: ["discoverTrending", coordinates?.lat, coordinates?.lon],
+    enabled,
+    queryFn: () => getTrendingSearches(coordinates),
+    staleTime: 5 * 60_000,
   });
 }
 

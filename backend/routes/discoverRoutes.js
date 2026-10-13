@@ -4,9 +4,11 @@ import {
   getPopularItems,
   getPromotions,
   searchDiscover,
+  suggestSearch,
+  trendingSearches,
 } from "../controllers/discoverController.js";
 
-import { searchLimiter } from "../middlewares/rateLimit.js";
+import { searchLimiter, suggestLimiter } from "../middlewares/rateLimit.js";
 
 const router = Router();
 
@@ -14,5 +16,7 @@ router.get("/feed", getDiscoverFeed);
 router.get("/popular", getPopularItems);
 router.get("/promotions", getPromotions);
 router.get("/search", searchLimiter, searchDiscover);
+router.get("/search/suggest", suggestLimiter, suggestSearch);
+router.get("/search/trending", searchLimiter, trendingSearches);
 
 export default router;

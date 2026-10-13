@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
  * @param {boolean} [props.isSearching]
  * @param {boolean} [props.autoFocus]
  * @param {string} [props.label] Accessible name for the field.
+ * @param {Object} [props.inputProps] Extra input attributes; its onKeyDown runs first and can preventDefault.
+ * @param {import("react").ReactNode} [props.children] Rendered inside the form, after the field.
  */
 export const SearchBar = forwardRef(function SearchBar(
   {
@@ -32,6 +34,8 @@ export const SearchBar = forwardRef(function SearchBar(
     autoFocus = false,
     label,
     className,
+    inputProps,
+    children,
   },
   ref,
 ) {
@@ -69,8 +73,11 @@ export const SearchBar = forwardRef(function SearchBar(
         autoFocus={autoFocus}
         autoComplete="off"
         placeholder={inputPlaceholder}
+        {...inputProps}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
+          inputProps?.onKeyDown?.(event);
+          if (event.defaultPrevented) return;
           if (event.key === "Escape" && value) {
             event.preventDefault();
             onChange("");
@@ -111,6 +118,7 @@ export const SearchBar = forwardRef(function SearchBar(
           </button>
         )}
       </div>
+      {children}
     </form>
   );
 });

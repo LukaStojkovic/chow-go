@@ -5,6 +5,17 @@ export default {
   categoryRailLabel: "Filtriraj po kategoriji",
 
   search: {
+    suggestions: "Predlozi",
+    suggestionRestaurant: "Restoran",
+    suggestionCuisine: "Kuhinja",
+    suggestionDish_one: "Jelo · {{count}} mesto",
+    suggestionDish_few: "Jelo · {{count}} mesta",
+    suggestionDish_other: "Jelo · {{count}} mesta",
+    searchFor: "Traži „{{query}}”",
+    trending: "Popularno u blizini",
+    popularCuisines: "Popularne kuhinje",
+    closedNow: "Trenutno zatvoreno",
+    showMoreRestaurants: "Prikaži još restorana",
     placeholder: "Pretražite restorane ili jela",
     label: "Pretraga restorana i jela",
     clear: "Obriši pretragu",

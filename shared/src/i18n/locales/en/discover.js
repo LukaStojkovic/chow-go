@@ -5,6 +5,16 @@ export default {
   categoryRailLabel: "Filter by category",
 
   search: {
+    suggestions: "Suggestions",
+    suggestionRestaurant: "Restaurant",
+    suggestionCuisine: "Cuisine",
+    suggestionDish_one: "Dish · {{count}} place",
+    suggestionDish_other: "Dish · {{count}} places",
+    searchFor: "Search for “{{query}}”",
+    trending: "Trending near you",
+    popularCuisines: "Popular cuisines",
+    closedNow: "Closed now",
+    showMoreRestaurants: "Show more restaurants",
     placeholder: "Search restaurants or dishes",
     label: "Search restaurants and dishes",
     clear: "Clear search",

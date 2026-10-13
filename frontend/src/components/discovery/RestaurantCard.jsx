@@ -13,6 +13,7 @@
  */
 
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { UtensilsCrossed } from "lucide-react";
 
@@ -28,6 +29,7 @@ import {
   MetaDot,
   RatingDisplay,
 } from "@/components/common/Meta";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
@@ -52,6 +54,7 @@ export function RestaurantCard({
   animate = true,
   className,
 }) {
+  const { t } = useTranslation("restaurant");
   const isClosed = restaurant.availability !== "open";
   const Wrapper = animate ? motion.article : "article";
   // The lift is a spring on transform; the shadow and border ride the CSS
@@ -86,8 +89,11 @@ export function RestaurantCard({
         />
 
         {isClosed && (
-          <div className="absolute inset-x-3 bottom-3">
+          <div className="absolute inset-x-3 bottom-3 flex flex-wrap gap-1.5">
             <AvailabilityBadge availability={restaurant.availability} placement="onCard" />
+            {restaurant.availability === "closed" && (
+              <Badge variant="overlay">{t("availability.preorderShort")}</Badge>
+            )}
           </div>
         )}
 

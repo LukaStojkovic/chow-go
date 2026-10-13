@@ -95,27 +95,3 @@ describe("popular and promotions", () => {
     expect(useDiscoverStore.getState()).toMatchObject({ promotionsError: null, deals: [], newRestaurants: [] });
   });
 });
-
-describe("search", () => {
-  it("clears results for an empty query without a request", async () => {
-    useDiscoverStore.setState({ searchDishes: [{ id: "x" }], searchError: "search" });
-    await useDiscoverStore.getState().search(1, 1, "");
-    expect(get).not.toHaveBeenCalled();
-    expect(useDiscoverStore.getState()).toMatchObject({ searchDishes: [], searchError: null });
-  });
-
-  it("maps restaurants and dishes, and records failures", async () => {
-    get.mockResolvedValueOnce({ data: { restaurants: restaurants("r"), items: dishes("d", "e") } });
-    await useDiscoverStore.getState().search(1, 2, "piz");
-    expect(get).toHaveBeenCalledWith("/discover/search", { params: { lat: 1, lon: 2, query: "piz" } });
-    expect(useDiscoverStore.getState().searchRestaurants).toHaveLength(1);
-    expect(useDiscoverStore.getState().searchDishes).toHaveLength(2);
-
-    get.mockRejectedValueOnce(new Error("offline"));
-    await useDiscoverStore.getState().search(1, 2, "piz");
-    expect(useDiscoverStore.getState()).toMatchObject({ isSearching: false, searchError: "search" });
-
-    useDiscoverStore.getState().clearSearch();
-    expect(useDiscoverStore.getState()).toMatchObject({ searchRestaurants: [], searchDishes: [], searchError: null });
-  });
-});
