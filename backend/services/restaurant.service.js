@@ -94,7 +94,7 @@ export async function updateRestaurantInfo({
     }
 
     restaurant.isOpenNow =
-      restaurant.isActive && isOpenAt(restaurant.schedule, new Date(), restaurant.timezone);
+      restaurant.isActive && isOpenAt(restaurant.schedule, new Date(), restaurant.timezone, restaurant.closures);
   }
 
   if (estimatedDeliveryTime !== undefined) {

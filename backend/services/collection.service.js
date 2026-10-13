@@ -27,7 +27,7 @@ const popularCache = createSharedCache({ name: "collection-popular", ttlMs: 10 *
 const CARD_PROJECTION = {
   name: 1, profilePicture: 1, images: 1, cuisineType: 1, description: 1, address: 1, averageRating: 1,
   totalReviews: 1, estimatedDeliveryTime: 1, isOpenNow: 1, isActive: 1, createdAt: 1, currency: 1,
-  schedule: 1, timezone: 1, distance: 1,
+  schedule: 1, timezone: 1, closures: 1, distance: 1,
 };
 
 const collectionError = (code, status = 400, params = {}) =>

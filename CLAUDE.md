@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:collections`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:collections`, `check:seller-reports`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -231,6 +231,30 @@ The customer menu (`getMenuByCategories`) returns the seller's non-empty section
 ## Referrals
 
 Every customer gets an 8-character invite code (`User.referralCode`, created on first `GET /api/referrals/me`; alphabet without 0/O/1/I). A new customer applies a friend's code with `POST /api/referrals/apply` before their first placed order (cancelled and rejected ones don't count) and immediately gets a first-order personal voucher; when that friend's first order is **delivered**, `courierOrder.service.js#markDeliveredOperation` calls `referral.service.js#rewardReferrerSafely` (fire-and-forget) and the referrer gets one. Amounts and validity live in `@chowgo/shared/referral` (RSD: 300 each, friend's minimum 1000; EUR/USD 3/3/10; 30 and 60 days). One `Referral` row per invited customer (`referred` unique), moved `pending → rewarded` by a conditional update so a reward is paid once; past 20 rewards in 30 days it becomes `capped` instead. Vouchers come from `promoCode.service.js#createPersonalVoucher` (shared with support's `issueVoucher`) with `sourceReferral` set. Refusals: `REFERRAL_INVALID_CODE` / `_OWN_CODE` / `_ALREADY_APPLIED` (409) / `_NOT_NEW` / `_CUSTOMER_ONLY` (403); apply shares `promoLimiter`. The share link is the web's `/invite/<code>` (`referralLink`). `check:referral` covers it. Loyalty or a subscription is not built.
+
+## Seller reporting, payouts and closures
+
+Everything here works in the restaurant's own `timezone`.
+
+- **Dates.** `@chowgo/shared/dateKeys` does arithmetic on local `YYYY-MM-DD` keys.
+- **Report ranges.** `@chowgo/shared/reportRange` turns `from`/`to` (both inclusive) or a `preset` into a range. The default is the last 30 days, the maximum is 366 days, and a `to` in the future is clamped to today. Refusals are `REPORT_RANGE_INVALID` and `REPORT_RANGE_TOO_LONG`. The range is bucketed by day up to 62 days, by week up to 186 days, and by month beyond that.
+- **Analytics.** `GET /api/restaurants/:id/analytics` takes the range. It returns `range` and `summary` (with `previous`, the same-length period just before it) along with `series`. Peak hours, status breakdown, payment split and top items all cover the range. `kpis`, the 7-day `dailyRevenue` and `recentRatings` are kept unchanged for older clients. Range buckets are by `createdAt`.
+- **CSV export.** `GET /api/restaurant/reports/orders.csv?from&to` returns every order placed in the range.
+  - Headers are in the seller's language (`seller:reports.csv.*`); the file has a BOM, and text cells that start like a formula are neutralised (`utils/csv.js`).
+  - The cap is 20,000 rows (`REPORT_TOO_MANY_ROWS`).
+  - It never includes customer names or addresses.
+- **Payouts.** Statements are weekly, Monday to Sunday, by `deliveredAt`, and the amount is the restaurant's earnings (`RESTAURANT_EARNINGS_EXPR`). `services/sellerReports.service.js` computes them; nothing is stored until an admin records a transfer.
+  - The seller reads them at `GET /api/restaurant/payouts` (12 weeks a page). Each week is `open` (still running), `due`, `paid` or `nothing`; a `summary` gives `dueTotal`. One week's orders download from `GET /api/restaurant/payouts/:weekStart/orders.csv`.
+  - Admins use `GET /api/admin/payouts` (due weeks across restaurants over the last 12 weeks, grouped per time zone, or `?status=paid`). `POST /api/admin/payouts` takes `{restaurantId, weekStart, reference}` and snapshots the statement into `models/Payout.js`, which is unique per restaurant and week. `POST /api/admin/payouts/:id/void` takes a required reason.
+  - Refusals are `PAYOUT_WEEK_OPEN`, `PAYOUT_NOTHING_DUE`, `PAYOUT_ALREADY_PAID`, `PAYOUT_REFERENCE` and `PAYOUT_INVALID_WEEK`. Writes are audited as `targetType: "payout"`.
+  - This only records a settlement made offline (see "Known drift" 4).
+- **Holiday closures.** `Restaurant.closures` is a list of `{from, to, reason}` local dates (up to 20 entries, each at most 60 days long, starting at most 365 days ahead).
+  - `@chowgo/shared/scheduling#isOpenAt(schedule, date, tz, closures)` shuts the whole local day, and the overnight spill out of it.
+  - Because `schedulingInputs` carries the closures, pre-order slots skip them as well.
+  - Callers that work out whether the restaurant is open must pass `closures`; the cron, admin approval and settings recompute all do.
+  - Sellers manage them with `GET`/`PUT /api/restaurant/closures`. `PUT` replaces the whole list, drops past entries and recomputes `isOpenNow` at once. Refusals are `CLOSURE_*`.
+  - Customers see "Closed until …" through `toRestaurantView().closure` and `unavailableReason`. Card projections (discover, search, collections) therefore select `closures` and `timezone`.
+- **Testing.** `check:seller-reports` covers all of it.
 
 ## Search
 

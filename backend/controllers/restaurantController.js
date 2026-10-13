@@ -222,6 +222,7 @@ export async function getRestaurantAnalytics(req, res, next) {
     const analytics = await analyticsService.getRestaurantAnalytics(
       restaurantId,
       req.user._id,
+      req.query,
     );
 
     res.status(200).json({

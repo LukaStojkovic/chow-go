@@ -14,6 +14,11 @@ vi.mock("@/components/Location/LocationMapSelector", () => ({
   ),
 }));
 
+vi.mock("@/services/apiSellerReports", () => ({
+  getClosures: vi.fn().mockResolvedValue({ closures: [], today: "2026-10-13", timeZone: "Europe/Belgrade" }),
+  saveClosures: vi.fn(),
+}));
+
 describe("SellerSettings location", { timeout: 20000 }, () => {
   let apiUpdateRestaurant;
 

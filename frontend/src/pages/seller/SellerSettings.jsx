@@ -38,6 +38,7 @@ import {
 import { DeleteAccountDialog } from "@/components/Profile/DeleteAccountDialog";
 import { ConnectGoogle } from "@/components/Profile/ConnectGoogle";
 import { DownloadMyData } from "@/components/Profile/DownloadMyData";
+import { ClosuresCard } from "@/components/Seller/ClosuresCard";
 
 const LocationMapSelector = lazyNamed(
   () => import("@/components/Location/LocationMapSelector"),
@@ -525,6 +526,8 @@ export const SellerSettings = () => {
           </div>
         </CardContent>
       </Card>
+
+      <ClosuresCard />
 
       <Card>
         <CardHeader>

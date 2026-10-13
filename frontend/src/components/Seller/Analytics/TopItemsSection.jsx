@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { formatPrice } from "@chowgo/shared/format";
 
-export const TopItemsSection = ({ items }) => {
+export const TopItemsSection = ({ items, currency }) => {
   const { t } = useTranslation(["seller", "common"]);
   const maxQty = items?.[0]?.totalQuantity || 1;
 
@@ -11,6 +12,9 @@ export const TopItemsSection = ({ items }) => {
       </h3>
 
       <div className="space-y-4">
+        {items.length === 0 && (
+          <p className="text-sm text-muted-foreground">{t("analytics.noTopDishes")}</p>
+        )}
         {items.map((item, i) => (
           <div key={i} className="space-y-1">
             <div className="flex justify-between text-sm">
@@ -18,7 +22,7 @@ export const TopItemsSection = ({ items }) => {
                 {item.name}
               </span>
               <span className="text-muted-foreground ml-2 shrink-0">
-                {item.totalQuantity} sold · ${item.totalRevenue.toFixed(0)}
+                {item.totalQuantity}× · {formatPrice(item.totalRevenue, { currency })}
               </span>
             </div>
 

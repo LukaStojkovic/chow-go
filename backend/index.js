@@ -25,6 +25,7 @@ import sellerPromoRoutes from "./routes/sellerPromoRoutes.js";
 import sellerMenuLayoutRoutes from "./routes/sellerMenuLayoutRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import sellerReviewRoutes from "./routes/sellerReviewRoutes.js";
+import sellerReportRoutes from "./routes/sellerReportRoutes.js";
 import { restaurantPreviewPage } from "./services/pageMeta.service.js";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
@@ -125,7 +126,7 @@ app.use(
   cors({
     origin: corsOrigin,
     credentials: true,
-    exposedHeaders: ["X-Refreshed-Token", "X-Request-Id"],
+    exposedHeaders: ["X-Refreshed-Token", "X-Request-Id", "Content-Disposition"],
   }),
 );
 
@@ -162,6 +163,7 @@ app.use("/api/restaurant/promo-codes", sellerPromoRoutes);
 app.use("/api/restaurant/menu-layout", sellerMenuLayoutRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api/restaurant/reviews", sellerReviewRoutes);
+app.use("/api/restaurant", sellerReportRoutes);
 app.use("/api/promo", promoRoutes);
 app.use("/api/courier", courierRoutes);
 app.use("/api/favourites", favouriteRoutes);

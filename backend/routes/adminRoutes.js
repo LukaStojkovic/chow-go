@@ -30,6 +30,9 @@ router.get("/collections/pins", admin.searchCollectionPins);
 router.get("/collections/:collectionId", admin.getCollection);
 router.put("/collections/:collectionId", admin.updateCollection);
 router.post("/collections/:collectionId/status", admin.setCollectionStatus);
+router.get("/payouts", admin.listPayouts);
+router.post("/payouts", admin.markPayoutPaid);
+router.post("/payouts/:payoutId/void", admin.voidPayout);
 router.get("/audit", admin.listAudit);
 
 export default router;

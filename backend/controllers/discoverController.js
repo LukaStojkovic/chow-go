@@ -41,7 +41,7 @@ const NEW_RESTAURANT_WINDOW_DAYS = 30;
 
 /** The fields a restaurant card needs, wherever it is rendered. */
 const RESTAURANT_CARD_FIELDS =
-  "name profilePicture images cuisineType address averageRating totalReviews estimatedDeliveryTime isOpenNow isActive createdAt";
+  "name profilePicture images cuisineType address averageRating totalReviews estimatedDeliveryTime isOpenNow isActive createdAt schedule timezone closures";
 
 export async function getDiscoverFeed(req, res, next) {
   try {

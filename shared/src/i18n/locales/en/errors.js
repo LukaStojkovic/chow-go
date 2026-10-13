@@ -195,6 +195,27 @@ export default {
     customerOnly: "Invite codes are for customer accounts.",
   },
 
+  report: {
+    rangeInvalid: "Pick a start date on or before the end date",
+    rangeTooLong: "A report can cover at most {{max}} days",
+    tooManyRows: "That range has more than {{max}} orders. Pick a shorter one.",
+  },
+  payout: {
+    invalidWeek: "A statement week starts on a Monday",
+    reference: "Enter the transfer reference (up to 80 characters)",
+    weekOpen: "That week is not over yet",
+    nothingDue: "Nothing is owed for that week",
+    alreadyPaid: "That week is already marked as paid",
+    notFound: "That payout was not found",
+  },
+  closure: {
+    invalid: "Each closure needs a valid start and end date, in order",
+    tooLong: "A closure can last at most {{max}} days",
+    tooFar: "A closure can start at most {{max}} days ahead",
+    tooMany: "You can plan at most {{max}} closures",
+    reason: "Keep the note under {{max}} characters",
+  },
+
   collection: {
     notFound: "That collection is not available",
     title: "Give the collection a title of up to {{max}} characters",
@@ -296,6 +317,20 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    REPORT_RANGE_INVALID: "Pick a start date on or before the end date",
+    REPORT_RANGE_TOO_LONG: "A report can cover at most a year",
+    REPORT_TOO_MANY_ROWS: "That range has too many orders. Pick a shorter one.",
+    PAYOUT_INVALID_WEEK: "A statement week starts on a Monday",
+    PAYOUT_REFERENCE: "Enter the transfer reference",
+    PAYOUT_WEEK_OPEN: "That week is not over yet",
+    PAYOUT_NOTHING_DUE: "Nothing is owed for that week",
+    PAYOUT_ALREADY_PAID: "That week is already marked as paid",
+    PAYOUT_NOT_FOUND: "That payout was not found",
+    CLOSURE_INVALID: "Each closure needs a valid start and end date, in order",
+    CLOSURE_TOO_LONG: "That closure is too long",
+    CLOSURE_TOO_FAR: "That closure starts too far ahead",
+    CLOSURE_TOO_MANY: "Too many closures planned",
+    CLOSURE_REASON: "That note is too long",
     COLLECTION_NOT_FOUND: "That collection is not available",
     COLLECTION_TITLE: "Give the collection a title",
     COLLECTION_SLUG: "The link name may only use lowercase letters, numbers and dashes",

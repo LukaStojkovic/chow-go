@@ -61,6 +61,7 @@ const SellerAnalytics = lazyNamed(
   routeChunks["/seller/analytics"],
   "SellerAnalytics",
 );
+const SellerPayouts = lazyNamed(routeChunks["/seller/payouts"], "SellerPayouts");
 const SellerPromoCodes = lazyNamed(routeChunks["/seller/promotions"], "SellerPromoCodes");
 const SellerReviews = lazyNamed(routeChunks["/seller/reviews"], "SellerReviews");
 const SellerSettings = lazyNamed(
@@ -243,6 +244,7 @@ function AppContent() {
             <Route path="menu" element={<SellerMenu />} />
             <Route path="menu/arrange" element={<SellerMenuLayout />} />
             <Route path="analytics" element={<SellerAnalytics />} />
+            <Route path="payouts" element={<SellerPayouts />} />
             <Route path="promotions" element={<SellerPromoCodes />} />
             <Route path="reviews" element={<SellerReviews />} />
             <Route path="settings" element={<SellerSettings />} />

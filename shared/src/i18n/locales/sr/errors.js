@@ -188,6 +188,27 @@ export default {
     customerOnly: "Kodovi za poziv su za naloge kupaca.",
   },
 
+  report: {
+    rangeInvalid: "Izaberite početni datum pre ili jednak krajnjem",
+    rangeTooLong: "Izveštaj može da obuhvati najviše {{max}} dana",
+    tooManyRows: "Taj period ima više od {{max}} porudžbina. Izaberite kraći.",
+  },
+  payout: {
+    invalidWeek: "Nedelja obračuna počinje ponedeljkom",
+    reference: "Unesite poziv na broj uplate (do 80 znakova)",
+    weekOpen: "Ta nedelja još nije završena",
+    nothingDue: "Za tu nedelju se ništa ne duguje",
+    alreadyPaid: "Ta nedelja je već označena kao isplaćena",
+    notFound: "Ta isplata nije pronađena",
+  },
+  closure: {
+    invalid: "Svako zatvaranje mora imati ispravan početni i krajnji datum, tim redom",
+    tooLong: "Zatvaranje može trajati najviše {{max}} dana",
+    tooFar: "Zatvaranje može početi najviše {{max}} dana unapred",
+    tooMany: "Možete zakazati najviše {{max}} zatvaranja",
+    reason: "Napomena može imati najviše {{max}} znakova",
+  },
+
   collection: {
     notFound: "Ta kolekcija nije dostupna",
     title: "Dajte kolekciji naziv do {{max}} znakova",
@@ -286,6 +307,20 @@ export default {
   },
 
   byCode: {
+    REPORT_RANGE_INVALID: "Izaberite početni datum pre ili jednak krajnjem",
+    REPORT_RANGE_TOO_LONG: "Izveštaj može da obuhvati najviše godinu dana",
+    REPORT_TOO_MANY_ROWS: "Taj period ima previše porudžbina. Izaberite kraći.",
+    PAYOUT_INVALID_WEEK: "Nedelja obračuna počinje ponedeljkom",
+    PAYOUT_REFERENCE: "Unesite poziv na broj uplate",
+    PAYOUT_WEEK_OPEN: "Ta nedelja još nije završena",
+    PAYOUT_NOTHING_DUE: "Za tu nedelju se ništa ne duguje",
+    PAYOUT_ALREADY_PAID: "Ta nedelja je već označena kao isplaćena",
+    PAYOUT_NOT_FOUND: "Ta isplata nije pronađena",
+    CLOSURE_INVALID: "Svako zatvaranje mora imati ispravan početni i krajnji datum, tim redom",
+    CLOSURE_TOO_LONG: "To zatvaranje je predugo",
+    CLOSURE_TOO_FAR: "To zatvaranje počinje predaleko unapred",
+    CLOSURE_TOO_MANY: "Zakazano je previše zatvaranja",
+    CLOSURE_REASON: "Napomena je preduga",
     COLLECTION_NOT_FOUND: "Ta kolekcija nije dostupna",
     COLLECTION_TITLE: "Dajte kolekciji naziv",
     COLLECTION_SLUG: "Naziv linka sme da sadrži samo mala slova, brojeve i crtice",

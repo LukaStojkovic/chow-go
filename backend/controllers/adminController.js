@@ -1,6 +1,7 @@
 import * as adminService from "../services/admin.service.js";
 import * as promoService from "../services/promoCode.service.js";
 import * as collectionService from "../services/collection.service.js";
+import * as reportService from "../services/sellerReports.service.js";
 
 const context = (req) => ({ actor: req.user, requestId: req.id, reason: req.body?.reason });
 
@@ -145,5 +146,24 @@ export async function searchCollectionPins(req, res) {
   const data = req.query.ids
     ? await collectionService.describePins({ kind: req.query.kind, ids: req.query.ids })
     : await collectionService.searchPinCandidates({ kind: req.query.kind, q: req.query.q });
+  res.status(200).json({ data });
+}
+
+export async function listPayouts(req, res) {
+  res.status(200).json({ data: await reportService.listAdminPayouts(req.query) });
+}
+
+export async function markPayoutPaid(req, res) {
+  const data = await reportService.markPayoutPaid({ actor: req.user, input: req.body, requestId: req.id });
+  res.status(201).json({ data });
+}
+
+export async function voidPayout(req, res) {
+  const data = await reportService.voidPayout({
+    actor: req.user,
+    payoutId: req.params.payoutId,
+    reason: req.body?.reason,
+    requestId: req.id,
+  });
   res.status(200).json({ data });
 }

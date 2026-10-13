@@ -60,6 +60,8 @@ export default {
     notAccepting: "This restaurant is not accepting orders at the moment.",
     closedUntil: "Closed right now. Opens again at {{time}}.",
     closedNoSlot: "Closed right now. Check the opening hours for the next slot.",
+    closedUntilDate: "Closed until {{date}}.",
+    closedForReason: "Closed until {{date}}: {{reason}}",
     closedNow: "Closed now",
     preorder: "Closed now. Order ahead for later.",
     preorderShort: "Order ahead",

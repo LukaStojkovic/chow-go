@@ -29,7 +29,7 @@ export function startCronJobs() {
 
     try {
       const activeRestaurants = await Restaurant.find({ isActive: true })
-        .select("schedule isOpenNow timezone _id")
+        .select("schedule isOpenNow timezone closures _id")
         .lean();
 
       const now = new Date();
@@ -37,7 +37,7 @@ export function startCronJobs() {
 
       for (const restaurant of activeRestaurants) {
         // Each restaurant is evaluated in its own zone rather than the host's.
-        const shouldBeOpen = isOpenAt(restaurant.schedule, now, restaurant.timezone);
+        const shouldBeOpen = isOpenAt(restaurant.schedule, now, restaurant.timezone, restaurant.closures);
 
         if (restaurant.isOpenNow !== shouldBeOpen) {
           bulkOperations.push({

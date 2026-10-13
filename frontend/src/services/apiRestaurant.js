@@ -204,10 +204,11 @@ export async function getRestaurantStats(restaurantId) {
   }
 }
 
-export async function getRestaurantAnalytics(restaurantId) {
+export async function getRestaurantAnalytics(restaurantId, range = {}) {
   try {
     const res = await axiosInstance.get(
       `/restaurants/${restaurantId}/analytics`,
+      { params: range },
     );
 
     return res.data;

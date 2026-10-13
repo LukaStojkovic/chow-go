@@ -62,6 +62,8 @@ export default {
     notAccepting: "Ovaj restoran trenutno ne prima porudžbine.",
     closedUntil: "Trenutno zatvoreno. Otvara se ponovo u {{time}}.",
     closedNoSlot: "Trenutno zatvoreno. Pogledajte radno vreme za sledeći termin.",
+    closedUntilDate: "Zatvoreno do {{date}}.",
+    closedForReason: "Zatvoreno do {{date}}: {{reason}}",
     closedNow: "Trenutno zatvoreno",
     preorder: "Trenutno zatvoreno. Poručite unapred za kasnije.",
     preorderShort: "Poruči unapred",

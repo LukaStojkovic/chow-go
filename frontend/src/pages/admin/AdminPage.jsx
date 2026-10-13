@@ -47,6 +47,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ListToolbar, Pager, ReasonDialog } from "./AdminParts";
 import { CollectionsTab } from "./CollectionsTab";
+import { PayoutsTab } from "./PayoutsTab";
 
 const STATUS_TONE = {
   pending: "warning",
@@ -613,7 +614,7 @@ export default function AdminPage() {
 
         <Tabs defaultValue="restaurants">
           <TabsList className="flex-wrap h-auto">
-            {["restaurants", "couriers", "users", "orders", "promoCodes", "collections", "audit"].map((tab) => (
+            {["restaurants", "couriers", "users", "orders", "promoCodes", "collections", "payouts", "audit"].map((tab) => (
               <TabsTrigger key={tab} value={tab}>
                 {t(`tabs.${tab}`)}
               </TabsTrigger>
@@ -636,6 +637,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="collections">
             <CollectionsTab />
+          </TabsContent>
+          <TabsContent value="payouts">
+            <PayoutsTab ask={setRequest} />
           </TabsContent>
           <TabsContent value="audit">
             <AuditTab />

@@ -12,6 +12,9 @@ import { t } from "../i18n/index.js";
 import { pricingFor } from "./pricing.js";
 import { normalizeCurrency } from "../currency.js";
 import { WEEK_DAYS, dayLabel, getTodayKey, normalizeSchedule } from "../schedule.js";
+import { activeClosure } from "../scheduling.js";
+import { addDays } from "../dateKeys.js";
+import { currentLocale, intlLocale } from "../i18n/index.js";
 
 /** @typedef {import("./types").RestaurantView} RestaurantView */
 /** @typedef {import("./types").AddressView} AddressView */
@@ -97,11 +100,27 @@ export function toRestaurantView(raw) {
     // Only the /nearby aggregation projects a distance, in metres.
     distance: typeof raw.distance === "number" ? raw.distance : null,
     availability,
+    closure: closureView(raw),
     isOpen,
     phone: raw.phone || null,
     address: toAddress(raw.address),
     schedule: toSchedule(raw.schedule),
   };
+}
+
+/** A closure (holiday, renovation) in force now, with the day it opens again. */
+function closureView(raw, now = new Date()) {
+  const closure = activeClosure(raw?.closures, now, raw?.timezone);
+  return closure ? { from: closure.from, to: closure.to, reason: closure.reason || "", reopensOn: addDays(closure.to, 1) } : null;
+}
+
+function reopenLabel(key) {
+  return new Date(`${key}T12:00:00Z`).toLocaleDateString(intlLocale(currentLocale()), {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
 }
 
 /**
@@ -127,6 +146,12 @@ export function unavailableReason(restaurant) {
     return t("restaurant:availability.notAccepting");
   }
   if (restaurant.availability === "closed") {
+    if (restaurant.closure) {
+      const date = reopenLabel(restaurant.closure.reopensOn);
+      return restaurant.closure.reason
+        ? t("restaurant:availability.closedForReason", { date, reason: restaurant.closure.reason })
+        : t("restaurant:availability.closedUntilDate", { date });
+    }
     const todayEntry = restaurant.schedule?.find((day) => day.isToday);
     if (todayEntry?.isOpen) {
       return t("restaurant:availability.closedUntil", { time: todayEntry.opens });

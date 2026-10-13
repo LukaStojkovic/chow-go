@@ -184,6 +184,19 @@ const restaurantSchema = new mongoose.Schema(
       default: [],
       validate: [(list) => list.length <= 30, "Too many menu sections"],
     },
+    // Whole local days the restaurant is shut whatever its weekly schedule
+    // says (holidays, renovation); see @chowgo/shared/scheduling#normalizeClosures.
+    closures: {
+      type: [
+        {
+          _id: false,
+          from: { type: String, match: /^\d{4}-\d{2}-\d{2}$/, required: true },
+          to: { type: String, match: /^\d{4}-\d{2}-\d{2}$/, required: true },
+          reason: { type: String, maxlength: 80, default: "" },
+        },
+      ],
+      default: [],
+    },
     estimatedDeliveryTime: {
       type: String,
       default: "30-45 min",

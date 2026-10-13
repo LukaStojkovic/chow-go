@@ -114,6 +114,6 @@ export function normalizeScheduleInput(rawSchedule) {
 export const DEFAULT_TIMEZONE = process.env.DEFAULT_TIMEZONE || "Europe/Belgrade";
 
 // One implementation for the backend and both clients: @chowgo/shared/scheduling.
-export function isOpenAt(schedule, date = new Date(), timeZone = DEFAULT_TIMEZONE) {
-  return sharedIsOpenAt(schedule, date, timeZone || DEFAULT_TIMEZONE);
+export function isOpenAt(schedule, date = new Date(), timeZone = DEFAULT_TIMEZONE, closures = null) {
+  return sharedIsOpenAt(schedule, date, timeZone || DEFAULT_TIMEZONE, closures);
 }

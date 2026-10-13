@@ -85,6 +85,7 @@ describe("release time", () => {
       schedule: tenToTen.schedule,
       timeZone: "Europe/London",
       prepMinutes: undefined,
+      closures: null,
     });
     expect(schedulingInputs({}).timeZone).toBe("Europe/Belgrade");
   });

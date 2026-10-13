@@ -53,6 +53,12 @@ function zonedMidnight(year, month, day, timeZone) {
   return new Date(guess - offsetMs(new Date(first), timeZone));
 }
 
+/** The instant a local YYYY-MM-DD date begins in a zone. */
+export function startOfDateKey(key, timeZone) {
+  const [year, month, day] = key.split("-").map(Number);
+  return zonedMidnight(year, month, day, timeZone);
+}
+
 export function dateKey(date, timeZone) {
   const p = zonedParts(date, timeZone);
   return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;

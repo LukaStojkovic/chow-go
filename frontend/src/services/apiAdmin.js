@@ -90,3 +90,18 @@ export async function searchCollectionPins({ kind, q, ids }) {
   const res = await axiosInstance.get("/admin/collections/pins", { params });
   return res.data.data;
 }
+
+export async function getAdminPayouts(params) {
+  const res = await axiosInstance.get("/admin/payouts", { params });
+  return res.data.data;
+}
+
+export async function markAdminPayoutPaid(input) {
+  const res = await axiosInstance.post("/admin/payouts", input);
+  return res.data.data;
+}
+
+export async function voidAdminPayout({ id, reason }) {
+  const res = await axiosInstance.post(`/admin/payouts/${id}/void`, { reason });
+  return res.data.data;
+}

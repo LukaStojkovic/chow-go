@@ -1,12 +1,12 @@
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
-export const KpiCard = ({ icon: Icon, label, value, sub, color, tooltip }) => (
+export const KpiCard = ({ icon: Icon, label, value, sub, change, color, tooltip }) => (
   <div className="bg-card p-6 rounded-2xl border border-border flex items-center gap-4">
     <div className={`p-3 rounded-xl ${color}`}>
       <Icon className="w-5 h-5 text-white" />
     </div>
-    <div>
+    <div className="min-w-0">
       <div className="flex items-center gap-1">
         <p className="text-sm text-muted-foreground ">{label}</p>
         {tooltip && (
@@ -20,6 +20,7 @@ export const KpiCard = ({ icon: Icon, label, value, sub, color, tooltip }) => (
       </div>
       <p className="text-2xl font-bold ">{value}</p>
       {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+      {change && <p className="text-xs font-medium mt-0.5">{change}</p>}
     </div>
   </div>
 );

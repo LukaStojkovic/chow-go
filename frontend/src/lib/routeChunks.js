@@ -14,6 +14,7 @@ export const routeChunks = {
   "/seller/menu": () => import("@/pages/seller/SellerMenu"),
   "/seller/menu/arrange": () => import("@/pages/seller/SellerMenuLayout"),
   "/seller/analytics": () => import("@/pages/seller/SellerAnalytics"),
+  "/seller/payouts": () => import("@/pages/seller/SellerPayouts"),
   "/seller/promotions": () => import("@/pages/seller/SellerPromoCodes"),
   "/seller/reviews": () => import("@/pages/seller/SellerReviews"),
   "/seller/settings": () => import("@/pages/seller/SellerSettings"),
