@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams } from "expo-router";
 import { MessageSquareText } from "lucide-react-native";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { listGap } from "@/components/ui/ListGap";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { ReviewCard } from "@/features/reviews/ReviewCard";
@@ -34,15 +36,16 @@ export default function RestaurantReviews() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("restaurant:reviews.title")} subtitle={restaurantName} />
 
-      <FlatList
+      <FlashList
         data={items}
         keyExtractor={(item) => String(item.id)}
-        contentContainerClassName="gap-3 px-5 pb-8"
+        contentContainerClassName="px-5 pb-8"
+        ItemSeparatorComponent={listGap(3)}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         ListHeaderComponent={
-          <View className="gap-3">
+          <View className="gap-3 pb-3">
             <ReviewSummary summary={summary} />
             <View className="-mx-5">
               <ChipRow>
@@ -73,11 +76,13 @@ export default function RestaurantReviews() {
         }
         ListFooterComponent={
           reviews.isFetchingNextPage ? (
-            <ActivityIndicator color={color.primary} />
+            <ActivityIndicator color={color.primary} className="pt-3" />
           ) : reviews.hasNextPage ? (
-            <Button variant="outline" onPress={loadMore}>
-              {t("restaurant:reviews.loadMore")}
-            </Button>
+            <View className="pt-3">
+              <Button variant="outline" onPress={loadMore}>
+                {t("restaurant:reviews.loadMore")}
+              </Button>
+            </View>
           ) : null
         }
       />

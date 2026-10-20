@@ -1,4 +1,4 @@
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import {
   Briefcase,
   Building2,
@@ -19,6 +19,7 @@ import {
   matchAddressLabelValue,
 } from "@chowgo/shared/constants";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
@@ -87,11 +88,7 @@ export function AddressForm({
 
   return (
     <View className="flex-1">
-      <ScrollView
-        contentContainerClassName="gap-5 px-5 pb-8"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll contentContainerClassName="gap-5 px-5 pb-8">
         <Card className="flex-row items-center gap-3">
           <View className="h-10 w-10 items-center justify-center rounded-full bg-primary-subtle">
             <MapPin size={18} color={color.primary} />
@@ -179,7 +176,7 @@ export function AddressForm({
         <Button size="lg" fullWidth loading={isSubmitting} onPress={onSubmit}>
           {submitLabel}
         </Button>
-      </ScrollView>
+      </KeyboardScroll>
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
@@ -10,6 +10,7 @@ import { translateFieldError } from "@chowgo/shared/i18n/fieldErrors";
 import { errorMessage } from "@/api/client";
 import { CheckCircle2 } from "lucide-react-native";
 import { Badge } from "@/components/ui/Badge";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { DockedBar } from "@/components/ui/FloatingBar";
@@ -19,6 +20,7 @@ import { Text } from "@/components/ui/Text";
 import { MenuItemImages } from "@/features/seller/MenuItemImages";
 import { accountStep, locationStep, restaurantStep } from "@/features/auth/sellerSchemas";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
+import { LocationPermissionNotice } from "@/features/location/LocationPermissionNotice";
 import { registerSeller } from "@/services/apiAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
@@ -59,7 +61,7 @@ export default function SellerSignup() {
   const [submitting, setSubmitting] = useState(false);
 
   const setAuthUser = useAuthStore((state) => state.setAuthUser);
-  const { detect, isDetecting } = useDetectLocation();
+  const { detect, isDetecting, blocked } = useDetectLocation();
   const coordinates = useDeliveryStore((state) => state.coordinates);
   const detectedAddress = useDeliveryStore((state) => state.address);
 
@@ -149,10 +151,7 @@ export default function SellerSignup() {
         </View>
       </View>
 
-      <ScrollView
-        contentContainerClassName="gap-4 px-5 pb-6 pt-4"
-        keyboardShouldPersistTaps="handled"
-      >
+      <KeyboardScroll docked contentContainerClassName="gap-4 px-5 pb-6 pt-4">
         {step.key === "account" ? (
           <>
             {field("name", t("fields.yourName"), { autoComplete: "name" })}
@@ -225,6 +224,7 @@ export default function SellerSignup() {
 
         {step.key === "location" ? (
           <>
+            {blocked ? <LocationPermissionNotice /> : null}
             <Button variant="mint" size="lg" loading={isDetecting} onPress={detect}>
               {t("profile:delivery.useCurrent")}
             </Button>
@@ -267,9 +267,9 @@ export default function SellerSignup() {
             />
           </>
         ) : null}
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar className="flex-row items-center gap-2.5">
+      <DockedBar sticky className="flex-row items-center gap-2.5">
         {index > 0 ? (
           <Button variant="outline" size="lg" onPress={() => setIndex((current) => current - 1)}>
             {t("common:actions.back")}

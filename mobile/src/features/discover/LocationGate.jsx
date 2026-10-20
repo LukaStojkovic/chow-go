@@ -7,6 +7,7 @@ import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { AddressAutocomplete } from "@/features/location/AddressAutocomplete";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
+import { LocationPermissionNotice } from "@/features/location/LocationPermissionNotice";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useTokens } from "@/theme/useTokens";
 
@@ -14,7 +15,7 @@ import { useTokens } from "@/theme/useTokens";
 // before there are coordinates.
 export function LocationGate() {
   const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
-  const { detect, isDetecting } = useDetectLocation();
+  const { detect, isDetecting, blocked } = useDetectLocation();
   const setLocation = useDeliveryStore((state) => state.setLocation);
   const { color } = useTokens();
 
@@ -29,6 +30,7 @@ export function LocationGate() {
           {t("profile:delivery.gateBody")}
         </Text>
       </View>
+      {blocked ? <LocationPermissionNotice className="w-full" /> : null}
       <Button size="lg" fullWidth loading={isDetecting} onPress={detect}>
         <View className="flex-row items-center gap-2">
           <Crosshair size={18} color={color["primary-foreground"]} />
@@ -41,7 +43,7 @@ export function LocationGate() {
       <View className="w-full flex-row items-center gap-3">
         <View className="h-px flex-1 bg-border" />
         <Text variant="caption" tone="muted">
-          or
+          {t("common:meta.or")}
         </Text>
         <View className="h-px flex-1 bg-border" />
       </View>

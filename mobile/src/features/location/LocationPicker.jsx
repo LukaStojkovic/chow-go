@@ -6,6 +6,7 @@ import { Map, MapMarker, toRegion } from "@/components/map/Map";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
+import { LocationPermissionNotice } from "./LocationPermissionNotice";
 import { useReverseGeocode } from "@/hooks/Location/useReverseGeocode";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { useTokens } from "@/theme/useTokens";
@@ -33,7 +34,9 @@ export function LocationPicker({
 }) {
   const { t } = useTranslation(["profile", "common"]);
   const storeCoordinates = useDeliveryStore((state) => state.coordinates);
-  const { detect, isDetecting } = useDetectLocation();
+  const { detect, isDetecting, blocked } = useDetectLocation({
+    onRecovered: (result) => moveTo([result.coordinates.lat, result.coordinates.lon], result.address),
+  });
   const { color, elevation, scheme } = useTokens();
 
   const [pin, setPin] = useState(initialPosition ?? null);
@@ -97,12 +100,13 @@ export function LocationPicker({
           </MapMarker>
         </Map>
 
-        <View className="absolute left-5 right-5 top-3">
+        <View className="absolute left-5 right-5 top-3 gap-2">
           <AddressAutocomplete
             label={null}
             placeholder={t("delivery.searchStreet")}
             onSelect={({ address: found, lat, lon }) => moveTo([lat, lon], found)}
           />
+          {blocked ? <LocationPermissionNotice /> : null}
         </View>
 
         <View style={elevation.raised[scheme]} className="absolute bottom-4 right-5 rounded-full">

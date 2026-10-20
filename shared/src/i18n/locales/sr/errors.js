@@ -209,6 +209,10 @@ export default {
     reason: "Napomena može imati najviše {{max}} znakova",
   },
 
+  restaurantStatus: {
+    invalid: "Izaberite trajanje i dodatne minute među ponuđenim opcijama",
+  },
+
   collection: {
     notFound: "Ta kolekcija nije dostupna",
     title: "Dajte kolekciji naziv do {{max}} znakova",
@@ -307,6 +311,8 @@ export default {
   },
 
   byCode: {
+    ADDRESS_LIMIT: "Možete sačuvati najviše 5 adresa",
+    STATUS_ACTION_INVALID: "Izaberite ispravnu opciju statusa",
     REPORT_RANGE_INVALID: "Izaberite početni datum pre ili jednak krajnjem",
     REPORT_RANGE_TOO_LONG: "Izveštaj može da obuhvati najviše godinu dana",
     REPORT_TOO_MANY_ROWS: "Taj period ima previše porudžbina. Izaberite kraći.",

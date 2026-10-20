@@ -20,12 +20,21 @@ import { Text } from "@/components/ui/Text";
 import { ScheduledFor } from "@/features/orders/ScheduledFor";
 import { RejectOrderPrompt } from "@/features/seller/RejectOrderPrompt";
 import { silenceAlert } from "@/features/seller/SellerAlert";
+import { effectiveStatus, useRestaurantStatus } from "@/hooks/Restaurants/useRestaurantStatus";
 import { useConfirmOrder, useRejectOrder } from "@/hooks/SellerOrders/useSellerOrders";
 import { getRestaurantOrderById } from "@/services/apiRestaurantOrder";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 
 const PREP_TIMES = [15, 20, 30, 45];
+
+function withBusyPrep(busyPrep) {
+  if (!busyPrep || PREP_TIMES.includes(busyPrep)) return PREP_TIMES;
+  const nearest = PREP_TIMES.reduce((best, value) =>
+    Math.abs(value - busyPrep) < Math.abs(best - busyPrep) ? value : best,
+  );
+  return PREP_TIMES.map((value) => (value === nearest ? busyPrep : value)).sort((a, b) => a - b);
+}
 
 /**
  * The takeover.
@@ -43,7 +52,11 @@ export default function IncomingOrder() {
   const { color } = useTokens();
   const insets = useSafeAreaInsets();
 
-  const [prepTime, setPrepTime] = useState(20);
+  const [chosenPrep, setPrepTime] = useState(null);
+  const busyExtra = effectiveStatus(useRestaurantStatus().data)?.extraMinutes ?? 0;
+  const busyPrep = busyExtra ? 30 + busyExtra : null;
+  const prepTime = chosenPrep ?? busyPrep ?? 20;
+  const prepTimes = withBusyPrep(busyPrep);
   const [rejecting, setRejecting] = useState(false);
 
   const { data } = useQuery({
@@ -191,7 +204,7 @@ export default function IncomingOrder() {
             </View>
 
             <View className="flex-row gap-2">
-              {PREP_TIMES.map((minutes) => (
+              {prepTimes.map((minutes) => (
                 <Chip
                   key={minutes}
                   label={t("common:units.minutes", { value: minutes })}

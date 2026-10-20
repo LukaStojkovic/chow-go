@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, Share, View } from "react-native";
+import { Share, View } from "react-native";
 import { Gift, Share2, TicketPercent } from "lucide-react-native";
 import { formatPrice } from "@chowgo/shared/format";
 import { normalizeReferralCode, referralLink, referralRewardsFor } from "@chowgo/shared/referral";
@@ -8,6 +8,7 @@ import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
@@ -111,10 +112,7 @@ export default function Invite() {
           onAction={() => referral.refetch()}
         />
       ) : (
-        <ScrollView
-          contentContainerClassName="gap-4 px-5 pb-10"
-          showsVerticalScrollIndicator={false}
-        >
+        <KeyboardScroll contentContainerClassName="gap-4 px-5 pb-10">
           <Card className="items-center gap-3 py-6">
             <Gift size={28} color={color.primary} />
             <Text variant="caption" tone="muted">
@@ -166,7 +164,7 @@ export default function Invite() {
           ) : data?.canApplyCode ? (
             <ApplyCodeCard />
           ) : null}
-        </ScrollView>
+        </KeyboardScroll>
       )}
     </Screen>
   );

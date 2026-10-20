@@ -29,6 +29,7 @@ const SELLER_EVENTS = [
   "order:in_transit",
   "order:delivered",
   "order:courier_unassigned",
+  "restaurant:status",
 ];
 const COURIER_EVENTS = [
   "order:assigned",
@@ -207,6 +208,14 @@ describe("seller events", () => {
     },
   );
 
+  it("writes a restaurant:status event into the status cache", () => {
+    setup("seller");
+    const status = { isActive: true, isOpenNow: false, scheduleOpen: true, pause: { indefinite: true }, busy: null };
+    act(() => socket.emit("restaurant:status", { restaurantId: "r1", status }));
+    expect(queryClient.getQueryData(["restaurantStatus"])).toEqual(status);
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+
   it("asks sellers and couriers for notification permission, not customers", () => {
     setup("customer").unmount();
     expect(NotificationMock.requestPermission).not.toHaveBeenCalled();
@@ -245,7 +254,7 @@ describe("courier events", () => {
 describe("reconnect", () => {
   it.each([
     ["customer", ["order", "customerOrders"]],
-    ["seller", ["restaurantOrders"]],
+    ["seller", ["restaurantOrders", "restaurantStatus"]],
     ["courier", ["courierAvailableOrders", "courierOrders", "courierOrder"]],
   ])("refetches what a %s may have missed while disconnected", (role, keys) => {
     setup(role, { epoch: 2 });

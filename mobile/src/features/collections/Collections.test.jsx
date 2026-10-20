@@ -179,7 +179,9 @@ describe("Collection screen", () => {
       params: { lat: 44.8, lon: 20.4, page: 1, limit: 20 },
     });
 
-    await fireEvent.press(screen.getByText(t("discover:collections.loadMore")));
+    // FlashList measures nothing under Jest, so it may already have asked for page 2 itself.
+    const more = screen.queryByText(t("discover:collections.loadMore"));
+    if (more) await fireEvent.press(more);
     expect(await screen.findByText("Trattoria")).toBeOnTheScreen();
     expect(api.get).toHaveBeenLastCalledWith("/discover/collections/best-pizza", {
       params: { lat: 44.8, lon: 20.4, page: 2, limit: 20 },

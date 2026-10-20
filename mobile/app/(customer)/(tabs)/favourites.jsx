@@ -1,4 +1,5 @@
-import { FlatList, RefreshControl, View } from "react-native";
+import { RefreshControl, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import { Heart } from "lucide-react-native";
@@ -7,6 +8,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { RestaurantCard } from "@/components/discovery/RestaurantCard";
 import { Screen } from "@/components/ui/Screen";
+import { listGap } from "@/components/ui/ListGap";
 import { SectionHeader } from "@/components/ui/Section";
 import { useFavourites } from "@/hooks/Favourites/useFavourites";
 import { useFavouriteToggle } from "@/hooks/Favourites/useFavouriteToggle";
@@ -38,17 +40,18 @@ export default function Favourites() {
 
   return (
     <Screen edges={["top"]}>
-      <FlatList
+      <FlashList
         data={restaurants}
         keyExtractor={(item) => item.id}
-        contentContainerClassName="gap-4 px-5 pb-44"
+        contentContainerClassName="px-5 pb-44"
+        ItemSeparatorComponent={listGap(4)}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <SectionHeader
             title={t("restaurant:favourites.title")}
             size="lg"
             subtitle={t("discover:summary.favourites", { count: restaurants.length })}
-            className="pb-1 pt-2"
+            className="pb-5 pt-2"
           />
         }
         refreshControl={

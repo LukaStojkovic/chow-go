@@ -13,7 +13,9 @@ const createOrder = vi.fn();
 vi.mock("@/hooks/Orders/useCreateOrder", () => ({
   useCreateOrder: () => ({ createOrder, isCreatingOrder: false }),
 }));
-vi.mock("@/features/checkout/AddressStep", () => ({ AddressStep: () => null }));
+vi.mock("@/features/checkout/AddressStep", () => ({
+  AddressStep: ({ outOfRange }) => (outOfRange ? <p>{`${outOfRange.addressId}: ${outOfRange.message}`}</p> : null),
+}));
 vi.mock("@/features/checkout/PromoCodeField", () => ({ PromoCodeField: () => null }));
 vi.mock("@/components/basket/UpsellRail", () => ({ UpsellRail: () => null }));
 
@@ -133,5 +135,19 @@ describe("CheckoutPage delivery time", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("The kitchen is closed then.");
     expect(screen.getByRole("combobox", { name: "Time" })).toHaveValue("");
     expect(useCartStore.getState().fetchCart).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("CheckoutPage delivery radius", () => {
+  it("flags the selected address and blocks ordering until another is chosen", async () => {
+    createOrder.mockImplementation((_body, { onError }) =>
+      onError(axiosError(400, { code: "OUT_OF_DELIVERY_RANGE", message: "Too far." })),
+    );
+    const user = setup();
+    await user.click(placeOrder());
+
+    expect(screen.getByText("a1: Too far.")).toBeInTheDocument();
+    expect(placeOrder()).toBeDisabled();
+    expect(screen.getAllByText("Choose an address this restaurant delivers to.").length).toBeGreaterThan(0);
   });
 });

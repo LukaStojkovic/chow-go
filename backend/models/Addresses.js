@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { AppError } from "../utils/AppError.js";
 import { lngLat } from "../utils/geoValidators.js";
 
 const addressSchema = new mongoose.Schema(
@@ -51,11 +52,7 @@ addressSchema.pre("save", async function (next) {
   });
 
   if (count >= 5) {
-    return next(
-      new Error(
-        "Maximum 5 delivery addresses allowed per user. Delete one to add new.",
-      ),
-    );
+    return next(new AppError("errors:address.limitReached", 409, "ADDRESS_LIMIT", { count: 5 }));
   }
 
   next();

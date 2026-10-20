@@ -156,6 +156,8 @@ export default function ActiveDelivery() {
         courier={fix.position}
         isTracking={fix.isTracking}
         isDenied={fix.isDenied}
+        isBlocked={fix.isBlocked}
+        isBackgroundDenied={fix.isBackgroundDenied}
         topOffset={insets.top + 58}
       />
 

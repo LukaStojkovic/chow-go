@@ -1,6 +1,7 @@
 import Restaurant from "../models/Restaurant.js";
 import { AppError } from "../utils/AppError.js";
-import { isOpenAt, normalizeScheduleInput } from "../utils/schedule.js";
+import { normalizeScheduleInput } from "../utils/schedule.js";
+import { computeIsOpenNow } from "../utils/restaurantAvailability.js";
 import * as imageService from "./image.service.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -94,7 +95,7 @@ export async function updateRestaurantInfo({
     }
 
     restaurant.isOpenNow =
-      restaurant.isActive && isOpenAt(restaurant.schedule, new Date(), restaurant.timezone, restaurant.closures);
+      computeIsOpenNow(restaurant);
   }
 
   if (estimatedDeliveryTime !== undefined) {

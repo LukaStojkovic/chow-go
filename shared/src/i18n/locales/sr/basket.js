@@ -88,6 +88,7 @@ export default {
   heading: "Vaša korpa sadrži stavke iz drugog restorana",
   addedToBasket: "Dodato u korpu",
   addItem: "Dodaj · {{price}}",
+  addQuantity: "Dodaj {{quantity}} · {{price}}",
   addFailed: "Dodavanje stavke nije uspelo",
   replaceFailed: "Zamena korpe nije uspela",
   updateFailed: "Ažuriranje korpe nije uspelo",
@@ -203,5 +204,20 @@ export default {
       count: "{{used}}/{{max}} znakova",
       shortPlaceholder: "Alergije, šifra interfona, bilo šta drugo",
     },
+  },
+
+  addressForm: {
+    addNew: "Dodaj novu adresu",
+    formHeading: "Gde da dostavimo?",
+    formHint: "Postavite oznaku na svoja vrata, pa dodajte detalje koji su kuriru potrebni.",
+    manage: "Upravljaj adresama",
+    limit: "Sačuvali ste najviše {{max}} adresa. Uklonite jednu da biste dodali novu.",
+    outOfRangeHint: "Izaberite drugu adresu ili dodajte neku bližu restoranu.",
+    outOfRangeBlocker: "Izaberite adresu do koje ovaj restoran dostavlja.",
+  },
+
+  busy: {
+    label: "Gužva",
+    description: "Trenutno je gužva. Procena uključuje oko {{minutes}} minuta više.",
   },
 };

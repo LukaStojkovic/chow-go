@@ -23,6 +23,7 @@ import { env } from "../config/env.js";
 import { parsePagination } from "../utils/pagination.js";
 import { estimatedDeliveryAt } from "../utils/deliveryEta.js";
 import { orderingBlockedError } from "../utils/restaurantAvailability.js";
+import { busyExtraMinutes } from "@chowgo/shared/restaurantStatus";
 import { releaseTimeFor, schedulingInputs, slotProblem } from "@chowgo/shared/scheduling";
 
 export async function createOrder(req, res, next) {
@@ -220,10 +221,10 @@ export async function createOrder(req, res, next) {
       paymentMethod,
       idempotencyKey,
       customerNotes: customerNotes || "",
-      estimatedPreparationTime: restaurant.estimatedPreparationTime || 30,
+      estimatedPreparationTime: (restaurant.estimatedPreparationTime || 30) + busyExtraMinutes(restaurant),
       estimatedDeliveryTime: scheduledFor
         ? scheduledFor
-        : estimatedDeliveryAt(restaurant.estimatedPreparationTime || 30, deliveryType === "priority"),
+        : estimatedDeliveryAt((restaurant.estimatedPreparationTime || 30) + busyExtraMinutes(restaurant), deliveryType === "priority"),
       ...(scheduledFor
         ? {
             status: "scheduled",

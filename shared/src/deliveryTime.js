@@ -6,7 +6,7 @@
 import { formatTime } from "./format.js";
 import { intlLocale } from "./i18n/config.js";
 import { currentLocale, t } from "./i18n/index.js";
-import { deliverySlots, schedulingInputs } from "./scheduling.js";
+import { deliverySlots, firstDeliverySlot, schedulingInputs } from "./scheduling.js";
 
 // The same test the backend applies before it accepts a pre-order.
 const isLive = (raw) => Boolean(raw?.isActive) && (!raw.approvalStatus || raw.approvalStatus === "approved");
@@ -19,7 +19,7 @@ export function slotsFor(raw, now = new Date()) {
 
 /** Closed now, but still taking orders for later. */
 export function takesPreorders(raw, now = new Date()) {
-  return Boolean(raw) && !raw.isOpenNow && slotsFor(raw, now).length > 0;
+  return Boolean(raw) && !raw.isOpenNow && isLive(raw) && firstDeliverySlot(schedulingInputs(raw), new Date(now)) !== null;
 }
 
 /** A calendar day on this device, for grouping slots. */

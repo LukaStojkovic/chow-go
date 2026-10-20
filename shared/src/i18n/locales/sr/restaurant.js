@@ -64,6 +64,8 @@ export default {
     closedNoSlot: "Trenutno zatvoreno. Pogledajte radno vreme za sledeći termin.",
     closedUntilDate: "Zatvoreno do {{date}}.",
     closedForReason: "Zatvoreno do {{date}}: {{reason}}",
+    pausedUntil: "Trenutno ne prima porudžbine. Ponovo od {{time}}.",
+    paused: "Trenutno ne prima porudžbine.",
     closedNow: "Trenutno zatvoreno",
     preorder: "Trenutno zatvoreno. Poručite unapred za kasnije.",
     preorderShort: "Poruči unapred",
@@ -237,5 +239,11 @@ export default {
     badge: "{{value}}% popusta",
     srPrefix: "Akcija:",
     save: "Ušteda",
+  },
+
+  screen: {
+    busy: "Gužva",
+    busyHint: "Trenutno je gužva, dostava traje malo duže",
+    shareMessage: "{{name}} na Chow & Go: {{link}}",
   },
 };

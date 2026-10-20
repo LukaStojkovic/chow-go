@@ -86,6 +86,7 @@ describe("release time", () => {
       timeZone: "Europe/London",
       prepMinutes: undefined,
       closures: null,
+      pause: null,
     });
     expect(schedulingInputs({}).timeZone).toBe("Europe/Belgrade");
   });

@@ -10,6 +10,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "@/lib/cn";
 import { gesture as gestureTokens, useMotion } from "@/theme/motion";
@@ -150,54 +151,56 @@ export function Sheet({ visible, onClose, icon, tone = "danger", title, descript
           reaches the handler without a second root. It fails silently, which is
           the worst way for a gesture to be wrong. */}
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Animated.View
-          entering={FadeIn.duration(motion.duration.micro).reduceMotion(motion.mode)}
-          className="flex-1 justify-end"
-        >
-          <Animated.View style={backdropStyle} className="absolute inset-0">
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Dismiss"
-              onPress={() => close(0)}
-              className="flex-1 bg-black/55"
-            />
-          </Animated.View>
-
-          <GestureDetector gesture={pan}>
-            <Animated.View
-              onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
-              style={dragStyle}
-            >
-              <Animated.View
-                entering={motion.enter.panel()}
-                style={{ paddingBottom: Math.max(insets.bottom, 20) }}
-                className="gap-4 rounded-t-3xl bg-popover px-5 pt-3"
-              >
-                {/* Decoration, not a control: the gesture is on the whole
-                    sheet, so a grab target here would only shrink it. */}
-                <View className="items-center py-1" accessible={false}>
-                  <View className="h-1 w-10 rounded-full bg-border-strong" />
-                </View>
-
-                <View className="items-center gap-3">
-                  {icon ? <IconTile icon={icon} tone={tone} size={56} round /> : null}
-                  <View className="items-center gap-1.5">
-                    <Text variant="h1" className="text-center">
-                      {title}
-                    </Text>
-                    {description ? (
-                      <Text variant="body" tone="muted" className="text-center">
-                        {description}
-                      </Text>
-                    ) : null}
-                  </View>
-                </View>
-
-                {children}
-              </Animated.View>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <Animated.View
+            entering={FadeIn.duration(motion.duration.micro).reduceMotion(motion.mode)}
+            className="flex-1 justify-end"
+          >
+            <Animated.View style={backdropStyle} className="absolute inset-0">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss"
+                onPress={() => close(0)}
+                className="flex-1 bg-black/55"
+              />
             </Animated.View>
-          </GestureDetector>
-        </Animated.View>
+
+            <GestureDetector gesture={pan}>
+              <Animated.View
+                onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
+                style={dragStyle}
+              >
+                <Animated.View
+                  entering={motion.enter.panel()}
+                  style={{ paddingBottom: Math.max(insets.bottom, 20) }}
+                  className="gap-4 rounded-t-3xl bg-popover px-5 pt-3"
+                >
+                  {/* Decoration, not a control: the gesture is on the whole
+                      sheet, so a grab target here would only shrink it. */}
+                  <View className="items-center py-1" accessible={false}>
+                    <View className="h-1 w-10 rounded-full bg-border-strong" />
+                  </View>
+
+                  <View className="items-center gap-3">
+                    {icon ? <IconTile icon={icon} tone={tone} size={56} round /> : null}
+                    <View className="items-center gap-1.5">
+                      <Text variant="h1" className="text-center">
+                        {title}
+                      </Text>
+                      {description ? (
+                        <Text variant="body" tone="muted" className="text-center">
+                          {description}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </View>
+
+                  {children}
+                </Animated.View>
+              </Animated.View>
+            </GestureDetector>
+          </Animated.View>
+        </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </Modal>
   );

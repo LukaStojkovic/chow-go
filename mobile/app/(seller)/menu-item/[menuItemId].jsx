@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router, useLocalSearchParams } from "expo-router";
@@ -11,6 +11,7 @@ import { PROMOTION_LIMITS, previewPromotion, promotionTypes } from "@chowgo/shar
 import { errorMessage } from "@/api/client";
 import { Trash2 } from "lucide-react-native";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Card, Inset } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { DockedBar } from "@/components/ui/FloatingBar";
@@ -137,11 +138,7 @@ export default function MenuItemForm() {
         subtitle={isNew ? undefined : existingItem?.name}
       />
 
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-8"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll docked bottomOffset={124} contentContainerClassName="gap-3 px-5 pb-8">
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <Text variant="h3" className="flex-1">
@@ -429,9 +426,9 @@ export default function MenuItemForm() {
             </View>
           </Button>
         ) : null}
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar>
+      <DockedBar sticky>
         {!hasImage ? (
           <Text variant="caption" tone="muted" className="text-center">
             {t("menu.form.photoRequired")}

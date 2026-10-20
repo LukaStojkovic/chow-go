@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FlatList, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
@@ -48,17 +49,18 @@ export default function Basket() {
   const { t } = useTranslation(["basket", "restaurant", "common"]);
   const { items, totalPrice, restaurant, updateItemQuantity, removeItem } = useCartStore();
   const { color } = useTokens();
+  const [barHeight, setBarHeight] = useState(0);
 
   if (items.length === 0) {
     return (
-      <Screen>
+      <Screen edges={[]}>
         <ScreenHeader title={t("basket:title")} />
         <EmptyState
           icon={ShoppingBag}
           title={t("basket:empty.title")}
           description={t("basket:empty.description")}
           actionLabel={t("basket:empty.action")}
-          onAction={() => router.replace("/(customer)/(tabs)")}
+          onAction={() => router.dismissTo("/(customer)/(tabs)")}
         />
       </Screen>
     );
@@ -75,13 +77,15 @@ export default function Basket() {
   const closedNotice = preorder ? t("restaurant:availability.preorder") : blocked;
 
   return (
-    <Screen edges={["top", "bottom"]}>
+    <Screen edges={[]}>
       <ScreenHeader title={t("basket:title")} subtitle={restaurant?.name} />
 
       <FlatList
         data={items}
         keyExtractor={lineKey}
-        contentContainerClassName="gap-3 px-5 pb-6"
+        contentContainerClassName="gap-3 px-5"
+        contentContainerStyle={{ paddingBottom: barHeight + 24 }}
+        scrollIndicatorInsets={{ bottom: barHeight }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View className="gap-3 pb-1">
@@ -121,7 +125,7 @@ export default function Basket() {
                       variant="mint"
                       label={t("basket:addMore")}
                       onPress={() =>
-                        router.push(`/(customer)/restaurant/${restaurant._id ?? restaurant.id}`)
+                        router.dismissTo(`/(customer)/restaurant/${restaurant._id ?? restaurant.id}`)
                       }
                     />
                   </View>
@@ -233,30 +237,38 @@ export default function Basket() {
         }
       />
 
-      <DockedBar>
-        <Button
-          size="lg"
-          fullWidth
-          disabled={Boolean(blocked)}
-          onPress={() => router.push("/(customer)/checkout")}
-        >
-          <View className="flex-row items-center gap-2">
-            <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              {t("basket:goToCheckout")}
-            </Text>
-            <Text
-              variant="body-lg"
-              className="font-jakarta-bold text-primary-foreground opacity-70"
-            >
-              ·
-            </Text>
-            <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
-              {formatPrice(breakdown.total, { currency })}
-            </Text>
-            <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
-          </View>
-        </Button>
-      </DockedBar>
+      <View
+        className="absolute inset-x-0 bottom-0"
+        onLayout={(event) => setBarHeight(event.nativeEvent.layout.height)}
+      >
+        <DockedBar>
+          <Button
+            size="lg"
+            fullWidth
+            disabled={Boolean(blocked)}
+            onPress={() => {
+              router.dismiss();
+              router.push("/(customer)/checkout");
+            }}
+          >
+            <View className="flex-row items-center gap-2">
+              <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+                {t("basket:goToCheckout")}
+              </Text>
+              <Text
+                variant="body-lg"
+                className="font-jakarta-bold text-primary-foreground opacity-70"
+              >
+                ·
+              </Text>
+              <Text variant="body-lg" className="font-jakarta-bold text-primary-foreground">
+                {formatPrice(breakdown.total, { currency })}
+              </Text>
+              <ArrowRight size={19} strokeWidth={2.6} color={color["primary-foreground"]} />
+            </View>
+          </Button>
+        </DockedBar>
+      </View>
     </Screen>
   );
 }

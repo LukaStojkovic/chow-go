@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams } from "expo-router";
 import { formatDate, formatPrice } from "@chowgo/shared/format";
@@ -8,6 +8,7 @@ import { PROMO_LIMITS, RESTAURANT_PROMO_TYPES } from "@chowgo/shared/promoCode";
 import { normalizeCurrency } from "@chowgo/shared/currency";
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Card, Inset } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { DockedBar } from "@/components/ui/FloatingBar";
@@ -153,7 +154,7 @@ export default function SellerPromoForm() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={isNew ? t("promo:manage.create") : t("promo:manage.edit")} subtitle={promo?.code} />
 
-      <ScrollView contentContainerClassName="gap-3 px-5 pb-6" keyboardShouldPersistTaps="handled">
+      <KeyboardScroll docked contentContainerClassName="gap-3 px-5 pb-6">
         {stats ? (
           <Card className="flex-row gap-2">
             {[
@@ -269,9 +270,9 @@ export default function SellerPromoForm() {
             />
           </View>
         </Card>
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar>
+      <DockedBar sticky>
         <Button size="lg" fullWidth disabled={!canSave} loading={create.isPending || update.isPending} onPress={save}>
           {t("promo:manage.save")}
         </Button>

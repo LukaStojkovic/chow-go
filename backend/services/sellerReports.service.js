@@ -8,7 +8,8 @@ import { toCsv } from "../utils/csv.js";
 import { toMoney } from "../utils/money.js";
 import { RESTAURANT_DISCOUNT_EXPR, RESTAURANT_EARNINGS_EXPR, restaurantEarningsOf } from "../utils/earnings.js";
 import { dateKey, resolveTimeZone, startOfDateKey } from "../utils/zonedTime.js";
-import { DEFAULT_TIMEZONE, isOpenAt } from "../utils/schedule.js";
+import { DEFAULT_TIMEZONE } from "../utils/schedule.js";
+import { computeIsOpenNow } from "../utils/restaurantAvailability.js";
 import { parsePagination } from "../utils/pagination.js";
 import { rangeWindow, reportRangeFor } from "./analytics.service.js";
 import { addDays, daysBetween, isDateKey, isoWeekday, weekStartKey } from "@chowgo/shared/dateKeys";
@@ -214,7 +215,7 @@ export async function getClosures(userId) {
 
 /** Replaces the restaurant's closures; past ones are dropped. Takes effect at once. */
 export async function setClosures(userId, input) {
-  const restaurant = await ownRestaurant(userId, "closures schedule isActive");
+  const restaurant = await ownRestaurant(userId, "closures schedule isActive pause");
   const timeZone = resolveTimeZone(restaurant.timezone);
   const today = dateKey(new Date(), timeZone);
   const result = normalizeClosures(input, today);
@@ -222,7 +223,7 @@ export async function setClosures(userId, input) {
     const { code, ...params } = result.error;
     throw new AppError(`errors:closure.${code.replace("CLOSURE_", "").toLowerCase().replace(/_(\w)/g, (_, c) => c.toUpperCase())}`, 400, code, params, params);
   }
-  const isOpenNow = Boolean(restaurant.isActive) && isOpenAt(restaurant.schedule, new Date(), timeZone, result.closures);
+  const isOpenNow = computeIsOpenNow({ ...restaurant, closures: result.closures });
   await Restaurant.updateOne({ _id: restaurant._id }, { $set: { closures: result.closures, isOpenNow } });
   return { closures: result.closures, timeZone, today, isOpenNow };
 }

@@ -197,6 +197,19 @@ const restaurantSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    // Short-term overrides set from the seller's status control
+    // (@chowgo/shared/restaurantStatus). Both expire on their own.
+    pause: {
+      until: { type: Date, default: null },
+      indefinite: { type: Boolean, default: false },
+      reason: { type: String, maxlength: 80, default: "" },
+      since: { type: Date, default: null },
+    },
+    busy: {
+      extraMinutes: { type: Number, min: 0, max: 60, default: 0 },
+      until: { type: Date, default: null },
+      since: { type: Date, default: null },
+    },
     estimatedDeliveryTime: {
       type: String,
       default: "30-45 min",

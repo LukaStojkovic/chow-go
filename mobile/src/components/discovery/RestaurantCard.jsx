@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Image } from "expo-image";
 import { Heart, Star } from "lucide-react-native";
 import { formatDistance, formatFee, formatRating } from "@chowgo/shared/format";
+import { unavailableReason } from "@chowgo/shared/adapters/restaurant";
 import { PressableScale } from "@/components/motion/Pressable";
 import { Text } from "@/components/ui/Text";
 import { cn } from "@/lib/cn";
@@ -28,6 +29,17 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
   const { color } = useTokens();
   const motion = useMotion();
   const closed = restaurant.availability !== "open";
+  const paused = restaurant.availability === "closed" && Boolean(restaurant.pause);
+  const orderAhead = restaurant.availability === "closed" && !paused && Boolean(restaurant.orderAhead);
+  const busy = !closed && restaurant.busyExtraMinutes > 0;
+  const closedLabel =
+    restaurant.availability === "unavailable"
+      ? t("restaurant:availability.unavailable")
+      : paused
+        ? unavailableReason(restaurant)
+        : orderAhead
+          ? t("restaurant:availability.preorderShort")
+          : t("restaurant:availability.closedNow");
 
   const meta = [restaurant.cuisine, formatDistance(restaurant.distance)]
     .filter(Boolean)
@@ -80,15 +92,21 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
         {closed ? (
           <View
             className={cn(
-              "absolute inset-0 items-center justify-center",
-              restaurant.availability === "unavailable" ? "bg-black/50" : "bg-black/35",
+              "absolute inset-0 items-center justify-center px-6",
+              restaurant.availability === "unavailable"
+                ? "bg-black/50"
+                : orderAhead
+                  ? "bg-black/15"
+                  : "bg-black/35",
             )}
           >
-            <View className="rounded-full bg-card px-3.5 py-1.5">
-              <Text variant="label-sm">
-                {restaurant.availability === "unavailable"
-                  ? t("restaurant:availability.unavailable")
-                  : t("restaurant:availability.closedNow")}
+            <View className={cn("rounded-full px-3.5 py-1.5", orderAhead ? "bg-tertiary" : "bg-card")}>
+              <Text
+                variant="label-sm"
+                numberOfLines={2}
+                className={cn("text-center", orderAhead && "text-tertiary-foreground")}
+              >
+                {closedLabel}
               </Text>
             </View>
           </View>
@@ -116,9 +134,21 @@ export function RestaurantCard({ restaurant, onPress, isFavourite, onToggleFavou
           </Text>
         ) : null}
 
-        <Text variant="body-sm" tone="muted" numberOfLines={1}>
-          {delivery}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <Text variant="body-sm" tone="muted" numberOfLines={1} className="shrink">
+            {delivery}
+          </Text>
+          {busy ? (
+            <Text
+              variant="label-sm"
+              tone="warning"
+              accessibilityLabel={t("restaurant:screen.busyHint")}
+              className="shrink-0"
+            >
+              {t("restaurant:screen.busy")}
+            </Text>
+          ) : null}
+        </View>
       </View>
     </PressableScale>
   );

@@ -123,3 +123,17 @@ describe("a closed restaurant that takes pre-orders", () => {
     expect(screen.getByRole("button", { name: t("restaurant:availability.closedNow") })).toBeDisabled();
   });
 });
+
+it("prices the add button by quantity and ticks when the dish lands", async () => {
+  const Haptics = require("expo-haptics");
+  const addItem = await renderScreen();
+
+  await fireEvent.press(await screen.findByRole("button", { name: t("basket:increaseQuantity") }));
+  const button = screen.getByRole("button", {
+    name: t("basket:addQuantity", { quantity: 2, price: formatPrice(600, { currency: "RSD" }) }),
+  });
+
+  await fireEvent.press(button);
+  expect(addItem).toHaveBeenCalledWith("m1", 2, undefined, []);
+  expect(Haptics.notificationAsync).toHaveBeenCalledWith(Haptics.NotificationFeedbackType.Success);
+});

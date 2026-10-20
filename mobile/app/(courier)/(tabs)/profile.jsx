@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import {
@@ -16,6 +16,7 @@ import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -95,11 +96,7 @@ export default function CourierProfile() {
 
   return (
     <Screen edges={["top"]}>
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-32 pt-2"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll contentContainerClassName="gap-3 px-5 pb-32 pt-2">
         <SectionHeader
           title={t("profile.title")}
           size="lg"
@@ -233,7 +230,7 @@ export default function CourierProfile() {
             {t("profile:deleteAccount.confirm")}
           </Text>
         </Button>
-      </ScrollView>
+      </KeyboardScroll>
     </Screen>
   );
 }

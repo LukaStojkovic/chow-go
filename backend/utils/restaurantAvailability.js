@@ -1,10 +1,23 @@
 import { deliverySlots, schedulingInputs } from "@chowgo/shared/scheduling";
+import { isAcceptingAt } from "@chowgo/shared/restaurantStatus";
+import { DEFAULT_TIMEZONE } from "./schedule.js";
 import { AppError } from "./AppError.js";
 
 const isLive = (restaurant) => {
   const approved = !restaurant?.approvalStatus || restaurant.approvalStatus === "approved";
   return Boolean(restaurant?.isActive) && approved;
 };
+
+/**
+ * The value `isOpenNow` should hold: active, open by its schedule and closures, and not paused.
+ * Every place that recomputes it (the cron, settings, closures, status, admin) goes through here.
+ */
+export function computeIsOpenNow(restaurant, now = new Date()) {
+  if (!restaurant?.isActive) return false;
+  return isAcceptingAt({ ...plain(restaurant), timezone: restaurant.timezone || DEFAULT_TIMEZONE }, now);
+}
+
+const plain = (doc) => (typeof doc?.toObject === "function" ? doc.toObject() : doc);
 
 /** Whether a closed restaurant still has a slot a customer could schedule for. */
 export function takesScheduledOrders(restaurant, now = new Date()) {

@@ -59,6 +59,7 @@ export default function CheckoutPage() {
   const [chosenSlot, setChosenSlot] = useState(null);
   const [scheduleError, setScheduleError] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(0);
+  const [outOfRange, setOutOfRange] = useState(null);
   const tick = useNow(60000);
 
   useEffect(() => {
@@ -96,6 +97,9 @@ export default function CheckoutPage() {
 
   const blockers = [];
   if (!selectedDeliveryAddress) blockers.push(t("checkout.blockers.address"));
+  else if (outOfRange?.addressId === selectedDeliveryAddress._id) {
+    blockers.push(t("addressForm.outOfRangeBlocker"));
+  }
   if (!paymentMethod) blockers.push(t("checkout.blockers.payment"));
   if (!restaurant?._id) blockers.push(t("checkout.blockers.restaurant"));
   if (isScheduled && !scheduledFor) {
@@ -139,6 +143,12 @@ export default function CheckoutPage() {
           fetchCart();
         }
         if (code === "RESTAURANT_CLOSED") fetchCart();
+        if (code === "OUT_OF_DELIVERY_RANGE") {
+          setOutOfRange({
+            addressId: selectedDeliveryAddress._id,
+            message: error?.response?.data?.message || t("addressForm.outOfRangeHint"),
+          });
+        }
       },
     });
   };
@@ -195,7 +205,7 @@ export default function CheckoutPage() {
         <ContentShell
           main={
             <Stack gap="2xl">
-              <AddressStep step={1} />
+              <AddressStep step={1} outOfRange={outOfRange} />
 
               <DeliveryTimeStep
                 step={2}

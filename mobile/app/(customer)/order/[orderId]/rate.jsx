@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Star } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toOrderView } from "@chowgo/shared/adapters/order";
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Card } from "@/components/ui/Card";
 import { DockedBar } from "@/components/ui/FloatingBar";
 
@@ -109,11 +110,7 @@ export default function RateOrder() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("rating.title")} subtitle={order?.restaurant?.name} />
 
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-8"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll docked contentContainerClassName="gap-3 px-5 pb-8">
         <Card className="gap-4">
           <View className="flex-row items-center gap-3">
             <View className="flex-1">
@@ -171,9 +168,9 @@ export default function RateOrder() {
             />
           </Card>
         ) : null}
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar>
+      <DockedBar sticky>
         <Button
           size="lg"
           fullWidth

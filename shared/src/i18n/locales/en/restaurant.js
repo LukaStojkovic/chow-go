@@ -62,6 +62,8 @@ export default {
     closedNoSlot: "Closed right now. Check the opening hours for the next slot.",
     closedUntilDate: "Closed until {{date}}.",
     closedForReason: "Closed until {{date}}: {{reason}}",
+    pausedUntil: "Not taking orders right now. Back at {{time}}.",
+    paused: "Not taking orders right now.",
     closedNow: "Closed now",
     preorder: "Closed now. Order ahead for later.",
     preorderShort: "Order ahead",
@@ -231,5 +233,11 @@ export default {
     badge: "{{value}}% off",
     srPrefix: "Promotion:",
     save: "Save",
+  },
+
+  screen: {
+    busy: "Busy",
+    busyHint: "Busy right now, delivery takes a little longer",
+    shareMessage: "{{name}} on Chow & Go: {{link}}",
   },
 };

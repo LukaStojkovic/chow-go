@@ -9,6 +9,8 @@ import { fullScreenModalOptions, sheetOptions, stackScreenOptions } from "@/navi
 import { useCartStore } from "@/store/useCartStore";
 import { useTokens } from "@/theme/useTokens";
 
+export const unstable_settings = { anchor: "(tabs)" };
+
 export default function CustomerLayout() {
   const { color } = useTokens();
   const authUser = useAuthStore((state) => state.authUser);

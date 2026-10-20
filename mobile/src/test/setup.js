@@ -4,6 +4,10 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+jest.mock("react-native-keyboard-controller", () =>
+  require("react-native-keyboard-controller/jest"),
+);
+
 jest.mock("expo-secure-store", () => {
   const store = new Map();
   return {
@@ -38,6 +42,10 @@ jest.mock("expo-haptics", () => ({
 
 jest.mock("expo-location", () => ({
   getForegroundPermissionsAsync: jest.fn(),
+  requestForegroundPermissionsAsync: jest.fn(),
+  getBackgroundPermissionsAsync: jest.fn(),
+  getCurrentPositionAsync: jest.fn(),
+  watchPositionAsync: jest.fn(async () => ({ remove: jest.fn() })),
   requestBackgroundPermissionsAsync: jest.fn(),
   hasStartedLocationUpdatesAsync: jest.fn(async () => false),
   startLocationUpdatesAsync: jest.fn(),

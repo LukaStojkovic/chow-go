@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlatList, RefreshControl, ScrollView, View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { ACTIVE_STATUS_FILTER, toOrderViews } from "@chowgo/shared/adapters/order";
 import { errorMessage } from "@/api/client";
@@ -8,12 +9,14 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 
 import { StatusDot } from "@/components/ui/Badge";
+import { listGap } from "@/components/ui/ListGap";
 import { Chip } from "@/components/ui/Chip";
 import { SearchInput } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
 
 import { ReceiptText } from "lucide-react-native";
+import { RestaurantStatusChip } from "@/features/seller/RestaurantStatusControl";
 import { SellerOrderCard } from "@/features/seller/SellerOrderCard";
 import { useSellerOrders, useUpdateOrderStatus } from "@/hooks/SellerOrders/useSellerOrders";
 import { useSocket } from "@/realtime/SocketProvider";
@@ -52,15 +55,19 @@ export default function SellerOrdersScreen() {
     <Screen edges={["top"]}>
       <View className="gap-3 pb-3 pt-2">
         <View className="gap-4 px-5">
-          <SectionHeader
-            title={t("orders.title")}
-            size="lg"
-            subtitle={`${orders.length} on the board`}
-            /* A seller needs to know the live feed is live; a stale console is
-               indistinguishable from a quiet evening. */
-            actionLabel={isConnected ? "Live" : "Reconnecting"}
-            onAction={() => query.refetch()}
-          />
+          <View className="flex-row items-center gap-3">
+            <SectionHeader
+              className="flex-1"
+              title={t("orders.title")}
+              size="lg"
+              subtitle={`${orders.length} on the board`}
+              /* A seller needs to know the live feed is live; a stale console is
+                 indistinguishable from a quiet evening. */
+              actionLabel={isConnected ? "Live" : "Reconnecting"}
+              onAction={() => query.refetch()}
+            />
+            <RestaurantStatusChip />
+          </View>
 
           <SearchInput
             value={text}
@@ -92,10 +99,12 @@ export default function SellerOrdersScreen() {
         </ScrollView>
       </View>
 
-      <FlatList
+      <FlashList
         data={orders}
         keyExtractor={(order) => order.id}
-        contentContainerClassName="gap-3 px-5 pb-32"
+        contentContainerClassName="px-5 pb-32"
+        ItemSeparatorComponent={listGap(3)}
+        extraData={advance.isPending ? advance.variables?.orderId : null}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

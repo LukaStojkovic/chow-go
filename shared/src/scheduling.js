@@ -165,12 +165,14 @@ const ceilToStep = (time) => {
  * @param {Date} [now]
  * @returns {null | "SCHEDULE_INVALID" | "SCHEDULE_TOO_SOON" | "SCHEDULE_TOO_FAR" | "SCHEDULE_CLOSED"}
  */
-export function slotProblem({ schedule, timeZone, prepMinutes, closures }, slot, now = new Date()) {
+export function slotProblem({ schedule, timeZone, prepMinutes, closures, pause }, slot, now = new Date()) {
   const time = new Date(slot).getTime();
   if (!Number.isFinite(time) || time % (SCHEDULING.stepMinutes * MINUTE) !== 0) return "SCHEDULE_INVALID";
   if (time < now.getTime() + SCHEDULING.minLeadMinutes * MINUTE) return "SCHEDULE_TOO_SOON";
   if (time > now.getTime() + SCHEDULING.maxDaysAhead * 24 * 60 * MINUTE) return "SCHEDULE_TOO_FAR";
-  if (!isOpenAt(schedule, releaseTimeFor(time, prepMinutes), timeZone, closures)) return "SCHEDULE_CLOSED";
+  const release = releaseTimeFor(time, prepMinutes);
+  if (pause?.indefinite || (pause?.until && new Date(pause.until) > release)) return "SCHEDULE_CLOSED";
+  if (!isOpenAt(schedule, release, timeZone, closures)) return "SCHEDULE_CLOSED";
   return null;
 }
 
@@ -191,6 +193,16 @@ export function deliverySlots(restaurant, now = new Date()) {
   return slots;
 }
 
+/** The earliest delivery time a customer could pick, or null. Stops at the first match. */
+export function firstDeliverySlot(restaurant, now = new Date()) {
+  const first = ceilToStep(now.getTime() + SCHEDULING.minLeadMinutes * MINUTE);
+  const last = now.getTime() + SCHEDULING.maxDaysAhead * 24 * 60 * MINUTE;
+  for (let time = first; time <= last; time += SCHEDULING.stepMinutes * MINUTE) {
+    if (!slotProblem(restaurant, time, now)) return new Date(time);
+  }
+  return null;
+}
+
 /** The scheduling inputs a restaurant document or view carries. */
 export function schedulingInputs(restaurant) {
   return {
@@ -198,5 +210,6 @@ export function schedulingInputs(restaurant) {
     timeZone: restaurant?.timezone || DEFAULT_TIMEZONE,
     prepMinutes: restaurant?.estimatedPreparationTime,
     closures: restaurant?.closures ?? null,
+    pause: restaurant?.pause ?? null,
   };
 }

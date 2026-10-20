@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { router } from "expo-router";
 
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Input } from "@/components/ui/Input";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
@@ -46,11 +47,7 @@ export default function DeleteAccount() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("deleteAccount.title")} onBack={() => router.back()} />
 
-      <ScrollView
-        contentContainerClassName="gap-5 px-5 pb-10"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
+      <KeyboardScroll contentContainerClassName="gap-5 px-5 pb-10">
         <Text variant="body" tone="muted">
           {t("deleteAccount.body1")}
         </Text>
@@ -115,7 +112,7 @@ export default function DeleteAccount() {
             {t("deleteAccount.cancel")}
           </Text>
         </Button>
-      </ScrollView>
+      </KeyboardScroll>
     </Screen>
   );
 }

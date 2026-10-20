@@ -87,6 +87,7 @@ export default {
   heading: "Your basket has items from another restaurant",
   addedToBasket: "Added to your basket",
   addItem: "Add · {{price}}",
+  addQuantity: "Add {{quantity}} · {{price}}",
   addFailed: "Could not add this item",
   replaceFailed: "Could not replace your basket",
   updateFailed: "Could not update the basket",
@@ -202,5 +203,20 @@ export default {
       count: "{{used}}/{{max}} characters",
       shortPlaceholder: "Allergies, buzzer code, anything else",
     },
+  },
+
+  addressForm: {
+    addNew: "Add new address",
+    formHeading: "Where should we deliver?",
+    formHint: "Drop a pin on your door, then add the details the courier needs.",
+    manage: "Manage addresses",
+    limit: "You have saved the maximum of {{max}} addresses. Remove one to add another.",
+    outOfRangeHint: "Choose another address or add one closer to the restaurant.",
+    outOfRangeBlocker: "Choose an address this restaurant delivers to.",
+  },
+
+  busy: {
+    label: "Busy",
+    description: "Busy right now. The estimate includes about {{minutes}} extra minutes.",
   },
 };

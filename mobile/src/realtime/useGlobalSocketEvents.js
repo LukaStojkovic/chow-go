@@ -132,11 +132,17 @@ export function useGlobalSocketEvents() {
       "order:courier_unassigned",
     ];
 
+    const handleStatus = (data) => {
+      if (data?.status) queryClient.setQueryData(["restaurantStatus"], data.status);
+    };
+
     socket.on("order:new", handleNewOrder);
+    socket.on("restaurant:status", handleStatus);
     events.forEach((event) => socket.on(event, refresh));
 
     return () => {
       socket.off("order:new", handleNewOrder);
+      socket.off("restaurant:status", handleStatus);
       events.forEach((event) => socket.off(event, refresh));
     };
   }, [socket, authUser?.role, queryClient]);
@@ -182,7 +188,7 @@ export function useGlobalSocketEvents() {
 
     const keys =
       authUser.role === "seller"
-        ? SELLER_KEYS
+        ? [...SELLER_KEYS, ["restaurantStatus"]]
         : authUser.role === "courier"
           ? COURIER_KEYS
           : CUSTOMER_KEYS;

@@ -1,11 +1,12 @@
 import { Fragment } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Bike, ChevronRight, Store, UserPlus } from "lucide-react-native";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Card } from "@/components/ui/Card";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { useTokens } from "@/theme/useTokens";
@@ -22,27 +23,18 @@ import { LegalConsent } from "@/features/legal/LegalConsent";
 export function AuthScreen({ title, subtitle, children, footer, showBack = true }) {
   return (
     <SafeAreaView edges={["top"]} className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
-        <ScreenHeader
-          showBack={showBack}
-          onBack={() => (router.canGoBack() ? router.back() : router.replace("/(auth)/welcome"))}
-        />
+      <ScreenHeader
+        showBack={showBack}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace("/(auth)/welcome"))}
+      />
 
-        <ScrollView
-          contentContainerClassName="grow gap-8 px-5 pb-10"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <AuthHeading title={title} subtitle={subtitle} />
+      <KeyboardScroll bottomOffset={32} contentContainerClassName="grow gap-8 px-5 pb-10">
+        <AuthHeading title={title} subtitle={subtitle} />
 
-          <View className="gap-4">{children}</View>
+        <View className="gap-4">{children}</View>
 
-          {footer ? <View className="gap-7">{footer}</View> : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {footer ? <View className="gap-7">{footer}</View> : null}
+      </KeyboardScroll>
     </SafeAreaView>
   );
 }

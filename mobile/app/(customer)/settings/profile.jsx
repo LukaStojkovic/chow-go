@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { Image } from "expo-image";
 import { useMutation } from "@tanstack/react-query";
 import { ImagePlus, UserRound } from "lucide-react-native";
@@ -8,6 +8,7 @@ import { ImagePlus, UserRound } from "lucide-react-native";
 import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
 import { Card } from "@/components/ui/Card";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { DockedBar } from "@/components/ui/FloatingBar";
 
 import { Button, IconButton } from "@/components/ui/Button";
@@ -95,11 +96,7 @@ export default function EditProfile() {
   return (
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("account.personalDetails")} subtitle={authUser?.email} />
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-8"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll docked contentContainerClassName="gap-3 px-5 pb-8">
         <Card className="flex-row items-center gap-4">
           <View className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-muted">
             {photo ? (
@@ -204,9 +201,9 @@ export default function EditProfile() {
         <ConnectGoogle />
 
         <DownloadMyData />
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar>
+      <DockedBar sticky>
         <Button
           size="lg"
           fullWidth

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlatList, RefreshControl, View } from "react-native";
+import { RefreshControl, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { LogIn, Receipt } from "lucide-react-native";
 import { ACTIVE_STATUS_FILTER, toOrderViews } from "@chowgo/shared/adapters/order";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Segmented } from "@/components/ui/Chip";
+import { listGap } from "@/components/ui/ListGap";
 import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
 import { OrderCard } from "@/features/orders/OrderCard";
@@ -63,10 +65,12 @@ export default function Orders() {
         <Segmented options={TABS} value={tab} onChange={setTab} />
       </View>
 
-      <FlatList
+      <FlashList
         data={visible}
         keyExtractor={(order) => order.id}
-        contentContainerClassName="gap-3 px-5 pb-44"
+        contentContainerClassName="px-5 pb-44"
+        ItemSeparatorComponent={listGap(3)}
+        extraData={reorderingId}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

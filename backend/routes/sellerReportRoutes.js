@@ -1,5 +1,13 @@
 import { Router } from "express";
-import { exportOrders, exportPayoutOrders, getClosures, listPayouts, setClosures } from "../controllers/sellerReportController.js";
+import {
+  exportOrders,
+  exportPayoutOrders,
+  getClosures,
+  getStatus,
+  listPayouts,
+  setClosures,
+  setStatus,
+} from "../controllers/sellerReportController.js";
 import { protectedRoute } from "../middlewares/authMiddleware.js";
 import { isSellerMiddleware } from "../middlewares/roleMiddleware.js";
 
@@ -13,5 +21,7 @@ router.get("/payouts", ...seller, listPayouts);
 router.get("/payouts/:weekStart/orders.csv", ...seller, exportPayoutOrders);
 router.get("/closures", ...seller, getClosures);
 router.put("/closures", ...seller, setClosures);
+router.get("/status", ...seller, getStatus);
+router.post("/status", ...seller, setStatus);
 
 export default router;

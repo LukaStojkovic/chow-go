@@ -93,8 +93,10 @@ describe("registration", () => {
   });
 });
 
+const LISTENED = { ...EVENTS, seller: [...EVENTS.seller, "restaurant:status"] };
+
 describe("listeners", () => {
-  it.each(Object.entries(EVENTS))("%s listens to exactly its events and cleans up", async (role, events) => {
+  it.each(Object.entries(LISTENED))("%s listens to exactly its events and cleans up", async (role, events) => {
     const { unmount } = await setup(role);
     expect([...socket.handlers.keys()].sort()).toEqual([...events].sort());
     await unmount();
@@ -146,6 +148,14 @@ describe("seller", () => {
     await act(() => socket.emit(event, { order }));
     expect(keys()).toEqual(["restaurantOrders"]);
   });
+
+  it("writes a restaurant:status event into the status cache without refetching", async () => {
+    const status = { isActive: true, scheduleOpen: true, pause: { indefinite: true }, busy: null };
+    await setup("seller");
+    await act(() => socket.emit("restaurant:status", { restaurantId: "r1", status }));
+    expect(queryClient.getQueryData(["restaurantStatus"])).toEqual(status);
+    expect(invalidate).not.toHaveBeenCalled();
+  });
 });
 
 describe("courier", () => {
@@ -178,7 +188,7 @@ describe("courier", () => {
 describe("reconnect", () => {
   it.each([
     ["customer", ["order", "customerOrders"]],
-    ["seller", ["restaurantOrders"]],
+    ["seller", ["restaurantOrders", "restaurantStatus"]],
     ["courier", ["courierOrders", "courierOrder", "courierAvailableOrders"]],
   ])("resyncs a %s after missing events", async (role, expected) => {
     await setup(role, { epoch: 2 });

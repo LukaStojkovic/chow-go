@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, RefreshControl, View } from "react-native";
+import { ActivityIndicator, RefreshControl, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { MessageSquareText, Trash2 } from "lucide-react-native";
 import { REVIEW_LIMITS } from "@chowgo/shared/reviews";
 import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
+import { listGap } from "@/components/ui/ListGap";
 import { Chip, ChipRow } from "@/components/ui/Chip";
 import { Sheet, SheetActions } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
@@ -116,17 +119,20 @@ export default function SellerReviews() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("restaurant:reviews.title")} subtitle={restaurantName} />
 
-      <FlatList
+      <FlashList
         data={items}
         keyExtractor={(item) => String(item.id)}
-        contentContainerClassName="gap-3 px-5 pb-8"
+        contentContainerClassName="px-5 pb-8"
+        ItemSeparatorComponent={listGap(3)}
+        renderScrollComponent={KeyboardScroll}
+        extraData={editing}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={reviews.isRefetching && !reviews.isFetchingNextPage} onRefresh={reviews.refetch} />}
         onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         ListHeaderComponent={
-          <View className="gap-3">
+          <View className="gap-3 pb-3">
             <ReviewSummary summary={summary} />
             <View className="-mx-5">
               <ChipRow>
@@ -187,11 +193,13 @@ export default function SellerReviews() {
         }
         ListFooterComponent={
           reviews.isFetchingNextPage ? (
-            <ActivityIndicator color={color.primary} />
+            <ActivityIndicator color={color.primary} className="pt-3" />
           ) : reviews.hasNextPage ? (
-            <Button variant="outline" onPress={loadMore}>
-              {t("restaurant:reviews.loadMore")}
-            </Button>
+            <View className="pt-3">
+              <Button variant="outline" onPress={loadMore}>
+                {t("restaurant:reviews.loadMore")}
+              </Button>
+            </View>
           ) : null
         }
       />

@@ -216,6 +216,10 @@ export default {
     reason: "Keep the note under {{max}} characters",
   },
 
+  restaurantStatus: {
+    invalid: "Choose how long, and how many extra minutes, from the options shown",
+  },
+
   collection: {
     notFound: "That collection is not available",
     title: "Give the collection a title of up to {{max}} characters",
@@ -317,6 +321,8 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    ADDRESS_LIMIT: "You can save at most 5 addresses",
+    STATUS_ACTION_INVALID: "Choose a valid status option",
     REPORT_RANGE_INVALID: "Pick a start date on or before the end date",
     REPORT_RANGE_TOO_LONG: "A report can cover at most a year",
     REPORT_TOO_MANY_ROWS: "That range has too many orders. Pick a shorter one.",

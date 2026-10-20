@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlatList, RefreshControl, View } from "react-native";
+import { RefreshControl, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { ArrowRight, PackageSearch } from "lucide-react-native";
 import { toOrderViews } from "@chowgo/shared/adapters/order";
@@ -9,6 +10,7 @@ import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
+import { listGap } from "@/components/ui/ListGap";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Chip";
@@ -148,10 +150,13 @@ export default function CourierOrders() {
         />
       </View>
 
-      <FlatList
+      <FlashList
         data={orders}
         keyExtractor={(order) => order.id}
-        contentContainerClassName="gap-3 px-5 pb-32"
+        contentContainerClassName="px-5 pb-32"
+        ItemSeparatorComponent={listGap(3)}
+        extraData={accept.isPending ? accept.variables : null}
+        getItemType={() => tab}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

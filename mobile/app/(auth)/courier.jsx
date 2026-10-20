@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 
 import { errorMessage } from "@/api/client";
 import { Button } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Chip } from "@/components/ui/Chip";
 import { DockedBar } from "@/components/ui/FloatingBar";
 import { Inset } from "@/components/ui/Card";
@@ -110,10 +111,7 @@ export default function CourierSignup() {
         </View>
       </View>
 
-      <ScrollView
-        contentContainerClassName="gap-4 px-5 pb-6 pt-4"
-        keyboardShouldPersistTaps="handled"
-      >
+      <KeyboardScroll docked contentContainerClassName="gap-4 px-5 pb-6 pt-4">
         {step.key === "account" ? (
           <>
             {field("name", t("auth:fields.yourName"), { autoComplete: "name" })}
@@ -183,9 +181,9 @@ export default function CourierSignup() {
             </Inset>
           </>
         )}
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar className="flex-row items-center gap-2.5">
+      <DockedBar sticky className="flex-row items-center gap-2.5">
         {index > 0 ? (
           <Button variant="outline" size="lg" onPress={() => setIndex((current) => current - 1)}>
             {t("common:actions.back")}

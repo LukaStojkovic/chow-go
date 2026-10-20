@@ -1,5 +1,6 @@
 import Order from "../models/Order.js";
 import Restaurant from "../models/Restaurant.js";
+import { busyExtraMinutes } from "@chowgo/shared/restaurantStatus";
 import { AppError } from "../utils/AppError.js";
 import { estimatedDeliveryAt, etaWhenReady, rideMinutesForOrder } from "../utils/deliveryEta.js";
 import * as orderStatus from "../utils/orderStatus.js";
@@ -146,7 +147,10 @@ export async function confirmOrderOperation(
   restaurantId,
   estimatedPreparationTime,
 ) {
-  const prepTime = Number(estimatedPreparationTime) > 0 ? Number(estimatedPreparationTime) : 30;
+  const prepTime =
+    Number(estimatedPreparationTime) > 0
+      ? Number(estimatedPreparationTime)
+      : 30 + busyExtraMinutes(await Restaurant.findById(restaurantId).select("busy").lean());
   const pricing = await Order.findOne({ _id: orderId, restaurant: restaurantId })
     .select("priorityFee")
     .lean();

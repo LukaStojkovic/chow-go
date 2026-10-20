@@ -32,7 +32,11 @@ export function BasketMiniBar() {
 
   const count = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
   // Hidden where it would be noise or duplicate the screen's own CTA.
-  const hidden = count === 0 || pathname.startsWith("/basket") || pathname.startsWith("/checkout");
+  const hidden =
+    count === 0 ||
+    pathname.startsWith("/basket") ||
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/item/");
   if (hidden) return null;
 
   // This bar is mounted by the customer stack, above the tab navigator rather

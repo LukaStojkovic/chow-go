@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { router } from "expo-router";
 import { ArrowRight, Lock } from "lucide-react-native";
 import { MAX_ORDER_NOTES, deliveryTypes, paymentMethods } from "@chowgo/shared/constants";
@@ -12,6 +12,7 @@ import { DeliveryTimePicker } from "@/features/checkout/DeliveryTimePicker";
 import { PromoCodeField } from "@/features/checkout/PromoCodeField";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Badge } from "@/components/ui/Badge";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
@@ -176,11 +177,7 @@ export default function Checkout() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("basket:checkout.title")} subtitle={restaurant?.name} />
 
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-6"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll docked contentContainerClassName="gap-3 px-5 pb-6">
         <Section
           title={t("profile:delivery.deliverTo")}
           action={
@@ -329,9 +326,9 @@ export default function Checkout() {
         </Card>
 
         <LegalConsent i18nKey="basket:checkout.terms" className="text-center" />
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar>
+      <DockedBar sticky>
         <Button size="lg" fullWidth loading={createOrder.isPending} onPress={placeOrder}>
           <View className="w-full flex-row items-center justify-center gap-2">
             <Lock size={17} color={color["primary-foreground"]} />

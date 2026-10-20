@@ -19,6 +19,7 @@ import { I18nextProvider, useTranslation } from "react-i18next";
 import { i18next } from "@chowgo/shared/i18n";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { OfflineBanner } from "@/components/feedback/OfflineBanner";
 import { Toaster } from "@/components/feedback/Toaster";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -134,17 +135,19 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <I18nextProvider i18n={i18next}>
-        <QueryProvider>
-          <ThemeProvider>
-            <SocketProvider>
-              <AppContent />
-              <OfflineBanner />
-              <Toaster />
-            </SocketProvider>
-          </ThemeProvider>
-        </QueryProvider>
-      </I18nextProvider>
+      <KeyboardProvider>
+        <I18nextProvider i18n={i18next}>
+          <QueryProvider>
+            <ThemeProvider>
+              <SocketProvider>
+                <AppContent />
+                <OfflineBanner />
+                <Toaster />
+              </SocketProvider>
+            </ThemeProvider>
+          </QueryProvider>
+        </I18nextProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

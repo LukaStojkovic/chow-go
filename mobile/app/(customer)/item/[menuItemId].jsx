@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { UtensilsCrossed } from "lucide-react-native";
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { Inset } from "@/components/ui/Card";
 import { DockedBar } from "@/components/ui/FloatingBar";
 import { Input } from "@/components/ui/Input";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Stepper } from "@/components/ui/Stepper";
 import { Text } from "@/components/ui/Text";
@@ -54,6 +56,7 @@ export default function ItemCustomization() {
     setBusy(false);
 
     if (result.status === "added") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
       return;
     }
@@ -74,7 +77,7 @@ export default function ItemCustomization() {
 
   if (!dish && (menu.isLoading || (menu.isFetching && !menu.data))) {
     return (
-      <Screen>
+      <Screen edges={[]}>
         <ScreenHeader />
         <View className="gap-4 px-5">
           <Skeleton className="aspect-[16/10] w-full rounded-lg" />
@@ -87,7 +90,7 @@ export default function ItemCustomization() {
 
   if (!dish && menu.isError) {
     return (
-      <Screen>
+      <Screen edges={[]}>
         <ScreenHeader />
         <EmptyState
           tone="danger"
@@ -102,7 +105,7 @@ export default function ItemCustomization() {
 
   if (!dish) {
     return (
-      <Screen>
+      <Screen edges={[]}>
         <ScreenHeader />
         <EmptyState
           icon={UtensilsCrossed}
@@ -135,12 +138,8 @@ export default function ItemCustomization() {
           : t("errors:menuOption.unknown");
 
   return (
-    <Screen edges={["top", "bottom"]}>
-      <ScrollView
-        contentContainerClassName="pb-6"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+    <Screen edges={[]}>
+      <KeyboardScroll contentContainerClassName="pb-6">
         <View className="aspect-[16/10] bg-muted">
           {dish.image ? (
             <Image source={cloudinaryUrl(dish.image, { width: 1440 })} style={{ flex: 1 }} contentFit="cover" transition={500} />
@@ -199,7 +198,7 @@ export default function ItemCustomization() {
             placeholder={t("basket:kitchenNoteShortPlaceholder")}
           />
         </View>
-      </ScrollView>
+      </KeyboardScroll>
 
       <DockedBar className="gap-2">
         {closedReason ? (
@@ -226,7 +225,9 @@ export default function ItemCustomization() {
           >
             {closedReason
               ? t("restaurant:availability.closedNow")
-              : t("basket:addItem", { price: formatPrice(total, { currency }) })}
+              : quantity > 1
+                ? t("basket:addQuantity", { quantity, price: formatPrice(total, { currency }) })
+                : t("basket:addItem", { price: formatPrice(total, { currency }) })}
           </Button>
         </View>
       </DockedBar>

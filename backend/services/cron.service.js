@@ -1,6 +1,6 @@
 import cron from "node-cron";
 import Restaurant from "../models/Restaurant.js";
-import { isOpenAt } from "../utils/schedule.js";
+import { computeIsOpenNow } from "../utils/restaurantAvailability.js";
 import { logger } from "../utils/logger.js";
 import { recoverStuckOrders } from "./orderRecovery.service.js";
 import { getRedis } from "../config/redis.js";
@@ -29,7 +29,7 @@ export function startCronJobs() {
 
     try {
       const activeRestaurants = await Restaurant.find({ isActive: true })
-        .select("schedule isOpenNow timezone closures _id")
+        .select("schedule isOpenNow isActive timezone closures pause _id")
         .lean();
 
       const now = new Date();
@@ -37,7 +37,7 @@ export function startCronJobs() {
 
       for (const restaurant of activeRestaurants) {
         // Each restaurant is evaluated in its own zone rather than the host's.
-        const shouldBeOpen = isOpenAt(restaurant.schedule, now, restaurant.timezone, restaurant.closures);
+        const shouldBeOpen = computeIsOpenNow(restaurant, now);
 
         if (restaurant.isOpenNow !== shouldBeOpen) {
           bulkOperations.push({

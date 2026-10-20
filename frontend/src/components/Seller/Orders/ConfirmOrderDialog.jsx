@@ -12,6 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Clock } from "lucide-react";
+import { useRestaurantStatus } from "@/hooks/Restaurants/useRestaurantStatus";
+import { effectiveStatus } from "@/components/Seller/Status/statusView";
+
+const DEFAULT_PREP = 30;
 
 export function ConfirmOrderDialog({
   isOpen,
@@ -20,18 +24,27 @@ export function ConfirmOrderDialog({
   isConfirming,
 }) {
   const { t } = useTranslation(["seller", "common"]);
-  const [prepTime, setPrepTime] = useState("30");
+  const [chosen, setChosen] = useState(null);
+  const { data: status } = useRestaurantStatus();
+  const busyExtra = effectiveStatus(status)?.busy?.extraMinutes ?? 0;
+  const prepTime = chosen ?? String(DEFAULT_PREP + busyExtra);
+  const setPrepTime = setChosen;
+
+  const handleClose = () => {
+    setChosen(null);
+    onClose();
+  };
 
   const handleConfirm = () => {
     const time = parseInt(prepTime);
     if (time && time > 0) {
       onConfirm(time);
-      setPrepTime("30");
+      setChosen(null);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(next) => !next && handleClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -57,6 +70,11 @@ export function ConfirmOrderDialog({
             <p className="text-xs text-muted-foreground">
               {t("orders.prepTimeHint")}
             </p>
+            {busyExtra ? (
+              <p className="text-xs font-medium text-warning">
+                {t("status.web.prepBusyHint", { minutes: busyExtra })}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex gap-2">
@@ -75,7 +93,7 @@ export function ConfirmOrderDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isConfirming}>
+          <Button variant="outline" onClick={handleClose} disabled={isConfirming}>
             {t("common:actions.cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={isConfirming || !prepTime}>

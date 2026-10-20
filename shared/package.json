@@ -27,6 +27,7 @@
     "./scheduling": "./src/scheduling.js",
     "./referral": "./src/referral.js",
     "./reportRange": "./src/reportRange.js",
+    "./restaurantStatus": "./src/restaurantStatus.js",
     "./reviews": "./src/reviews.js",
     "./search": "./src/search.js",
     "./searchFilters": "./src/searchFilters.js",

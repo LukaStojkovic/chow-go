@@ -8,7 +8,7 @@ import { AppError } from "../utils/AppError.js";
 import { parsePagination } from "../utils/pagination.js";
 import { containsRegex } from "../utils/regex.js";
 import { ACTIVE_STATUSES } from "../utils/orderStatus.js";
-import { isOpenAt } from "../utils/schedule.js";
+import { computeIsOpenNow } from "../utils/restaurantAvailability.js";
 import { disconnectUserSockets } from "../socket/socketServer.js";
 import { forceCancelOrder } from "./orderRecovery.service.js";
 
@@ -111,7 +111,7 @@ export async function setRestaurantStatus({ actor, restaurantId, action, reason,
         approvalStatus: rule.to,
         approvalNote: note,
         isActive: rule.live,
-        isOpenNow: rule.live ? isOpenAt(current.schedule, new Date(), current.timezone, current.closures) : false,
+        isOpenNow: rule.live ? computeIsOpenNow({ ...current, isActive: true }) : false,
       },
     },
     { new: true },

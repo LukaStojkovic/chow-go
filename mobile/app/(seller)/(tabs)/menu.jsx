@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FlatList, RefreshControl, ScrollView, View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { ListOrdered, Plus, UtensilsCrossed } from "lucide-react-native";
 import { categoryOptions } from "@chowgo/shared/constants";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { listGap } from "@/components/ui/ListGap";
 import { Card } from "@/components/ui/Card";
 import { Chip } from "@/components/ui/Chip";
 import { SearchInput } from "@/components/ui/Input";
@@ -109,14 +111,15 @@ export default function SellerMenu() {
         </ScrollView>
       </View>
 
-      <FlatList
+      <FlashList
         data={items}
         keyExtractor={(item) => String(item._id)}
         onEndReachedThreshold={0.5}
         onEndReached={() => {
           if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
         }}
-        contentContainerClassName="gap-3 px-5 pb-32"
+        contentContainerClassName="px-5 pb-32"
+        ItemSeparatorComponent={listGap(3)}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

@@ -8,7 +8,6 @@ import { formatPrice } from "@chowgo/shared/format";
 import { BarChart } from "@/components/charts/BarChart";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
-import { StatusDot } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -22,6 +21,7 @@ import { useSellerOrders } from "@/hooks/SellerOrders/useSellerOrders";
 import { useTokens } from "@/theme/useTokens";
 import { useRefreshTint } from "@/theme/useRefreshTint";
 import { ApprovalNotice } from "@/features/seller/ApprovalNotice";
+import { RestaurantStatusCard } from "@/features/seller/RestaurantStatusControl";
 
 function StatTile({ label, value, icon, tone, trend, isPositive }) {
   const { color } = useTokens();
@@ -102,7 +102,6 @@ export default function SellerOverview() {
   const popularItems = query.data?.popularItems ?? [];
   const recentOrders = toOrderViews(query.data?.recentOrders ?? []);
   const counts = board.data?.counts ?? {};
-  const isOpen = Boolean(restaurant?.isOpenNow);
 
   if (query.isLoading) {
     return (
@@ -151,27 +150,7 @@ export default function SellerOverview() {
           </View>
         </View>
 
-        {/* Whether the kitchen is currently taking orders is precomputed by the
-              cron job from the schedule, so this reports it rather than offering
-              a switch there is no endpoint to honour. */}
-        <Card
-          className="flex-row items-center gap-3"
-          bordered={!isOpen}
-          elevation={isOpen ? "subtle" : "none"}
-        >
-          <StatusDot tone={isOpen ? "success" : "muted"} size={10} />
-          <View className="flex-1">
-            <Text variant="h3">
-              {isOpen ? t("settings.acceptingOrdersShort") : t("settings.closedRightNow")}
-            </Text>
-            <Text variant="caption" tone="muted">
-              {isOpen ? t("dashboard.openHint") : t("dashboard.closedHint")}
-            </Text>
-          </View>
-          <Button variant="mint" size="sm" onPress={() => router.push("/(seller)/(tabs)/settings")}>
-            {t("settings.hours.heading")}
-          </Button>
-        </Card>
+        <RestaurantStatusCard />
 
         <View className="flex-row gap-3">
           <StatTile

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
 import { ArrowDown, ArrowUp, FolderInput, Plus, Trash2 } from "lucide-react-native";
@@ -10,6 +10,7 @@ import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button, IconButton } from "@/components/ui/Button";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Card, Inset } from "@/components/ui/Card";
 import { Sheet, SheetActions } from "@/components/ui/Dialog";
 import { DockedBar } from "@/components/ui/FloatingBar";
@@ -160,11 +161,7 @@ export default function MenuLayoutScreen() {
     <Screen edges={["top", "bottom"]}>
       <ScreenHeader title={t("menuLayout.title")} />
 
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-8"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll docked bottomOffset={124} contentContainerClassName="gap-3 px-5 pb-8">
         <Text variant="body-sm" tone="muted">
           {t("menuLayout.hint")}
         </Text>
@@ -282,9 +279,9 @@ export default function MenuLayoutScreen() {
             </Card>
           </>
         )}
-      </ScrollView>
+      </KeyboardScroll>
 
-      <DockedBar>
+      <DockedBar sticky>
         {dirty ? (
           <Text variant="caption" tone="warning" className="text-center">
             {t("menuLayout.unsaved")}

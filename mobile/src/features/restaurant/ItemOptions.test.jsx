@@ -91,6 +91,20 @@ describe("item options", () => {
     expect(addItem).toHaveBeenCalledWith("m1", 1, undefined, ["large", "cheese"]);
   });
 
+  it("multiplies options by quantity in the add button", async () => {
+    const addItem = await renderSheet();
+
+    await fireEvent.press(screen.getByRole("radio", { name: "Large" }));
+    await fireEvent.press(screen.getByRole("button", { name: t("basket:increaseQuantity") }));
+    await fireEvent.press(screen.getByRole("button", { name: t("basket:increaseQuantity") }));
+    const button = screen.getByRole("button", {
+      name: t("basket:addQuantity", { quantity: 3, price: price(37.5) }),
+    });
+
+    await fireEvent.press(button);
+    expect(addItem).toHaveBeenCalledWith("m1", 3, undefined, ["large"]);
+  });
+
   it("disables sold-out options", async () => {
     await renderSheet();
     expect(screen.getByRole("checkbox", { name: "Ham" })).toBeDisabled();

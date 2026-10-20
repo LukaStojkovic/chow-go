@@ -452,3 +452,12 @@ export function emitOrderBackToPool(order) {
     logger.error({ err: error }, "Socket emit error (order:available - back to pool)");
   }
 }
+
+/** The seller's busy/pause status, so every device signed in to the restaurant shows the same thing. */
+export function emitRestaurantStatus(restaurantId, status) {
+  try {
+    getSocketServer().emitToRestaurant(restaurantId, "restaurant:status", { restaurantId: String(restaurantId), status });
+  } catch (error) {
+    logger.error({ err: error, restaurantId: String(restaurantId) }, "restaurant status emit failed");
+  }
+}

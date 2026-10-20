@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { LayoutGrid, SearchX } from "lucide-react-native";
@@ -71,7 +72,7 @@ export function CollectionScreen({ slug }) {
     <Screen>
       <ScreenHeader title={collection?.title} />
 
-      <FlatList
+      <FlashList
         key={isDishes ? "dishes" : "restaurants"}
         data={items}
         numColumns={isDishes ? 2 : 1}
@@ -113,7 +114,7 @@ export function CollectionScreen({ slug }) {
         }
         renderItem={({ item, index }) =>
           isDishes ? (
-            <View className={index % 2 === 0 ? "w-1/2 pb-3 pl-5 pr-1.5" : "w-1/2 pb-3 pl-1.5 pr-5"}>
+            <View className={index % 2 === 0 ? "pb-3 pl-5 pr-1.5" : "pb-3 pl-1.5 pr-5"}>
               <DishCard
                 dish={item}
                 className="w-full"

@@ -23,6 +23,12 @@ vi.mock("@/components/basket/ItemCustomizationSheet", () => ({
 }));
 
 const COORDS = { lat: 44.8, lon: 20.4 };
+const ROUND_THE_CLOCK = Object.fromEntries(
+  ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"].map((day) => [
+    day,
+    { isOpen: true, openingTime: "00:00", closingTime: "00:00" },
+  ]),
+);
 
 const restaurant = (id, name, extra = {}) => ({
   _id: id,
@@ -79,7 +85,7 @@ describe("SearchPage results", () => {
         page({ restaurants: [restaurant("r1", "Pizza Uno")], total: 2, hasNext: true }),
       )
       .mockResolvedValueOnce(
-        page({ restaurants: [restaurant("r2", "Pizza Due", { isOpenNow: false })], page: 2, total: 2 }),
+        page({ restaurants: [restaurant("r2", "Pizza Due", { isOpenNow: false, schedule: ROUND_THE_CLOCK })], page: 2, total: 2 }),
       );
 
     renderAt("/search?q=pizza&openNow=true&maxDeliveryTime=30&sort=rating");

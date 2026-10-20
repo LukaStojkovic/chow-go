@@ -353,4 +353,13 @@ export default {
     increaseQuantityOf: "Increase quantity of {{name}}",
     quantityOf: "Quantity of {{name}}",
   },
+  locationAccess: {
+    blockedTitle: "Location access is off",
+    blockedBody: "We can't see where you are. Turn on location in Settings, or enter an address instead.",
+    courierBody: "Customers can't follow this delivery until location is on. Turn it on in Settings.",
+    backgroundTitle: "Allow location all the time",
+    backgroundBody:
+      "Choose \"Allow all the time\" in Settings so customers keep seeing you while your screen is locked.",
+    openSettings: "Open Settings",
+  },
 };

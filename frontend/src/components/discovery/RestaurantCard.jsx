@@ -17,6 +17,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { UtensilsCrossed } from "lucide-react";
 
+import { unavailableReason } from "@chowgo/shared/adapters/restaurant";
+
 import { cn } from "@/lib/utils";
 import { hoverLift, listItem } from "@/lib/motion";
 import { SmartImage } from "@/components/common/SmartImage";
@@ -54,8 +56,10 @@ export function RestaurantCard({
   animate = true,
   className,
 }) {
-  const { t } = useTranslation("restaurant");
+  const { t } = useTranslation(["restaurant", "basket"]);
   const isClosed = restaurant.availability !== "open";
+  const isPaused = restaurant.availability === "closed" && Boolean(restaurant.pause);
+  const busyMinutes = restaurant.busyExtraMinutes > 0 ? restaurant.busyExtraMinutes : 0;
   const Wrapper = animate ? motion.article : "article";
   // The lift is a spring on transform; the shadow and border ride the CSS
   // transition in `.surface-interactive`. Split that way because a springing
@@ -90,8 +94,14 @@ export function RestaurantCard({
 
         {isClosed && (
           <div className="absolute inset-x-3 bottom-3 flex flex-wrap gap-1.5">
-            <AvailabilityBadge availability={restaurant.availability} placement="onCard" />
-            {restaurant.availability === "closed" && (
+            {isPaused ? (
+              <Badge variant="overlay" className="whitespace-normal">
+                {unavailableReason(restaurant)}
+              </Badge>
+            ) : (
+              <AvailabilityBadge availability={restaurant.availability} placement="onCard" />
+            )}
+            {restaurant.orderAhead && (
               <Badge variant="overlay">{t("availability.preorderShort")}</Badge>
             )}
           </div>
@@ -137,6 +147,18 @@ export function RestaurantCard({
 
         <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
           <DeliveryEstimate estimate={restaurant.deliveryEstimate} />
+          {busyMinutes > 0 && (
+            <Badge
+              variant="warning"
+              size="sm"
+              title={t("basket:busy.description", { minutes: busyMinutes })}
+            >
+              <span aria-hidden="true">{t("basket:busy.label")}</span>
+              <span className="sr-only">
+                {t("basket:busy.description", { minutes: busyMinutes })}
+              </span>
+            </Badge>
+          )}
           <MetaDot />
           <DeliveryFee fee={restaurant.deliveryFee} />
           {/* Distance is one of the signals people compare on, so it is shown

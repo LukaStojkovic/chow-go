@@ -22,6 +22,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Logo from "@/components/Navbar/Logo";
 import { SidebarLink } from "@/components/ui/SidebarLink";
 import UserMenu from "@/components/Navbar/UserMenu";
+import { RestaurantStatusControl } from "@/components/Seller/Status/RestaurantStatusControl";
 
 export default function SellerLayout() {
   const { t } = useTranslation(["seller", "restaurant", "common"]);
@@ -87,7 +88,8 @@ export default function SellerLayout() {
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-muted ">
         <header className="lg:hidden flex items-center justify-between p-4 bg-card border-b border-border shrink-0">
-          <span className="font-bold text-lg">{currentTitle}</span>
+          <span className="font-bold text-lg truncate">{currentTitle}</span>
+          <RestaurantStatusControl className="ml-auto mr-2 min-w-0" />
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-muted-foreground hover:bg-muted rounded-lg active:scale-95 transition-transform"
@@ -102,13 +104,16 @@ export default function SellerLayout() {
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 scroll-smooth">
           <div className="mx-auto max-w-7xl">
-            <div className="hidden lg:block mb-8">
-              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
-                {currentTitle}
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                {t("portalSubtitle")}
-              </p>
+            <div className="hidden lg:flex mb-8 items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+                  {currentTitle}
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  {t("portalSubtitle")}
+                </p>
+              </div>
+              <RestaurantStatusControl className="mt-1" />
             </div>
 
             <PageTransition

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, Keyboard, Pressable, View } from "react-native";
+import { ActivityIndicator, Keyboard, Pressable, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { Clock, Search as SearchIcon, X } from "lucide-react-native";
 import { toDishViews } from "@chowgo/shared/adapters/menu";
@@ -12,6 +13,7 @@ import { RestaurantCard } from "@/components/discovery/RestaurantCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button, IconButton } from "@/components/ui/Button";
+import { listGap } from "@/components/ui/ListGap";
 import { SearchInput } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
@@ -137,10 +139,11 @@ export default function Search() {
       </View>
 
       <View className="flex-1">
-        <FlatList
+        <FlashList
           data={searching ? restaurants : []}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="gap-4 pb-44"
+          contentContainerClassName="pb-44"
+          ItemSeparatorComponent={listGap(4)}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           onEndReachedThreshold={0.5}
@@ -149,19 +152,21 @@ export default function Search() {
           }}
           ListHeaderComponent={
             searching && dishes.length ? (
-              <Rail
-                title={t("discover:search.dishesHeading")}
-                subtitle={t("discover:summary.matchingDishes", { count: dishes.length })}
-                data={dishes}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <DishCard
-                    dish={item}
-                    closed={closedRestaurants.has(item.restaurantId)}
-                    onPress={() => openRestaurant(item.restaurantId)}
-                  />
-                )}
-              />
+              <View className="pb-4">
+                <Rail
+                  title={t("discover:search.dishesHeading")}
+                  subtitle={t("discover:summary.matchingDishes", { count: dishes.length })}
+                  data={dishes}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <DishCard
+                      dish={item}
+                      closed={closedRestaurants.has(item.restaurantId)}
+                      onPress={() => openRestaurant(item.restaurantId)}
+                    />
+                  )}
+                />
+              </View>
             ) : null
           }
           renderItem={({ item, index }) => (
@@ -182,7 +187,7 @@ export default function Search() {
           )}
           ListFooterComponent={
             searching && query.hasNextPage ? (
-              <View className="items-center px-5 pt-2">
+              <View className="items-center px-5 pt-6">
                 {query.isFetchingNextPage ? (
                   <ActivityIndicator color={color.primary} />
                 ) : (

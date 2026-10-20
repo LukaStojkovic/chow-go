@@ -12,7 +12,8 @@ import { t } from "../i18n/index.js";
 import { pricingFor } from "./pricing.js";
 import { normalizeCurrency } from "../currency.js";
 import { WEEK_DAYS, dayLabel, getTodayKey, normalizeSchedule } from "../schedule.js";
-import { activeClosure } from "../scheduling.js";
+import { activeClosure, firstDeliverySlot, schedulingInputs } from "../scheduling.js";
+import { addMinutesToEstimate, busyExtraMinutes, pauseState } from "../restaurantStatus.js";
 import { addDays } from "../dateKeys.js";
 import { currentLocale, intlLocale } from "../i18n/index.js";
 
@@ -90,7 +91,8 @@ export function toRestaurantView(raw) {
         ? raw.averageRating
         : null,
     reviewCount: Number(raw.totalReviews) || 0,
-    deliveryEstimate: raw.estimatedDeliveryTime || "30-45 min",
+    deliveryEstimate: addMinutesToEstimate(raw.estimatedDeliveryTime || "30-45 min", busyExtraMinutes(raw)),
+    busyExtraMinutes: busyExtraMinutes(raw),
     currency: normalizeCurrency(raw.currency),
     // A flat platform fee in the restaurant's currency, not set per restaurant.
     deliveryFee: pricingFor(raw.currency).deliveryFee,
@@ -101,6 +103,8 @@ export function toRestaurantView(raw) {
     distance: typeof raw.distance === "number" ? raw.distance : null,
     availability,
     closure: closureView(raw),
+    pause: pauseView(raw),
+    orderAhead: availability === "closed" ? orderAheadView(raw) : null,
     isOpen,
     phone: raw.phone || null,
     address: toAddress(raw.address),
@@ -112,6 +116,23 @@ export function toRestaurantView(raw) {
 function closureView(raw, now = new Date()) {
   const closure = activeClosure(raw?.closures, now, raw?.timezone);
   return closure ? { from: closure.from, to: closure.to, reason: closure.reason || "", reopensOn: addDays(closure.to, 1) } : null;
+}
+
+/** A closed restaurant that still takes orders for later, with its first delivery time. */
+function orderAheadView(raw, now = new Date()) {
+  const approved = !raw.approvalStatus || raw.approvalStatus === "approved";
+  if (!approved || !raw.schedule) return null;
+  const slot = firstDeliverySlot(schedulingInputs(raw), now);
+  return slot ? { firstSlot: slot.toISOString() } : null;
+}
+
+function pauseView(raw, now = new Date()) {
+  const pause = pauseState(raw, now);
+  return pause ? { until: pause.until ? pause.until.toISOString() : null, reason: pause.reason } : null;
+}
+
+function timeLabel(iso) {
+  return new Date(iso).toLocaleTimeString(intlLocale(currentLocale()), { hour: "2-digit", minute: "2-digit" });
 }
 
 function reopenLabel(key) {
@@ -146,6 +167,11 @@ export function unavailableReason(restaurant) {
     return t("restaurant:availability.notAccepting");
   }
   if (restaurant.availability === "closed") {
+    if (restaurant.pause) {
+      return restaurant.pause.until
+        ? t("restaurant:availability.pausedUntil", { time: timeLabel(restaurant.pause.until) })
+        : t("restaurant:availability.paused");
+    }
     if (restaurant.closure) {
       const date = reopenLabel(restaurant.closure.reopensOn);
       return restaurant.closure.reason

@@ -11,6 +11,7 @@ import { Screen, ScreenHeader } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { useAddresses, useDeleteAddress, useSetDefaultAddress } from "@/hooks/Address/useAddresses";
 import { useDetectLocation } from "@/hooks/Location/useDetectLocation";
+import { LocationPermissionNotice } from "@/features/location/LocationPermissionNotice";
 import { useDeliveryStore } from "@/store/useDeliveryStore";
 import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
@@ -20,7 +21,7 @@ export default function Addresses() {
   const addresses = useAddresses();
   const setDefault = useSetDefaultAddress();
   const removeAddress = useDeleteAddress();
-  const { detect, isDetecting } = useDetectLocation();
+  const { detect, isDetecting, blocked } = useDetectLocation();
   const activeAddress = useDeliveryStore((state) => state.address);
   const setLocation = useDeliveryStore((state) => state.setLocation);
   const { color } = useTokens();
@@ -140,6 +141,7 @@ export default function Addresses() {
 
         {/* Ordering from somewhere that is not worth saving - a park, a
             friend's flat - still needs the feed pointed at it. */}
+        {blocked ? <LocationPermissionNotice /> : null}
         <Button variant="mint" size="lg" loading={isDetecting} onPress={detect}>
           <View className="flex-row items-center gap-2">
             <Crosshair size={17} color={color.primary} />

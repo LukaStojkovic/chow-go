@@ -356,4 +356,13 @@ export default {
     increaseQuantityOf: "Povećaj količinu za {{name}}",
     quantityOf: "Količina za {{name}}",
   },
+  locationAccess: {
+    blockedTitle: "Pristup lokaciji je isključen",
+    blockedBody: "Ne vidimo gde se nalazite. Uključite lokaciju u podešavanjima ili unesite adresu.",
+    courierBody: "Kupci ne mogu da prate ovu dostavu dok je lokacija isključena. Uključite je u podešavanjima.",
+    backgroundTitle: "Dozvolite lokaciju sve vreme",
+    backgroundBody:
+      "U podešavanjima izaberite „Dozvoli sve vreme“ kako bi vas kupci videli i dok je ekran zaključan.",
+    openSettings: "Otvori podešavanja",
+  },
 };

@@ -6,6 +6,7 @@ import { formatDistance, formatDuration, haversineMeters } from "@chowgo/shared/
 import { Map, MapMarker, RouteLine, toRegion } from "@/components/map/Map";
 import { Text } from "@/components/ui/Text";
 import { useRouteDirections } from "@/hooks/Map/useRouteDirections";
+import { LocationPermissionNotice } from "@/features/location/LocationPermissionNotice";
 import { useTokens } from "@/theme/useTokens";
 
 // Close enough that a route is noise - the courier is standing at the door.
@@ -32,6 +33,8 @@ export function DeliveryNavigationMap({
   courier,
   isTracking,
   isDenied,
+  isBlocked = false,
+  isBackgroundDenied = false,
   topOffset = 0,
 }) {
   const { t } = useTranslation(["courier", "order", "seller", "restaurant", "basket", "profile", "common"]);
@@ -157,7 +160,9 @@ export function DeliveryNavigationMap({
           ) : null}
         </View>
 
-        {waitingForFix || isDenied || (error && !route) ? (
+        {isDenied && isBlocked ? (
+          <LocationPermissionNotice body={t("common:locationAccess.courierBody")} />
+        ) : waitingForFix || isDenied || (error && !route) ? (
           <View
             style={elevation.raised[scheme]}
             className="flex-row items-center gap-2.5 rounded-lg bg-card px-3.5 py-2.5"
@@ -184,6 +189,8 @@ export function DeliveryNavigationMap({
             )}
           </View>
         ) : null}
+
+        {isBackgroundDenied ? <LocationPermissionNotice kind="background" /> : null}
       </View>
     </View>
   );

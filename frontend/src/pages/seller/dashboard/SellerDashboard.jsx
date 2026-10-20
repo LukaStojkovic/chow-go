@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { DashboardStats } from "./DashboardStats";
 import { ApprovalNotice } from "@/components/Seller/ApprovalNotice";
+import { RestaurantStatusBanner } from "@/components/Seller/Status/RestaurantStatusBanner";
 import { RevenueChart } from "./RevenueChart";
 import { PopularItems } from "./PopularItems";
 import { RecentOrders } from "./RecentOrders";
@@ -55,6 +56,7 @@ export const SellerDashboard = () => {
   return (
     <div className="space-y-8">
       <ApprovalNotice />
+      <RestaurantStatusBanner />
       <DashboardStats stats={restaurantStats.stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

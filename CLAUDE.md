@@ -67,7 +67,7 @@ every one listed in its `check:all` script against a throwaway in-memory MongoDB
 no running server and never touching a real database. Run it after any change to the
 order lifecycle, auth, or pricing. Individually: `check:observability`, `check:reset`,
 `check:google-linking`, `check:google`, `check:google-link`, `check:deletion`, `check:account-data`, `check:admin`, `check:page-meta`, `check:courier-access`,
-`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:collections`, `check:seller-reports`, `check:schema`,
+`check:cancel`, `check:transitions`, `check:rating`, `check:money`, `check:earnings`, `check:checkout`, `check:promo`, `check:cart-quantity`, `check:menu-options`, `check:restaurant-location`, `check:menu-layout`, `check:upsell`, `check:scheduled`, `check:eta`, `check:referral`, `check:reviews`, `check:pagination`, `check:search`, `check:discover-search`, `check:collections`, `check:seller-reports`, `check:restaurant-status`, `check:schema`,
 `check:images`, `check:upload-cleanup`, `check:geocoding`, `check:sessions`, `check:auth-abuse`, `check:push`, `check:push-tokens`, `check:schedule`.
 Scripts that spawn `index.js` pass `MAIL_DISABLED=true`, which makes `utils/mail.js` a no-op;
 without it they send real mail through the Gmail account in `.env`.
@@ -231,6 +231,24 @@ The customer menu (`getMenuByCategories`) returns the seller's non-empty section
 ## Referrals
 
 Every customer gets an 8-character invite code (`User.referralCode`, created on first `GET /api/referrals/me`; alphabet without 0/O/1/I). A new customer applies a friend's code with `POST /api/referrals/apply` before their first placed order (cancelled and rejected ones don't count) and immediately gets a first-order personal voucher; when that friend's first order is **delivered**, `courierOrder.service.js#markDeliveredOperation` calls `referral.service.js#rewardReferrerSafely` (fire-and-forget) and the referrer gets one. Amounts and validity live in `@chowgo/shared/referral` (RSD: 300 each, friend's minimum 1000; EUR/USD 3/3/10; 30 and 60 days). One `Referral` row per invited customer (`referred` unique), moved `pending → rewarded` by a conditional update so a reward is paid once; past 20 rewards in 30 days it becomes `capped` instead. Vouchers come from `promoCode.service.js#createPersonalVoucher` (shared with support's `issueVoucher`) with `sourceReferral` set. Refusals: `REFERRAL_INVALID_CODE` / `_OWN_CODE` / `_ALREADY_APPLIED` (409) / `_NOT_NEW` / `_CUSTOMER_ONLY` (403); apply shares `promoLimiter`. The share link is the web's `/invite/<code>` (`referralLink`). `check:referral` covers it. Loyalty or a subscription is not built.
+
+## Busy and pause mode
+
+These are short-term overrides on top of the weekly schedule, stored on the restaurant as `busy: {extraMinutes, until}` and `pause: {until, indefinite, reason}`. Both expire on their own. `@chowgo/shared/restaurantStatus` defines the rules: `pauseState`, `busyState`, `busyExtraMinutes` and `isAcceptingAt` (open by the schedule and closures, and not paused).
+
+- **Endpoints.** `GET`/`POST /api/restaurant/status` is seller-only (`services/restaurantStatus.service.js`). `POST` takes one action:
+  - `pause` with `{minutes}` (5–1440) or `{until: "endOfDay" | "indefinite"}`, plus an optional `reason`;
+  - `resume`;
+  - `busy` with `{extraMinutes}` (5–60) and `{minutes}` (15–240);
+  - `normal`.
+
+  The refusal is `STATUS_ACTION_INVALID` (with `details.field`).
+- **What a write does.** It recomputes `isOpenNow` in the same write and emits `restaurant:status` to the restaurant room, through `orderSocket.service.js#emitRestaurantStatus`. The response and the event both carry the effective state, not the raw fields.
+- **Recomputing `isOpenNow`.** This now always goes through `utils/restaurantAvailability.js#computeIsOpenNow`: active, open by the schedule and closures, and not paused. The cron, settings, closures, admin approval and status all use it. Because of the cron, an expired pause reopens the restaurant within a minute.
+- **Effect of a pause.** It blocks orders for now. Pre-order slots whose kitchen start falls inside the pause are dropped too (`schedulingInputs` carries `pause`), so an indefinite pause allows no slots at all. Customers see "Not taking orders right now. Back at …" through `toRestaurantView().pause` and `unavailableReason`.
+- **Effect of busy.** It adds its minutes to the prep time of new orders, both at placement and when an order is accepted without an explicit prep time. The adapter adds the same minutes to `deliveryEstimate` and exposes `busyExtraMinutes` on the view.
+- **Card projections.** Discover, search and collections select `pause` and `busy`.
+- **Testing.** `check:restaurant-status` covers all of it.
 
 ## Seller reporting, payouts and closures
 

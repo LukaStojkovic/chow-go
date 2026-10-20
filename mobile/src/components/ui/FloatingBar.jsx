@@ -2,6 +2,7 @@ import { View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { cn } from "@/lib/cn";
+import { KeyboardDock } from "./KeyboardAware";
 import { useTokens } from "@/theme/useTokens";
 
 /**
@@ -68,11 +69,11 @@ export function FloatingBar({
  * A plain docked footer for full-width actions - checkout totals, destructive
  * confirmations. Sits flush, blurs nothing, and keeps its own safe-area pad.
  */
-export function DockedBar({ children, className }) {
+export function DockedBar({ children, className, sticky = false }) {
   const insets = useSafeAreaInsets();
   const { elevation, scheme } = useTokens();
 
-  return (
+  const bar = (
     <View
       style={[elevation.overlay[scheme], { paddingBottom: Math.max(insets.bottom, 16) }]}
       className={cn("gap-3 rounded-t-xl border-t border-border bg-card px-5 pt-4", className)}
@@ -80,4 +81,6 @@ export function DockedBar({ children, className }) {
       {children}
     </View>
   );
+
+  return sticky ? <KeyboardDock>{bar}</KeyboardDock> : bar;
 }

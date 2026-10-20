@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Check, ImagePlus, Loader, LogOut, MapPin, MessageSquareText, Store, TicketPercent } from "lucide-react-native";
@@ -9,6 +9,7 @@ import { errorMessage } from "@/api/client";
 import { pickImages } from "@/api/uploads";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Badge } from "@/components/ui/Badge";
+import { KeyboardScroll } from "@/components/ui/KeyboardAware";
 import { Button } from "@/components/ui/Button";
 import { Card, Inset } from "@/components/ui/Card";
 import { ListRow } from "@/components/ui/ListRow";
@@ -126,11 +127,7 @@ export default function SellerSettings() {
 
   return (
     <Screen edges={["top"]}>
-      <ScrollView
-        contentContainerClassName="gap-3 px-5 pb-32 pt-2"
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardScroll contentContainerClassName="gap-3 px-5 pb-32 pt-2">
         {/* There is no save button - the form autosaves - so this badge is the
               only thing telling the seller their edit landed. */}
         <View className="flex-row items-end justify-between gap-3 pb-1">
@@ -335,7 +332,7 @@ export default function SellerSettings() {
             {t("profile:deleteAccount.confirm")}
           </Text>
         </Button>
-      </ScrollView>
+      </KeyboardScroll>
     </Screen>
   );
 }
