@@ -31,6 +31,7 @@
     "./reviews": "./src/reviews.js",
     "./search": "./src/search.js",
     "./searchFilters": "./src/searchFilters.js",
+    "./stock": "./src/stock.js",
     "./strings": "./src/strings.js",
     "./validation": "./src/validation.js",
     "./adapters/menu": "./src/adapters/menu.js",

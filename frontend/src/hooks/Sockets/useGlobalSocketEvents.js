@@ -296,7 +296,13 @@ export const useGlobalSocketEvents = () => {
       else queryClient.invalidateQueries({ queryKey: ["restaurantStatus"] });
     };
 
+    const handleMenuStock = () => {
+      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurant-menu"] });
+    };
+
     socket.on("order:new", handleNewOrder);
+    socket.on("menu:stock", handleMenuStock);
     socket.on("restaurant:status", handleRestaurantStatus);
     socket.on("order:cancelled", handleOrderCancelled);
     socket.on("order:assigned", () => {
@@ -317,6 +323,7 @@ export const useGlobalSocketEvents = () => {
 
     return () => {
       socket.off("order:new", handleNewOrder);
+      socket.off("menu:stock", handleMenuStock);
       socket.off("restaurant:status", handleRestaurantStatus);
       socket.off("order:cancelled", handleOrderCancelled);
       socket.off("order:assigned");
@@ -374,6 +381,7 @@ export const useGlobalSocketEvents = () => {
     } else if (authUser.role === "seller") {
       queryClient.invalidateQueries({ queryKey: ["restaurantOrders"] });
       queryClient.invalidateQueries({ queryKey: ["restaurantStatus"] });
+      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
     } else if (authUser.role === "courier") {
       queryClient.invalidateQueries({ queryKey: ["courierAvailableOrders"] });
       queryClient.invalidateQueries({ queryKey: ["courierOrders"] });

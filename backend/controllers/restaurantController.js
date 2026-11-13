@@ -1,4 +1,5 @@
 import * as menuItemService from "../services/menuItem.service.js";
+import * as menuStockService from "../services/menuStock.service.js";
 import * as restaurantService from "../services/restaurant.service.js";
 import * as statsService from "../services/stats.service.js";
 import * as analyticsService from "../services/analytics.service.js";
@@ -232,4 +233,13 @@ export async function getRestaurantAnalytics(req, res, next) {
   } catch (error) {
     next(error);
   }
+}
+
+export async function setMenuItemStock(req, res) {
+  const menuItem = await menuStockService.setStock({
+    restaurantId: req.params.restaurantId,
+    menuItemId: req.params.menuItemId,
+    input: req.body,
+  });
+  res.status(200).json({ status: "success", data: { menuItem } });
 }

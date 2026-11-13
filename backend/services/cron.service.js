@@ -3,6 +3,7 @@ import Restaurant from "../models/Restaurant.js";
 import { computeIsOpenNow } from "../utils/restaurantAvailability.js";
 import { logger } from "../utils/logger.js";
 import { recoverStuckOrders } from "./orderRecovery.service.js";
+import { restockDue } from "./menuStock.service.js";
 import { getRedis } from "../config/redis.js";
 
 const MINUTE_JOB_LOCK_MS = 55_000;
@@ -63,6 +64,12 @@ export function startCronJobs() {
       await recoverStuckOrders();
     } catch (error) {
       logger.error({ err: error }, "Stuck-order recovery failed");
+    }
+
+    try {
+      await restockDue();
+    } catch (error) {
+      logger.error({ err: error }, "Menu restock failed");
     }
   });
 

@@ -136,13 +136,20 @@ export function useGlobalSocketEvents() {
       if (data?.status) queryClient.setQueryData(["restaurantStatus"], data.status);
     };
 
+    const handleStock = () => {
+      queryClient.invalidateQueries({ queryKey: ["menuItems"] });
+      queryClient.invalidateQueries({ queryKey: ["menuItem"] });
+    };
+
     socket.on("order:new", handleNewOrder);
     socket.on("restaurant:status", handleStatus);
+    socket.on("menu:stock", handleStock);
     events.forEach((event) => socket.on(event, refresh));
 
     return () => {
       socket.off("order:new", handleNewOrder);
       socket.off("restaurant:status", handleStatus);
+      socket.off("menu:stock", handleStock);
       events.forEach((event) => socket.off(event, refresh));
     };
   }, [socket, authUser?.role, queryClient]);
@@ -188,7 +195,7 @@ export function useGlobalSocketEvents() {
 
     const keys =
       authUser.role === "seller"
-        ? [...SELLER_KEYS, ["restaurantStatus"]]
+        ? [...SELLER_KEYS, ["restaurantStatus"], ["menuItems"]]
         : authUser.role === "courier"
           ? COURIER_KEYS
           : CUSTOMER_KEYS;

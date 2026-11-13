@@ -6,6 +6,7 @@ import {
   deleteMenuItem,
   editMenuItem,
   getRestaurantMenuItems,
+  setMenuItemStock,
   getRestaurantMenuItem,
   getRestaurantInformations,
   getRestaurantMenuByCategories,
@@ -69,6 +70,12 @@ router.get(
   isSellerMiddleware,
   requireRestaurantOwnership,
   getRestaurantMenuItem,
+);
+router.patch(
+  "/:restaurantId/menu-items/:menuItemId/stock",
+  isSellerMiddleware,
+  requireRestaurantOwnership,
+  setMenuItemStock,
 );
 router.delete(
   "/:restaurantId/menu/:menuItemId",

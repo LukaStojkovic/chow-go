@@ -209,6 +209,10 @@ export default {
     reason: "Napomena može imati najviše {{max}} znakova",
   },
 
+  menuStock: {
+    invalid: "Izaberite da li je na stanju ili rasprodato, i do kada",
+  },
+
   restaurantStatus: {
     invalid: "Izaberite trajanje i dodatne minute među ponuđenim opcijama",
   },
@@ -311,6 +315,7 @@ export default {
   },
 
   byCode: {
+    STOCK_INVALID: "Izaberite ispravnu opciju zaliha",
     ADDRESS_LIMIT: "Možete sačuvati najviše 5 adresa",
     STATUS_ACTION_INVALID: "Izaberite ispravnu opciju statusa",
     REPORT_RANGE_INVALID: "Izaberite početni datum pre ili jednak krajnjem",

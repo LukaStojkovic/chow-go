@@ -30,6 +30,7 @@ const SELLER_EVENTS = [
   "order:delivered",
   "order:courier_unassigned",
   "restaurant:status",
+  "menu:stock",
 ];
 const COURIER_EVENTS = [
   "order:assigned",
@@ -216,6 +217,12 @@ describe("seller events", () => {
     expect(invalidate).not.toHaveBeenCalled();
   });
 
+  it("refreshes the seller menu on menu:stock", () => {
+    setup("seller");
+    act(() => socket.emit("menu:stock", { restaurantId: "r1", menuItemId: "m1", optionId: null }));
+    expect(invalidatedKeys()).toEqual(["menuItems", "restaurant-menu"]);
+  });
+
   it("asks sellers and couriers for notification permission, not customers", () => {
     setup("customer").unmount();
     expect(NotificationMock.requestPermission).not.toHaveBeenCalled();
@@ -254,7 +261,7 @@ describe("courier events", () => {
 describe("reconnect", () => {
   it.each([
     ["customer", ["order", "customerOrders"]],
-    ["seller", ["restaurantOrders", "restaurantStatus"]],
+    ["seller", ["restaurantOrders", "restaurantStatus", "menuItems"]],
     ["courier", ["courierAvailableOrders", "courierOrders", "courierOrder"]],
   ])("refetches what a %s may have missed while disconnected", (role, keys) => {
     setup(role, { epoch: 2 });

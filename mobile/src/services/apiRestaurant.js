@@ -129,3 +129,8 @@ export async function getRestaurantAnalytics(restaurantId) {
   const { data } = await api.get(`/restaurants/${restaurantId}/analytics`);
   return data.data;
 }
+
+export async function setMenuItemStock(restaurantId, menuItemId, body) {
+  const { data } = await api.patch(`/restaurants/${restaurantId}/menu-items/${menuItemId}/stock`, body);
+  return data.data.menuItem;
+}

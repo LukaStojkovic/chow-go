@@ -93,7 +93,7 @@ describe("registration", () => {
   });
 });
 
-const LISTENED = { ...EVENTS, seller: [...EVENTS.seller, "restaurant:status"] };
+const LISTENED = { ...EVENTS, seller: [...EVENTS.seller, "restaurant:status", "menu:stock"] };
 
 describe("listeners", () => {
   it.each(Object.entries(LISTENED))("%s listens to exactly its events and cleans up", async (role, events) => {
@@ -156,6 +156,12 @@ describe("seller", () => {
     expect(queryClient.getQueryData(["restaurantStatus"])).toEqual(status);
     expect(invalidate).not.toHaveBeenCalled();
   });
+
+  it("refreshes the menu list on a menu:stock event", async () => {
+    await setup("seller");
+    await act(() => socket.emit("menu:stock", { restaurantId: "r1", menuItemId: "m1", optionId: null }));
+    expect(keys()).toEqual(["menuItems", "menuItem"]);
+  });
 });
 
 describe("courier", () => {
@@ -188,7 +194,7 @@ describe("courier", () => {
 describe("reconnect", () => {
   it.each([
     ["customer", ["order", "customerOrders"]],
-    ["seller", ["restaurantOrders", "restaurantStatus"]],
+    ["seller", ["restaurantOrders", "restaurantStatus", "menuItems"]],
     ["courier", ["courierOrders", "courierOrder", "courierAvailableOrders"]],
   ])("resyncs a %s after missing events", async (role, expected) => {
     await setup(role, { epoch: 2 });

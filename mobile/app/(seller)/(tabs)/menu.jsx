@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import { ListOrdered, Plus, UtensilsCrossed } from "lucide-react-native";
+import { ListOrdered, Plus, RotateCcw, UtensilsCrossed } from "lucide-react-native";
 import { categoryOptions } from "@chowgo/shared/constants";
+import { errorMessage } from "@/api/client";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Skeleton } from "@/components/feedback/Skeleton";
 import { Button } from "@/components/ui/Button";
@@ -17,7 +19,10 @@ import { Screen } from "@/components/ui/Screen";
 import { SectionHeader } from "@/components/ui/Section";
 import { Text } from "@/components/ui/Text";
 import { SellerMenuItemRow } from "@/features/seller/MenuItemRow";
-import { useMenuItemPages } from "@/hooks/Restaurants/useMenuItems";
+import { MenuStockSheet } from "@/features/seller/MenuStockSheet";
+import { useMenuItemPages, useMenuItems, useOwnRestaurantId } from "@/hooks/Restaurants/useMenuItems";
+import { restockAllSoldOut, useSetMenuItemStock } from "@/hooks/Restaurants/useMenuStock";
+import { toast } from "@/store/useToastStore";
 import { useTokens } from "@/theme/useTokens";
 import { useRefreshTint } from "@/theme/useRefreshTint";
 
@@ -30,7 +35,11 @@ export default function SellerMenu() {
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [availableOnly, setAvailableOnly] = useState(false);
+  const [availability, setAvailability] = useState("");
+  const [stockTarget, setStockTarget] = useState(null);
+  const [restock, setRestock] = useState(null);
+  const restaurantId = useOwnRestaurantId();
+  const stock = useSetMenuItemStock();
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(text.trim()), 400);
@@ -40,14 +49,53 @@ export default function SellerMenu() {
   const query = useMenuItemPages({
     search: search || undefined,
     category: category || undefined,
-    available: availableOnly ? "true" : undefined,
+    available: availability || undefined,
   });
+  const soldOutQuery = useMenuItems({ available: "false", limit: 1 });
+  const soldOutCount = soldOutQuery.data?.pagination?.totalItems ?? 0;
 
   const items = useMemo(
     () => (query.data?.pages ?? []).flatMap((page) => page?.menuItems ?? []),
     [query.data],
   );
   const totalItems = query.data?.pages?.[0]?.pagination?.totalItems ?? items.length;
+  const filtered = Boolean(search || category || availability);
+  const stockItem = stockTarget
+    ? (items.find((item) => String(item._id) === String(stockTarget.item._id)) ?? stockTarget.item)
+    : null;
+
+  const setStock = ({ name, ...variables }) =>
+    stock.mutate(variables, {
+      onSuccess: () => Haptics.selectionAsync(),
+      onError: (error) =>
+        toast.error(t("stock.failed"), {
+          description: name ? `${name} · ${errorMessage(error)}` : errorMessage(error),
+        }),
+    });
+
+  const toggleStock = (item, next) => {
+    if (next) setStock({ menuItemId: item._id, available: true, name: item.name });
+    else setStockTarget({ item, mode: "dish" });
+  };
+
+  const restockAll = async () => {
+    const progress = { done: 0, total: soldOutCount };
+    setRestock({ ...progress });
+    try {
+      await restockAllSoldOut(restaurantId, stock.mutateAsync, (done, total) => {
+        Object.assign(progress, { done, total });
+        setRestock({ done, total });
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast.success(t("stock.restocked"));
+    } catch (error) {
+      toast.error(t("stock.restockFailed", { count: Math.max(1, progress.total - progress.done) }), {
+        description: errorMessage(error),
+      });
+    } finally {
+      setRestock(null);
+    }
+  };
 
   return (
     <Screen edges={["top"]}>
@@ -95,10 +143,19 @@ export default function SellerMenu() {
         >
           <Chip
             label={t("menu.onlyAvailable")}
-            active={availableOnly}
+            active={availability === "true"}
             showCheck
-            onPress={() => setAvailableOnly((current) => !current)}
+            onPress={() => setAvailability((current) => (current === "true" ? "" : "true"))}
           />
+
+          {soldOutCount > 0 || availability === "false" ? (
+            <Chip
+              label={`${t("stock.filter")} (${soldOutCount})`}
+              active={availability === "false"}
+              showCheck
+              onPress={() => setAvailability((current) => (current === "false" ? "" : "false"))}
+            />
+          ) : null}
 
           {categories.filter((entry) => entry.id !== "all").map((entry) => (
             <Chip
@@ -109,6 +166,27 @@ export default function SellerMenu() {
             />
           ))}
         </ScrollView>
+
+        {availability === "false" && soldOutCount > 0 ? (
+          <View className="px-5">
+            <Button
+              variant="mint"
+              size="md"
+              fullWidth
+              disabled={Boolean(restock)}
+              onPress={restockAll}
+            >
+              <View className="flex-row items-center gap-1.5">
+                <RotateCcw size={16} strokeWidth={2.4} color={color.primary} />
+                <Text variant="label" className="text-primary-subtle-foreground">
+                  {restock
+                    ? t("stock.restocking", { done: restock.done, total: restock.total })
+                    : t("stock.restockAll")}
+                </Text>
+              </View>
+            </Button>
+          </View>
+        ) : null}
       </View>
 
       <FlashList
@@ -132,6 +210,8 @@ export default function SellerMenu() {
           <SellerMenuItemRow
             item={item}
             onPress={() => router.push(`/(seller)/menu-item/${item._id}`)}
+            onToggleStock={toggleStock}
+            onOpenOptions={(entry) => setStockTarget({ item: entry, mode: "options" })}
           />
         )}
         ListEmptyComponent={
@@ -144,15 +224,20 @@ export default function SellerMenu() {
           ) : (
             <EmptyState
               icon={UtensilsCrossed}
-              title={search || category ? t("menu.emptyMatch") : t("menu.emptyNone")}
-              description={
-                search || category ? t("menu.emptyMatchHint") : t("menu.emptyNoneHint")
-              }
-              actionLabel={search || category ? undefined : t("menu.addTitle")}
+              title={filtered ? t("menu.emptyMatch") : t("menu.emptyNone")}
+              description={filtered ? t("menu.emptyMatchHint") : t("menu.emptyNoneHint")}
+              actionLabel={filtered ? undefined : t("menu.addTitle")}
               onAction={() => router.push("/(seller)/menu-item/new")}
             />
           )
         }
+      />
+
+      <MenuStockSheet
+        target={stockTarget}
+        item={stockItem}
+        onClose={() => setStockTarget(null)}
+        onSet={setStock}
       />
     </Screen>
   );

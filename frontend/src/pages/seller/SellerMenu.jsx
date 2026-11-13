@@ -6,6 +6,10 @@ import useDeleteMenuItem from "@/components/Seller/hooks/useDeleteMenuItem";
 import useGetMenuItems from "@/components/Seller/hooks/useGetMenuItems";
 import MenuItemCard from "@/components/Seller/MenuItemCard";
 import MenuItemFilters from "@/components/Seller/MenuItemFilters";
+import {
+  useRestockAll,
+  useSoldOutMenuItems,
+} from "@/components/Seller/hooks/useMenuItemStock";
 import { priceFilterScale } from "@/lib/priceFilter";
 import { useCurrency } from "@/hooks/useCurrency";
 import { CardSkeleton } from "@/components/skeletons/CardSkeleton";
@@ -16,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { DeleteModal } from "@/components/ui/DeleteModal";
 import PaginationSelector from "@/components/ui/PaginationSelector";
 import { useAuthStore } from "@/store/useAuthStore";
-import { ListOrdered, Plus } from "lucide-react";
+import { ListOrdered, PackageCheck, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { useDebounce } from "use-debounce";
@@ -69,6 +73,10 @@ export const SellerMenu = () => {
   } = useGetMenuItems(restaurantId, filters);
 
   const { deleteMenuItem, isDeleting } = useDeleteMenuItem();
+  const [soldOutOnly, setSoldOutOnly] = useState(false);
+  const { soldOut } = useSoldOutMenuItems(restaurantId);
+  const { restockAll, progress, isRestocking } = useRestockAll(restaurantId);
+  const visibleItems = soldOutOnly ? soldOut : menuItems;
 
   if (!restaurantId)
     return <div className="p-8 text-center">{t("errors:restaurant.notFound")}</div>;
@@ -110,7 +118,33 @@ export const SellerMenu = () => {
         currency={currency}
       />
 
-      <div className="flex flex-wrap justify-end gap-3 mb-6">
+      <div className="flex flex-wrap items-center justify-end gap-3 mb-6">
+        <div className="mr-auto flex flex-wrap items-center gap-2">
+          <Button
+            variant={soldOutOnly ? "default" : "outline"}
+            size="sm"
+            className="rounded-full"
+            aria-pressed={soldOutOnly}
+            onClick={() => setSoldOutOnly((value) => !value)}
+          >
+            {t("stock.filter")}
+            <span className="tabular">({soldOut.length})</span>
+          </Button>
+          {soldOut.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+              disabled={isRestocking}
+              onClick={() => restockAll(soldOut)}
+            >
+              <PackageCheck className="h-4 w-4" aria-hidden="true" />
+              {progress
+                ? t("stock.restocking", { done: progress.done, total: progress.total })
+                : t("stock.restockAll")}
+            </Button>
+          )}
+        </div>
         <Button asChild variant="ghost" size="lg" className="rounded-xl font-medium">
           <Link to="/seller/menu/arrange">
             <ListOrdered className="w-5 h-5 mr-2" />
@@ -138,15 +172,16 @@ export const SellerMenu = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {menuItems.length === 0 ? (
+              {visibleItems.length === 0 ? (
                 <div className="col-span-full text-center py-16 text-muted-foreground">
-                  {t("menu.empty.title")}
+                  {soldOutOnly ? t("stock.emptySoldOut") : t("menu.empty.title")}
                 </div>
               ) : (
-                menuItems.map((item, index) => (
+                visibleItems.map((item, index) => (
                   <MenuItemCard
                     key={item._id}
                     menuItem={item}
+                    restaurantId={restaurantId}
                     index={index}
                     onDelete={() => handleOpenDeleteModal(item)}
                     onEdit={() => handleOpenEditModal(item)}
@@ -155,7 +190,7 @@ export const SellerMenu = () => {
               )}
             </div>
 
-            {isFetching && !isInitialLoading && (
+            {isFetching && !isInitialLoading && !soldOutOnly && (
               <div className="absolute inset-0 bg-background/70 flex items-center justify-center rounded-lg">
                 <Spinner size="lg" />
               </div>
@@ -164,12 +199,14 @@ export const SellerMenu = () => {
         )}
       </div>
 
+      {!soldOutOnly && (
       <PaginationSelector
         pagination={pagination}
         page={page}
         setPage={setPage}
         isFetching={isFetching}
       />
+      )}
 
       <Modal
         isOpen={openAddItemModal}

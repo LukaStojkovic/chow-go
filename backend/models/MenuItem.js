@@ -40,6 +40,7 @@ const menuOptionSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, maxlength: OPTION_LIMITS.nameLength },
   priceDelta: { type: Number, default: 0, min: 0, max: OPTION_LIMITS.maxPriceDelta, set: moneySetter },
   available: { type: Boolean, default: true },
+  soldOutUntil: { type: Date, default: null },
 });
 
 const optionGroupSchema = new mongoose.Schema({
@@ -60,6 +61,8 @@ const menuItemSchema = new mongoose.Schema(
     category: { type: String, required: true, trim: true, maxlength: 60 },
     imageUrls: [{ type: String }],
     available: { type: Boolean, default: true },
+    // Set with available: false to restock automatically (@chowgo/shared/stock).
+    soldOutUntil: { type: Date, default: null },
 
     promotion: { type: promotionSchema, default: () => ({}) },
 
@@ -101,6 +104,7 @@ menuItemSchema.index({ restaurant: 1, createdAt: -1 });
 // Backs the promotions rail on discovery: "every live deal near this address"
 // is a query on these two fields plus a restaurant filter.
 menuItemSchema.index({ "promotion.isActive": 1, available: 1 });
+menuItemSchema.index({ soldOutUntil: 1 }, { partialFilterExpression: { soldOutUntil: { $type: "date" } } });
 
 const MenuItem = mongoose.model("MenuItem", menuItemSchema);
 

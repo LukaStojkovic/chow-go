@@ -240,12 +240,25 @@ export async function updateMenuItem({
   menuItem.price = numericPrice;
   menuItem.category = category.trim();
   menuItem.available = available !== "false";
+  if (menuItem.available) menuItem.soldOutUntil = null;
   menuItem.imageUrls = imageUrls;
   // Replaced wholesale rather than merged: the form always submits the whole
   // promotion block, so a merge would make "turn this deal off" impossible.
   menuItem.promotion = normalizedPromotion;
   // Absent means an older client that knows nothing about options; leave them.
-  if (groups !== undefined) menuItem.optionGroups = groups;
+  if (groups !== undefined) {
+    // The form does not carry restock timers; keep them on options that stay switched off.
+    const timers = new Map();
+    for (const group of menuItem.optionGroups ?? []) {
+      for (const option of group.options ?? []) if (option.soldOutUntil) timers.set(String(option._id), option.soldOutUntil);
+    }
+    for (const group of groups) {
+      for (const option of group.options) {
+        if (option.available === false && option._id && timers.has(String(option._id))) option.soldOutUntil = timers.get(String(option._id));
+      }
+    }
+    menuItem.optionGroups = groups;
+  }
   if (section !== undefined && String(section) !== String(menuItem.sectionId)) {
     menuItem.sectionId = section;
     menuItem.sortOrder = await nextSortOrder(restaurantId, section);

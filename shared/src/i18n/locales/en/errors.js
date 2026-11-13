@@ -216,6 +216,10 @@ export default {
     reason: "Keep the note under {{max}} characters",
   },
 
+  menuStock: {
+    invalid: "Choose in stock or sold out, and for how long",
+  },
+
   restaurantStatus: {
     invalid: "Choose how long, and how many extra minutes, from the options shown",
   },
@@ -321,6 +325,7 @@ export default {
    * these when they would otherwise have to print the server's raw message.
    */
   byCode: {
+    STOCK_INVALID: "Choose a valid stock option",
     ADDRESS_LIMIT: "You can save at most 5 addresses",
     STATUS_ACTION_INVALID: "Choose a valid status option",
     REPORT_RANGE_INVALID: "Pick a start date on or before the end date",

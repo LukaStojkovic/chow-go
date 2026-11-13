@@ -461,3 +461,12 @@ export function emitRestaurantStatus(restaurantId, status) {
     logger.error({ err: error, restaurantId: String(restaurantId) }, "restaurant status emit failed");
   }
 }
+
+/** A dish or option went in or out of stock, so the seller's other devices refresh their menu. */
+export function emitMenuStock(restaurantId, payload) {
+  try {
+    getSocketServer().emitToRestaurant(restaurantId, "menu:stock", { restaurantId: String(restaurantId), ...payload });
+  } catch (error) {
+    logger.error({ err: error, restaurantId: String(restaurantId) }, "menu stock emit failed");
+  }
+}

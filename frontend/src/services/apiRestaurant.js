@@ -143,6 +143,26 @@ export async function updateMenuItem(restaurantId, menuItemId, menuItemData) {
   }
 }
 
+export async function setMenuItemStock(restaurantId, menuItemId, body) {
+  const res = await axiosInstance.patch(
+    `/restaurants/${restaurantId}/menu-items/${menuItemId}/stock`,
+    body,
+  );
+  return res.data?.data?.menuItem;
+}
+
+export async function getAllMenuItems(restaurantId) {
+  const items = [];
+  for (let page = 1; page <= 40; page += 1) {
+    const { data } = await axiosInstance.get(`/restaurants/${restaurantId}/menu-items`, {
+      params: { page, limit: 50 },
+    });
+    items.push(...(data?.data?.menuItems ?? []));
+    if (!data?.data?.pagination?.hasNext) break;
+  }
+  return { menuItems: items };
+}
+
 export async function deleteMenuItem(restaurantId, menuItemId) {
   try {
     const res = await axiosInstance.delete(
